@@ -1,0 +1,144 @@
+{
+  "dashboard": {
+    "title": "Beyond Metacognition Monitoring",
+    "panels": [
+      {
+        "title": "Dimensional Emergence",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(origin_dim_expansions_total[5m])",
+            "legendFormat": "Dimension births/sec"
+          },
+          {
+            "expr": "origin_gap_births_total",
+            "legendFormat": "Total gap births"
+          }
+        ],
+        "type": "graph",
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "message": "High rate of dimensional expansion detected"
+        }
+      },
+      {
+        "title": "Spectral Stability",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "beyond_lambda_max",
+            "legendFormat": "λ_max"
+          },
+          {
+            "expr": "beyond_novelty_score",
+            "legendFormat": "Novelty score"
+          }
+        ],
+        "type": "graph",
+        "thresholds": [
+          {"value": 0.08, "color": "red", "op": "gt"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.08, 180], "type": "gt"},
+              "query": {"params": ["A", "3m", "now"]},
+              "reducer": {"params": [], "type": "max"},
+              "type": "query"
+            }
+          ],
+          "name": "Lambda Max Critical",
+          "message": "λ_max > 0.08 for 3 minutes - rollback may trigger"
+        }
+      },
+      {
+        "title": "Creative Mode",
+        "gridPos": {"x": 0, "y": 8, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "creative_mode",
+            "legendFormat": "Mode"
+          }
+        ],
+        "type": "stat",
+        "mappings": [
+          {"value": 0, "text": "Stable", "color": "green"},
+          {"value": 1, "text": "Exploring", "color": "blue"},
+          {"value": 0.5, "text": "Consolidating", "color": "yellow"},
+          {"value": -1, "text": "EMERGENCY", "color": "red"}
+        ]
+      },
+      {
+        "title": "Temporal Braiding Buffers",
+        "gridPos": {"x": 8, "y": 8, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "braid_buffer_fill_ratio{scale=\"micro\"}",
+            "legendFormat": "Micro (μs)"
+          },
+          {
+            "expr": "braid_buffer_fill_ratio{scale=\"meso\"}",
+            "legendFormat": "Meso (min)"
+          },
+          {
+            "expr": "braid_buffer_fill_ratio{scale=\"macro\"}",
+            "legendFormat": "Macro (hour)"
+          }
+        ],
+        "type": "gauge",
+        "thresholds": [
+          {"value": 0.8, "color": "yellow"},
+          {"value": 0.95, "color": "red"}
+        ]
+      },
+      {
+        "title": "Retro-Coherence Events",
+        "gridPos": {"x": 16, "y": 8, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "rate(braid_retrocoherence_events_total[5m])",
+            "legendFormat": "Retro-coherence/sec"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Performance Metrics",
+        "gridPos": {"x": 0, "y": 14, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(origin_classify_duration_seconds_bucket[5m]))",
+            "legendFormat": "Origin classify p95"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(braid_aggregation_duration_seconds_bucket[5m]))",
+            "legendFormat": "Braid aggregation p95"
+          }
+        ],
+        "type": "graph",
+        "unit": "s"
+      },
+      {
+        "title": "System Overview",
+        "gridPos": {"x": 12, "y": 14, "w": 12, "h": 6},
+        "type": "text",
+        "content": "### Beyond Metacognition Status\n\n- **Dimensional Emergence**: Tracks birth of new cognitive dimensions\n- **Spectral Stability**: λ_max < 0.08 for safety\n- **Creative Mode**: Entropy injection state\n- **Temporal Braiding**: Multi-scale cognitive traces\n\n#### Alerts\n- λ_max > 0.08 for 3min → Auto-rollback\n- Dimension births > 0.1/sec → Investigation needed\n- Buffer fill > 95% → Consider increasing capacity"
+      }
+    ],
+    "refresh": "5s",
+    "time": {"from": "now-1h", "to": "now"},
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+    },
+    "timezone": "browser",
+    "uid": "beyond-metacognition",
+    "version": 1
+  }
+}

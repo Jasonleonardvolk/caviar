@@ -1,0 +1,27 @@
+[Unit]
+Description=Tori Tier Mover Service
+Documentation=https://github.com/tori/maintenance
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/tori/maintenance/tier_mover.py
+User=tori
+Group=tori
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tori-tier-mover
+
+# Resource limits
+MemoryLimit=4G
+CPUQuota=50%
+
+# Security hardening
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/tori/mesh /var/log
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

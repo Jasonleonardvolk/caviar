@@ -1,0 +1,260 @@
+﻿frontend/hybrid/lib/adaptiveRenderer.ts(43,18): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/basisTranscoder.ts(29,44): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/basisTranscoder.ts(184,13): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/basisTranscoder.ts(211,13): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/basisTranscoder.ts(260,17): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+frontend/hybrid/lib/compressedUpload.ts(36,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/compressedUpload.ts(39,4): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/compressedUpload.ts(44,17): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/hybrid/lib/compressedUpload.ts(55,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(56,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(57,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(98,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/compressedUpload.ts(101,14): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/hybrid/lib/compressedUpload.ts(102,4): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/compressedUpload.ts(121,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(122,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(123,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/compressedUpload.ts(169,14): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/hybrid/lib/compressedUpload.ts(201,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/compressedUpload.ts(205,4): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/compressedUpload.ts(221,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/compressedUpload.ts(223,17): error TS2304: Cannot find name 'GPUFilterMode'.
+frontend/hybrid/lib/compressedUpload.ts(224,17): error TS2304: Cannot find name 'GPUFilterMode'.
+frontend/hybrid/lib/compressedUpload.ts(225,20): error TS2304: Cannot find name 'GPUMipmapFilterMode'.
+frontend/hybrid/lib/compressedUpload.ts(226,20): error TS2304: Cannot find name 'GPUAddressMode'.
+frontend/hybrid/lib/compressedUpload.ts(227,20): error TS2304: Cannot find name 'GPUAddressMode'.
+frontend/hybrid/lib/compressedUpload.ts(228,20): error TS2304: Cannot find name 'GPUAddressMode'.
+frontend/hybrid/lib/compressedUpload.ts(233,4): error TS2304: Cannot find name 'GPUSampler'.
+frontend/hybrid/lib/compressedUpload.ts(252,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/compressedUpload.ts(272,46): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/index.ts(5,10): error TS2305: Module '"./parallaxController"' has no exported member 'ParallaxController'.
+frontend/hybrid/lib/index.ts(6,15): error TS2305: Module '"./parallaxController"' has no exported member 'ParallaxOptions'.
+frontend/hybrid/lib/ktx2Loader.ts(6,22): error TS2307: Cannot find module 'ktx-parse' or its corresponding type declarations.
+frontend/hybrid/lib/ktx2Loader.ts(13,33): error TS7006: Parameter 'l' implicitly has an 'any' type.
+frontend/hybrid/lib/ktx2Loader.ts(24,40): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/ktx2Loader.ts(29,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/ktx2Loader.ts(29,46): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/ktx2Loader.ts(29,73): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/memory/iosPressure.ts(13,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/memory/iosPressure.ts(26,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/memory/iosPressure.ts(47,28): error TS7006: Parameter 'info' implicitly has an 'any' type.
+frontend/hybrid/lib/memory/iosPressure.ts(55,24): error TS2341: Property 'onBudgetExceeded' is private and only accessible within class 'TexturePool'.
+frontend/hybrid/lib/memory/iosPressure.ts(230,46): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(3,26): error TS2307: Cannot find module '@/lib/webgpu/shaders/post/applyPhaseLUT.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(14,20): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(15,22): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(16,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(17,21): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(29,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(29,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(66,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(66,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(73,16): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(73,42): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(73,60): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/phasePolisher.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/post/phasePolisher.ts(3,31): error TS2307: Cannot find module '@/lib/webgpu/shaders/post/phasePolisher.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/lib/post/phasePolisher.ts(14,20): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/hybrid/lib/post/phasePolisher.ts(15,22): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/lib/post/phasePolisher.ts(16,22): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/phasePolisher.ts(27,16): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/lib/post/phasePolisher.ts(28,14): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/phasePolisher.ts(28,32): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/phasePolisher.ts(30,17): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/phasePolisher.ts(46,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/phasePolisher.ts(46,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/PhaseTuner.ts(95,14): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/lib/post/PhaseTuner.ts(96,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/PhaseTuner.ts(97,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/PhaseTuner.ts(100,15): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/PhaseTuner.ts(230,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/PhaseTuner.ts(231,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/zernikeApply.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/post/zernikeApply.ts(3,25): error TS2307: Cannot find module '@/lib/webgpu/shaders/post/zernikeApply.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/lib/post/zernikeApply.ts(32,20): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/hybrid/lib/post/zernikeApply.ts(33,22): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/lib/post/zernikeApply.ts(34,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/zernikeApply.ts(35,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/zernikeApply.ts(45,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/zernikeApply.ts(45,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/zernikeApply.ts(49,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/zernikeApply.ts(49,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/post/zernikeApply.ts(76,16): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/lib/post/zernikeApply.ts(76,42): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/post/zernikeApply.ts(76,60): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(14,12): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(15,12): error TS2304: Cannot find name 'GPUSampler'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(26,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(27,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(97,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(98,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(154,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(156,4): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(172,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(173,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(174,12): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(214,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(215,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(252,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(253,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(346,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/quiltTexturePipeline.ts(347,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(8,20): error TS2304: Cannot find name 'XRSession'.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(9,21): error TS2304: Cannot find name 'XRReferenceSpace'.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(25,59): error TS2304: Cannot find name 'XRFrame'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(8,12): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(12,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(13,19): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(18,19): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(21,31): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(22,25): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(25,25): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(26,25): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(28,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(49,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(49,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(56,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(56,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(79,15): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(94,14): error TS2304: Cannot find name 'GPUTexture'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(110,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(110,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(110,82): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(132,25): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(136,16): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(136,41): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/lib/temporal/phaseRingBuffer.ts(148,16): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/main.ts(8,34): error TS2307: Cannot find module './webgpuRenderer' or its corresponding type declarations.
+frontend/hybrid/pipelines/render_select_example.ts(7,31): error TS2307: Cannot find module '@/hybrid/lib/post/PhaseTuner' or its corresponding type declarations.
+frontend/hybrid/pipelines/render_select_example.ts(8,32): error TS2307: Cannot find module '@/hybrid/lib/post/PhaseConfig' or its corresponding type declarations.
+frontend/hybrid/pipelines/render_select_example.ts(47,14): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/pipelines/render_select_example.ts(78,27): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/pipelines/render_select_example.ts(97,32): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/pipelines/render_select_example.ts(101,32): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/pipelines/render_select_example.ts(105,34): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/pipelines/render_select_example.ts(116,12): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/pipelines/render_select_example.ts(117,10): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/pipelines/render_select_example.ts(118,10): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/pipelines/render_select_example.ts(126,3): error TS1184: Modifiers cannot appear here.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(8,24): error TS2307: Cannot find module './albert/tensorSystem' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(9,33): error TS2307: Cannot find module './soliton/dynamics' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(10,30): error TS2307: Cannot find module './phase/encoder' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(19,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(31,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(32,23): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(33,24): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(97,28): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(100,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(100,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(111,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(111,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(136,35): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(152,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(152,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(160,35): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(166,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(166,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(174,36): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(180,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(180,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(188,28): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(247,47): error TS2339: Property 'requestPermission' does not exist on type '{ new (type: string, eventInitDict?: DeviceOrientationEventInit | undefined): DeviceOrientationEvent; prototype: DeviceOrientationEvent; }'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(248,40): error TS2339: Property 'requestPermission' does not exist on type '{ new (type: string, eventInitDict?: DeviceOrientationEventInit | undefined): DeviceOrientationEvent; prototype: DeviceOrientationEvent; }'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(249,27): error TS7006: Parameter 'response' implicitly has an 'any' type.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(302,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(302,46): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(316,38): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(328,20): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(332,37): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/src/main.ts(11,54): error TS2307: Cannot find module '@hybrid/lib' or its corresponding type declarations.
+frontend/hybrid/src/main.ts(12,48): error TS2307: Cannot find module '@hybrid/wgsl' or its corresponding type declarations.
+frontend/hybrid/src/main.ts(13,37): error TS2307: Cannot find module '@hybrid/lib' or its corresponding type declarations.
+frontend/hybrid/src/main.ts(17,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/src/main.ts(18,21): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/src/main.ts(42,22): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/src/main.ts(48,39): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/src/webgpu/initDevice.ts(21,11): error TS2304: Cannot find name 'GPUSupportedLimits'.
+frontend/hybrid/src/webgpu/initDevice.ts(24,17): error TS2304: Cannot find name 'GPUAdapterInfo'.
+frontend/hybrid/src/webgpu/initDevice.ts(34,21): error TS2304: Cannot find name 'GPUPowerPreference'.
+frontend/hybrid/src/webgpu/initDevice.ts(36,22): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/hybrid/src/webgpu/initDevice.ts(52,43): error TS2304: Cannot find name 'GPUSupportedLimits'.
+frontend/hybrid/src/webgpu/initDevice.ts(77,12): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/hybrid/src/webgpu/initDevice.ts(134,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/src/webgpu/initDevice.ts(149,25): error TS18046: 'navigator.gpu' is of type 'unknown'.
+frontend/hybrid/src/webgpu/initDevice.ts(170,27): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/hybrid/src/webgpu/initDevice.ts(224,15): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/src/webgpu/initDevice.ts(243,20): error TS2304: Cannot find name 'GPUAdapterInfo'.
+frontend/hybrid/src/webgpu/initDevice.ts(299,21): error TS7006: Parameter 'info' implicitly has an 'any' type.
+frontend/hybrid/tests/event-chain.spec.ts(2,30): error TS2307: Cannot find module '@playwright/test' or its corresponding type declarations.
+frontend/hybrid/tests/event-chain.spec.ts(8,28): error TS7006: Parameter 'page' implicitly has an 'any' type.
+frontend/hybrid/tests/event-chain.spec.ts(14,76): error TS7031: Binding element 'browser' implicitly has an 'any' type.
+frontend/hybrid/tests/event-chain.spec.ts(25,24): error TS7006: Parameter 'p' implicitly has an 'any' type.
+frontend/hybrid/wasmFallbackRenderer.ts(215,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(type: keyof WindowEventMap, listener: (this: Window, ev: PointerEvent | MouseEvent | UIEvent | Event | ErrorEvent | AnimationEvent | ... 22 more ... | WheelEvent) => any, options?: boolean | ... 1 more ... | undefined): void', gave the following error.
+    Argument of type '"controlUpdate"' is not assignable to parameter of type 'keyof WindowEventMap'.
+  Overload 2 of 2, '(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions | undefined): void', gave the following error.
+    Argument of type '(event: CustomEvent) => void' is not assignable to parameter of type 'EventListenerOrEventListenerObject'.
+      Type '(event: CustomEvent) => void' is not assignable to type 'EventListener'.
+        Types of parameters 'event' and 'evt' are incompatible.
+          Type 'Event' is missing the following properties from type 'CustomEvent<any>': detail, initCustomEvent
+frontend/hybrid/wavefrontReconstructor.ts(13,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/hybrid/wavefrontReconstructor.ts(16,37): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/wavefrontReconstructor.ts(17,33): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/hybrid/wavefrontReconstructor.ts(18,33): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/hybrid/wavefrontReconstructor.ts(19,34): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/hybrid/wavefrontReconstructor.ts(21,27): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/hybrid/wavefrontReconstructor.ts(22,28): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/hybrid/wavefrontReconstructor.ts(23,28): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/hybrid/wavefrontReconstructor.ts(24,30): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/hybrid/wavefrontReconstructor.ts(26,36): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/hybrid/wavefrontReconstructor.ts(27,37): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/hybrid/wavefrontReconstructor.ts(32,23): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/wavefrontReconstructor.ts(33,23): error TS2339: Property 'gpu' does not exist on type 'Navigator'.
+frontend/hybrid/wavefrontReconstructor.ts(33,49): error TS7006: Parameter 'adapter' implicitly has an 'any' type.
+frontend/hybrid/wavefrontReconstructor.ts(38,46): error TS7006: Parameter 'device' implicitly has an 'any' type.
+frontend/hybrid/wavefrontReconstructor.ts(45,26): error TS7006: Parameter 'err' implicitly has an 'any' type.
+frontend/hybrid/wavefrontReconstructor.ts(48,22): error TS7006: Parameter 'err' implicitly has an 'any' type.
+frontend/hybrid/wavefrontReconstructor.ts(66,81): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(66,106): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(67,81): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(67,106): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(67,132): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(68,81): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(68,106): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(68,132): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(69,82): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(69,107): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(72,87): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(72,112): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(80,87): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(80,112): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(435,60): error TS2304: Cannot find name 'waveBufferSize'.
+frontend/hybrid/wavefrontReconstructor.ts(435,83): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(435,109): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/hybrid/wavefrontReconstructor.ts(437,76): error TS2304: Cannot find name 'waveBufferSize'.
+frontend/hybrid/wavefrontReconstructor.ts(439,39): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/hybrid/wgsl/index.ts(5,36): error TS2307: Cannot find module './lightFieldComposer.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/wgsl/index.ts(6,44): error TS2307: Cannot find module './lightFieldComposerEnhanced.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/wgsl/index.ts(7,38): error TS2307: Cannot find module '../hybridWavefieldBlend.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/wgsl/index.ts(8,37): error TS2307: Cannot find module '../multiDepthWaveSynth.wgsl?raw' or its corresponding type declarations.
+frontend/hybrid/wgsl/index.ts(9,32): error TS2307: Cannot find module '../phaseOcclusion.wgsl?raw' or its corresponding type declarations.
+frontend/lib/webgpu/utils/texturePool.ts(9,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/texturePool.ts(10,34): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(17,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/texturePool.ts(28,16): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/lib/webgpu/utils/texturePool.ts(28,39): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(66,20): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(75,38): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/lib/webgpu/utils/texturePool.ts(96,36): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/utils/texturePool.ts(147,21): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(189,41): error TS2304: Cannot find name 'GPUDevice'.
+frontend/node_modules/vite/dist/node/index.d.ts(5,41): error TS2307: Cannot find module 'rollup/parseAst' or its corresponding type declarations.
+  There are types at 'C:/Users/jason/Desktop/tori/kha/frontend/node_modules/rollup/dist/parseAst.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+frontend/plugins/autoPrecache.ts(2,22): error TS7016: Could not find a declaration file for module 'glob'. 'C:/Users/jason/Desktop/tori/kha/frontend/node_modules/glob/glob.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/glob` if it exists or add a new declaration (.d.ts) file containing `declare module 'glob';`
+frontend/vite.config.ts(81,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'never[]' is not assignable to type '() => PluginOption[]'.
+      Type 'never[]' provides no match for the signature '(): PluginOption[]'.

@@ -1,0 +1,168 @@
+# Pre-commit hooks for TORI ALAN Backend
+# Enforces No-DB rule and code quality standards
+
+default_language_version:
+  python: python3.8
+
+repos:
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.8
+        args: ['--line-length=120']
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=google', '--line-length=120']
+
+  # Flake8 with database import detection
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: 
+          - flake8-docstrings>=1.6.0
+          - flake8-import-order>=0.18.2
+          - flake8-forbid-import>=0.1.0
+        args: ['--config=tox.ini']
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: 
+          - types-requests
+          - types-aiofiles
+          - pandas-stubs
+        args: ['--ignore-missing-imports', '--follow-imports=silent']
+
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-ll', '-r', 'alan_backend', 'python/core']
+
+  # YAML/TOML/JSON formatting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--unsafe']  # Allow custom tags
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=5000']  # 5MB limit
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Documentation
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: ['--convention=google']
+        exclude: 'tests/|backup_pre_nodb/'
+
+  # Custom hooks for No-DB enforcement
+  - repo: local
+    hooks:
+      # Check for database files
+      - id: no-database-files
+        name: Check for database files
+        entry: bash -c 'find . -name "*.sqlite" -o -name "*.db" -o -name "*.sqlite3" | grep -v backup_pre_nodb | grep -v .git | head -1 && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        description: Ensures no SQLite or database files are committed
+
+      # Check for database imports in Python files
+      - id: no-database-imports
+        name: Check for database imports
+        entry: bash -c 'grep -r "import sqlite3\|from sqlite3\|import psycopg2\|from psycopg2\|import sqlalchemy\|from sqlalchemy\|import pymongo\|from pymongo\|import redis\|from redis" . --include="*.py" --exclude-dir=backup_pre_nodb --exclude-dir=.git --exclude-dir=.tox | head -1 && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        description: Ensures no database imports in Python files
+
+      # Verify TorusRegistry is used
+      - id: verify-torus-usage
+        name: Verify TorusRegistry usage
+        entry: python -c "import ast; import sys; files=['origin_sentry.py', 'braid_aggregator.py']; [exit(1) for f in files if 'TorusRegistry' not in open(f'alan_backend/{f}').read()]"
+        language: system
+        pass_filenames: false
+        files: 'alan_backend/(origin_sentry|braid_aggregator)\.py$'
+        description: Ensures modified files use TorusRegistry
+
+      # Check observer token emission
+      - id: verify-observer-tokens
+        name: Verify observer token emission
+        entry: python -c "import sys; files=['eigensentry_guard.py', 'chaos_channel_controller.py']; [exit(1) for f in files if 'emit_token' not in open(f'alan_backend/{f}').read()]"
+        language: system
+        pass_filenames: false
+        files: 'alan_backend/(eigensentry_guard|chaos_channel_controller)\.py$'
+        description: Ensures modified files emit observer tokens
+
+      # Validate TORI_STATE_ROOT usage
+      - id: validate-state-root
+        name: Validate TORI_STATE_ROOT usage
+        entry: python -c "import os; root=os.getenv('TORI_STATE_ROOT'); exit(0 if root else print('WARNING: TORI_STATE_ROOT not set. Set with: export TORI_STATE_ROOT=/var/lib/tori'))"
+        language: system
+        pass_filenames: false
+        always_run: true
+        description: Checks if TORI_STATE_ROOT environment variable is set
+
+      # Ensure Parquet files are not committed
+      - id: no-parquet-files
+        name: No Parquet files in git
+        entry: bash -c 'find . -name "*.parquet" | grep -v .git | head -1 && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        description: Parquet files should not be committed to git
+
+  # Markdown formatting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+
+# Configuration
+files: |
+  (?x)^(
+    alan_backend/.*\.py|
+    python/core/.*\.py|
+    tests/.*\.py|
+    .*\.(yml|yaml|json|toml|md)|
+    capsule\.yml|
+    tox\.ini
+  )$
+
+exclude: |
+  (?x)^(
+    backup_pre_nodb/|
+    \.tox/|
+    \.git/|
+    __pycache__/|
+    .*\.egg-info/|
+    build/|
+    dist/|
+    \.mypy_cache/|
+    \.pytest_cache/|
+    htmlcov/|
+    .*\.pyc|
+    .*\.pyo|
+    .*\.orig|
+    .*\.rej
+  )$
+
+fail_fast: false

@@ -1,0 +1,266 @@
+# Coordinate Transformations for ELFIN
+# Transformations between different coordinate systems
+
+import StdHelpers from "std/helpers.elfin";
+import Constants from "std/constants.elfin";
+
+# Rotation matrix from Euler angles (ZYX convention)
+euler_rotation {
+  # Calculate 3D rotation matrix from Euler angles
+  # Convention: ZYX (yaw, pitch, roll)
+  matrix(roll, pitch, yaw) {
+    # Compute trigonometric values
+    cr = cos(roll);
+    sr = sin(roll);
+    cp = cos(pitch);
+    sp = sin(pitch);
+    cy = cos(yaw);
+    sy = sin(yaw);
+    
+    # Compute rotation matrix elements
+    r11 = cy * cp;
+    r12 = cy * sp * sr - sy * cr;
+    r13 = cy * sp * cr + sy * sr;
+    
+    r21 = sy * cp;
+    r22 = sy * sp * sr + cy * cr;
+    r23 = sy * sp * cr - cy * sr;
+    
+    r31 = -sp;
+    r32 = cp * sr;
+    r33 = cp * cr;
+    
+    # Return 3x3 rotation matrix
+    return [
+      [r11, r12, r13],
+      [r21, r22, r23],
+      [r31, r32, r33]
+    ];
+  }
+  
+  # Convert Euler angles to quaternion
+  quaternion(roll, pitch, yaw) {
+    # Half angles
+    hr = roll / 2;
+    hp = pitch / 2;
+    hy = yaw / 2;
+    
+    # Calculate components
+    cr = cos(hr);
+    sr = sin(hr);
+    cp = cos(hp);
+    sp = sin(hp);
+    cy = cos(hy);
+    sy = sin(hy);
+    
+    # Quaternion components (scalar-first convention)
+    qw = cr * cp * cy + sr * sp * sy;
+    qx = sr * cp * cy - cr * sp * sy;
+    qy = cr * sp * cy + sr * cp * sy;
+    qz = cr * cp * sy - sr * sp * cy;
+    
+    # Return quaternion [w, x, y, z]
+    return [qw, qx, qy, qz];
+  }
+}
+
+# Quaternion operations
+quaternion_ops {
+  # Normalize a quaternion
+  normalize(q) {
+    # Extract components
+    qw = q[0];
+    qx = q[1];
+    qy = q[2];
+    qz = q[3];
+    
+    # Calculate norm
+    norm = sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    
+    # Handle zero or near-zero norm
+    if norm < 1e-10 {
+      return [1.0, 0.0, 0.0, 0.0];
+    }
+    
+    # Normalize
+    inv_norm = 1.0 / norm;
+    return [qw*inv_norm, qx*inv_norm, qy*inv_norm, qz*inv_norm];
+  }
+  
+  # Multiply two quaternions
+  multiply(q1, q2) {
+    # Extract components
+    q1w = q1[0];
+    q1x = q1[1];
+    q1y = q1[2];
+    q1z = q1[3];
+    
+    q2w = q2[0];
+    q2x = q2[1];
+    q2y = q2[2];
+    q2z = q2[3];
+    
+    # Calculate product
+    qw = q1w*q2w - q1x*q2x - q1y*q2y - q1z*q2z;
+    qx = q1w*q2x + q1x*q2w + q1y*q2z - q1z*q2y;
+    qy = q1w*q2y - q1x*q2z + q1y*q2w + q1z*q2x;
+    qz = q1w*q2z + q1x*q2y - q1y*q2x + q1z*q2w;
+    
+    # Return quaternion
+    return [qw, qx, qy, qz];
+  }
+  
+  # Rotate a vector by a quaternion
+  rotate(q, v) {
+    # Extract components
+    qw = q[0];
+    qx = q[1];
+    qy = q[2];
+    qz = q[3];
+    
+    # Extract vector components
+    vx = v[0];
+    vy = v[1];
+    vz = v[2];
+    
+    # Calculate vector quaternion
+    qvw = 0.0;
+    qvx = vx;
+    qvy = vy;
+    qvz = vz;
+    
+    # Quaternion conjugate
+    qc = [qw, -qx, -qy, -qz];
+    
+    # Compute q * v * q'
+    qv = [qvw, qvx, qvy, qvz];
+    qvq = multiply(multiply(q, qv), qc);
+    
+    # Return rotated vector
+    return [qvq[1], qvq[2], qvq[3]];
+  }
+  
+  # Convert quaternion to rotation matrix
+  to_matrix(q) {
+    # Normalize input quaternion
+    q = normalize(q);
+    
+    # Extract components
+    qw = q[0];
+    qx = q[1];
+    qy = q[2];
+    qz = q[3];
+    
+    # Compute terms
+    qww = qw * qw;
+    qxx = qx * qx;
+    qyy = qy * qy;
+    qzz = qz * qz;
+    
+    qxy = qx * qy;
+    qxz = qx * qz;
+    qyz = qy * qz;
+    
+    qwx = qw * qx;
+    qwy = qw * qy;
+    qwz = qw * qz;
+    
+    # Compute rotation matrix
+    r11 = 2.0 * (qww + qxx) - 1.0;
+    r12 = 2.0 * (qxy - qwz);
+    r13 = 2.0 * (qxz + qwy);
+    
+    r21 = 2.0 * (qxy + qwz);
+    r22 = 2.0 * (qww + qyy) - 1.0;
+    r23 = 2.0 * (qyz - qwx);
+    
+    r31 = 2.0 * (qxz - qwy);
+    r32 = 2.0 * (qyz + qwx);
+    r33 = 2.0 * (qww + qzz) - 1.0;
+    
+    # Return 3x3 rotation matrix
+    return [
+      [r11, r12, r13],
+      [r21, r22, r23],
+      [r31, r32, r33]
+    ];
+  }
+}
+
+# Homogeneous transformations
+homogeneous_transform {
+  # Create a homogeneous transformation matrix from rotation and translation
+  matrix(R, t) {
+    # Extract rotation matrix components
+    r11 = R[0][0];
+    r12 = R[0][1];
+    r13 = R[0][2];
+    
+    r21 = R[1][0];
+    r22 = R[1][1];
+    r23 = R[1][2];
+    
+    r31 = R[2][0];
+    r32 = R[2][1];
+    r33 = R[2][2];
+    
+    # Extract translation components
+    tx = t[0];
+    ty = t[1];
+    tz = t[2];
+    
+    # Return 4x4 homogeneous transformation matrix
+    return [
+      [r11, r12, r13, tx],
+      [r21, r22, r23, ty],
+      [r31, r32, r33, tz],
+      [0.0, 0.0, 0.0, 1.0]
+    ];
+  }
+  
+  # Multiply two homogeneous transformations
+  multiply(T1, T2) {
+    # Result matrix
+    T = [
+      [0.0, 0.0, 0.0, 0.0],
+      [0.0, 0.0, 0.0, 0.0],
+      [0.0, 0.0, 0.0, 0.0],
+      [0.0, 0.0, 0.0, 0.0]
+    ];
+    
+    # Compute matrix product
+    for i in 0:4 {
+      for j in 0:4 {
+        for k in 0:4 {
+          T[i][j] = T[i][j] + T1[i][k] * T2[k][j];
+        }
+      }
+    }
+    
+    return T;
+  }
+  
+  # Transform a point by a homogeneous transformation
+  transform_point(T, p) {
+    # Extract point components
+    x = p[0];
+    y = p[1];
+    z = p[2];
+    
+    # Apply transformation
+    x_new = T[0][0]*x + T[0][1]*y + T[0][2]*z + T[0][3];
+    y_new = T[1][0]*x + T[1][1]*y + T[1][2]*z + T[1][3];
+    z_new = T[2][0]*x + T[2][1]*y + T[2][2]*z + T[2][3];
+    w = T[3][0]*x + T[3][1]*y + T[3][2]*z + T[3][3];
+    
+    # Handle homogeneous division
+    if w != 1.0 && w != 0.0 {
+      inv_w = 1.0 / w;
+      x_new = x_new * inv_w;
+      y_new = y_new * inv_w;
+      z_new = z_new * inv_w;
+    }
+    
+    return [x_new, y_new, z_new];
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "project_path": "C:\\Users\\jason\\Desktop\\tori\\kha\\src",
+  "detected_secrets": 0,
+  "migrated_secrets": 0,
+  "affected_files": 0,
+  "concept_nodes": 420,
+  "concept_edges": 418,
+  "vault_keys": [],
+  "replacement_map": {}
+}

@@ -1,0 +1,12 @@
+{
+  "type": "custom",
+  "kretschmann": "1/(r**2 + 1)**3",
+  "persistence": "chaotic_collapse",
+  "coordinates": ["r", "theta", "phi"],
+  "description": "Wormhole-like metric with smooth throat",
+  "metadata": {
+    "throat_radius": 1.0,
+    "asymptotic_flatness": true,
+    "traversable": true
+  }
+}

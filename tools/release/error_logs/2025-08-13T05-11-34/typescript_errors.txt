@@ -1,0 +1,40 @@
+﻿frontend/hybrid/lib/quiltIvfStream.ts(257,3): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+frontend/hybrid/lib/quiltIvfStream.ts(287,9): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(288,13): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(288,23): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(288,25): error TS1136: Property assignment expected.
+frontend/hybrid/lib/quiltIvfStream.ts(294,3): error TS1128: Declaration or statement expected.
+frontend/hybrid/lib/quiltIvfStream.ts(299,10): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(300,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(300,27): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(302,13): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(302,33): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(302,35): error TS1136: Property assignment expected.
+frontend/hybrid/lib/quiltIvfStream.ts(306,3): error TS1128: Declaration or statement expected.
+frontend/hybrid/lib/quiltIvfStream.ts(311,9): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(312,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(312,17): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,10): error TS1359: Identifier expected. 'const' is a reserved word that cannot be used here.
+frontend/hybrid/lib/quiltIvfStream.ts(315,16): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,22): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,25): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,29): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,40): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(315,42): error TS1136: Property assignment expected.
+frontend/hybrid/lib/quiltIvfStream.ts(331,3): error TS1128: Declaration or statement expected.
+frontend/hybrid/lib/quiltIvfStream.ts(336,19): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(336,28): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(336,30): error TS1434: Unexpected keyword or identifier.
+frontend/hybrid/lib/quiltIvfStream.ts(372,13): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(389,12): error TS1005: ';' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(390,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(390,16): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(391,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(391,23): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(392,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(392,23): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(393,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(393,20): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(394,9): error TS1005: ':' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(394,22): error TS1005: ',' expected.
+frontend/hybrid/lib/quiltIvfStream.ts(396,1): error TS1128: Declaration or statement expected.

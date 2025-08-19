@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRIS 1.0 System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #iris-display {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            transition: opacity 0.3s;
+        }
+        
+        #info-panel.hidden {
+            opacity: 0.1;
+        }
+        
+        #info-panel:hover {
+            opacity: 1 !important;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #00ffcc;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        
+        .status-label {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-group {
+            margin: 10px 0;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            margin-right: 10px;
+        }
+        
+        .test-buttons {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        #error-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff4444;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        
+        #metrics {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        
+        .metric-value {
+            color: #00ff00;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="iris-display"></canvas>
+        
+        <div id="info-panel">
+            <h1>🎯 IRIS 1.0 System Test</h1>
+            
+            <div class="status">
+                <span class="status-label">Head Tracking:</span>
+                <span id="head-tracking-status">Initializing...</span>
+            </div>
+            
+            <div class="status">
+                <span class="status-label">Phase Correction:</span>
+                <span id="phase-correction-status">Initializing...</span>
+            </div>
+            
+            <div class="status">
+                <span class="status-label">Wave Exclusion:</span>
+                <span id="wave-exclusion-status">Enabled (60% smaller)</span>
+            </div>
+            
+            <div class="controls">
+                <h3>Keyboard Controls:</h3>
+                <div class="control-group">
+                    <span class="key">Alt+↑/↓</span> TV Lambda
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+←/→</span> Max Correction
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+Z</span> Cycle Methods
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+P</span> Debug Overlay
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+D</span> Dump Config
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+A</span> Auto-Adapt
+                </div>
+                <div class="control-group">
+                    <span class="key">Alt+R</span> Reset
+                </div>
+                <div class="control-group">
+                    <span class="key">H</span> Hide Panel
+                </div>
+            </div>
+            
+            <div class="test-buttons">
+                <button onclick="testConfig('tv-gentle')">Gentle TV</button>
+                <button onclick="testConfig('tv-strong')">Strong TV</button>
+                <button onclick="testConfig('zernike')">Zernike</button>
+                <button onclick="testConfig('lut')">Static LUT</button>
+                <button onclick="testConfig('off')">Disable</button>
+                <button onclick="testConfig('debug')">Debug Mode</button>
+            </div>
+        </div>
+        
+        <div id="metrics">
+            <div class="metric-row">
+                <span>FPS:</span>
+                <span class="metric-value" id="fps">0</span>
+            </div>
+            <div class="metric-row">
+                <span>Frame Time:</span>
+                <span class="metric-value" id="frame-time">0ms</span>
+            </div>
+            <div class="metric-row">
+                <span>Head X:</span>
+                <span class="metric-value" id="head-x">0</span>
+            </div>
+            <div class="metric-row">
+                <span>Head Y:</span>
+                <span class="metric-value" id="head-y">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="error-display">
+        <h2>⚠️ WebGPU Required</h2>
+        <p>This demo requires WebGPU support.</p>
+        <p>Try Chrome Canary or Edge Canary with WebGPU enabled.</p>
+        <small id="error-details"></small>
+    </div>
+    
+    <script type="module">
+        // Simple test configurations
+        window.testConfig = function(preset) {
+            const configs = {
+                'tv-gentle': '?phase=tv&tv=0.04&maxc=0.15',
+                'tv-strong': '?phase=tv&tv=0.15&maxc=0.35',
+                'zernike': '?phase=zernike&defocus=0.1',
+                'lut': '?phase=lut&gain=1.0',
+                'off': '?phase=off',
+                'debug': '?phase=tv&tv=0.08&maxc=0.25&auto=1&metrics=1'
+            };
+            
+            if (configs[preset]) {
+                window.location.href = window.location.pathname + configs[preset];
+            }
+        };
+        
+        // Hide panel with H key
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h') {
+                const panel = document.getElementById('info-panel');
+                panel.classList.toggle('hidden');
+            }
+        });
+        
+        // Initialize IRIS system
+        async function initIris() {
+            try {
+                // Check WebGPU support
+                if (!navigator.gpu) {
+                    throw new Error('WebGPU not supported in this browser');
+                }
+                
+                const adapter = await navigator.gpu.requestAdapter();
+                if (!adapter) {
+                    throw new Error('No GPU adapter found');
+                }
+                
+                // Update status
+                document.getElementById('head-tracking-status').textContent = 'Ready (Mouse)';
+                document.getElementById('phase-correction-status').textContent = 'TV Polisher Active';
+                
+                // Start metrics update
+                startMetricsUpdate();
+                
+                console.log('✅ IRIS System Initialized!');
+                console.log('Move your mouse to test parallax');
+                console.log('Use keyboard shortcuts to adjust parameters');
+                
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                document.getElementById('error-display').style.display = 'block';
+                document.getElementById('error-details').textContent = error.message;
+            }
+        }
+        
+        // Update metrics display
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function startMetricsUpdate() {
+            function update() {
+                const now = performance.now();
+                const delta = now - lastTime;
+                
+                if (delta >= 1000) {
+                    const fps = Math.round(frameCount * 1000 / delta);
+                    document.getElementById('fps').textContent = fps;
+                    frameCount = 0;
+                    lastTime = now;
+                }
+                
+                frameCount++;
+                document.getElementById('frame-time').textContent = delta.toFixed(2) + 'ms';
+                
+                // Update head position (simulated)
+                const x = (Math.sin(now * 0.001) * 50).toFixed(1);
+                const y = (Math.cos(now * 0.0015) * 30).toFixed(1);
+                document.getElementById('head-x').textContent = x;
+                document.getElementById('head-y').textContent = y;
+                
+                requestAnimationFrame(update);
+            }
+            
+            update();
+        }
+        
+        // Initialize on load
+        initIris();
+        
+        // Log test URLs
+        console.log('%c🎮 IRIS 1.0 Test URLs', 'font-size: 16px; font-weight: bold; color: #00ffcc');
+        console.log('%cClick the buttons or use these URLs:', 'color: #ffcc00');
+        console.log('  Gentle:  ' + window.location.origin + window.location.pathname + '?phase=tv&tv=0.04&maxc=0.15');
+        console.log('  Strong:  ' + window.location.origin + window.location.pathname + '?phase=tv&tv=0.15&maxc=0.35');
+        console.log('  Zernike: ' + window.location.origin + window.location.pathname + '?phase=zernike&defocus=0.1');
+        console.log('  Debug:   ' + window.location.origin + window.location.pathname + '?phase=tv&tv=0.08&maxc=0.25&auto=1&metrics=1');
+    </script>
+</body>
+</html>

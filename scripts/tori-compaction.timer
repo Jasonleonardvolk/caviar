@@ -1,0 +1,25 @@
+[Unit]
+Description=TORI Compaction Timer - Runs twice daily
+Requires=tori-compaction.service
+
+[Timer]
+# Run at midnight
+OnCalendar=00:00
+
+# Run at noon  
+OnCalendar=12:00
+
+# Run on boot after 5 minutes
+OnBootSec=5min
+
+# If missed, run as soon as possible
+Persistent=true
+
+# Randomize by up to 5 minutes to avoid thundering herd
+RandomizedDelaySec=300
+
+# Accuracy - can be delayed by up to this amount
+AccuracySec=5min
+
+[Install]
+WantedBy=timers.target

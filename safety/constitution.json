@@ -1,0 +1,27 @@
+{
+  "identity": {
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "resource_budget": {
+    "cpu_core_seconds": 120,
+    "gpu_seconds": 60,
+    "ram_bytes": 4294967296
+  },
+  "safety_rules": {
+    "outbound_rate": 100,
+    "forbidden_calls": [
+      "system",
+      "exec",
+      "eval",
+      "__import__",
+      "compile",
+      "delattr",
+      "setattr"
+    ]
+  },
+  "rollback": {
+    "history_path": ".git",
+    "quorum": 2
+  }
+}

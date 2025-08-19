@@ -1,0 +1,350 @@
+// Enhanced ghost persona with ELFIN++ integration
+import { writable } from 'svelte/store';
+import { triggerGhostEvent, triggerConceptEvent } from '$lib/elfin/interpreter';
+
+export interface GhostPersonaState {
+  persona: string;
+  activePersona: string | null;
+  mood: string;
+  stability: number;
+  auraIntensity: number;
+  isProcessing: boolean;
+  processingGhost: string | null;
+  processingStartTime: Date | null;
+  lastActiveTime: Date | null;
+  lastProcessingDuration: number | null;
+  moodHistory: Array<{ mood: string; timestamp: Date; ghost: string }>;
+  stabilityHistory: Array<{ stability: number; timestamp: Date; ghost: string }>;
+  mentorKnowledgeBoost: number;
+}
+
+const initialState: GhostPersonaState = {
+  persona: '',
+  activePersona: null,
+  mood: 'contemplative',
+  stability: 0.8,
+  auraIntensity: 0.6,
+  isProcessing: false,
+  processingGhost: null,
+  processingStartTime: null,
+  lastActiveTime: null,
+  lastProcessingDuration: null,
+  moodHistory: [],
+  stabilityHistory: [],
+  mentorKnowledgeBoost: 0
+};
+
+export const ghostPersona = writable<GhostPersonaState>(initialState);
+
+/**
+ * Enhanced Ghost Persona class with ELFIN++ integration
+ */
+export class GhostPersona {
+  name: string;
+  private focusTarget: any = null;
+  private lastConceptResults: { concepts: any[]; summary?: string; processingTime?: number } | null = null;
+
+  constructor(name: string) {
+    this.name = name;
+    console.log(`👻 Ghost persona "${name}" initialized with ELFIN++ support`);
+  }
+
+  /**
+   * Focus this ghost on a specific target (document, topic, etc.)
+   */
+  async focus(target: any): Promise<void> {
+    this.focusTarget = target;
+    
+    // Trigger ghost activation via ELFIN++
+    await triggerGhostEvent(this.name, 'activate', { target });
+    
+    console.log(`👻 ${this.name} focused on:`, target);
+  }
+
+  /**
+   * Index the focused target into the knowledge base
+   */
+  async index(): Promise<{ concepts: any[]; summary?: string; processingTime?: number } | null> {
+    if (!this.focusTarget) {
+      console.warn(`👻 ${this.name}: No focus target to index`);
+      return null;
+    }
+
+    // Start processing state
+    await triggerGhostEvent(this.name, 'processing_start', { target: this.focusTarget });
+
+    const startTime = performance.now();
+
+    try {
+      // Simulate document processing based on ghost personality
+      const result = await this.processDocument(this.focusTarget);
+      
+      const endTime = performance.now();
+      const processingTime = endTime - startTime;
+
+      this.lastConceptResults = {
+        ...result,
+        processingTime
+      };
+
+      // End processing state
+      await triggerGhostEvent(this.name, 'processing_end', { 
+        result: this.lastConceptResults,
+        processingTime 
+      });
+
+      console.log(`👻 ${this.name} indexed target. Found ${result.concepts.length} concepts`);
+      return this.lastConceptResults;
+
+    } catch (error) {
+      // End processing state even on error
+      await triggerGhostEvent(this.name, 'processing_end', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Process document based on ghost personality
+   */
+  private async processDocument(file: File): Promise<{ concepts: any[]; summary: string }> {
+    // Enhanced concept extraction based on ghost personality
+    const concepts = this.generateConceptsFromFilename(file.name);
+    
+    let summary = '';
+    
+    if (this.name === 'Scholar') {
+      summary = `Analyzed "${file.name}" with academic rigor. Identified ${concepts.length} key concepts for knowledge integration.`;
+    } else if (this.name === 'Mentor') {
+      summary = `Reviewed "${file.name}" for teaching potential. Found ${concepts.length} concepts suitable for guidance frameworks.`;
+    } else if (this.name === 'Explorer') {
+      summary = `Explored "${file.name}" for novel insights. Discovered ${concepts.length} concepts worth investigating further.`;
+    } else if (this.name === 'Architect') {
+      summary = `Structured analysis of "${file.name}". Mapped ${concepts.length} concepts into systematic framework.`;
+    } else if (this.name === 'Creator') {
+      summary = `Creative synthesis of "${file.name}". Generated ${concepts.length} concepts for innovative applications.`;
+    } else {
+      summary = `Processed "${file.name}" and extracted ${concepts.length} concepts.`;
+    }
+
+    return { concepts, summary };
+  }
+
+  /**
+   * Emit newly discovered concepts to the Thoughtspace
+   */
+  async emitConcepts(concepts?: any[]): Promise<void> {
+    const conceptsToEmit = concepts || this.lastConceptResults?.concepts;
+    
+    if (!conceptsToEmit || conceptsToEmit.length === 0) {
+      console.log(`👻 ${this.name}: No concepts to emit`);
+      return;
+    }
+
+    // Extract concept names
+    const conceptNames = conceptsToEmit.map(c => c.name || c.toString());
+
+    // Trigger concept change event via ELFIN++
+    await triggerConceptEvent(conceptNames, 'highlight', {
+      sourceGhost: this.name,
+      strength: 0.8,
+      type: this.getConceptTypeForGhost()
+    });
+
+    console.log(`👻 ${this.name} emitted ${conceptNames.length} concepts to Thoughtspace`);
+  }
+
+  /**
+   * Get concept type based on ghost personality
+   */
+  private getConceptTypeForGhost(): string {
+    const typeMap: Record<string, string> = {
+      'Scholar': 'academic',
+      'Mentor': 'educational', 
+      'Explorer': 'discovery',
+      'Architect': 'structural',
+      'Creator': 'creative'
+    };
+    
+    return typeMap[this.name] || 'general';
+  }
+
+  /**
+   * Check if this ghost should respond to new concepts
+   */
+  async shouldRespondTo(concepts: string[], metadata: any): Promise<boolean> {
+    // Scholar responds to academic/research concepts
+    if (this.name === 'Scholar') {
+      return concepts.some(c => 
+        c.toLowerCase().includes('research') || 
+        c.toLowerCase().includes('analysis') ||
+        c.toLowerCase().includes('study')
+      );
+    }
+    
+    // Mentor responds to educational concepts
+    if (this.name === 'Mentor') {
+      return concepts.some(c => 
+        c.toLowerCase().includes('learn') || 
+        c.toLowerCase().includes('teach') ||
+        c.toLowerCase().includes('guide')
+      );
+    }
+    
+    // Explorer responds to novel concepts
+    if (this.name === 'Explorer') {
+      return metadata.isNovel || concepts.some(c => 
+        c.toLowerCase().includes('new') || 
+        c.toLowerCase().includes('discover')
+      );
+    }
+    
+    return false; // Default: don't respond
+  }
+
+  /**
+   * Respond to concepts introduced by other ghosts
+   */
+  async respondToConcepts(concepts: string[], context: any): Promise<void> {
+    console.log(`👻 ${this.name} responding to concepts:`, concepts);
+    
+    // Update mood based on concept interaction
+    let newMood = this.generateMoodFromConcepts(concepts);
+    await triggerGhostEvent(this.name, 'mood_change', { newMood, concepts, context });
+    
+    // Potentially adjust stability
+    const stabilityChange = this.calculateStabilityChange(concepts, context);
+    if (Math.abs(stabilityChange) > 0.1) {
+      const currentStability = 0.8; // Would get from state in real implementation
+      const newStability = Math.max(0, Math.min(1, currentStability + stabilityChange));
+      await triggerGhostEvent(this.name, 'stability_change', { newStability, concepts, context });
+    }
+  }
+
+  /**
+   * Generate mood based on concepts
+   */
+  private generateMoodFromConcepts(concepts: string[]): string {
+    if (this.name === 'Scholar') {
+      if (concepts.some(c => c.includes('Research'))) return 'analytical';
+      if (concepts.some(c => c.includes('Data'))) return 'focused';
+      return 'contemplative';
+    }
+    
+    if (this.name === 'Explorer') {
+      if (concepts.some(c => c.includes('Discovery'))) return 'excited';
+      if (concepts.some(c => c.includes('Unknown'))) return 'curious';
+      return 'adventurous';
+    }
+    
+    return 'calm';
+  }
+
+  /**
+   * Calculate stability change based on concept interaction
+   */
+  private calculateStabilityChange(concepts: string[], context: any): number {
+    // Complex concepts might reduce stability temporarily
+    if (concepts.length > 5) return -0.1;
+    
+    // Concepts from same domain increase stability
+    if (context.sourceGhost === this.name) return +0.05;
+    
+    return 0;
+  }
+  
+  /**
+   * Generate concepts from filename (enhanced from original logic)
+   */
+  private generateConceptsFromFilename(filename: string): Array<{ name: string; strength: number; type: string }> {
+    const name = filename.toLowerCase().replace(/\.[^/.]+$/, "");
+    const concepts: Array<{ name: string; strength: number; type: string }> = [];
+    
+    // Enhanced concept extraction based on ghost personality
+    const conceptMap: Record<string, { strength: number; type: string }> = {};
+    
+    if (this.name === 'Scholar') {
+      // Scholar focuses on academic and research concepts
+      if (name.includes('research')) conceptMap['Research Methodology'] = { strength: 0.9, type: 'academic' };
+      if (name.includes('analysis')) conceptMap['Data Analysis'] = { strength: 0.8, type: 'academic' };
+      if (name.includes('study')) conceptMap['Case Study'] = { strength: 0.7, type: 'academic' };
+      if (name.includes('report')) conceptMap['Technical Report'] = { strength: 0.8, type: 'document' };
+    } else if (this.name === 'Mentor') {
+      // Mentor focuses on guidance and learning concepts
+      if (name.includes('guide')) conceptMap['Learning Guide'] = { strength: 0.9, type: 'educational' };
+      if (name.includes('tutorial')) conceptMap['Tutorial'] = { strength: 0.8, type: 'educational' };
+      if (name.includes('help')) conceptMap['Support System'] = { strength: 0.7, type: 'support' };
+    }
+    
+    // Common concepts for all ghosts
+    if (name.includes('project')) conceptMap['Project Management'] = { strength: 0.8, type: 'business' };
+    if (name.includes('data')) conceptMap['Data Science'] = { strength: 0.7, type: 'technical' };
+    if (name.includes('design')) conceptMap['Design Thinking'] = { strength: 0.7, type: 'creative' };
+    if (name.includes('plan')) conceptMap['Strategic Planning'] = { strength: 0.6, type: 'business' };
+    
+    // Convert to array format
+    Object.entries(conceptMap).forEach(([conceptName, { strength, type }]) => {
+      concepts.push({ name: conceptName, strength, type });
+    });
+    
+    // Add file type as concept
+    const ext = filename.split('.').pop()?.toUpperCase();
+    if (ext) {
+      concepts.push({ name: `${ext} Document`, strength: 0.5, type: 'format' });
+    }
+    
+    // Ensure at least one concept
+    if (concepts.length === 0) {
+      concepts.push({ name: 'Document Analysis', strength: 0.6, type: 'general' });
+    }
+    
+    return concepts;
+  }
+}
+
+/** Ghost registry: instantiate and store known ghost personas */
+const ghosts: Record<string, GhostPersona> = {
+  "Mentor": new GhostPersona("Mentor"),
+  "Scholar": new GhostPersona("Scholar"),
+  "Explorer": new GhostPersona("Explorer"),
+  "Architect": new GhostPersona("Architect"),
+  "Creator": new GhostPersona("Creator")
+};
+
+/** Retrieve a ghost persona by name */
+export function Ghost(name: string): GhostPersona | null {
+  return ghosts[name] || null;
+}
+
+// Helper functions for persona management
+export function setPersona(persona: string) {
+  ghostPersona.update(state => ({
+    ...state,
+    persona,
+    activePersona: persona
+  }));
+}
+
+export function setMood(mood: string) {
+  ghostPersona.update(state => ({
+    ...state,
+    mood
+  }));
+}
+
+export function setStability(stability: number) {
+  ghostPersona.update(state => ({
+    ...state,
+    stability: Math.max(0, Math.min(1, stability))
+  }));
+}
+
+export function setLastTriggeredGhost(ghostName: string | null) {
+  ghostPersona.update(state => ({
+    ...state,
+    activePersona: ghostName,
+    lastActiveTime: ghostName ? new Date() : state.lastActiveTime
+  }));
+}
+
+// Initialize ELFIN++ integration
+console.log('👻 Ghost Persona system initialized with ELFIN++ integration');

@@ -1,0 +1,8 @@
+{
+  "type": "kerr",
+  "mass": 1.0,
+  "spin": 0.9,
+  "persistence": "persistent",
+  "coordinates": ["r", "theta", "phi"],
+  "description": "Rapidly rotating black hole (near-extremal Kerr)"
+}

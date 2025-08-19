@@ -1,0 +1,25 @@
+// ${IRIS_ROOT}\frontend\hybrid\lib\tracking\LatencyModel.ts
+// EMA of end-to-end latency Delta approximately (present - lastInput). Uses rAF as a proxy for present.
+export class LatencyModel {
+  private ema = 24;           // ms baseline
+  private alpha = 0.15;       // smoothing
+  private lastInput = 0;
+  private rafHandle = 0;
+
+  markInput(t = performance.now()) { this.lastInput = t; }
+
+  // approximate "presented" time using next rAF tick
+  private tick = () => {
+    const now = performance.now();
+    if (this.lastInput > 0) {
+      const delta = now - this.lastInput;
+      this.ema = (1 - this.alpha) * this.ema + this.alpha * delta;
+    }
+    this.rafHandle = requestAnimationFrame(this.tick);
+  };
+
+  start() { if (!this.rafHandle) this.rafHandle = requestAnimationFrame(this.tick); }
+  stop()  { if (this.rafHandle) cancelAnimationFrame(this.rafHandle); this.rafHandle = 0; }
+  set(deltaMs: number) { this.ema = (1 - this.alpha) * this.ema + this.alpha * deltaMs; }
+  get(): number { return this.ema; }
+}

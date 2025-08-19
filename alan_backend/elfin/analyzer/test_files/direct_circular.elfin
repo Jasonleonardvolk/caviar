@@ -1,0 +1,8 @@
+
+// Test file with direct circular reference
+system Robot {
+    flow_dynamics {
+        x_dot = v * cos(theta);
+        v_dot = v_dot + u / m;  // DIRECT circular reference
+    }
+}

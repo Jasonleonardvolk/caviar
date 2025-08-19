@@ -1,0 +1,79 @@
+# Video and Audio Processing Requirements for TORI Ingest Bus
+# Core web framework (already in requirements.txt)
+fastapi>=0.104.0
+uvicorn>=0.23.2
+pydantic>=2.4.2
+prometheus-client>=0.17.1
+websockets>=11.0.3
+python-multipart>=0.0.6
+aiofiles>=23.2.1
+httpx>=0.25.0
+
+# Video/Audio Processing
+ffmpeg-python>=0.2.0
+openai-whisper>=20231117
+torch>=2.0.0
+torchaudio>=2.0.0
+librosa>=0.10.0
+soundfile>=0.12.0
+moviepy>=1.0.3
+
+# Computer Vision
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+Pillow>=10.0.0
+face-recognition>=1.3.0
+mediapipe>=0.10.0
+dlib>=19.24.0
+
+# OCR and Text Processing
+pytesseract>=0.3.10
+easyocr>=1.7.0
+pdf2image>=1.16.3
+
+# NLP and Language Processing
+transformers>=4.35.0
+sentence-transformers>=2.2.2
+spacy>=3.7.0
+nltk>=3.8.1
+textblob>=0.17.1
+
+# Audio Processing and Speech Recognition
+speechrecognition>=3.10.0
+pyaudio>=0.2.11
+webrtcvad>=2.0.10
+pydub>=0.25.1
+
+# Vector Database and Embeddings
+pinecone-client>=2.2.4
+chromadb>=0.4.15
+faiss-cpu>=1.7.4
+
+# Graph Database Integration
+neo4j>=5.13.0
+networkx>=3.2
+
+# Image and Document Processing
+img2pdf>=0.4.4
+pypdf>=3.17.0
+python-docx>=0.8.11
+openpyxl>=3.1.2
+
+# Machine Learning Utilities
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.1.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Real-time Processing
+redis>=5.0.0
+celery>=5.3.0
+kombu>=5.3.0
+
+# Additional Utilities
+python-magic>=0.4.27
+filetype>=1.2.0
+validators>=0.22.0
+python-dateutil>=2.8.2
+regex>=2023.10.3

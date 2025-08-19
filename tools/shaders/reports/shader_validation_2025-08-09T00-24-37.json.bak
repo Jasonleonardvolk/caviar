@@ -1,0 +1,924 @@
+{
+  "timestamp": "2025-08-09T00:24:37.717Z",
+  "directory": "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders",
+  "deviceLimits": {
+    "maxComputeInvocationsPerWorkgroup": 256,
+    "maxComputeWorkgroupSizeX": 256,
+    "maxComputeWorkgroupSizeY": 256,
+    "maxComputeWorkgroupSizeZ": 64,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxSampledTexturesPerShaderStage": 16,
+    "maxSamplersPerShaderStage": 16,
+    "label": "iphone15_profile_example"
+  },
+  "summary": {
+    "total": 17,
+    "passed": 15,
+    "failed": 2,
+    "warnings": 121,
+    "fixed": 0
+  },
+  "shaders": [
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\avatarShader.wgsl",
+      "hash": "d123a6c6",
+      "size": 2557,
+      "lines": 83,
+      "timestamp": "2025-08-09T00:24:37.006Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "VEC3_STORAGE_ALIGNMENT",
+          "line": 18,
+          "message": "vec3 in storage buffer should be followed by padding or another vec3"
+        },
+        {
+          "rule": "VEC3_STORAGE_ALIGNMENT",
+          "line": 25,
+          "message": "vec3 in storage buffer should be followed by padding or another vec3"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\bitReversal.wgsl",
+      "hash": "0cf732b4",
+      "size": 1962,
+      "lines": 65,
+      "timestamp": "2025-08-09T00:24:37.043Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 60,
+          "message": "Dynamic array access 'bit_reversal[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 63,
+          "message": "Dynamic array access 'output[offset + j]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 63,
+          "message": "Dynamic array access 'input[offset + i]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\butterflyStage.wgsl",
+      "hash": "49a7b421",
+      "size": 4925,
+      "lines": 149,
+      "timestamp": "2025-08-09T00:24:37.074Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 78,
+          "message": "Dynamic array access 'twiddles[twiddle_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 81,
+          "message": "Dynamic array access 'input[idx_a]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 82,
+          "message": "Dynamic array access 'input[idx_b]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 88,
+          "message": "Dynamic array access 'output[idx_a]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 89,
+          "message": "Dynamic array access 'output[idx_b]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 125,
+          "message": "Dynamic array access 'shared_data[local_idx * 2u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 125,
+          "message": "Dynamic array access 'input[idx_a]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 126,
+          "message": "Dynamic array access 'shared_data[local_idx * 2u + 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 126,
+          "message": "Dynamic array access 'input[idx_b]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 131,
+          "message": "Dynamic array access 'shared_data[local_idx * 2u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 132,
+          "message": "Dynamic array access 'shared_data[local_idx * 2u + 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 135,
+          "message": "Dynamic array access 'twiddles[twiddle_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 139,
+          "message": "Dynamic array access 'output[idx_a]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 140,
+          "message": "Dynamic array access 'output[idx_b]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\fftShift.wgsl",
+      "hash": "0f9ef0e2",
+      "size": 1344,
+      "lines": 51,
+      "timestamp": "2025-08-09T00:24:37.110Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 39,
+          "message": "Dynamic array access 'output[clamp_index_dyn(batch * N2 + j, arrayLength(&output))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 39,
+          "message": "Dynamic array access 'input[clamp_index_dyn(batch * N2 + i, arrayLength(&input))]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\hybridWavefieldBlend.wgsl",
+      "hash": "c194ebb9",
+      "size": 671,
+      "lines": 23,
+      "timestamp": "2025-08-09T00:24:37.143Z",
+      "errors": [],
+      "warnings": [],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\lenticularInterlace.wgsl",
+      "hash": "240576d3",
+      "size": 16153,
+      "lines": 458,
+      "timestamp": "2025-08-09T00:24:37.179Z",
+      "errors": [],
+      "warnings": [],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\lightFieldComposer.wgsl",
+      "hash": "b2eeaa40",
+      "size": 4964,
+      "lines": 99,
+      "timestamp": "2025-08-09T00:24:37.240Z",
+      "errors": [],
+      "warnings": [],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\multiDepthWaveSynth.wgsl",
+      "hash": "4c22ac54",
+      "size": 3832,
+      "lines": 84,
+      "timestamp": "2025-08-09T00:24:37.273Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 47,
+          "message": "Dynamic array access 'inputWave[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 48,
+          "message": "Dynamic array access 'inputWave[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 62,
+          "message": "Dynamic array access 'depths[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 82,
+          "message": "Dynamic array access 'outputWave[idx]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\multiViewSynthesis.wgsl",
+      "hash": "62caf152",
+      "size": 16216,
+      "lines": 399,
+      "timestamp": "2025-08-09T00:24:37.305Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 156,
+          "message": "Dynamic array access 'shared_field_r[shared_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 157,
+          "message": "Dynamic array access 'shared_field_g[shared_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 158,
+          "message": "Dynamic array access 'shared_field_b[shared_idx]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\normalize.wgsl",
+      "hash": "24eac101",
+      "size": 1299,
+      "lines": 44,
+      "timestamp": "2025-08-09T00:24:37.360Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 41,
+          "message": "Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 42,
+          "message": "Dynamic array access 'output[clamp_index_dyn(idx, arrayLength(&output))]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\phaseOcclusion.wgsl",
+      "hash": "1d6619e6",
+      "size": 2915,
+      "lines": 67,
+      "timestamp": "2025-08-09T00:24:37.388Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 30,
+          "message": "Dynamic array access 'inputWave[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 31,
+          "message": "Dynamic array access 'inputWave[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 33,
+          "message": "Dynamic array access 'occlusion[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 36,
+          "message": "Dynamic array access 'occlusion[idx + 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 37,
+          "message": "Dynamic array access 'occlusion[idx - 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 38,
+          "message": "Dynamic array access 'occlusion[idx + w]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 39,
+          "message": "Dynamic array access 'occlusion[idx - w]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 54,
+          "message": "Dynamic array access 'outputWave[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 64,
+          "message": "Dynamic array access 'outputWave[idx]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\propagation.wgsl",
+      "hash": "281e2d5b",
+      "size": 19930,
+      "lines": 507,
+      "timestamp": "2025-08-09T00:24:37.419Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 287,
+          "message": "Dynamic array access 'shared_transfer[local_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 386,
+          "message": "Dynamic array access 'wavelengths[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 387,
+          "message": "Dynamic array access 'spectral_weights[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 426,
+          "message": "Dynamic array access 'wavelengths[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 427,
+          "message": "Dynamic array access 'spectral_weights[i]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\topologicalOverlay.wgsl",
+      "hash": "6f1db65d",
+      "size": 9812,
+      "lines": 316,
+      "timestamp": "2025-08-09T00:24:37.474Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 66,
+          "message": "Dynamic array access 'charges[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 88,
+          "message": "Dynamic array access 'charges[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 111,
+          "message": "Dynamic array access 'charges[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 131,
+          "message": "Dynamic array access 'charges[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 273,
+          "message": "Dynamic array access 'charges[index]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 295,
+          "message": "Dynamic array access 'charges[i]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 314,
+          "message": "Dynamic array access 'charges[index]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\transpose.wgsl",
+      "hash": "3017423f",
+      "size": 5382,
+      "lines": 154,
+      "timestamp": "2025-08-09T00:24:37.528Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 57,
+          "message": "Dynamic array access 'tile[local_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 57,
+          "message": "Dynamic array access 'input[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 60,
+          "message": "Dynamic array access 'tile[local_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 75,
+          "message": "Dynamic array access 'output[transposed_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 75,
+          "message": "Dynamic array access 'tile[transposed_local]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'tile[shared_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'input[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 116,
+          "message": "Dynamic array access 'output[transposed_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 116,
+          "message": "Dynamic array access 'tile[shared_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 139,
+          "message": "Dynamic array access 'input[idx1]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 140,
+          "message": "Dynamic array access 'output[idx1]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 140,
+          "message": "Dynamic array access 'input[idx2]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 141,
+          "message": "Dynamic array access 'output[idx2]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\velocityField.wgsl",
+      "hash": "00634f46",
+      "size": 15064,
+      "lines": 427,
+      "timestamp": "2025-08-09T00:24:37.555Z",
+      "errors": [],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 87,
+          "message": "Dynamic array access 'shared_wavefield[shared_idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 98,
+          "message": "Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 99,
+          "message": "Dynamic array access 'shared_wavefield[idx - 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 100,
+          "message": "Dynamic array access 'shared_wavefield[idx + 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 101,
+          "message": "Dynamic array access 'shared_wavefield[idx - 10u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'shared_wavefield[idx + 10u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 129,
+          "message": "Dynamic array access 'spatial_freqs[packed_idx0]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 130,
+          "message": "Dynamic array access 'spatial_freqs[packed_idx1]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 197,
+          "message": "Dynamic array access 'phases[i / 4u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 233,
+          "message": "Dynamic array access 'shared_wavefield[idx - 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 234,
+          "message": "Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 235,
+          "message": "Dynamic array access 'shared_wavefield[idx + 1u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 239,
+          "message": "Dynamic array access 'shared_wavefield[idx - 10u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 240,
+          "message": "Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 241,
+          "message": "Dynamic array access 'shared_wavefield[idx + 10u]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 305,
+          "message": "Dynamic array access 'particles[idx]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 373,
+          "message": "Dynamic array access 'particles[idx]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\wavefieldEncoder.wgsl",
+      "hash": "c96bc279",
+      "size": 10363,
+      "lines": 284,
+      "timestamp": "2025-08-09T00:24:37.614Z",
+      "errors": [
+        {
+          "rule": "NAGA_VALIDATION",
+          "message": "Could not parse WGSL:\nerror: no definition in scope for identifier: `spatial_freqs`\n    ┌─ C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\.temp_wavefieldEncoder.wgsl:102:121\n    │\n102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];\n    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier\n\n\n"
+        }
+      ],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 103,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 103,
+          "message": "Dynamic array access 'phases[clamp_index_dyn(i, arrayLength(&phases))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 104,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 104,
+          "message": "Dynamic array access 'amplitudes[clamp_index_dyn(i, arrayLength(&amplitudes))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 117,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 118,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 119,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 120,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 122,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 123,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 124,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 125,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 127,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 128,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 129,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 130,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 179,
+          "message": "Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 181,
+          "message": "Dynamic array access 'phases[clamp_index_dyn(phase_idx, arrayLength(&phases))]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    },
+    {
+      "file": "frontend\\lib\\webgpu\\shaders\\wavefieldEncoder_optimized.wgsl",
+      "hash": "82d38716",
+      "size": 10373,
+      "lines": 283,
+      "timestamp": "2025-08-09T00:24:37.665Z",
+      "errors": [
+        {
+          "rule": "NAGA_VALIDATION",
+          "message": "Could not parse WGSL:\nerror: no definition in scope for identifier: `spatial_freqs`\n    ┌─ C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\.temp_wavefieldEncoder_optimized.wgsl:102:121\n    │\n102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];\n    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier\n\n\n"
+        }
+      ],
+      "warnings": [
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 102,
+          "message": "Dynamic array access 'spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 103,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 103,
+          "message": "Dynamic array access 'phases[clamp_index_dyn(i, arrayLength(&phases))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 104,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 104,
+          "message": "Dynamic array access 'amplitudes[clamp_index_dyn(i, arrayLength(&amplitudes))]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 117,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 118,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 119,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 120,
+          "message": "Dynamic array access 'shared_spatial_freqs[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 122,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 123,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 124,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 125,
+          "message": "Dynamic array access 'shared_phases[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 127,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 128,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 1u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 129,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 2u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 130,
+          "message": "Dynamic array access 'shared_amplitudes[clamp_index_dyn(i + 3u, 256u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 179,
+          "message": "Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking"
+        },
+        {
+          "rule": "DYNAMIC_INDEXING_BOUNDS",
+          "line": 181,
+          "message": "Dynamic array access 'phases[clamp_index_dyn(phase_idx, arrayLength(&phases))]' without apparent bounds checking"
+        }
+      ],
+      "fixes": [],
+      "backends": {
+        "naga": {
+          "success": true,
+          "skipped": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "enabled": true,
+  "description": "Multi-tenant mode configuration for ScholarSphere",
+  "created": "2025-06-07T18:34:40.000Z",
+  "version": "1.0.0",
+  "features": {
+    "user_isolation": true,
+    "organization_concepts": true,
+    "foundation_knowledge": true,
+    "cross_tenant_analytics": false,
+    "shared_knowledge_base": true
+  },
+  "limits": {
+    "max_users_per_org": 100,
+    "max_concepts_per_user": 10000,
+    "max_documents_per_user": 1000,
+    "storage_mb_per_user": 500
+  },
+  "knowledge_tiers": {
+    "private": {
+      "description": "User-specific concepts and documents",
+      "isolation": "strict",
+      "sharing": false
+    },
+    "organization": {
+      "description": "Organization-wide shared knowledge",
+      "isolation": "org_level",
+      "sharing": "within_org"
+    },
+    "foundation": {
+      "description": "Universal foundational concepts",
+      "isolation": "none",
+      "sharing": "global"
+    }
+  },
+  "authentication": {
+    "required": false,
+    "method": "simple_token",
+    "session_timeout_hours": 24
+  },
+  "database": {
+    "type": "file_based",
+    "auto_backup": true,
+    "backup_interval_hours": 6,
+    "max_backup_files": 10
+  },
+  "performance": {
+    "concept_extraction_timeout_seconds": 300,
+    "max_concurrent_extractions": 3,
+    "cache_enabled": true,
+    "cache_ttl_hours": 6
+  },
+  "debug": {
+    "verbose_logging": true,
+    "track_extraction_metrics": true,
+    "save_intermediate_results": false
+  }
+}

@@ -1,0 +1,3 @@
+@echo off
+echo Running ELFIN Standalone StabilityAgent Demo...
+python alan_backend/elfin/examples/standalone_stability_demo.py %*

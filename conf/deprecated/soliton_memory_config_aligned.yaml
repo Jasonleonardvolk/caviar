@@ -1,0 +1,348 @@
+# Soliton Memory System Configuration - Fully Aligned with Code
+# This configuration file is the single source of truth for all parameters
+
+# System-wide settings
+system:
+  name: "TORI Soliton Memory"
+  version: "2.0"
+  lattice_size: 10000
+  max_oscillators: 100000
+  max_memories: 50000
+  
+# Oscillator lattice configuration
+lattice:
+  initial_size: 10000
+  dimension: 3
+  coupling_range: 3
+  damping: 0.01
+  
+  # Energy parameters
+  base_energy: 1.0
+  coupling_strength: 0.1
+  
+  # Synchronization targets
+  target_order_parameter: 0.8
+  target_entropy: 2.0
+
+# Soliton memory specific settings
+soliton_memory:
+  enabled: true
+  
+  # Phase mechanics
+  phase_lattice_size: 10000
+  resonance_threshold: 0.7
+  phase_drift_rate: 0.001
+  
+  # Memory lifecycle parameters
+  decay_rate: 0.01
+  heat_decay_rate: 0.95
+  heat_boost_on_access: 0.2
+  
+  # Dark soliton configuration
+  dark_soliton:
+    enabled: true
+    coupling_strength: 1.0  # Strong coupling for baseline-dip pair
+    suppression_threshold: 0.5
+    suppression_mode: "quarantine"  # Options: quarantine, phase_shift, amplitude_reduction
+  
+  # Memory crystallization parameters
+  crystallization:
+    hot_threshold: 0.7
+    cold_threshold: 0.1
+    migration_stability_boost: 0.1
+    fusion_threshold: 0.7
+    fusion_similarity_threshold: 0.7  # Content similarity for fusion
+    fission_amplitude_threshold: 1.5
+    fission_content_threshold: 1000  # Characters
+    fission_concept_threshold: 3     # Number of concepts
+    fission_heat_threshold: 0.9
+    fission_access_threshold: 100
+    
+  # Vaulting configuration
+  vault_phases:
+    light: 0.785398      # π/4 (45°)
+    medium: 1.570796     # π/2 (90°)
+    deep: 3.141593       # π (180°)
+    quarantine: 4.712389 # 3π/2 (270°)
+
+# Topology configuration
+topology:
+  # Initial topology on startup
+  initial: "kagome"
+  
+  # Available topologies and their parameters
+  topologies:
+    kagome:
+      intra_cell_coupling: 1.0
+      inter_cell_coupling: 0.1
+      coordination_number: 4
+      
+    hexagonal:
+      coupling_strength: 0.5
+      coordination_number: 3
+      
+    square:
+      coupling_strength: 0.3
+      coordination_number: 4
+      
+    small_world:
+      base_coupling: 0.05
+      num_neighbors: 6        # k in Watts-Strogatz
+      rewire_probability: 0.1 # p in Watts-Strogatz
+  
+  # Morphing parameters
+  morphing:
+    enabled: true
+    blend_rate: 0.02  # Progress per step (0.02 = 50 steps to complete)
+    energy_harvest_efficiency: 0.8
+    interpolation_method: "linear"  # Options: linear, sigmoid, cubic
+    
+  # Energy harvesting during transitions
+  energy_harvesting:
+    enabled: true
+    efficiency: 0.8
+    transition_costs:
+      kagome_hexagonal: 50.0
+      kagome_square: 100.0
+      kagome_small_world: 150.0
+      hexagonal_square: 50.0
+      hexagonal_small_world: 100.0
+      square_small_world: 50.0
+    harvest_potential:
+      kagome_hexagonal: 20.0
+      kagome_square: 40.0
+      kagome_small_world: 60.0
+      hexagonal_square: 30.0
+      hexagonal_small_world: 50.0
+      square_small_world: 40.0
+    
+  # Topology switching policy
+  policy:
+    enabled: true
+    min_switch_interval: 60  # seconds
+    decision_window: 300     # seconds (5 minutes of metrics)
+    hysteresis_factor: 0.1   # Prevent flapping
+    
+    # System states and their preferred topologies
+    states:
+      idle:
+        preferred_topology: "kagome"
+        thresholds:
+          memory_density: {min: 0.0, max: 0.3}
+          soliton_count: {min: 0, max: 500}
+          activity_rate: {min: 0.0, max: 0.2}
+          avg_comfort: {min: 0.0, max: 0.3}
+        transitions:
+          active:
+            all_of: ["memory_density > 0.3", "activity_rate > 0.2"]
+            
+      active:
+        preferred_topology: "hexagonal"
+        thresholds:
+          memory_density: {min: 0.3, max: 0.7}
+          soliton_count: {min: 500, max: 2000}
+          activity_rate: {min: 0.2, max: 0.6}
+        transitions:
+          idle:
+            all_of: ["memory_density < 0.2", "activity_rate < 0.1"]
+          intensive:
+            any_of: ["memory_density > 0.7", "soliton_count > 2000"]
+            
+      intensive:
+        preferred_topology: "square"
+        thresholds:
+          memory_density: {min: 0.7, max: 1.0}
+          soliton_count: {min: 2000, max: 10000}
+          activity_rate: {min: 0.5, max: 1.0}
+        transitions:
+          active:
+            all_of: ["memory_density < 0.6", "soliton_count < 1800"]
+          emergency:
+            any_of: ["avg_comfort > 0.8", "soliton_count > 9000"]
+            
+      consolidating:
+        preferred_topology: "small_world"
+        thresholds: {}
+        transitions:
+          idle: {manual: true}
+          
+      emergency:
+        preferred_topology: "kagome"  # Fall back to most stable
+        thresholds: {}
+        transitions:
+          active:
+            all_of: ["avg_comfort < 0.5", "soliton_count < 5000"]
+    
+    # Comfort-based overrides
+    comfort_overrides:
+      high_stress_threshold: 0.7
+      topology_downgrades:
+        square: "hexagonal"
+        hexagonal: "kagome"
+        small_world: "kagome"
+    
+    fallback_topology: "kagome"
+
+# Nightly growth engine settings
+nightly_growth:
+  enabled: true
+  start_hour: 3  # 3 AM local time
+  max_duration_hours: 2
+  cpu_limit_percent: 50
+  memory_limit_gb: 8
+  
+  # Tasks configuration
+  tasks:
+    - name: "switch_to_consolidating"
+      priority: 1
+      timeout: 60  # seconds
+      enabled: true
+      description: "Switch to small-world topology for maximum interaction"
+      
+    - name: "crystallize_memories"
+      priority: 2
+      timeout: 600  # 10 minutes
+      enabled: true
+      description: "Run memory crystallization (heat decay, fusion, fission, migration)"
+      
+    - name: "optimize_topology"
+      priority: 3
+      timeout: 300  # 5 minutes
+      enabled: true
+      description: "Analyze comfort metrics and adjust topology"
+      
+    - name: "prune_weak_couplings"
+      priority: 4
+      timeout: 300
+      enabled: true
+      description: "Remove very weak couplings to save memory"
+      prune_threshold: 0.01
+      
+    - name: "return_to_stable"
+      priority: 5
+      timeout: 60
+      enabled: true
+      description: "Return to kagome topology for daytime stability"
+
+# Comfort analysis configuration
+comfort_analysis:
+  enabled: true
+  update_interval: 10.0  # seconds
+  
+  # Feedback thresholds
+  feedback:
+    high_stress_action_threshold: 0.8
+    low_energy_action_threshold: 0.2
+    high_flux_action_threshold: 0.9
+    high_perturbation_action_threshold: 0.8
+    
+  # Automated actions
+  automated_actions:
+    reduce_coupling_on_high_stress: true
+    boost_amplitude_on_low_energy: true
+    migrate_on_high_flux: true
+    pause_morphing_on_high_perturbation: true
+
+# Blowup detection and safety
+safety:
+  blowup_detection:
+    enabled: true
+    max_amplitude: 10.0
+    max_energy: 1000.0
+    max_oscillator_count: 100000
+    runaway_detection_window: 60  # seconds
+    runaway_growth_threshold: 2.0  # 2x growth in window
+    
+  # Safety actions
+  actions:
+    on_amplitude_blowup: "dampen"  # Options: dampen, reset, halt
+    on_energy_blowup: "redistribute"
+    on_oscillator_blowup: "prune"
+    on_runaway_detected: "emergency_brake"
+
+# Logging configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/soliton_memory.log"
+  
+  # Log rotation
+  rotation:
+    enabled: true
+    max_size_mb: 100
+    backup_count: 10
+    compression: true
+    
+  # Separate logs for different components
+  component_logs:
+    topology_changes: "logs/topology.log"
+    memory_operations: "logs/memory_ops.log"
+    crystallization: "logs/crystallization.log"
+    comfort_metrics: "logs/comfort.log"
+
+# Monitoring and metrics
+monitoring:
+  enabled: true
+  metrics_interval: 1.0  # seconds
+  
+  # Metrics to track
+  metrics:
+    system:
+      - total_memories
+      - active_memories
+      - total_oscillators
+      - active_oscillators
+      - coupling_density
+      - total_energy
+      
+    performance:
+      - operations_per_second
+      - memory_usage_mb
+      - cpu_usage_percent
+      
+    quality:
+      - order_parameter
+      - phase_entropy
+      - average_stability
+      - average_comfort
+      
+  # Alerts
+  alerts:
+    high_memory_usage: {threshold: 8000, unit: "MB"}
+    high_cpu_usage: {threshold: 90, unit: "percent"}
+    low_order_parameter: {threshold: 0.3, unit: "ratio"}
+    high_stress: {threshold: 0.8, unit: "ratio"}
+
+# Performance tuning
+performance:
+  batch_size: 100
+  update_interval: 0.1  # seconds
+  use_gpu: false  # Set to true if CUDA available
+  gpu_batch_size: 1024
+  
+  # Memory management
+  gc_interval: 300  # seconds
+  memory_pool_size: 1000  # Pre-allocated memory slots
+  
+  # Caching
+  cache:
+    phase_calculations: true
+    resonance_results: true
+    cache_size: 10000
+    ttl: 300  # seconds
+
+# Integration settings
+integration:
+  # MCP Bridge
+  mcp_bridge:
+    enabled: true
+    port: 8090
+    
+  # REST API
+  rest_api:
+    enabled: false
+    port: 8091
+    
+  # WebSocket
+  websocket:
+    enabled: true
+    port: 8092

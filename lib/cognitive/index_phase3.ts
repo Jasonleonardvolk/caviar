@@ -1,0 +1,438 @@
+write_file({
+  path: 'str(PROJECT_ROOT / "tori_ui_svelte\\src\\lib\\cognitive\\index_phase3.ts',
+  content: `// Enhanced index file for cognitive layer - Phase 3 exports with metacognitive awareness
+export { 
+  cognitiveState, 
+  updateCognitiveState,
+  incrementLoopDepth,
+  decrementLoopDepth,
+  addScar,
+  healScar,
+  CognitiveThresholds,
+  type ConceptDiffState,
+  type LoopRecord
+} from './cognitiveState';
+
+export { 
+  ContradictionMonitor,
+  contradictionMonitor 
+} from './contradictionMonitor';
+
+export { 
+  PhaseController,
+  phaseController 
+} from './phaseController';
+
+export { 
+  ClosureGuard,
+  closureGuard,
+  type ClosureResult,
+  type FeedbackOptions 
+} from './closureGuard';
+
+export { 
+  CognitiveEngine,
+  cognitiveEngine,
+  type CognitiveEngineConfig 
+} from './cognitiveEngine';
+
+// Phase 2 exports
+export {
+  BraidMemory,
+  braidMemory
+} from './braidMemory';
+
+export {
+  type LoopRecord as EnhancedLoopRecord,
+  type LoopCrossing,
+  type BraidMemoryStats,
+  CompressionConfig,
+  NoveltyGlyphs,
+  type NoveltyGlyph,
+  calculateLoopWeight,
+  classifyCrossingType,
+  selectNoveltyGlyph
+} from './loopRecord';
+
+// Phase 3 exports
+export {
+  MemoryMetricsMonitor,
+  memoryMetrics,
+  type MemoryMetrics,
+  MemoryHealth
+} from './memoryMetrics';
+
+export {
+  ParadoxAnalyzer,
+  paradoxAnalyzer,
+  type AssociatorResult,
+  type ParadoxEvent,
+  type CognitiveState as ParadoxCognitiveState,
+  type Operation
+} from './paradoxAnalyzer';
+
+// Re-export for convenience with Phase 3 enhancements
+export const cognitive = {
+  engine: cognitiveEngine,
+  state: cognitiveState,
+  contradiction: contradictionMonitor,
+  phase: phaseController,
+  closure: closureGuard,
+  memory: braidMemory,
+  metrics: memoryMetrics,      // Phase 3 addition
+  paradox: paradoxAnalyzer     // Phase 3 addition
+};
+
+console.log('🧠 Cognitive layer Phase 3 modules exported with metacognitive awareness');
+
+// Enhanced integration helper for existing TORI systems
+export function integrateCognitiveLayer(enablePhase3: boolean = true) {
+  console.log('🔗 Integrating cognitive layer Phase 3 with existing TORI systems...');
+  
+  if (typeof window !== 'undefined') {
+    // Set up global TORI cognitive interface
+    (window as any).TORI = (window as any).TORI || {};
+    (window as any).TORI.cognitive = cognitive;
+    
+    // Phase 1 & 2 integrations
+    setupBraidMemoryIntegration();
+    setupNoveltyInjectionIntegration();
+    setupLoopVisualizationIntegration();
+    
+    // Add Phase 3 specific integrations
+    if (enablePhase3) {
+      setupMemoryMetricsIntegration();
+      setupParadoxAnalysisIntegration();
+      setupReflectiveLoopIntegration();
+      setupGodelianSafetyIntegration();
+    }
+    
+    // Emit integration complete event
+    window.dispatchEvent(new CustomEvent('tori:cognitive-integrated', {
+      detail: { 
+        timestamp: new Date(),
+        phase: enablePhase3 ? 3 : 2,
+        braidMemoryEnabled: true,
+        memoryMetricsEnabled: enablePhase3,
+        paradoxAnalysisEnabled: enablePhase3
+      }
+    }));
+  }
+  
+  // Continue index_phase3.ts
+ console.log('[CHECK] Cognitive layer Phase 3 integration complete');
+}
+
+/**
+* Set up memory metrics integration
+*/
+function setupMemoryMetricsIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ // Listen for memory health updates
+ memoryMetrics.onUpdate((metrics, health) => {
+   // Update UI with memory health
+   window.dispatchEvent(new CustomEvent('tori:ui:memory-health-update', {
+     detail: { metrics, health }
+   }));
+ });
+ 
+ // Listen for curvature spikes
+ window.addEventListener('tori:memory-alert', (event: any) => {
+   const { type, data } = event.detail;
+   console.log("[CHART] Memory alert:", type, data);
+   
+   // Update visualization with alert
+   window.dispatchEvent(new CustomEvent('tori:ui:memory-alert', {
+     detail: { type, data }
+   }));
+ });
+}
+
+/**
+* Set up paradox analysis integration
+*/
+function setupParadoxAnalysisIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ // Listen for paradox detection
+ paradoxAnalyzer.onParadox((event) => {
+   console.log("[TRIANGLE] Paradox event:", event.associatorResult?.type, event);
+   
+   // Update visualization with paradox
+   window.dispatchEvent(new CustomEvent('tori:ui:paradox-visualization', {
+     detail: event
+   }));
+ });
+ 
+ // Listen for Condorcet cycles
+ window.addEventListener('tori:condorcet-cycle-detected', (event: any) => {
+   console.log("[CYCLE] Condorcet cycle detected:", event.detail);
+ });
+}
+
+/**
+* Set up reflective loop integration
+*/
+function setupReflectiveLoopIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ // Listen for reflective loop spawning
+ window.addEventListener('tori:cognitive:reflective-loop-spawned', (event: any) => {
+   const { loopId, paradoxId, depth } = event.detail;
+   console.log("[CYCLE] Reflective loop spawned - Loop:", loopId, "Paradox:", paradoxId, "Depth:", depth);
+   
+   // Update UI with reflective loop indicator
+   window.dispatchEvent(new CustomEvent('tori:ui:reflective-loop-active', {
+     detail: { loopId, paradoxId, depth }
+   }));
+ });
+ 
+ // Listen for paradox resolution
+ window.addEventListener('tori:cognitive:paradox-resolved', (event: any) => {
+   const { paradoxId, loopId } = event.detail;
+   console.log("[CHECK] Paradox resolved - Paradox:", paradoxId, "Loop:", loopId);
+ });
+}
+
+/**
+* Set up Gödelian safety integration
+*/
+function setupGodelianSafetyIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ // Listen for Gödelian collapse risk
+ window.addEventListener('tori:cognitive:godelian-collapse-risk', (event: any) => {
+   console.error('🌀 Gödelian collapse risk detected!', event.detail);
+   
+   // Emergency visualization update
+   window.dispatchEvent(new CustomEvent('tori:ui:emergency-state', {
+     detail: { 
+       type: 'godelian-collapse',
+       severity: 'critical',
+       metrics: event.detail.metrics
+     }
+   }));
+ });
+ 
+ // Listen for recursive burst risk (N2M-RSI)
+ window.addEventListener('tori:cognitive:reflective-lockdown', (event: any) => {
+   console.warn('🔒 Reflective lockdown activated:', event.detail);
+   
+   // Update UI to show lockdown state
+   window.dispatchEvent(new CustomEvent('tori:ui:lockdown-state', {
+     detail: event.detail
+   }));
+ });
+}
+
+/**
+* Set up braid memory integration (from Phase 2)
+*/
+function setupBraidMemoryIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ window.addEventListener('tori:cognitive:loop-closed', (event: any) => {
+   const { loop } = event.detail;
+   console.log("[DNA] Loop archived in braid memory:", loop.id);
+ });
+ 
+ window.addEventListener('tori:cognitive:novelty-suggested', (event: any) => {
+   const { digest, noveltyGlyph, count } = event.detail;
+   console.log("[SEARCH] Reentry optimization - Glyph:", noveltyGlyph, "Digest:", digest?.substring(0, 8), "Count:", count);
+ });
+ 
+ window.addEventListener('tori:cognitive:echo-collapse', (event: any) => {
+   const { digest, summary } = event.detail;
+   console.log("[BOX] Echo collapse triggered for digest:", digest?.substring(0, 8));
+ });
+}
+
+/**
+* Set up novelty injection integration (from Phase 2)
+*/
+function setupNoveltyInjectionIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ window.addEventListener('tori:cognitive:novelty-injected', (event: any) => {
+   const { glyph, reason, loopId } = event.detail;
+   console.log("[BULB] Novelty glyph injected - Glyph:", glyph, "Loop:", loopId, "Reason:", reason);
+   
+   window.dispatchEvent(new CustomEvent('tori:ui:novelty-indicator', {
+     detail: { glyph, loopId, reason }
+   }));
+ });
+ 
+ window.addEventListener('tori:cognitive:persona-swap-suggested', (event: any) => {
+   const { from, to, reason } = event.detail;
+   console.log("[CYCLE] Persona swap suggested - From:", from, "To:", to, "Reason:", reason);
+   
+   window.dispatchEvent(new CustomEvent('tori:ui:persona-swap-suggested', {
+     detail: { from, to, reason }
+   }));
+ });
+}
+
+/**
+* Set up loop visualization integration (enhanced for Phase 3)
+*/
+function setupLoopVisualizationIntegration() {
+ if (typeof window === 'undefined') return;
+ 
+ // Update with both braid and metric data
+ setInterval(() => {
+   if (braidMemory && memoryMetrics) {
+     const braidStats = braidMemory.getStats();
+     const metrics = memoryMetrics.getMetrics();
+     const health = memoryMetrics.getHealth();
+     const paradoxStats = paradoxAnalyzer.getStats();
+     
+     // Emit comprehensive stats for visualization
+     window.dispatchEvent(new CustomEvent('tori:ui:cognitive-stats-update', {
+       detail: {
+         braid: braidStats,
+         metrics,
+         health,
+         paradox: paradoxStats,
+         timestamp: new Date()
+       }
+     }));
+   }
+ }, 3000); // Update every 3 seconds
+ 
+ window.addEventListener('tori:cognitive:crossing-created', (event: any) => {
+   const { crossing } = event.detail;
+   console.log("[SHUFFLE] New crossing created - Type:", crossing?.type, "Glyph:", crossing?.glyph);
+   
+   window.dispatchEvent(new CustomEvent('tori:ui:crossing-added', {
+     detail: crossing
+   }));
+ });
+}
+
+/**
+* Get comprehensive cognitive metrics
+*/
+export function getCognitiveMetrics(): {
+ loopDensity: number;
+ crossingDensity: number;
+ compressionRatio: number;
+ reentryRate: number;
+ memoryCurvature: number;
+ memoryHealth: string;
+ paradoxCount: number;
+ reflectiveLoopCount: number;
+} {
+ const braidStats = braidMemory ? braidMemory.getStats() : null;
+ const metrics = memoryMetrics ? memoryMetrics.getMetrics() : null;
+ const health = memoryMetrics ? memoryMetrics.getHealth() : 'unknown';
+ const paradoxStats = paradoxAnalyzer ? paradoxAnalyzer.getStats() : null;
+ const engineDiagnostics = cognitiveEngine ? cognitiveEngine.getDiagnostics() : null;
+ 
+ return {
+   loopDensity: metrics?.rhoM || 0,
+   crossingDensity: braidStats && braidStats.totalLoops > 0 ? 
+     braidStats.crossings / braidStats.totalLoops : 0,
+   compressionRatio: braidStats?.compressionRatio || 1,
+   reentryRate: braidStats && braidStats.totalLoops > 0 ? 
+     braidStats.memoryEchoes / braidStats.totalLoops : 0,
+   memoryCurvature: metrics?.kappaI || 0,
+   memoryHealth: health,
+   paradoxCount: paradoxStats?.total || 0,
+   reflectiveLoopCount: engineDiagnostics?.reflectiveLoops || 0
+ };
+}
+
+/**
+* Trigger manual paradox analysis
+*/
+export function analyzeParadox(
+ opX: string, 
+ opY: string, 
+ opZ: string
+): AssociatorResult | null {
+ try {
+   return paradoxAnalyzer.measureAssociator(opX, opY, opZ);
+ } catch (error) {
+   console.error('Failed to analyze paradox:', error);
+   return null;
+ }
+}
+
+/**
+* Check current memory health and trigger actions
+*/
+export function checkMemoryHealth(): {
+ health: MemoryHealth;
+ shouldConsolidate: boolean;
+ alerts: string[];
+} {
+ const health = memoryMetrics.getHealth();
+ const metrics = memoryMetrics.getMetrics();
+ const alerts: string[] = [];
+ 
+ let shouldConsolidate = false;
+ 
+ if (health === MemoryHealth.CRITICAL || health === MemoryHealth.UNSTABLE) {
+   shouldConsolidate = true;
+   alerts.push("Memory " + health + ": immediate consolidation recommended");
+ }
+ 
+ if (metrics.godelianCollapseRisk) {
+   alerts.push('Gödelian collapse risk detected');
+ }
+ 
+ if (metrics.scarRatio > 0.5) {
+   alerts.push("High scar ratio: " + (metrics.scarRatio * 100).toFixed(1) + "%");
+ }
+ 
+ return { health, shouldConsolidate, alerts };
+}
+
+/**
+* Export full cognitive state for analysis/debugging
+*/
+export function exportCognitiveState(): object {
+ const diagnostics = cognitiveEngine.getDiagnostics();
+ const memoryExport = braidMemory.exportBraid();
+ const metricsHistory = memoryMetrics.getHistory();
+ const paradoxes = paradoxAnalyzer.getUnresolvedParadoxes();
+ 
+ return {
+   ...diagnostics,
+   memoryExport,
+   metricsHistory,
+   unresolvedParadoxes: paradoxes,
+   exportTimestamp: new Date().toISOString(),
+   phase: 3
+ };
+}
+
+/**
+* Manual scar healing trigger
+*/
+export function healScars(): boolean {
+ try {
+   const stats = braidMemory.getStats();
+   if (stats.scarredLoops > 0) {
+     // Trigger healing process
+     window.dispatchEvent(new CustomEvent('tori:cognitive:heal-scars', {
+       detail: { scarCount: stats.scarredLoops }
+     }));
+     return true;
+   }
+   return false;
+ } catch (error) {
+   console.error('Failed to heal scars:', error);
+   return false;
+ }
+}
+
+// Auto-integrate Phase 3 if in browser environment
+if (typeof window !== 'undefined') {
+ // Auto-setup integration after a brief delay to ensure all systems are loaded
+ setTimeout(() => {
+   integrateCognitiveLayer(true);
+ }, 1000);
+}`
+})

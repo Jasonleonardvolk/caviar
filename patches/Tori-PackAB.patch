@@ -1,0 +1,82 @@
+From 2a2b3c4d5e6f7890 Mon Sep 17 00:00:00 2001
+From: Build Stabilizer <devops@tori.local>
+Date: Sat, 16 Aug 2025 12:00:00 -0600
+Subject: [PATCH] PACK A+B: core type augmentation and interpreter adapters
+
+---
+ src/types/app-locals-augment.d.ts        | 52 ++++++++++++++++++++++++++++++++
+ src/lib/elfin/interpreter.ts             | 25 +++++++++++++++-
+ 2 files changed, 76 insertions(+), 1 deletion(-)
+ create mode 100644 src/types/app-locals-augment.d.ts
+
+diff --git a/src/types/app-locals-augment.d.ts b/src/types/app-locals-augment.d.ts
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/types/app-locals-augment.d.ts
+@@ -0,0 +1,52 @@
++// TypeScript augmentation for SvelteKit App.* without touching existing files.
++// Ensures all code can safely reference locals.user.name and window.TORI.*
++
++export {};
++
++declare global {
++  namespace App {
++    interface Locals {
++      user?: { id: string; username: string; name?: string; role: 'admin' | 'user' } | null;
++    }
++    interface PageData {
++      user?: Locals['user'] | null;
++    }
++    interface Window {
++      TORI?: {
++        updateHologramState?: (state: any) => void;
++        setHologramVideoMode?: (enabled: boolean) => void;
++        toggleHologramAudio?: (enabled: boolean) => void;
++        toggleHologramVideo?: (enabled: boolean) => void;
++      };
++      ghostMemoryDemo?: () => void;
++      webkitAudioContext?: typeof AudioContext;
++      TORI_DISPLAY_TYPE?: string;
++    }
++  }
++}
+
+diff --git a/src/lib/elfin/interpreter.ts b/src/lib/elfin/interpreter.ts
+index 2222222..3333333 100644
+--- a/src/lib/elfin/interpreter.ts
++++ b/src/lib/elfin/interpreter.ts
+@@ -1,6 +1,29 @@
+ // Elfin interpreter
+-import { onUpload, onConceptChange, onGhostStateChange } from './scripts';
++import { onUpload, onConceptChange, onGhostStateChange } from './scripts';
++
++// ---- PACK B: minimal context types to satisfy ScriptFunction signature
++// We keep these as 'unknown' for now; once the repo stabilizes we can import the real types.
++type UploadContext = unknown;
++type ConceptChangeContext = unknown;
++type GhostStateChangeContext = unknown;
+ 
+ export class ElfinInterpreter {
+   private scripts: Record<string, (ctx: unknown) => Promise<unknown> | unknown> = {};
+   constructor() {
+-    this.scripts['onUpload'] = onUpload;
++    // Wrap concrete handlers to the generic signature expected by the interpreter.
++    // Cast keeps the call-sites stable while we unify upstream types.
++    this.scripts['onUpload'] = (ctx) => onUpload(ctx as UploadContext);
++    this.scripts['onConceptChange'] = (ctx) => onConceptChange(ctx as ConceptChangeContext);
++    this.scripts['onGhostStateChange'] = (ctx) => onGhostStateChange(ctx as GhostStateChangeContext);
+   }
++
++  public register(name: string, fn: (ctx: unknown) => Promise<unknown> | unknown) {
++    this.scripts[name] = fn;
++  }
++
++  public async run(name: string, ctx: unknown): Promise<unknown> {
++    const fn = this.scripts[name];
++    if (!fn) throw new Error(`No script registered: ${name}`);
++    return await fn(ctx);
++  }
+ }
+-- 
+2.39.3

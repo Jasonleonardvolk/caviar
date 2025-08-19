@@ -1,0 +1,18 @@
+# Standard library helpers for ELFIN
+# Contains commonly used mathematical and utility functions
+
+helpers StdHelpers {
+  # Absolute value function (prefixed to avoid clash with future intrinsics)
+  hAbs(x) = if x >= 0 then x else -x;
+  
+  # Minimum of two values (prefixed to avoid clash with future intrinsics)
+  hMin(a, b) = if a <= b then a else b;
+  
+  # Maximum of two values (prefixed to avoid clash with future intrinsics)
+  hMax(a, b) = if a >= b then a else b;
+  
+  # Angle wrapping function to normalize angles to [-π, π]
+  # Using lowercase mod() for strict lexer compatibility
+  # NOTE: This could delegate to a built-in once math stdlib is imported
+  wrapAngle(theta) = mod(theta + pi, 2*pi) - pi;
+}

@@ -1,0 +1,225 @@
+# TORI Hologram Service Capsule Manifest
+# Spectral phase-field holographic rendering with WebGPU
+
+name: tori-hologram
+version: "1.0.0"
+entrypoint: dist/hologram-desktop.js
+
+# Service definition
+services:
+  - name: tori-hologram
+    type: desktop     # Mobile is separate app
+    slice: tori-hologram.slice
+    
+    # Systemd service configuration
+    systemd:
+      Type: simple
+      Restart: on-failure
+      RestartSec: 5
+      StandardOutput: journal
+      StandardError: journal
+      # Ensure GPU is available
+      After: nvidia-persistenced.service
+      Wants: nvidia-persistenced.service
+    
+    # Resource limits
+    resource_limits:
+      cpu_quota: 400      # 4 cores max
+      cpu_weight: 200     # High priority
+      memory_max: 2G      # System RAM
+      memory_high: 1.5G   # Soft limit
+      tasks_max: 256      # Thread limit
+      io_weight: 150      # Fast I/O
+    
+    # GPU configuration
+    gpu_config:
+      enabled: true
+      visible_devices: "0"    # RTX 4070
+      mode: exclusive         # No MPS sharing
+      vram_reserve_mb: 5734   # 70% of 8GB
+      persistence_mode: true
+    
+    # Health monitoring
+    health_check:
+      http:
+        path: "/health"
+        port: 7690
+        interval: 10s
+        timeout: 5s
+      
+      # GPU health check
+      exec:
+        command: ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"]
+        interval: 30s
+        threshold: 85  # Celsius
+
+# Environment variables
+env:
+  # Core settings
+  NODE_OPTIONS: "--max-old-space-size=1536"
+  HOLOGRAM_CONFIG: "/opt/tori/state/hologram/config.json"
+  
+  # ZeroMQ configuration
+  ZEROMQ_ENDPOINT: "ipc:///run/tori/bus.sock"
+  ZEROMQ_IDENTITY: "hologram-engine"
+  
+  # WebRTC/streaming
+  ENCODER_PRESET: "p4"      # NVENC preset for RTX 4070
+  ENCODER_BITRATE: "50M"    # 50 Mbps max
+  WEBRTC_PORT_RANGE: "50000-50100"
+  
+  # Paths
+  SHADER_CACHE_PATH: "/var/cache/tori/shaders"
+  WAVEFIELD_BUFFER_PATH: "/var/tmp/tori/hologram"
+
+# Dependencies
+dependencies:
+  system:
+    - nvidia-driver-535     # Minimum driver version
+    - nvidia-cuda-toolkit-12
+    - ffmpeg
+    - libvpx-dev
+    - libx265-dev
+  
+  node: "18.19"
+  npm_packages:
+    - "@webgpu/types@0.1.40"
+    - "ws@8.16.0"
+    - "zeromq@6.0.0-beta.19"
+    - "prom-client@15.1.0"
+    - "simple-peer@9.11.1"
+    - "@msgpack/msgpack@3.0.0-beta2"
+
+# Volumes and persistent data
+volumes:
+  - source: "/opt/tori/state/hologram"
+    target: "/data/calibration"
+    mode: "rw"
+    description: "Calibration profiles and lens configs"
+  
+  - source: "/var/cache/tori/shaders"
+    target: "/cache/shaders"
+    mode: "rw"
+    description: "Compiled shader cache"
+  
+  - source: "/var/tmp/tori/hologram"
+    target: "/tmp/wavefield"
+    mode: "rw"
+    description: "Temporary wavefield buffers (tmpfs)"
+
+# Files to include in capsule
+files:
+  # Core application
+  - src: "dist/"
+    dst: "dist/"
+    
+  # Shaders
+  - src: "frontend/shaders/"
+    dst: "shaders/"
+    
+  # Configuration templates
+  - src: "config/calibration/"
+    dst: "config/calibration/"
+    
+  # Encoder binaries
+  - src: "bin/nvenc_server"
+    dst: "bin/nvenc_server"
+    mode: "0755"
+
+# Hooks
+hooks:
+  pre_start: |
+    #!/bin/bash
+    # Ensure directories exist
+    mkdir -p /opt/tori/state/hologram/{calibration,profiles}
+    mkdir -p /var/cache/tori/shaders
+    mkdir -p /var/tmp/tori/hologram
+    
+    # Set GPU persistence mode
+    nvidia-smi -pm 1
+    
+    # Pre-warm shader cache
+    if [ -f "bin/shader_warmup" ]; then
+      ./bin/shader_warmup
+    fi
+    
+  post_start: |
+    #!/bin/bash
+    # Verify GPU allocation
+    nvidia-smi --query-gpu=name,memory.free --format=csv
+    
+    # Register with service discovery
+    echo "hologram:7690" > /run/tori/services/hologram.addr
+    
+  pre_stop: |
+    #!/bin/bash
+    # Graceful shutdown - save calibration
+    curl -X POST http://localhost:7690/admin/save_calibration
+    
+    # Wait for pending frames
+    sleep 2
+
+# Mobile bridge configuration
+mobile_bridge:
+  qr_endpoint: "/pair"
+  jwt_claims:
+    - render      # Basic hologram rendering
+    - stream      # High-quality streaming
+    - metrics     # Telemetry submission
+  
+  stream_profiles:
+    low:
+      codec: "h265"
+      bitrate: "5M"
+      resolution: "640x480"
+      fps: 30
+    
+    medium:
+      codec: "h265"
+      bitrate: "15M"
+      resolution: "1280x720"
+      fps: 45
+    
+    high:
+      codec: "h265"
+      bitrate: "50M"
+      resolution: "1920x1080"
+      fps: 60
+
+# Metrics configuration
+metrics:
+  prometheus:
+    enabled: true
+    port: 9715
+    path: "/metrics"
+    
+  custom_metrics:
+    - hologram_frame_time_seconds
+    - hologram_fft_time_seconds
+    - hologram_propagation_time_seconds
+    - hologram_gpu_memory_bytes
+    - hologram_oscillator_coherence
+    - hologram_active_connections
+
+# Security
+security:
+  # Signature verification
+  signature: capsule.sig
+  public_key: "${HOLOGRAM_PUBLIC_KEY}"
+  
+  # Runtime security
+  capabilities:
+    - CAP_SYS_NICE    # Real-time priority
+  
+  seccomp_profile: "tori-hologram.json"
+
+# Metadata
+metadata:
+  description: "Spectral phase-field holographic renderer"
+  team: "TORI Core"
+  repo: "https://github.com/tori/kha"
+  documentation: "/docs/hologram/README.md"
+  build_info:
+    timestamp: "${BUILD_TIMESTAMP}"
+    git_sha: "${GIT_SHA}"
+    builder: "${CI_RUNNER}"

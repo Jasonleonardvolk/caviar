@@ -1,0 +1,73 @@
+name: security-audit
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: "0 5 * * 1"   # weekly Monday 05:00 UTC
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit for diff
+
+      - name: Install tools
+        run: |
+          cargo install cargo-auditable || true
+          cargo install cargo-deny || true
+          curl -sL https://github.com/spdx/spdx-sbom-generator/releases/download/v0.0.14/spdx-sbom-generator-linux-amd64 -o sbom-gen && chmod +x sbom-gen
+      
+      - name: Generate SBOM
+        run: |
+          mkdir -p _sbom
+          ./sbom-gen -o _sbom/spdx.json
+      
+      - name: Run cargo deny check
+        run: cargo deny check
+      
+      - name: Cargo auditable build
+        run: cargo auditable build --release
+      
+      - name: Diff SBOM with previous version
+        id: sbom_diff
+        run: |
+          # Get existing SBOM if available
+          if git ls-files --error-unmatch _sbom/spdx.json &> /dev/null; then
+            git show HEAD~1:_sbom/spdx.json > _sbom/previous.json || echo "No previous SBOM found"
+            if [ -f _sbom/previous.json ]; then
+              # Extract just the components part for cleaner diff
+              jq .components _sbom/spdx.json > _sbom/current_components.json
+              jq .components _sbom/previous.json > _sbom/previous_components.json
+              
+              # Create diff and check if there are changes
+              diff -u _sbom/previous_components.json _sbom/current_components.json > _sbom/sbom_diff.txt || true
+              if [ -s _sbom/sbom_diff.txt ]; then
+                echo "SBOM has changes! New dependencies detected."
+                echo "sbom_changed=true" >> $GITHUB_OUTPUT
+              else
+                echo "No changes in SBOM dependencies."
+                echo "sbom_changed=false" >> $GITHUB_OUTPUT
+              fi
+            fi
+          else
+            echo "First SBOM generation, no diff available."
+            echo "sbom_changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create issue if SBOM changed
+        if: steps.sbom_diff.outputs.sbom_changed == 'true'
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/SBOM_CHANGE_TEMPLATE.md
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-and-binary
+          path: |
+            _sbom/spdx.json
+            _sbom/sbom_diff.txt
+            target/release/*.a

@@ -1,0 +1,68 @@
+# TORI Universal Concept Extraction Configuration
+# This config supports the full extraction pipeline
+
+# Extraction Engine Settings
+extraction:
+  enabled: true
+  threshold: 0.0
+  max_concepts: 100
+  use_enhanced_pipeline: true
+
+# Analysis Modes
+koopman_enabled: false
+koopman_mode: false
+spectral_analysis: true
+semantic_boost: true
+
+# Text Processing
+text_processing:
+  min_chunk_size: 100
+  max_chunk_size: 2000
+  overlap_ratio: 0.1
+  clean_text: true
+
+# Concept Extraction Methods
+methods:
+  keybert:
+    enabled: true
+    model: "all-MiniLM-L6-v2"
+    top_k: 20
+  
+  yake:
+    enabled: true
+    language: "en"
+    max_ngram_size: 3
+    deduplication_threshold: 0.9
+    num_keywords: 20
+    
+  ner:
+    enabled: true
+    model: "en_core_web_lg"
+    entity_types: ["PERSON", "ORG", "GPE", "PRODUCT", "EVENT"]
+
+# Scoring and Ranking
+scoring:
+  keybert_weight: 0.4
+  yake_weight: 0.3
+  ner_weight: 0.2
+  frequency_weight: 0.1
+  novelty_boost: 0.15
+
+# Output Format
+output:
+  include_scores: true
+  include_methods: true
+  include_metadata: true
+  max_concepts_returned: 50
+
+# Logging
+logging:
+  level: "INFO"
+  enable_debug: true
+  log_extraction_details: true
+
+# Performance
+performance:
+  enable_caching: true
+  parallel_processing: false
+  batch_size: 10

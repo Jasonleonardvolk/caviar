@@ -1,0 +1,160 @@
+# Compute Policy Configuration
+# Central control for holographic renderer behavior
+# One knob to rule them all
+
+# Donor/acceleration settings
+donor:
+  mode: "off"  # Options: "off", "lan", "cloud"
+  max_connections: 3
+  discovery_timeout_ms: 5000
+  heartbeat_interval_ms: 1000
+  auto_reconnect: true
+  
+  # LAN-specific settings
+  lan:
+    multicast_group: "239.255.42.99"
+    port: 7777
+    encryption: false  # Set true for production
+    compression: "lz4"  # Options: "none", "lz4", "zstd"
+
+# FFT computation settings
+fft:
+  backend: "auto"  # Options: "auto", "subgroup", "baseline", "wasm"
+  max_size: 512
+  cache_plans: true
+  use_f16: "auto"  # Options: "auto", "always", "never"
+  
+# Propagation settings
+propagation:
+  method: "angular-spectrum"  # Options: "angular-spectrum", "fresnel", "fraunhofer"
+  max_distance_mm: 100
+  min_distance_mm: 1
+  adaptive_sampling: true
+  
+# Memory management
+memory:
+  max_allocation_mb: 512
+  pool_enabled: true
+  gc_threshold_mb: 400
+  texture_cache_mb: 128
+  
+# Performance settings
+performance:
+  target_fps: 60
+  min_fps: 30
+  adaptive_quality: true
+  thermal_monitoring: true
+  power_preference: "balanced"  # Options: "high-performance", "balanced", "low-power"
+  
+  # Quality presets
+  quality_presets:
+    ultra:
+      resolution: [2048, 2048]
+      fft_size: 512
+      propagation_steps: 100
+      tile_size: 256
+    high:
+      resolution: [1024, 1024]
+      fft_size: 256
+      propagation_steps: 50
+      tile_size: 128
+    medium:
+      resolution: [512, 512]
+      fft_size: 256
+      propagation_steps: 30
+      tile_size: 64
+    low:
+      resolution: [256, 256]
+      fft_size: 128
+      propagation_steps: 20
+      tile_size: 32
+    potato:
+      resolution: [128, 128]
+      fft_size: 64
+      propagation_steps: 10
+      tile_size: 16
+
+# Telemetry settings
+telemetry:
+  enabled: true
+  endpoint: "/api/telemetry"
+  batch_size: 100
+  flush_interval_ms: 5000
+  
+  # What to collect
+  collect:
+    performance_metrics: true
+    error_logs: true
+    usage_stats: true
+    device_info: true
+    shader_compilation: true
+    
+  # Privacy settings
+  privacy:
+    anonymize_ip: true
+    no_pii: true
+    opt_out_storage_key: "tori_telemetry_optout"
+
+# Kill switches - emergency stops
+kill_switches:
+  # Global kill switch
+  enabled: true
+  
+  # Feature-specific switches
+  features:
+    webgpu: true
+    donor_acceleration: true
+    neural_operators: true
+    adaptive_quality: true
+    telemetry: true
+    
+  # Performance-based auto-kill
+  auto_kill:
+    on_repeated_crashes: true
+    crash_threshold: 3
+    on_memory_pressure: true
+    memory_threshold_percent: 95
+    on_thermal_critical: true
+    
+  # Manual override endpoint
+  remote_kill:
+    enabled: false
+    check_endpoint: "/api/kill-switches"
+    check_interval_ms: 60000
+    cache_duration_ms: 300000
+
+# Platform-specific overrides
+platform_overrides:
+  ios:
+    memory:
+      max_allocation_mb: 256
+    performance:
+      target_fps: 60
+      power_preference: "low-power"
+    fft:
+      max_size: 256
+      
+  android:
+    memory:
+      max_allocation_mb: 384
+    performance:
+      adaptive_quality: true
+      
+  safari:
+    donor:
+      mode: "off"  # Safari doesn't support all WebRTC features
+    telemetry:
+      enabled: false  # Respect Safari's privacy stance
+
+# Development/debug settings
+debug:
+  verbose_logging: false
+  shader_debug_info: false
+  performance_overlay: false
+  memory_stats: false
+  donor_discovery_logs: false
+  
+# Version and update info
+version: "1.0.0"
+last_updated: "2025-08-11"
+schema_version: 1

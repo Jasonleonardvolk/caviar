@@ -1,0 +1,93 @@
+# Intent Pattern Configuration for TORI's Reasoning System
+# This file defines patterns for mapping user queries to reasoning intents and path strategies
+# Patterns support regular expressions for flexible matching
+
+patterns:
+  - intent: JUSTIFY
+    strategy: TRUSTED
+    patterns: 
+      - "\\bwhy\\b"
+      - "justify"
+      - "reason"
+      - "rationale"
+      - "what's the reason"
+      - "explain why"
+  
+  - intent: CAUSAL
+    strategy: SHORTEST
+    patterns: 
+      - "\\bhow\\b"
+      - "cause"
+      - "lead to"
+      - "result in"
+      - "effect"
+      - "because of"
+      - "due to"
+  
+  - intent: COMPARE
+    strategy: DIVERSE
+    patterns: 
+      - "compare"
+      - "\\bvs\\b"
+      - "versus"
+      - "difference"
+      - "differ"
+      - "contrast"
+      - "similarities"
+  
+  - intent: SUPPORT
+    strategy: TRUSTED
+    patterns: 
+      - "support"
+      - "evidence"
+      - "prove"
+      - "back up"
+      - "substantiate"
+      - "confirm"
+      - "validate"
+  
+  - intent: CRITIQUE
+    strategy: COMPREHENSIVE
+    patterns: 
+      - "critique"
+      - "criticize"
+      - "weakness"
+      - "flaw"
+      - "problem with"
+      - "issue with"
+      - "limitation"
+  
+  - intent: SPECULATE
+    strategy: DIVERSE
+    patterns: 
+      - "\\bif\\b"
+      - "could"
+      - "would"
+      - "hypothesize"
+      - "imagine"
+      - "suppose"
+      - "what if"
+      - "theoretically"
+  
+  - intent: HISTORICAL
+    strategy: RECENT
+    patterns: 
+      - "history"
+      - "evolution"
+      - "past"
+      - "development"
+      - "timeline"
+      - "previously"
+      - "originally"
+      - "how it started"
+  
+  - intent: EXPLAIN
+    strategy: COMPREHENSIVE
+    patterns: 
+      - "explain"
+      - "describe"
+      - "tell me about"
+      - "what is"
+      - "define"
+      - "elaborate"
+      - "clarify"

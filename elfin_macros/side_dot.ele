@@ -1,0 +1,118 @@
+// ELFIN macro for automatic side-dot wrapping when χ ≠ 0
+// This macro auto-wraps any interacting site in a side-dot when chi is non-zero
+
+macro side_dot(node_id, chi) {
+    // No-op at symmetry point
+    if (abs(chi) < 1e-6) { 
+        return; 
+    }
+    
+    // Extract pole from chi reduction backend
+    let pole = extract_pole(node_id, chi);
+    
+    // Attach side mode to the node
+    attach_side_mode(node_id, pole);
+    
+    // Log the transformation
+    log_debug("Attached side-dot to node " + node_id + " with χ=" + chi);
+}
+
+// Helper function to extract pole parameters
+function extract_pole(node_id, chi) {
+    // Call Python backend to get pole parameters
+    let result = python_call("chi_reduce.extract_poles", {
+        "node_id": node_id,
+        "chi": chi,
+        "lattice_params": get_lattice_params()
+    });
+    
+    if (result.error) {
+        log_error("Failed to extract pole for node " + node_id + ": " + result.error);
+        return null;
+    }
+    
+    return {
+        "omega": result.omega_pole,
+        "gamma": result.gamma_pole,
+        "epsilon": result.epsilon_p,
+        "delta": result.delta_p
+    };
+}
+
+// Attach a side-coupled mode to a node
+function attach_side_mode(node_id, pole) {
+    if (!pole) {
+        return;
+    }
+    
+    // Create side dot node
+    let side_id = node_id + "_side";
+    
+    // Define side dot with pole parameters
+    define_node(side_id, {
+        "type": "side_dot",
+        "energy": pole.epsilon,
+        "pairing": pole.delta,
+        "parent": node_id
+    });
+    
+    // Create coupling between main node and side dot
+    define_edge(node_id, side_id, {
+        "coupling": pole.gamma,
+        "type": "side_coupling"
+    });
+    
+    // Mark the main node as chi-reduced
+    set_node_property(node_id, "chi_reduced", true);
+    set_node_property(node_id, "chi", chi);
+    set_node_property(node_id, "side_dot", side_id);
+}
+
+// Macro to apply chi reduction to an entire lattice
+macro chi_reduce_lattice(lattice_id, flux) {
+    // Get all nodes in the lattice
+    let nodes = get_lattice_nodes(lattice_id);
+    
+    // Calculate chi for the lattice configuration
+    let chi = python_call("chi_reduce.extract_chi", {
+        "graph_edges": get_lattice_edges(lattice_id),
+        "flux": flux,
+        "gamma1": get_param("gamma1", 1.0),
+        "gamma2": get_param("gamma2", 1.0),
+        "t_tilde": get_param("t_tilde", 1.0)
+    });
+    
+    if (chi.error) {
+        log_error("Failed to calculate χ for lattice: " + chi.error);
+        return;
+    }
+    
+    // Apply side dot to each interacting node
+    for (let node of nodes) {
+        if (node.type == "interacting") {
+            side_dot(node.id, chi.value);
+        }
+    }
+    
+    // Store chi value in lattice metadata
+    set_lattice_property(lattice_id, "chi", chi.value);
+    set_lattice_property(lattice_id, "flux", flux);
+    
+    log_info("Chi reduction complete for lattice " + lattice_id + " with χ=" + chi.value);
+}
+
+// Macro for hot-swapping lattice topology with chi reduction
+macro swap_lattice_chi(old_lattice, new_lattice, flux) {
+    // First perform standard lattice swap
+    swap_lattice(old_lattice, new_lattice);
+    
+    // Then apply chi reduction to the new lattice
+    chi_reduce_lattice(new_lattice, flux);
+    
+    // Trigger re-computation of eigenstates
+    invalidate_cache("eigenstates");
+    recompute_spectrum();
+}
+
+// Export the macros for use
+export { side_dot, chi_reduce_lattice, swap_lattice_chi };

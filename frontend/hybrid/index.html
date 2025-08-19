@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TORI/Saigon v5 - Hybrid Interface</title>
+  
+  <!-- Preconnect to API server -->
+  <link rel="preconnect" href="http://localhost:8001">
+  
+  <!-- Mobile optimizations -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  
+  <!-- Base styles for immediate paint -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2f 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    #loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-content {
+      text-align: center;
+    }
+    
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      border: 3px solid rgba(80, 170, 255, 0.1);
+      border-top-color: #50aaff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-title {
+      font-size: 24px;
+      font-weight: 300;
+      color: #50aaff;
+      margin-bottom: 10px;
+    }
+    
+    .loading-status {
+      font-size: 14px;
+      color: #a0a0b0;
+      margin-bottom: 30px;
+    }
+    
+    .loading-progress {
+      width: 200px;
+      height: 3px;
+      background: rgba(80, 170, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    
+    .loading-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #50aaff, #80ccff);
+      border-radius: 3px;
+      width: 0;
+      transition: width 0.3s ease;
+    }
+    
+    #app {
+      width: 100vw;
+      height: 100vh;
+    }
+    
+    /* Critical error display */
+    .critical-error {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 20, 30, 0.95);
+      border: 2px solid rgba(255, 50, 50, 0.5);
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      text-align: center;
+      z-index: 10000;
+      backdrop-filter: blur(10px);
+    }
+    
+    .critical-error h2 {
+      color: #ff5555;
+      margin-bottom: 15px;
+    }
+    
+    .critical-error p {
+      color: #e0e0e0;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .critical-error button {
+      background: rgba(255, 50, 50, 0.2);
+      border: 1px solid rgba(255, 50, 50, 0.5);
+      color: #ff5555;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .critical-error button:hover {
+      background: rgba(255, 50, 50, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo"></div>
+      <h1 class="loading-title">TORI/Saigon v5</h1>
+      <p class="loading-status" id="loading-status">Initializing...</p>
+      <div class="loading-progress">
+        <div class="loading-progress-bar" id="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main App Container -->
+  <div id="app"></div>
+  
+  <!-- Critical Error Display (hidden by default) -->
+  <div id="critical-error" class="critical-error" style="display: none;">
+    <h2>System Error</h2>
+    <p id="error-message">An unexpected error occurred.</p>
+    <button onclick="location.reload()">Reload System</button>
+  </div>
+  
+  <!-- Bootstrap Script -->
+  <script>
+    (function() {
+      'use strict';
+      
+      const loadingStatus = document.getElementById('loading-status');
+      const loadingProgress = document.getElementById('loading-progress');
+      const loadingScreen = document.getElementById('loading-screen');
+      const criticalError = document.getElementById('critical-error');
+      const errorMessage = document.getElementById('error-message');
+      
+      let progress = 0;
+      let initialized = false;
+      
+      // Update loading progress
+      function updateProgress(value, status) {
+        progress = Math.min(value, 100);
+        loadingProgress.style.width = progress + '%';
+        if (status) {
+          loadingStatus.textContent = status;
+        }
+      }
+      
+      // Show critical error
+      function showCriticalError(message) {
+        errorMessage.textContent = message;
+        criticalError.style.display = 'block';
+        loadingScreen.classList.add('hidden');
+      }
+      
+      // Check browser compatibility
+      function checkCompatibility() {
+        const required = {
+          'WebAssembly': typeof WebAssembly !== 'undefined',
+          'WebGL': !!document.createElement('canvas').getContext('webgl'),
+          'ES6': (function() {
+            try {
+              new Function('(a = 0) => a');
+              return true;
+            } catch (e) {
+              return false;
+            }
+          })()
+        };
+        
+        const missing = [];
+        for (const [feature, supported] of Object.entries(required)) {
+          if (!supported) {
+            missing.push(feature);
+          }
+        }
+        
+        if (missing.length > 0) {
+          throw new Error(`Your browser doesn't support: ${missing.join(', ')}`);
+        }
+        
+        return true;
+      }
+      
+      // Load core modules
+      async function loadCoreModules() {
+        updateProgress(10, 'Checking browser compatibility...');
+        
+        try {
+          checkCompatibility();
+        } catch (error) {
+          showCriticalError(error.message);
+          return false;
+        }
+        
+        updateProgress(20, 'Loading core libraries...');
+        
+        // Load Svelte app
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = '/build/app.js';
+        
+        return new Promise((resolve, reject) => {
+          script.onload = () => {
+            updateProgress(40, 'Core libraries loaded');
+            resolve(true);
+          };
+          
+          script.onerror = () => {
+            reject(new Error('Failed to load core libraries'));
+          };
+          
+          document.head.appendChild(script);
+        });
+      }
+      
+      // Initialize device capabilities
+      async function initializeDevice() {
+        updateProgress(50, 'Detecting device capabilities...');
+        
+        // Check WebGPU
+        if ('gpu' in navigator) {
+          try {
+            const adapter = await navigator.gpu.requestAdapter();
+            if (adapter) {
+              updateProgress(60, 'WebGPU detected');
+              window.__WEBGPU_AVAILABLE = true;
+            }
+          } catch (e) {
+            console.log('WebGPU not available, will use fallback');
+          }
+        }
+        
+        // Check available memory
+        if ('deviceMemory' in navigator) {
+          window.__DEVICE_MEMORY = navigator.deviceMemory;
+        }
+        
+        // Check connection
+        if ('connection' in navigator) {
+          window.__CONNECTION_TYPE = navigator.connection.effectiveType;
+        }
+        
+        updateProgress(70, 'Device capabilities detected');
+        return true;
+      }
+      
+      // Connect to backend
+      async function connectToBackend() {
+        updateProgress(80, 'Connecting to backend...');
+        
+        try {
+          const response = await fetch('/api/health', {
+            method: 'GET',
+            timeout: 5000
+          });
+          
+          if (!response.ok) {
+            throw new Error('Backend not responding');
+          }
+          
+          updateProgress(90, 'Connected to backend');
+          return true;
+          
+        } catch (error) {
+          console.warn('Backend connection failed, running in offline mode');
+          window.__OFFLINE_MODE = true;
+          updateProgress(90, 'Running in offline mode');
+          return true;
+        }
+      }
+      
+      // Initialize application
+      async function initializeApp() {
+        try {
+          // Load core modules
+          await loadCoreModules();
+          
+          // Initialize device
+          await initializeDevice();
+          
+          // Connect to backend
+          await connectToBackend();
+          
+          // Final initialization
+          updateProgress(100, 'Ready!');
+          
+          // Hide loading screen after a short delay
+          setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            initialized = true;
+          }, 500);
+          
+        } catch (error) {
+          console.error('Initialization failed:', error);
+          showCriticalError(error.message || 'Failed to initialize application');
+        }
+      }
+      
+      // Handle visibility changes (mobile)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && initialized) {
+          // Reconnect to backend when app becomes visible
+          connectToBackend();
+        }
+      });
+      
+      // Handle online/offline events
+      window.addEventListener('online', () => {
+        if (initialized) {
+          connectToBackend();
+        }
+      });
+      
+      window.addEventListener('offline', () => {
+        window.__OFFLINE_MODE = true;
+        console.log('Switched to offline mode');
+      });
+      
+      // Prevent pull-to-refresh on mobile
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Start initialization
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+      } else {
+        initializeApp();
+      }
+    })();
+  </script>
+  
+  <!-- Deferred styles -->
+  <link rel="stylesheet" href="/build/app.css">
+</body>
+</html>

@@ -1,0 +1,86 @@
+/* 
+ * ELFIN Stability Example
+ * This demonstrates the ELFIN DSL stability extensions with
+ * Lyapunov verification and phase monitoring capabilities
+ */
+
+// Define a pendulum system concept
+concept pendulum ψ-mode:ϕ1 {
+    // Properties
+    property state = [angle, velocity]
+    property mass = 1.0
+    property length = 1.0
+    property gravity = 9.81
+    
+    // Stability constraints
+    require Lyapunov(pendulum) < 0.5;
+}
+
+// Define a cart-pole system concept
+concept cart_pole ψ-mode:ϕ2 {
+    // Properties
+    property state = [x, theta, dx, dtheta]
+    property cart_mass = 1.0
+    property pole_mass = 0.1
+    property pole_length = 0.5
+    property gravity = 9.81
+    
+    // Stability constraints
+    require Lyapunov(cart_pole) < 2.0;
+}
+
+// Define a polynomial Lyapunov function for the pendulum
+lyapunov V_pendulum {
+    polynomial(2)
+    domain(pendulum)
+    form "x^T P x"
+    verify(sos, verbose=true)
+}
+
+// Define a neural network Lyapunov function for the cart-pole
+lyapunov V_cart_pole {
+    neural(4, 16, 16, 1)
+    domain(cart_pole)
+    learn from(dynamics cart_pole_dynamics, samples=1000)
+    verify(milp, timeout=30)
+}
+
+// Define a Control Lyapunov function for controlled stabilization
+lyapunov V_control {
+    clf(u)
+    domain(pendulum, cart_pole)
+    form "x^T P x + x^T P B u"
+    verify(sos, qp=true, gamma=0.1)
+}
+
+// Define a Koopman operator for spectral analysis
+koopman K_pendulum {
+    eigenfunctions(phi1, phi2, phi3)
+    modes(k1: 0.95, k2: 0.85-0.2j, k3: 0.85+0.2j)
+    bind to phase(phi1->ϕ1)
+}
+
+// Verification directives
+verify V_pendulum using sos with tolerance=0.001;
+verify V_cart_pole using milp with timeout=30;
+verify V_control using sos with qp=true, tolerance=0.001;
+
+// Stability directives
+stability Lyapunov(pendulum) < 0.5;
+stability LyapunovDerivative(cart_pole) < 0;
+
+// Phase monitoring
+monitor PhaseDrift(ϕ1) > π/4 with notify=true, adapt=true;
+monitor PhaseDrift(ϕ2) > π/4 with notify=true, adapt=true;
+
+// Adaptive actions based on phase drift
+if PhaseDrift(ϕ1) > π/4:
+    adapt_coupling(0.2);
+    notify("Phase drift detected in pendulum");
+    log_event("pendulum_drift");
+
+// Adaptive actions based on Lyapunov function values
+if Lyapunov(cart_pole) > 1.0:
+    apply_control(-0.5, 0);
+    notify("Instability detected in cart-pole");
+    log_event("cart_pole_instability");

@@ -1,0 +1,26 @@
+// scripts/package-scripts.json
+// NPM script configurations for FFT build pipeline
+
+{
+  "scripts": {
+    "generate-fft": "ts-node scripts/genFftPrecomputed.ts",
+    "bundle-shaders": "ts-node scripts/bundleShaders.ts",
+    "prebuild": "npm run generate-fft && npm run bundle-shaders",
+    "build": "vite build",
+    "test:fft": "jest --testPathPattern=fftCompute.test.ts",
+    "test:fft:watch": "jest --watch --testPathPattern=fftCompute.test.ts",
+    "benchmark:fft": "ts-node scripts/benchmarkFFT.ts",
+    "clean:generated": "rimraf frontend/lib/webgpu/generated",
+    "rebuild:fft": "npm run clean:generated && npm run generate-fft && npm run bundle-shaders"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}

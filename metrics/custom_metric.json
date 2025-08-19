@@ -1,0 +1,7 @@
+{
+  "type": "custom",
+  "kretschmann": "48/(r**6) * exp(-((r-2)/0.5)**2)",
+  "persistence": "volatile",
+  "coordinates": ["r", "theta", "phi"],
+  "description": "Custom metric with Gaussian-modulated curvature peak at r=2"
+}

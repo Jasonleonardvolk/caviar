@@ -1,0 +1,2 @@
+${IRIS_ROOT}\frontend\lib\webgpu\QuiltGeneratorAdapter.ts
+${IRIS_ROOT}\frontend\lib\holographicEngine.ts

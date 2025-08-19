@@ -1,0 +1,54 @@
+# Canary Deployment Monitoring Rules
+#
+# This file contains Prometheus alerting rules for canary deployments
+# to ensure they don't stay in a partial state for too long.
+
+groups:
+  - name: canary_alerts
+    rules:
+      # Alert when a canary deployment exceeds its time budget
+      - alert: CanaryDeploymentTimeout
+        expr: time() - canary_deployment_start_time{environment="production"} > 7200  # 2 hours
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          alert_type: canary
+        annotations:
+          summary: "Canary deployment exceeded time budget"
+          description: "Canary deployment {{ $labels.deployment }} in {{ $labels.environment }} has been running for more than 2 hours"
+          runbook_url: "https://wiki.example.com/runbooks/canary-deployment-timeout"
+
+      # Alert on high error rate in canary deployment compared to stable
+      - alert: CanaryErrorRateHigh
+        expr: |
+          sum(rate(http_requests_total{status=~"5..",deployment_type="canary"}[5m])) / sum(rate(http_requests_total{deployment_type="canary"}[5m])) 
+          > 
+          (sum(rate(http_requests_total{status=~"5..",deployment_type="stable"}[5m])) / sum(rate(http_requests_total{deployment_type="stable"}[5m]))) * 1.5
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+          alert_type: canary
+        annotations:
+          summary: "Canary deployment has high error rate"
+          description: "The canary deployment has 1.5x higher error rate compared to stable for the past 2 minutes"
+          runbook_url: "https://wiki.example.com/runbooks/canary-error-rate"
+
+      # Alert on traffic imbalance (canary receiving incorrect percentage)
+      - alert: CanaryTrafficImbalance
+        expr: |
+          abs(
+            sum(rate(http_requests_total{deployment_type="canary"}[5m])) / 
+            (sum(rate(http_requests_total{deployment_type="canary"}[5m])) + sum(rate(http_requests_total{deployment_type="stable"}[5m])))
+            - on() group_left() canary_expected_traffic_fraction
+          ) > 0.02 # 2% deviation tolerance
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          alert_type: canary
+        annotations:
+          summary: "Canary traffic percentage is incorrect"
+          description: "Canary deployment is receiving traffic outside the expected percentage range (±2%)"
+          runbook_url: "https://wiki.example.com/runbooks/canary-traffic-imbalance"

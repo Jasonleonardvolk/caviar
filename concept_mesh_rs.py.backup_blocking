@@ -1,0 +1,63 @@
+"""
+Concept Mesh RS Stub
+Provides Python implementation until Rust PyO3 bindings are ready
+"""
+
+import json
+import logging
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+import numpy as np
+
+logger = logging.getLogger(__name__)
+
+class ConceptMeshLoader:
+    """Python implementation of ConceptMeshLoader"""
+    
+    def __init__(self, data_dir: Optional[Path] = None):
+        self.data_dir = data_dir or Path("data/concept_mesh")
+        self.concepts = {}
+        self.embeddings = {}
+        logger.info("✅ ConceptMeshLoader initialized (Python implementation)")
+    
+    def load(self) -> Dict[str, Any]:
+        """Load concept mesh from disk"""
+        mesh_file = self.data_dir / "concepts.json"
+        if mesh_file.exists():
+            with open(mesh_file, 'r', encoding='utf-8') as f:
+                self.concepts = json.load(f)
+        return self.concepts
+    
+    def save(self, concepts: Dict[str, Any]):
+        """Save concept mesh to disk"""
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        mesh_file = self.data_dir / "concepts.json"
+        with open(mesh_file, 'w', encoding='utf-8') as f:
+            json.dump(concepts, f, indent=2)
+    
+    def add_concept(self, concept_id: str, data: Dict[str, Any]):
+        """Add a concept to the mesh"""
+        self.concepts[concept_id] = data
+    
+    def get_concept(self, concept_id: str) -> Optional[Dict[str, Any]]:
+        """Get a concept by ID"""
+        return self.concepts.get(concept_id)
+    
+    def search_similar(self, embedding: np.ndarray, k: int = 5) -> List[str]:
+        """Search for similar concepts (stub implementation)"""
+        # Return random concepts for now
+        concept_ids = list(self.concepts.keys())
+        return concept_ids[:k] if concept_ids else []
+
+# Module-level instance
+_loader = None
+
+def get_loader() -> ConceptMeshLoader:
+    """Get singleton loader instance"""
+    global _loader
+    if _loader is None:
+        _loader = ConceptMeshLoader()
+    return _loader
+
+# Exports
+__all__ = ['ConceptMeshLoader', 'get_loader']

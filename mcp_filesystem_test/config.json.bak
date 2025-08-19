@@ -1,0 +1,43 @@
+{
+  "application": {
+    "name": "MCP Filesystem Test Suite",
+    "version": "1.0.0",
+    "description": "Testing the MCP Filesystem Server capabilities"
+  },
+  "processing": {
+    "default_batch_size": 1000,
+    "max_workers": null,
+    "use_multiprocessing": true,
+    "timeout_seconds": 300,
+    "retry_attempts": 3
+  },
+  "storage": {
+    "base_path": "C:\\Users\\jason\\Desktop\\tori\\kha\\mcp_filesystem_test",
+    "results_directory": "results",
+    "logs_directory": "logs",
+    "temp_directory": "temp"
+  },
+  "features": {
+    "enable_caching": true,
+    "enable_logging": true,
+    "enable_metrics": true,
+    "enable_async_processing": true,
+    "enable_parallel_processing": true
+  },
+  "performance": {
+    "memory_limit_mb": 4096,
+    "cpu_affinity": [],
+    "gc_threshold": 1000,
+    "buffer_size": 8192
+  },
+  "monitoring": {
+    "enable_metrics_collection": true,
+    "metrics_interval_seconds": 60,
+    "alert_thresholds": {
+      "cpu_percent": 80,
+      "memory_percent": 75,
+      "error_rate": 0.05
+    },
+    "export_format": "prometheus"
+  }
+}

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elfin-lsp"
+version = "0.1.0"
+description = "ELFIN Language Server Protocol (LSP) package"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Your Name"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+    "pygls>=1.0.0",
+    "watchdog>=2.0.0",
+]
+
+[project.scripts]
+elfin-lsp = "elfin_lsp.cli:main"
+
+[tool.setuptools]
+packages = ["elfin_lsp"]

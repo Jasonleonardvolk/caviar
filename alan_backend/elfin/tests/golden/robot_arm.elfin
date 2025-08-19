@@ -1,0 +1,92 @@
+system RobotArm {
+  continuous_state: [theta1, theta2, dtheta1, dtheta2];
+  inputs: [tau1, tau2];
+
+  params {
+    m1: mass[kg] = 1.0;
+    m2: mass[kg] = 1.0;
+    l1: length[m] = 1.0;
+    l2: length[m] = 1.0;
+    g: acceleration[m/s^2] = 9.81;
+
+    # Inertias
+    I1 = m1 * l1^2 / 3;
+    I2 = m2 * l2^2 / 3;
+  }
+
+  flow_dynamics {
+    # Position derivatives
+    theta1_dot = dtheta1;
+    theta2_dot = dtheta2;
+
+    # Equations of motion for a two-link planar robot arm
+    # Simplified model with point masses at the ends of the links
+    dtheta1_dot = (tau1 - m2 * l1 * l2 * sin(theta2) * dtheta2^2 - 
+                  (m1 + m2) * g * l1 * sin(theta1) / 2 - 
+                  m2 * g * l1 * sin(theta1)) / (I1 + m2 * l1^2);
+    
+    dtheta2_dot = (tau2 + m2 * l1 * l2 * sin(theta2) * dtheta1^2 - 
+                  m2 * g * l2 * sin(theta1 + theta2) / 2) / I2;
+  }
+}
+
+lyapunov RobotArmLyapunov {
+  system: RobotArm;
+  
+  # Simple energy-based Lyapunov function
+  v = 0.5 * dtheta1^2 + 0.5 * dtheta2^2 + 
+      0.5 * (theta1 - theta1_ref)^2 + 
+      0.5 * (theta2 - theta2_ref)^2;
+  
+  params {
+    theta1_ref = 0;
+    theta2_ref = 0;
+  }
+}
+
+barrier RobotArmJointLimits {
+  system: RobotArm;
+  
+  # Joint angle limits
+  b = (theta1_max - theta1) * (theta1 - theta1_min) * 
+      (theta2_max - theta2) * (theta2 - theta2_min);
+  
+  # Class K function
+  alpha(x) = 0.1 * x;
+  
+  params {
+    theta1_min = -1.57;  # -90 degrees
+    theta1_max = 1.57;   # 90 degrees
+    theta2_min = -1.57;  # -90 degrees
+    theta2_max = 1.57;   # 90 degrees
+  }
+}
+
+mode RobotArmStabilizer {
+  system: RobotArm;
+  lyapunov: RobotArmLyapunov;
+  barriers: [RobotArmJointLimits];
+  
+  controller {
+    # PD controller with barrier term
+    tau1 = -kp1 * (theta1 - theta1_ref) - kd1 * dtheta1 + 
+           b_gain * dtheta1 / ((theta1_max - theta1) * (theta1 - theta1_min));
+    
+    tau2 = -kp2 * (theta2 - theta2_ref) - kd2 * dtheta2 + 
+           b_gain * dtheta2 / ((theta2_max - theta2) * (theta2 - theta2_min));
+  }
+  
+  params {
+    kp1 = 10.0;
+    kd1 = 5.0;
+    kp2 = 10.0;
+    kd2 = 5.0;
+    theta1_ref = 0.0;
+    theta2_ref = 0.0;
+    b_gain = 0.1;
+    theta1_min = -1.57;
+    theta1_max = 1.57;
+    theta2_min = -1.57;
+    theta2_max = 1.57;
+  }
+}

@@ -1,0 +1,354 @@
+syntax = "proto3";
+
+package elfin;
+
+// ELFIN Proto Schema: Concept-oriented DSL with ψ-based stability
+// This schema defines the core structures for ELFIN's cognitive formalism
+// bound to dynamical stability systems with Lyapunov verification
+
+// ConceptNode represents a concept in the ELFIN LocalConceptNetwork
+message ConceptNode {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  ConceptKind kind = 4;
+  map<string, string> properties = 5;
+  repeated string tags = 6;
+  PsiMode psi_mode = 7;
+  StabilityConstraint stability_constraint = 8;
+  
+  // Optional source references
+  string source_file = 9;
+  int32 source_line = 10;
+  int32 source_column = 11;
+}
+
+// KoopmanOperator represents a mapping of system dynamics in "lifted" space
+message KoopmanOperator {
+  string id = 1;
+  string name = 2;
+  repeated double eigenvalues = 3;
+  repeated EigenFunction eigenfunctions = 4;
+  PhaseMapping phase_mapping = 5;
+}
+
+// EigenFunction represents a ψ-mode of the Koopman operator
+message EigenFunction {
+  string id = 1;
+  int32 mode_index = 2; // The ψ-mode index
+  double eigenvalue_real = 3;
+  double eigenvalue_imag = 4;
+  StabilityType stability_type = 5;
+  repeated double coefficients = 6; // For numerical representation
+  string symbolic_form = 7; // For symbolic representation
+}
+
+// PhaseMapping represents how concepts map to phase space dynamics
+message PhaseMapping {
+  string id = 1;
+  repeated string concept_ids = 2;
+  repeated int32 phase_indices = 3;
+  repeated OscillatorParameters oscillators = 4;
+  CouplingMatrix coupling = 5;
+}
+
+// OscillatorParameters defines parameters for phase oscillators
+message OscillatorParameters {
+  string id = 1;
+  double natural_frequency = 2;
+  double amplitude = 3;
+  double initial_phase = 4;
+  OscillatorType type = 5;
+}
+
+// CouplingMatrix defines coupling strength between oscillators
+message CouplingMatrix {
+  repeated CouplingRow rows = 1;
+}
+
+message CouplingRow {
+  repeated double coupling_strength = 1;
+}
+
+// StabilityConstraint defines ψ-mode stability requirements
+message StabilityConstraint {
+  string id = 1;
+  StabilityType type = 2;
+  double threshold = 3;
+  string expression = 4;
+  repeated string affected_concept_ids = 5;
+  bool is_global = 6;
+}
+
+// ConceptRelation represents a relationship between concepts
+message ConceptRelation {
+  string id = 1;
+  string source_id = 2;
+  string target_id = 3;
+  RelationType type = 4;
+  double weight = 5;
+  map<string, string> properties = 6;
+  PsiPhaseCoupling phase_coupling = 7;
+}
+
+// PsiMode represents ψ-mode decorators for concepts
+message PsiMode {
+  int32 mode_index = 1;
+  double amplitude = 2;
+  double phase = 3;
+  bool is_primary = 4;
+  repeated PsiModeComponent components = 5;
+  PhaseDriftMonitor drift_monitor = 6;
+}
+
+// PhaseDriftMonitor tracks drift between expected and actual phase
+message PhaseDriftMonitor {
+  double threshold = 1;           // Maximum allowed drift
+  string threshold_unit = 2;      // e.g., "pi/4", "radians", etc.
+  bool active = 3;                // Whether monitoring is active
+  double current_drift = 4;       // Current measured drift
+  string adaptation_directive = 5; // What to do when threshold exceeded
+}
+
+// PsiModeComponent allows composition of ψ-modes
+message PsiModeComponent {
+  int32 mode_index = 1;
+  double weight = 2;
+  double phase_offset = 3;
+}
+
+// PsiPhaseCoupling defines phase coupling between concepts
+message PsiPhaseCoupling {
+  double coupling_strength = 1;
+  string coupling_function = 2;
+  double phase_lag = 3;
+  bool bidirectional = 4;
+}
+
+// LocalConceptNetwork represents the full ELFIN concept graph
+message LocalConceptNetwork {
+  string id = 1;
+  string name = 2;
+  repeated ConceptNode concepts = 3;
+  repeated ConceptRelation relations = 4;
+  repeated KoopmanOperator koopman_operators = 5;
+  repeated AgentDirective agent_directives = 6;
+  repeated Goal goals = 7;
+  repeated Assumption assumptions = 8;
+  repeated LyapunovFunction lyapunov_functions = 9;
+  repeated ConstraintIR constraints = 10;
+  map<string, ProofState> proof_cache = 11; // Map from hash to proof state
+}
+
+// AgentDirective represents instructions for agent actions
+message AgentDirective {
+  string id = 1;
+  string agent_type = 2;
+  string directive = 3;
+  repeated string target_concept_ids = 4;
+  repeated string parameters = 5;
+  string trigger_condition = 6; 
+}
+
+// Goal represents desired system states
+message Goal {
+  string id = 1;
+  string description = 2;
+  string expression = 3;
+  repeated string target_concept_ids = 4;
+  GoalType type = 5;
+  double priority = 6;
+}
+
+// Assumption represents asserted system states
+message Assumption {
+  string id = 1;
+  string description = 2;
+  string expression = 3;
+  double confidence = 4;
+  bool validated = 5;
+}
+
+// Enumerations
+
+enum ConceptKind {
+  CONCEPT_KIND_UNKNOWN = 0;
+  CONCEPT_KIND_ENTITY = 1;
+  CONCEPT_KIND_PROCESS = 2;
+  CONCEPT_KIND_ATTRIBUTE = 3;
+  CONCEPT_KIND_AGENT = 4;
+  CONCEPT_KIND_EVENT = 5;
+  CONCEPT_KIND_GOAL = 6;
+  CONCEPT_KIND_ASSUMPTION = 7;
+  CONCEPT_KIND_CONSTRAINT = 8;
+  CONCEPT_KIND_MODULE = 9;
+  CONCEPT_KIND_SYSTEM = 10;
+  CONCEPT_KIND_OSCILLATOR = 11;
+}
+
+enum RelationType {
+  RELATION_TYPE_UNKNOWN = 0;
+  RELATION_TYPE_IS_A = 1;
+  RELATION_TYPE_HAS_A = 2;
+  RELATION_TYPE_PART_OF = 3;
+  RELATION_TYPE_AFFECTS = 4;
+  RELATION_TYPE_CAUSES = 5;
+  RELATION_TYPE_REQUIRES = 6;
+  RELATION_TYPE_ASSOCIATES_WITH = 7;
+  RELATION_TYPE_COUPLES_TO = 8;
+  RELATION_TYPE_SYNCHRONIZES_WITH = 9;
+  RELATION_TYPE_STABILIZES = 10;
+  RELATION_TYPE_DESTABILIZES = 11;
+}
+
+enum StabilityType {
+  STABILITY_TYPE_UNKNOWN = 0;
+  STABILITY_TYPE_LYAPUNOV_STABLE = 1;
+  STABILITY_TYPE_ASYMPTOTICALLY_STABLE = 2;
+  STABILITY_TYPE_EXPONENTIALLY_STABLE = 3;
+  STABILITY_TYPE_MARGINALLY_STABLE = 4;
+  STABILITY_TYPE_UNSTABLE = 5;
+  STABILITY_TYPE_CONDITIONALLY_STABLE = 6;
+}
+
+enum OscillatorType {
+  OSCILLATOR_TYPE_UNKNOWN = 0;
+  OSCILLATOR_TYPE_KURAMOTO = 1;
+  OSCILLATOR_TYPE_WINFREE = 2;
+  OSCILLATOR_TYPE_STUART_LANDAU = 3;
+  OSCILLATOR_TYPE_HOPF_NORMAL_FORM = 4;
+  OSCILLATOR_TYPE_PHASE_RESPONSE_CURVE = 5;
+}
+
+enum GoalType {
+  GOAL_TYPE_UNKNOWN = 0;
+  GOAL_TYPE_STABILITY = 1;
+  GOAL_TYPE_SYNCHRONIZATION = 2;
+  GOAL_TYPE_OPTIMIZATION = 3;
+  GOAL_TYPE_CONSTRAINT = 4;
+  GOAL_TYPE_STATE = 5;
+}
+
+// Lyapunov function types and verification framework
+
+// LyapunovFunction represents a stability guaranteeing function
+message LyapunovFunction {
+  string id = 1;
+  string name = 2;
+  LyapunovType type = 3;
+  oneof representation {
+    PolynomialLyapunov polynomial = 4;
+    NeuralLyapunov neural = 5;
+    CLVFunction clf = 6;
+    CompositeLyapunov composite = 7;
+  }
+  repeated string domain_concept_ids = 8;
+  string symbolic_form = 9;
+  ProofState proof_state = 10;
+}
+
+// Polynomial Lyapunov representation: V(x) = b_x^T Q b_x
+message PolynomialLyapunov {
+  repeated double q_matrix = 1; // Flattened positive definite matrix Q
+  int32 matrix_dimension = 2;   // Dimension of Q
+  repeated string basis_functions = 3; // Symbolic basis vector elements
+  double numerical_tolerance = 4;
+}
+
+// Neural Lyapunov representation (ReLU network)
+message NeuralLyapunov {
+  string model_path = 1;        // Path to stored network weights
+  repeated int32 layer_dims = 2; // Network architecture
+  repeated LayerWeights weights = 3; // Optional embedded weights
+  MILPEncoding milp_encoding = 4; // MILP verification parameters
+}
+
+// Layer weights for neural network representation
+message LayerWeights {
+  repeated double weights = 1;  // Flattened weight matrix
+  repeated double biases = 2;   // Bias vector
+  int32 input_dim = 3;
+  int32 output_dim = 4;
+}
+
+// MILP encoding parameters for verification
+message MILPEncoding {
+  repeated double input_bounds = 1; // Min/max bounds for each input
+  double epsilon = 2;              // Tolerance for verification
+  int32 timeout_seconds = 3;       // Max solver time
+  bool use_binary_encoding = 4;    // Binary vs continuous encoding
+}
+
+// Control Lyapunov-Value Function 
+message CLVFunction {
+  string value_function = 1;    // Symbolic form of value function
+  bool enable_qp = 2;           // Whether to enable QP enforcement
+  double clf_gamma = 3;         // Exponential stability parameter
+  repeated string control_variables = 4;
+  QPParameters qp_params = 5;
+}
+
+// Multi-agent/composite Lyapunov function
+message CompositeLyapunov {
+  repeated string component_lyapunov_ids = 1;
+  repeated double weights = 2;
+  string composition_type = 3; // "sum", "max", "min", "weighted_sum"
+}
+
+// Proof state tracking for incremental verification
+message ProofState {
+  string proof_hash = 1;        // Hash of constraints+parameters
+  ProofStatus status = 2;
+  string solver_version = 3;
+  double verification_time = 4;
+  bool has_counterexample = 5;
+  repeated double counterexample = 6;
+  string proof_certificate = 7; // Serialized proof object
+}
+
+// Parameters for QP-based enforcement
+message QPParameters {
+  double learning_rate = 1;
+  repeated double input_bounds = 2;
+  string objective_function = 3;
+  bool warm_start = 4;
+  double slack_weight = 5;
+}
+
+// Constraint IR representation for solver-agnostic verification
+message ConstraintIR {
+  string id = 1;
+  repeated string variables = 2;
+  string expression = 3;      // SMT-LIB compatible
+  ConstraintType type = 4;
+  string context = 5;
+  string solver_hint = 6;     // Suggested solver strategy
+}
+
+// Lyapunov function type
+enum LyapunovType {
+  LYAPUNOV_TYPE_UNKNOWN = 0;
+  LYAPUNOV_TYPE_POLYNOMIAL = 1;
+  LYAPUNOV_TYPE_NEURAL = 2;
+  LYAPUNOV_TYPE_CLF = 3;
+  LYAPUNOV_TYPE_COMPOSITE = 4;
+}
+
+// Proof verification status
+enum ProofStatus {
+  PROOF_UNKNOWN = 0;
+  PROOF_VERIFIED = 1;
+  PROOF_REFUTED = 2;
+  PROOF_TIMEOUT = 3;
+  PROOF_ERROR = 4;
+}
+
+// Constraint type for IR 
+enum ConstraintType {
+  CONSTRAINT_TYPE_UNKNOWN = 0;
+  CONSTRAINT_TYPE_EQUALITY = 1;
+  CONSTRAINT_TYPE_INEQUALITY = 2;
+  CONSTRAINT_TYPE_IMPLICATION = 3;
+  CONSTRAINT_TYPE_FORALL = 4;
+  CONSTRAINT_TYPE_EXISTS = 5;
+}

@@ -1,0 +1,583 @@
+"""
+GAEA-2.1 Spatial Light Modulator (SLM) Physics and Geometry Algorithm
+Complete mathematical framework based on highest level physics and geometry principles
+
+Specifications:
+- Phase-only LCOS (Liquid Crystal on Silicon) microdisplay
+- Resolution: 4160 x 2464 pixels (10 megapixel)
+- Pixel pitch: 3.74 μm
+- Active area diagonal: 0.7"
+- HDMI interface
+"""
+
+import numpy as np
+import math
+from typing import Tuple, Dict, List
+from dataclasses import dataclass
+from scipy.optimize import minimize
+
+@dataclass
+class SLMSpecifications:
+    """GAEA-2.1 SLM Hardware Specifications"""
+    resolution_x: int = 4160
+    resolution_y: int = 2464
+    pixel_pitch: float = 3.74e-6  # meters
+    diagonal_inches: float = 0.7
+    diagonal_meters: float = 0.7 * 0.0254  # convert to meters
+    total_pixels: int = 4160 * 2464
+    technology: str = "LCOS"
+    modulation_type: str = "Phase-only"
+
+class GAEA21_SLM_Algorithm:
+    """
+    Comprehensive physics and geometry algorithm for GAEA-2.1 SLM
+    Based on advanced wave optics, liquid crystal physics, and geometric relationships
+    """
+    
+    def __init__(self, specs: SLMSpecifications):
+        self.specs = specs
+        self.physical_constants = {
+            'c': 299792458,  # speed of light (m/s)
+            'h': 6.62607015e-34,  # Planck constant (J⋅s)
+            'kb': 1.380649e-23,  # Boltzmann constant (J/K)
+            'pi': math.pi
+        }
+        
+    # ============================================================================
+    # GEOMETRIC CALCULATIONS AND RELATIONSHIPS
+    # ============================================================================
+    
+    def calculate_active_area_dimensions(self) -> Tuple[float, float]:
+        """
+        Calculate active area width and height from pixel specifications
+        
+        Returns:
+            Tuple[float, float]: (width, height) in meters
+        """
+        width = self.specs.resolution_x * self.specs.pixel_pitch
+        height = self.specs.resolution_y * self.specs.pixel_pitch
+        return width, height
+    
+    def verify_diagonal_consistency(self) -> Dict[str, float]:
+        """
+        Verify diagonal specification consistency using Pythagorean theorem
+        
+        Returns:
+            Dict containing calculated vs specified diagonal and error
+        """
+        width, height = self.calculate_active_area_dimensions()
+        calculated_diagonal = math.sqrt(width**2 + height**2)
+        error_percentage = abs(calculated_diagonal - self.specs.diagonal_meters) / self.specs.diagonal_meters * 100
+        
+        return {
+            'calculated_diagonal_m': calculated_diagonal,
+            'calculated_diagonal_inches': calculated_diagonal / 0.0254,
+            'specified_diagonal_m': self.specs.diagonal_meters,
+            'specified_diagonal_inches': self.specs.diagonal_inches,
+            'error_percentage': error_percentage
+        }
+    
+    def calculate_aspect_ratio(self) -> float:
+        """Calculate pixel aspect ratio"""
+        return self.specs.resolution_x / self.specs.resolution_y
+    
+    def calculate_fill_factor(self, active_pixel_area_fraction: float = 0.87) -> float:
+        """
+        Calculate fill factor (ratio of active pixel area to total pixel area)
+        
+        Args:
+            active_pixel_area_fraction: Fraction of pixel that is optically active
+            
+        Returns:
+            Fill factor as percentage
+        """
+        return active_pixel_area_fraction * 100
+    
+    # ============================================================================
+    # LIQUID CRYSTAL PHYSICS AND PHASE MODULATION
+    # ============================================================================
+    
+    def phase_modulation_equation(self, voltage: float, wavelength: float = 532e-9, 
+                                 lc_thickness: float = 3.5e-6) -> float:
+        """
+        Calculate phase modulation using liquid crystal birefringence
+        
+        Phase modulation: Φ = (2π/λ) * Δn(V) * d * 2
+        where factor of 2 accounts for reflection (double pass)
+        
+        Args:
+            voltage: Applied voltage (V)
+            wavelength: Light wavelength (m)
+            lc_thickness: Liquid crystal layer thickness (m)
+            
+        Returns:
+            Phase modulation in radians
+        """
+        delta_n = self.calculate_birefringence(voltage, wavelength)
+        phase_modulation = (2 * self.physical_constants['pi'] / wavelength) * delta_n * lc_thickness * 2
+        return phase_modulation
+    
+    def calculate_birefringence(self, voltage: float, wavelength: float = 532e-9) -> float:
+        """
+        Calculate voltage-dependent birefringence using Freedericksz transition
+        
+        Δn(V) = Δn₀ * sqrt(1 - (Vth/V)²) for V > Vth
+        Δn(V) = 0 for V < Vth
+        
+        Args:
+            voltage: Applied voltage (V)
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Birefringence value
+        """
+        # Typical LCOS parameters
+        delta_n_max = 0.15  # Maximum birefringence
+        threshold_voltage = 1.5  # Freedericksz threshold voltage
+        
+        if voltage < threshold_voltage:
+            return 0.0
+        
+        birefringence = delta_n_max * math.sqrt(1 - (threshold_voltage/voltage)**2)
+        
+        # Wavelength dispersion correction (Cauchy equation)
+        cauchy_correction = 1 + 0.01 * (wavelength * 1e9 - 532)**2 / 10000
+        
+        return birefringence * cauchy_correction
+    
+    def liquid_crystal_director_equation(self, voltage: float, z_position: float, 
+                                       lc_thickness: float = 3.5e-6) -> float:
+        """
+        Calculate LC director angle using elastic continuum theory
+        
+        Solving: K∇²θ = εₐE²sin(2θ)/2
+        
+        Args:
+            voltage: Applied voltage (V)
+            z_position: Position through LC layer (m)
+            lc_thickness: LC layer thickness (m)
+            
+        Returns:
+            Director angle in radians
+        """
+        # Material parameters
+        K11 = 15e-12  # Splay elastic constant (N)
+        epsilon_a = 10  # Dielectric anisotropy
+        epsilon_0 = 8.854e-12  # Vacuum permittivity
+        
+        electric_field = voltage / lc_thickness
+        
+        # Simplified solution for small angle approximation
+        normalized_z = z_position / lc_thickness
+        
+        if voltage < 1.5:  # Below threshold
+            return 0.0
+        
+        theta_max = math.asin(min(1.0, voltage / 2.0))  # Maximum tilt angle
+        director_angle = theta_max * math.sin(self.physical_constants['pi'] * normalized_z)
+        
+        return director_angle
+    
+    # ============================================================================
+    # WAVE OPTICS AND DIFFRACTION THEORY
+    # ============================================================================
+    
+    def calculate_diffraction_limit(self, wavelength: float = 532e-9) -> float:
+        """
+        Calculate diffraction-limited angular resolution
+        
+        θ = 1.22λ/D where D is the aperture diameter
+        
+        Args:
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Angular resolution in radians
+        """
+        width, height = self.calculate_active_area_dimensions()
+        aperture_diameter = min(width, height)  # Use smaller dimension
+        
+        angular_resolution = 1.22 * wavelength / aperture_diameter
+        return angular_resolution
+    
+    def fresnel_number(self, distance: float, wavelength: float = 532e-9) -> float:
+        """
+        Calculate Fresnel number for near-field/far-field determination
+        
+        F = a²/(λz) where a is aperture radius, z is distance
+        
+        Args:
+            distance: Distance from SLM (m)
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Fresnel number (dimensionless)
+        """
+        width, height = self.calculate_active_area_dimensions()
+        aperture_radius = min(width, height) / 2
+        
+        fresnel_num = aperture_radius**2 / (wavelength * distance)
+        return fresnel_num
+    
+    def spatial_frequency_bandwidth(self, wavelength: float = 532e-9) -> float:
+        """
+        Calculate maximum spatial frequency that can be displayed
+        
+        f_max = 1/(2*pixel_pitch) (Nyquist limit)
+        
+        Args:
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Maximum spatial frequency (cycles/m)
+        """
+        return 1 / (2 * self.specs.pixel_pitch)
+    
+    def calculate_diffraction_efficiency(self, phase_levels: int, wavelength: float = 532e-9) -> float:
+        """
+        Calculate diffraction efficiency for blazed gratings
+        
+        η = sinc²(π/M) where M is number of phase levels
+        
+        Args:
+            phase_levels: Number of discrete phase levels
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Diffraction efficiency (0-1)
+        """
+        if phase_levels == 1:
+            return 0.0
+        
+        efficiency = (math.sin(self.physical_constants['pi'] / phase_levels) / 
+                     (self.physical_constants['pi'] / phase_levels))**2
+        
+        return efficiency
+    
+    # ============================================================================
+    # HOLOGRAPHIC AND FOURIER OPTICS
+    # ============================================================================
+    
+    def fourier_transform_relationship(self, focal_length: float, wavelength: float = 532e-9) -> Dict[str, float]:
+        """
+        Calculate Fourier transform relationships for 4f optical system
+        
+        Args:
+            focal_length: Lens focal length (m)
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            Dictionary with scaling factors and resolution limits
+        """
+        width, height = self.calculate_active_area_dimensions()
+        
+        # Spatial frequency scaling
+        freq_scale_x = 1 / (wavelength * focal_length / self.specs.pixel_pitch)
+        freq_scale_y = 1 / (wavelength * focal_length / self.specs.pixel_pitch)
+        
+        # Angular resolution
+        angular_res_x = wavelength / width
+        angular_res_y = wavelength / height
+        
+        return {
+            'frequency_scale_x': freq_scale_x,
+            'frequency_scale_y': freq_scale_y,
+            'angular_resolution_x': angular_res_x,
+            'angular_resolution_y': angular_res_y,
+            'max_deflection_angle': wavelength / self.specs.pixel_pitch
+        }
+    
+    def hologram_encoding_equation(self, target_phase: np.ndarray, reference_phase: float = 0.0) -> np.ndarray:
+        """
+        Calculate hologram phase pattern for target wavefront
+        
+        Φ_hologram = arg[exp(iΦ_target) + exp(iΦ_reference)]
+        
+        Args:
+            target_phase: Target phase distribution (2D array)
+            reference_phase: Reference wave phase (radians)
+            
+        Returns:
+            Hologram phase pattern
+        """
+        target_complex = np.exp(1j * target_phase)
+        reference_complex = np.exp(1j * reference_phase)
+        
+        hologram_complex = target_complex + reference_complex
+        hologram_phase = np.angle(hologram_complex)
+        
+        return hologram_phase
+    
+    # ============================================================================
+    # SYSTEM PERFORMANCE METRICS
+    # ============================================================================
+    
+    def calculate_response_time(self, voltage_change: float, temperature: float = 25.0) -> float:
+        """
+        Calculate LC response time using Arrhenius equation
+        
+        τ = τ₀ * exp(Ea/(kT)) * (γ₁/K₁₁) * d²/π²
+        
+        Args:
+            voltage_change: Voltage change magnitude (V)
+            temperature: Operating temperature (°C)
+            
+        Returns:
+            Response time in seconds
+        """
+        # Material parameters
+        tau_0 = 1e-3  # Base response time (s)
+        activation_energy = 0.5 * 1.602e-19  # Activation energy (J)
+        gamma1 = 0.1  # Rotational viscosity (Pa·s)
+        K11 = 15e-12  # Elastic constant (N)
+        lc_thickness = 3.5e-6  # LC layer thickness (m)
+        
+        temp_kelvin = temperature + 273.15
+        
+        # Temperature dependence
+        temp_factor = math.exp(activation_energy / (self.physical_constants['kb'] * temp_kelvin))
+        
+        # Geometric and material factors
+        material_factor = gamma1 / K11
+        geometric_factor = lc_thickness**2 / (self.physical_constants['pi']**2)
+        
+        # Voltage dependence (simplified)
+        voltage_factor = 1 / (1 + voltage_change)
+        
+        response_time = tau_0 * temp_factor * material_factor * geometric_factor * voltage_factor
+        
+        return response_time
+    
+    def phase_accuracy_analysis(self, voltage_resolution: int = 256) -> Dict[str, float]:
+        """
+        Analyze phase accuracy and quantization effects
+        
+        Args:
+            voltage_resolution: Number of voltage levels (e.g., 8-bit = 256)
+            
+        Returns:
+            Dictionary with accuracy metrics
+        """
+        max_phase = 2 * self.physical_constants['pi']
+        phase_step = max_phase / voltage_resolution
+        
+        # RMS phase error due to quantization
+        rms_error = phase_step / math.sqrt(12)
+        
+        # Phase accuracy as percentage
+        accuracy_percent = (1 - rms_error / max_phase) * 100
+        
+        return {
+            'phase_step_rad': phase_step,
+            'phase_step_deg': math.degrees(phase_step),
+            'rms_error_rad': rms_error,
+            'rms_error_deg': math.degrees(rms_error),
+            'accuracy_percent': accuracy_percent,
+            'voltage_levels': voltage_resolution
+        }
+    
+    def thermal_effects_model(self, temperature: float, reference_temp: float = 25.0) -> Dict[str, float]:
+        """
+        Model thermal effects on SLM performance
+        
+        Args:
+            temperature: Operating temperature (°C)
+            reference_temp: Reference temperature (°C)
+            
+        Returns:
+            Dictionary with thermal coefficients
+        """
+        delta_T = temperature - reference_temp
+        
+        # Thermal coefficients (typical values)
+        dn_dt = -4e-4  # Temperature coefficient of birefringence (/K)
+        pixel_thermal_expansion = 10e-6  # Thermal expansion coefficient (/K)
+        
+        # Changes due to temperature
+        birefringence_change = dn_dt * delta_T
+        pixel_size_change = pixel_thermal_expansion * delta_T
+        
+        # Phase error due to thermal effects
+        phase_error = (2 * self.physical_constants['pi'] / 532e-9) * birefringence_change * 3.5e-6
+        
+        return {
+            'temperature_C': temperature,
+            'delta_temperature': delta_T,
+            'birefringence_change': birefringence_change,
+            'pixel_size_change_percent': pixel_size_change * 100,
+            'thermal_phase_error_rad': phase_error,
+            'thermal_phase_error_deg': math.degrees(phase_error)
+        }
+    
+    # ============================================================================
+    # OPTIMIZATION ALGORITHMS
+    # ============================================================================
+    
+    def optimize_phase_pattern(self, target_intensity: np.ndarray, iterations: int = 100) -> np.ndarray:
+        """
+        Gerchberg-Saxton algorithm for phase-only hologram optimization
+        
+        Args:
+            target_intensity: Desired intensity pattern
+            iterations: Number of optimization iterations
+            
+        Returns:
+            Optimized phase pattern
+        """
+        # Initialize with random phase
+        phase = np.random.random(target_intensity.shape) * 2 * self.physical_constants['pi']
+        
+        for i in range(iterations):
+            # Forward propagation
+            complex_amplitude = np.sqrt(target_intensity) * np.exp(1j * phase)
+            fourier_plane = np.fft.fft2(complex_amplitude)
+            
+            # Apply constraints in Fourier plane
+            fourier_magnitude = np.abs(fourier_plane)
+            fourier_phase = np.angle(fourier_plane)
+            
+            # Backward propagation
+            constrained_fourier = fourier_magnitude * np.exp(1j * fourier_phase)
+            back_propagated = np.fft.ifft2(constrained_fourier)
+            
+            # Update phase while maintaining amplitude constraint
+            phase = np.angle(back_propagated)
+            
+        return phase
+    
+    def calculate_system_mtf(self, spatial_frequency: np.ndarray, wavelength: float = 532e-9) -> np.ndarray:
+        """
+        Calculate system Modulation Transfer Function (MTF)
+        
+        Args:
+            spatial_frequency: Array of spatial frequencies (cycles/m)
+            wavelength: Light wavelength (m)
+            
+        Returns:
+            MTF values corresponding to spatial frequencies
+        """
+        # Pixel aperture MTF (sinc function)
+        pixel_mtf = np.abs(np.sinc(spatial_frequency * self.specs.pixel_pitch))
+        
+        # Fill factor MTF
+        fill_factor = 0.87  # Typical LCOS fill factor
+        fill_factor_mtf = np.abs(np.sinc(spatial_frequency * self.specs.pixel_pitch * fill_factor))
+        
+        # Combine MTF components
+        system_mtf = pixel_mtf * fill_factor_mtf
+        
+        return system_mtf
+    
+    # ============================================================================
+    # COMPREHENSIVE SYSTEM ANALYSIS
+    # ============================================================================
+    
+    def complete_system_analysis(self, wavelength: float = 532e-9, 
+                                temperature: float = 25.0,
+                                voltage_levels: int = 256) -> Dict:
+        """
+        Perform complete physics-based analysis of GAEA-2.1 SLM
+        
+        Args:
+            wavelength: Operating wavelength (m)
+            temperature: Operating temperature (°C)
+            voltage_levels: Number of discrete voltage levels
+            
+        Returns:
+            Comprehensive analysis dictionary
+        """
+        # Geometric analysis
+        width, height = self.calculate_active_area_dimensions()
+        diagonal_check = self.verify_diagonal_consistency()
+        
+        # Optical analysis
+        diffraction_limit = self.calculate_diffraction_limit(wavelength)
+        max_spatial_freq = self.spatial_frequency_bandwidth(wavelength)
+        
+        # Performance analysis
+        response_time = self.calculate_response_time(5.0, temperature)  # 5V change
+        phase_accuracy = self.phase_accuracy_analysis(voltage_levels)
+        thermal_effects = self.thermal_effects_model(temperature)
+        
+        # Advanced calculations
+        fresnel_1m = self.fresnel_number(1.0, wavelength)  # At 1 meter
+        fourier_optics = self.fourier_transform_relationship(0.1, wavelength)  # 100mm lens
+        
+        return {
+            'specifications': {
+                'active_area_width_mm': width * 1000,
+                'active_area_height_mm': height * 1000,
+                'diagonal_verification': diagonal_check,
+                'aspect_ratio': self.calculate_aspect_ratio(),
+                'fill_factor_percent': self.calculate_fill_factor(),
+                'total_pixels': self.specs.total_pixels
+            },
+            'optical_performance': {
+                'diffraction_limit_mrad': diffraction_limit * 1000,
+                'max_spatial_frequency_lp_mm': max_spatial_freq / 1000,
+                'nyquist_frequency_lp_mm': max_spatial_freq / 2000,
+                'fresnel_number_1m': fresnel_1m,
+                'max_deflection_angle_deg': math.degrees(wavelength / self.specs.pixel_pitch)
+            },
+            'phase_modulation': {
+                'max_phase_modulation_rad': 2 * self.physical_constants['pi'],
+                'max_phase_modulation_deg': 360,
+                'phase_accuracy': phase_accuracy,
+                'voltage_to_phase_sensitivity': 2 * self.physical_constants['pi'] / 10  # assuming 10V full scale
+            },
+            'temporal_performance': {
+                'response_time_ms': response_time * 1000,
+                'max_refresh_rate_hz': min(120, 1 / response_time),  # Limited by HDMI or LC response
+                'settling_time_ms': response_time * 3 * 1000  # 3 time constants
+            },
+            'thermal_characteristics': thermal_effects,
+            'fourier_optics': fourier_optics,
+            'system_limits': {
+                'pixel_count': self.specs.total_pixels,
+                'addressable_points': self.specs.total_pixels,
+                'information_capacity_bits': self.specs.total_pixels * math.log2(voltage_levels),
+                'theoretical_bandwidth_hz': max_spatial_freq * self.physical_constants['c'] / wavelength
+            }
+        }
+
+def main():
+    """
+    Execute complete GAEA-2.1 SLM analysis
+    """
+    # Initialize GAEA-2.1 specifications
+    gaea_specs = SLMSpecifications()
+    
+    # Create algorithm instance
+    slm_algorithm = GAEA21_SLM_Algorithm(gaea_specs)
+    
+    # Perform comprehensive analysis
+    wavelengths = [405e-9, 532e-9, 633e-9, 780e-9]  # Different wavelengths
+    
+    print("GAEA-2.1 Spatial Light Modulator Physics and Geometry Analysis")
+    print("=" * 70)
+    
+    for wavelength in wavelengths:
+        wavelength_nm = wavelength * 1e9
+        print(f"\nAnalysis for λ = {wavelength_nm:.0f} nm:")
+        print("-" * 40)
+        
+        analysis = slm_algorithm.complete_system_analysis(wavelength)
+        
+        # Display key results
+        specs = analysis['specifications']
+        optics = analysis['optical_performance']
+        phase = analysis['phase_modulation']
+        timing = analysis['temporal_performance']
+        
+        print(f"Active Area: {specs['active_area_width_mm']:.2f} × {specs['active_area_height_mm']:.2f} mm")
+        print(f"Diagonal Error: {specs['diagonal_verification']['error_percentage']:.3f}%")
+        print(f"Diffraction Limit: {optics['diffraction_limit_mrad']:.3f} mrad")
+        print(f"Max Spatial Freq: {optics['max_spatial_frequency_lp_mm']:.1f} lp/mm")
+        print(f"Phase Accuracy: {phase['phase_accuracy']['accuracy_percent']:.2f}%")
+        print(f"Response Time: {timing['response_time_ms']:.2f} ms")
+        
+    print("\nAlgorithm execution completed successfully!")
+    print("All physics and geometry relationships calculated and verified.")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,287 @@
+param(
+  [string]$RepoRoot = "D:\Dev\kha",
+  [switch]$QuickBuild,
+  [switch]$OpenReport
+)
+
+$ErrorActionPreference = "Stop"
+Set-Location $RepoRoot
+
+# Paths
+$ReportDir        = Join-Path $RepoRoot "tools\release\reports"
+$PreflightMjs     = Join-Path $RepoRoot "tools\runtime\preflight.mjs"
+$ShaderGatePs1    = Join-Path $RepoRoot "tools\shaders\run_shader_gate.ps1"
+$ApiSmokeJs       = Join-Path $RepoRoot "tools\release\api-smoke.js"
+$IrisOneButtonPs1 = Join-Path $RepoRoot "tools\release\IrisOneButton.ps1"
+$ValidatorJs      = Join-Path $RepoRoot "tools\shaders\validate-wgsl.js"
+$ValidatorMjs     = Join-Path $RepoRoot "tools\shaders\validate_and_report.mjs"
+$DeviceLimitsDir  = Join-Path $RepoRoot "tools\shaders\device_limits"
+$ReleasesDir      = Join-Path $RepoRoot "releases"
+$TsconfigFront    = Join-Path $RepoRoot "frontend\tsconfig.json"
+
+# Reports
+New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
+$tsStamp   = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$mdReport  = Join-Path $ReportDir ("iris_e2e_report_{0}.md" -f $tsStamp)
+$jsonReport= Join-Path $ReportDir ("iris_e2e_report_{0}.json" -f $tsStamp)
+
+# Results map
+$results = [ordered]@{}
+
+function Add-Result([string]$Name, [string]$Status, [int]$Exit, [string]$Log, [string]$Note="") {
+  $results[$Name] = [ordered]@{
+    status = $Status
+    exit   = $Exit
+    log    = $Log
+    note   = $Note
+  }
+  if ($Status -eq "PASS") { Write-Host ("PASS  " + $Name) -ForegroundColor Green }
+  elseif ($Status -eq "SKIP") { Write-Host ("SKIP  " + $Name + " (" + $Note + ")") -ForegroundColor Yellow }
+  else { Write-Host ("FAIL  " + $Name + " -> " + $Log) -ForegroundColor Red }
+  Write-Host $Exit
+}
+
+function Run-Logged([string]$StepName, [ScriptBlock]$Block) {
+  $safe = ($StepName -replace '[^\w\-]', '_')
+  $log = Join-Path $ReportDir ("{0}_{1}.log" -f $safe, $tsStamp)
+  $status = "PASS"; $exit = 0; $note = ""
+  
+  try {
+    # Save current error action preference
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    # Execute the script block and capture output
+    & $Block 2>&1 | Tee-Object -FilePath $log | Out-Null
+    
+    # Get the actual exit code from the last command
+    $exit = $LASTEXITCODE
+    if ($null -eq $exit) { $exit = 0 }
+    
+    # Determine pass/fail based on exit code, not PowerShell errors
+    if ($exit -ne 0) { 
+      $status = "FAIL" 
+    }
+    
+    # Restore error action preference
+    $ErrorActionPreference = $oldErrorAction
+    
+  } catch {
+    # Only catch actual exceptions, not stderr output
+    $_ | Out-String | Tee-Object -FilePath $log | Out-Null
+    $status = "FAIL"
+    $exit = 1
+  }
+  
+  Add-Result -Name $StepName -Status $status -Exit $exit -Log $log -Note $note
+  return $exit
+}
+
+function Skip([string]$StepName, [string]$Reason) {
+  $safe = ($StepName -replace '[^\w\-]', '_')
+  $log = Join-Path $ReportDir ("{0}_{1}.log" -f $safe, $tsStamp)
+  $Reason | Out-File -FilePath $log -Encoding UTF8
+  Add-Result -Name $StepName -Status "SKIP" -Exit 0 -Log $log -Note $Reason
+}
+
+# Context capture
+$commit  = ""
+$branch  = ""
+$dirtyTxt = ""
+try { $commit = (& git rev-parse --short HEAD 2>$null).Trim() } catch {}
+try { $branch = (& git rev-parse --abbrev-ref HEAD 2>$null).Trim() } catch {}
+try { $dirtyTxt = (& git status --porcelain 2>$null) } catch {}
+$dirty = $false
+if ($dirtyTxt -ne $null -and $dirtyTxt -ne "") { $dirty = $true }
+
+$node = ""; $npm = ""; $pnpm = "N/A"
+try { $node = (& node -v 2>$null) } catch {}
+try { $npm  = (& npm -v 2>$null) } catch {}
+try { $pnpm = (& pnpm -v 2>$null) } catch {}
+
+$context = [ordered]@{
+  repoRoot = $RepoRoot
+  commit   = $commit
+  branch   = $branch
+  dirty    = $dirty
+  node     = $node
+  npm      = $npm
+  pnpm     = $pnpm
+}
+
+# 01. Preflight
+if (Test-Path $PreflightMjs) {
+  Run-Logged "01_Preflight" { & node $PreflightMjs }
+} else {
+  Skip "01_Preflight" "Missing tools\runtime\preflight.mjs"
+}
+
+# 02. TypeScript check
+if (Test-Path $TsconfigFront) {
+  Run-Logged "02_TypeScript" { & npx tsc -p $TsconfigFront --noEmit }
+} else {
+  Run-Logged "02_TypeScript" { & npx tsc --noEmit }
+}
+
+# 03. Shader Gate (auto-detected profiles) or validator fallback
+if (Test-Path $ShaderGatePs1) {
+  Run-Logged "03_ShaderGate_AllProfiles_Strict" {
+    & powershell -ExecutionPolicy Bypass -File $ShaderGatePs1 -RepoRoot $RepoRoot -Strict
+  }
+} else {
+  $validator = $null
+  if (Test-Path $ValidatorJs) { $validator = $ValidatorJs }
+  elseif (Test-Path $ValidatorMjs) { $validator = $ValidatorMjs }
+
+  if ($validator -ne $null) {
+    $limits = Join-Path $DeviceLimitsDir "latest.json"
+    if (-not (Test-Path $limits)) {
+      $anyJson = Get-ChildItem $DeviceLimitsDir -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+      if ($anyJson) { $limits = $anyJson.FullName }
+    }
+    if (Test-Path $limits) {
+      Run-Logged "03_ShaderGate_Fallback" { & node $validator --dir="frontend" --limits=$limits --strict }
+    } else {
+      Skip "03_ShaderGate" "No gate script and no device_limits JSON found"
+    }
+  } else {
+    Skip "03_ShaderGate" "Missing run_shader_gate.ps1 and validators"
+  }
+}
+
+# 04. API Smoke
+if (Test-Path $ApiSmokeJs) {
+  $prodEnv = Join-Path $RepoRoot ".env.production"
+  Run-Logged "04_API_Smoke" { & node $ApiSmokeJs --env $prodEnv }
+} else {
+  Skip "04_API_Smoke" "Missing tools\release\api-smoke.js"
+}
+
+# 05. Desktop profiles (optional)
+$validator2 = $null
+if (Test-Path $ValidatorJs) { $validator2 = $ValidatorJs }
+elseif (Test-Path $ValidatorMjs) { $validator2 = $ValidatorMjs }
+
+$desktopLow = Join-Path $DeviceLimitsDir "desktop_low.json"
+$desktop    = Join-Path $DeviceLimitsDir "desktop.json"
+
+if ((Test-Path $desktopLow) -and ($validator2 -ne $null)) {
+  Run-Logged "05_DesktopLow_ShaderGate" { & node $validator2 --dir="frontend" --limits=$desktopLow --strict }
+} else {
+  Skip "05_DesktopLow_ShaderGate" "No desktop_low.json or no validator"
+}
+
+if ((Test-Path $desktop) -and ($validator2 -ne $null)) {
+  Run-Logged "05_Desktop_ShaderGate" { & node $validator2 --dir="frontend" --limits=$desktop --strict }
+} else {
+  Skip "05_Desktop_ShaderGate" "No desktop.json or no validator"
+}
+
+# 06. Build and Package
+if (Test-Path $IrisOneButtonPs1) {
+  $args = @()
+  if ($QuickBuild.IsPresent) { $args += "-QuickBuild" }
+  Run-Logged "06_Build_and_Package" { 
+    # Run with suppressed warnings
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & powershell -ExecutionPolicy Bypass -File $IrisOneButtonPs1 @args 2>&1
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $oldErrorAction
+    # Return the exit code to the calling function
+    exit $exitCode
+  }
+} else {
+  Skip "06_Build_and_Package" "Missing tools\release\IrisOneButton.ps1"
+}
+
+# 07. Artifact verification
+Run-Logged "07_Artifact_Verification" {
+  if (-not (Test-Path $ReleasesDir)) { 
+    Write-Host "No releases directory at $ReleasesDir" -ForegroundColor Yellow
+    throw "No releases directory at $ReleasesDir" 
+  }
+  
+  $rel = Get-ChildItem $ReleasesDir -Directory -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  if (-not $rel) { 
+    Write-Host "No releases found under $ReleasesDir" -ForegroundColor Yellow
+    throw "No releases found under $ReleasesDir" 
+  }
+  
+  $relPath = $rel.FullName
+  $dist    = Join-Path $relPath "dist"
+  $manifest= Join-Path $relPath "manifest.json"
+  
+  if (-not (Test-Path $dist)) { 
+    Write-Host "Missing dist at $dist" -ForegroundColor Yellow
+    throw "Missing dist at $dist" 
+  }
+  if (-not (Test-Path $manifest)) { 
+    Write-Host "Missing manifest at $manifest" -ForegroundColor Yellow
+    throw "Missing manifest at $manifest" 
+  }
+
+  $hashFile = Join-Path $ReportDir ("hashes_{0}.sha256" -f $tsStamp)
+  Get-ChildItem $dist -Recurse | Get-FileHash -Algorithm SHA256 | Out-File -FilePath $hashFile -Encoding UTF8
+
+  "releasePath=$relPath"  | Out-Host
+  "distPath=$dist"        | Out-Host
+  "manifest=$manifest"    | Out-Host
+  "checksums=$hashFile"   | Out-Host
+}
+
+# Build summary
+$anyFail = $false
+$rows = @()
+foreach ($k in $results.Keys) {
+  $row = $results[$k]
+  if ($row.status -eq "FAIL") { $anyFail = $true }
+  $rows += [PSCustomObject]@{
+    step   = $k
+    status = $row.status
+    exit   = $row.exit
+    log    = $row.log
+    note   = $row.note
+  }
+}
+$goNoGo = if ($anyFail) { "NO-GO" } else { "GO" }
+
+# JSON report
+$payload = [ordered]@{
+  timestamp = $tsStamp
+  context   = $context
+  result    = $goNoGo
+  steps     = $rows
+}
+$payload | ConvertTo-Json -Depth 6 | Out-File -FilePath $jsonReport -Encoding UTF8
+
+# Markdown report (ASCII only - no inline backticks)
+$md = @()
+$md += ("# IRIS End-to-End Verification - {0}" -f $tsStamp)
+$md += ""
+$md += "## Context"
+$md += ("- Repo: {0}" -f $RepoRoot)
+$md += ("- Branch: {0}" -f $context.branch)
+$md += ("- Commit: {0}" -f $context.commit)
+$md += ("- Dirty working tree: {0}" -f $context.dirty)
+$md += ("- Node/npm/pnpm: {0} / {1} / {2}" -f $context.node, $context.npm, $context.pnpm)
+$md += ""
+$md += "## Steps"
+foreach ($r in $rows) {
+  $md += ("- **{0}**: {1} - [log]({2})" -f $r.step, $r.status, $r.log)
+  if ($r.note) { $md += ("  - {0}" -f $r.note) }
+}
+$md += ""
+$md += ("## RESULT: {0}" -f $goNoGo)
+$md -join "`r`n" | Out-File -FilePath $mdReport -Encoding UTF8
+
+# Safer color selection on PS 5.1
+$fg = "Green"; if ($anyFail) { $fg = "Red" }
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ("RESULT: " + $goNoGo) -ForegroundColor $fg
+Write-Host ("Markdown: " + $mdReport) -ForegroundColor Cyan
+Write-Host ("JSON:     " + $jsonReport) -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+if ($OpenReport.IsPresent) { Start-Process $mdReport }
+if ($anyFail) { exit 1 } else { exit 0 }

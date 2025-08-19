@@ -1,0 +1,5 @@
+{
+  "mode": "standard",
+  "calibration": "/configs/display_calibration/my_panel.json",
+  "comment": "mode: 'standard' = NO HARDWARE REQUIRED (head-tracked parallax on any screen) | 'lenticular' = OPTIONAL for users with Looking Glass panels"
+}

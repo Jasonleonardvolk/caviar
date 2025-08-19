@@ -1,0 +1,22 @@
+[package]
+name        = "{{name}}"
+version     = "0.1.0"
+authors     = ["{{author}}"]
+edition     = "{{edition}}"
+description = "Robotic manipulator controller package using ELFIN"
+
+[dependencies]
+elfin-core   = "^1.0.0"
+cvxpy        = "^1.4.0"
+numpy        = "^1.20.0"
+scipy        = "^1.7.0"
+matplotlib   = "^3.5.0"
+qpsolvers    = "^1.4.0"
+
+[solver]
+mosek.enabled = true
+mosek.msk_license_file = "${HOME}/mosek.lic"
+
+[validation]
+joint_limits.enabled = true
+collision_checking.enabled = true

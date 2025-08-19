@@ -1,0 +1,83 @@
+[Unit]
+Description=TORI Capsule Service %i
+Documentation=https://github.com/tori/dickbox
+After=network.target
+
+# Dependencies
+Wants=nvidia-cuda-mps-control.service
+After=nvidia-cuda-mps-control.service
+
+# Ordering
+Before=haproxy.service
+After=tori-state.mount
+
+[Service]
+# Capsule environment
+Type=notify
+NotifyAccess=all
+WorkingDirectory=/opt/tori/releases/%i
+Environment="CAPSULE_SHA=%i"
+Environment="BUILD_SHA=%i"
+EnvironmentFile=-/opt/tori/releases/%i/config/envfile
+EnvironmentFile=-/etc/tori/capsule.env
+
+# User and permissions
+User=tori
+Group=tori
+UMask=0022
+
+# Capabilities (if needed for network binding)
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# Security hardening
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+
+# Allow state directory access
+ReadWritePaths=/opt/tori/state
+ReadOnlyPaths=/opt/tori/releases/%i
+
+# Resource limits via slice assignment
+Slice=tori-%i.slice
+
+# Execute capsule entrypoint
+ExecStartPre=/usr/bin/env bash -c 'source /opt/tori/releases/%i/activate.sh 2>/dev/null || true'
+ExecStart=/opt/tori/releases/%i/venv/bin/python /opt/tori/releases/%i/${ENTRYPOINT}
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+
+# Health check integration
+ExecReload=/bin/kill -HUP $MAINPID
+ExecHealthCheck=/opt/tori/releases/%i/venv/bin/python -c "import sys; sys.path.insert(0, '/opt/tori/releases/%i'); from alan_backend import health_check; sys.exit(0 if health_check() else 1)"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tori-%i
+
+# GPU access (if needed)
+DeviceAllow=/dev/nvidia* rw
+DeviceAllow=/dev/nvidiactl rw
+DeviceAllow=/dev/nvidia-uvm rw
+DeviceAllow=/dev/nvidia-modeset rw
+
+# Process tracking
+KillMode=mixed
+KillSignal=SIGTERM
+SendSIGKILL=yes
+
+[Install]
+WantedBy=multi-user.target
+Alias=tori-active.service

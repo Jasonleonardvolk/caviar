@@ -1,0 +1,85 @@
+{
+  "name": "tori-holographic-frontend",
+  "version": "0.1.0",
+  "description": "TORI Hybrid Holographic System - WebGPU Light Field Renderer",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"python ../devtools/watch_backend_tests.py\"",
+    "dev:mock": "vite --mode mock",
+    "build": "npm run build:all",
+    "build:all": "npm run build:assets && npm run build:quilt-manifests && npm run build:quilt-videos && npm run build:frontend",
+    "build:frontend": "vite build",
+    "build:assets": "node scripts/transcode-ktx2.js",
+    "build:quilt-manifests": "node scripts/build-quilt-manifest.js --root public/assets/quilt",
+    "build:quilt-videos": "node ../tools/build_quilt_video.js --mp4 avc",
+    "build:quilt-video": "npm run build:assets && npm run build:quilt-manifests && npm run build:quilt-videos && vite build",
+    "build:production": "npm run build:all && npm run test",
+    "preview": "vite preview",
+    "validate:wgsl": "node scripts/validate-wgsl.js",
+    "bundle-shaders": "npm run validate:wgsl && vite build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run validate:wgsl && npm run test && npm run test:e2e",
+    "lint": "eslint . --ext .ts,.tsx,.svelte",
+    "format": "prettier --write \"**/*.{ts,tsx,svelte,css,json,md}\"",
+    "clean": "rm -rf dist node_modules .svelte-kit",
+    "clean:cache": "rm -rf node_modules/.vite node_modules/.cache",
+    "clear:shader-cache": "rm -rf dist/shaders public/shaders/.cache",
+    "start:frontend": "npm run dev",
+    "start:backend": "cd .. && python main.py",
+    "start:prajna": "cd .. && python prajna/main.py",
+    "start:tori": "concurrently \"npm run start:frontend\" \"npm run start:backend\" \"npm run start:prajna\"",
+    "deploy:production": "npm run build:production && npm run deploy:server",
+    "deploy:server": "echo 'Deploy to server'",
+    "watch:shaders": "nodemon --watch hybrid/wgsl --ext wgsl --exec \"npm run validate:wgsl\""
+  },
+  "dependencies": {
+    "ktx-parse": "^0.7.0",
+    "mp4box": "^0.5.2",
+    "svelte": "^4.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@webgpu/types": "^0.1.64",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-svelte": "^2.35.0",
+    "glob": "^10.3.0",
+    "nodemon": "^3.0.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-svelte": "^3.1.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tori/holographic.git"
+  },
+  "keywords": [
+    "holography",
+    "webgpu",
+    "light-field",
+    "tensor",
+    "svelte",
+    "wgsl",
+    "ktx2",
+    "av1",
+    "webcodecs"
+  ],
+  "author": "TORI Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tori/holographic/issues"
+  },
+  "homepage": "https://github.com/tori/holographic#readme"
+}

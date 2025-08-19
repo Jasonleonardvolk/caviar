@@ -1,0 +1,8 @@
+{
+  "id": "error_1752193010672_370431",
+  "timestamp": 1752193010.672903,
+  "error_type": "ingestion_failure",
+  "source": "temp_chunk_0_5.txt",
+  "error": "All connection attempts failed",
+  "metadata": {}
+}

@@ -1,0 +1,175 @@
+# Dickbox configuration for TORI Hologram Desktop Service
+# Mobile app is deployed separately as IPA/APK
+
+[package]
+name = "tori-hologram"
+version = "1.0.0"
+description = "Spectral phase-field holographic rendering engine with audio-driven modulation"
+author = "TORI Team"
+
+[[entry]]
+# Desktop engine only - no mobile entry as per decision matrix
+name = "desktop"
+exec = "node dist/hologram-desktop.js"
+slice = "tori-hologram.slice"
+gpu_pct = 70  # 70% of RTX 4070 resources
+env = { 
+  TZ = "America/Chicago",
+  NODE_ENV = "production",
+  WEBGPU_BACKEND = "nvidia",
+  ENCODER_BACKEND = "nvenc"  # Use NVENC on RTX 4070
+}
+
+[slice_config]
+# Resource limits for tori-hologram.slice
+cpu_quota = 400       # 4 cores max
+cpu_weight = 200      # High priority for real-time rendering
+memory_max = "2G"     # System RAM limit
+memory_high = "1.5G"  # Soft limit before pressure
+tasks_max = 256       # Thread pool size
+io_weight = 150       # Fast texture I/O priority
+
+[gpu_config]
+enabled = true
+visible_devices = "0"     # RTX 4070
+mode = "exclusive"        # No MPS - deterministic latency
+vram_reserve_mb = 5734    # 70% of 8GB
+cuda_compute_mode = "DEFAULT"
+persistence_mode = true   # Keep GPU contexts warm
+
+[environment]
+# Core configuration
+HOLOGRAM_MODE = "desktop"
+HOLOGRAM_SIZE = "1024"
+QUILT_COLS = "8"
+QUILT_ROWS = "6"
+NUM_VIEWS = "45"
+
+# Communication endpoints
+ZEROMQ_ENDPOINT = "ipc:///run/tori/bus.sock"
+ZEROMQ_TOPICS = "oscillator.state,oscillator.psi"
+WEBSOCKET_PORT = "7690"
+MOBILE_BRIDGE_PORT = "7691"
+METRICS_PORT = "9715"
+
+# WebRTC configuration
+WEBRTC_ENABLED = "true"
+WEBRTC_STUN_SERVER = "stun:stun.l.google.com:19302"
+WEBRTC_MAX_BITRATE = "50000000"  # 50 Mbps for high-quality streaming
+
+# Performance tuning
+FFT_PRECISION = "f32"
+PROPAGATION_METHOD = "angular_spectrum"
+COHERENCE_FEEDBACK = "true"
+FRAME_RATE_TARGET = "60"
+
+[volumes]
+# Persistent calibration data
+"/opt/tori/state/hologram/" = "rw"
+# Shader cache
+"/var/cache/tori/shaders/" = "rw"
+# Temporary wavefield buffers (tmpfs recommended)
+"/var/tmp/tori/hologram/" = "rw"
+
+[[expose]]
+# WebSocket for frontend UI
+proto = "websocket"
+port = 7690
+path = "/ws/hologram"
+
+[[expose]]
+# WebRTC signaling and SDP negotiation
+proto = "webrtc"
+port = 0  # Dynamically negotiated
+endpoints = ["/webrtc/offer", "/webrtc/answer", "/webrtc/ice"]
+
+[[expose]]
+# Mobile bridge WebSocket
+proto = "websocket"
+port = 7691
+path = "/mobile/stream"
+
+[[expose]]
+# Prometheus metrics
+proto = "http"
+port = 9715
+path = "/metrics"
+
+[[expose]]
+# Health check endpoint
+proto = "http"
+port = 7690
+path = "/health"
+
+[health_check]
+type = "http"
+path = "/health"
+port = 7690
+interval = "10s"
+timeout = "5s"
+success_threshold = 2
+failure_threshold = 3
+
+[dependencies]
+# System packages needed
+system = [
+  "nvidia-cuda-toolkit",
+  "ffmpeg",           # Fallback encoder
+  "libvpx-dev",       # VP9 codec
+  "libx265-dev"       # H.265 codec
+]
+
+# Node modules (handled by capsule build)
+node = [
+  "@webgpu/types",
+  "ws",
+  "zeromq",
+  "prom-client",
+  "simple-peer",      # WebRTC
+  "@msgpack/msgpack"  # Efficient serialization
+]
+
+[mobile_bridge]
+# Configuration for mobile app connectivity
+enabled = true
+auth_mode = "jwt_qr"
+jwt_ttl = "10m"              # Short TTL until PKCE refresh
+stream_codecs = ["h265", "vp9", "av1"]
+max_clients = 5
+bandwidth_limit_mbps = 50
+capability_claims = ["render", "stream", "metrics"]
+
+# TURN server configuration for NAT traversal
+[turn_config]
+enabled = true
+servers = [
+  "turn:turn.tori.ai:3478",
+  "turn:turn2.tori.ai:3478"
+]
+# Credentials managed via environment/secrets
+
+[zeromq_config]
+# Pub/sub configuration
+subscribe_topics = [
+  "oscillator.state",
+  "oscillator.psi",
+  "oscillator.coherence"
+]
+publish_topics = [
+  "hologram.metrics",
+  "hologram.health",
+  "hologram.frame_stats"
+]
+hwm = 1000  # High water mark for message queue
+
+[signature]
+# Capsule signature verification
+method = "minisign"
+public_key_path = "/etc/tori/keys/hologram.pub"
+verify_on_extract = true
+
+[build_info]
+# Populated by build script
+git_commit = "${GIT_COMMIT}"
+build_date = "${BUILD_DATE}"
+builder = "${BUILDER}"

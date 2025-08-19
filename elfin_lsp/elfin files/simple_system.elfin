@@ -1,0 +1,35 @@
+// A simple ELFIN program example
+// This file contains a minimal system definition for testing
+
+system SimpleSystem {
+    continuous_state: [x, y, theta];
+    input: [v, omega];
+    
+    params {
+        mass: 1.0;  // kg
+        radius: 0.2;  // m
+        friction: 0.1;  // coefficient
+    }
+    
+    flow_dynamics {
+        x_dot = v * cos(theta);
+        y_dot = v * sin(theta);
+        theta_dot = omega;
+    }
+}
+
+system AnotherSystem {
+    continuous_state: [pos, vel];
+    input: [force];
+    
+    params {
+        mass: 2.0;
+        spring_k: 0.5;
+        damping: 0.1;
+    }
+    
+    flow_dynamics {
+        pos_dot = vel;
+        vel_dot = (force - spring_k * pos - damping * vel) / mass;
+    }
+}

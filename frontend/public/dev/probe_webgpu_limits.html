@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WebGPU Limits Probe</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 16px; }
+      pre { white-space: pre-wrap; word-break: break-word; background:#111; color:#eee; padding:12px; border-radius:8px;}
+      button { padding: 8px 12px; border-radius:8px; border:1px solid #444; cursor:pointer; }
+      .bad { color:#c33; }
+      .ok { color:#3c3; }
+    </style>
+  </head>
+  <body>
+    <h1>WebGPU Limits Probe</h1>
+    <p>Status: <span id="status">Ready</span></p>
+    <button id="probe">Probe & Download limits.json</button>
+    <pre id="out"></pre>
+
+    <script>
+      async function probe() {
+        const status = document.getElementById('status');
+        const out = document.getElementById('out');
+        if (!('gpu' in navigator)) {
+          status.textContent = 'WebGPU not supported on this device/browser';
+          status.className = 'bad';
+          return;
+        }
+        status.textContent = 'Requesting adapter...';
+        try {
+          const adapter = await navigator.gpu.requestAdapter();
+          if (!adapter) {
+            status.textContent = 'No GPU adapter found';
+            status.className = 'bad';
+            return;
+          }
+          const limits = adapter.limits ?? {};
+          // Normalize a few keys across browser impls
+          const normalized = {
+            maxComputeInvocationsPerWorkgroup: limits.maxComputeInvocationsPerWorkgroup ?? null,
+            maxComputeWorkgroupSizeX: limits.maxComputeWorkgroupSizeX ?? null,
+            maxComputeWorkgroupSizeY: limits.maxComputeWorkgroupSizeY ?? null,
+            maxComputeWorkgroupSizeZ: limits.maxComputeWorkgroupSizeZ ?? null,
+            maxComputeWorkgroupStorageSize: limits.maxComputeWorkgroupStorageSize
+              ?? limits.maxWorkgroupStorageSize /* legacy alias */ ?? null,
+            maxSamplersPerShaderStage: limits.maxSamplersPerShaderStage ?? null,
+            maxSampledTexturesPerShaderStage: limits.maxSampledTexturesPerShaderStage ?? null,
+            // keep the raw dump too
+            __raw: limits
+          };
+          const pretty = JSON.stringify(normalized, null, 2);
+          out.textContent = pretty;
+          status.textContent = 'Probed Successfully - click saved file below';
+          status.className = 'ok';
+
+          // Download as limits.json
+          const blob = new Blob([pretty], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'limits.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        } catch (e) {
+          status.textContent = 'Error: ' + e.message;
+          status.className = 'bad';
+          console.error(e);
+        }
+      }
+      document.getElementById('probe').addEventListener('click', probe);
+    </script>
+  </body>
+</html>

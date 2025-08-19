@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""
+Refactor components to use proper stores instead of props
+This creates the necessary changes as clean diffs
+"""
+
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+import json
+
+def create_component_patches():
+    """Create patch files for components to use stores"""
+    
+    patches_dir = Path(r"{PROJECT_ROOT}\patches")
+    patches_dir.mkdir(exist_ok=True)
+    
+    # Patch 1: Update MemoryPanel to use hologram store
+    memory_panel_patch = {
+        "file": "tori_ui_svelte/src/lib/components/MemoryPanel.svelte",
+        "description": "Update MemoryPanel to use hologram store instead of props",
+        "changes": [
+            {
+                "find": "let hologramVideoEnabled = false;",
+                "replace": // Hologram state managed by store now"
+            },
+            {
+                "find": "import { darkMode } from '$lib/stores/darkMode';",
+                "replace": """import { darkMode } from '$lib/stores/darkMode';
+  import { hologram, toggleHologramVisualization } from '$lib/stores/hologram';"""
+            },
+            {
+                "find": "on:click={toggleHologramVideo}",
+                "replace": "on:click={toggleHologramVisualization}"
+            },
+            {
+                "find": "class=\"control-button {hologramVideoEnabled ? 'active' : ''}\"",
+                "replace": "class=\"control-button {$hologram.enabled ? 'active' : ''}\""
+            },
+            {
+                "find": "enableVideo={hologramVideoEnabled}",
+                "replace": "enableHologram={$hologram.enabled}"
+            }
+        ]
+    }
+    
+    # Patch 2: Update HolographicDisplay props
+    holographic_display_patch = {
+        "file": "tori_ui_svelte/src/lib/components/HolographicDisplay.svelte",
+        "description": "Separate hologram and webcam concerns in HolographicDisplay",
+        "changes": [
+            {
+                "find": "export let enableVideo = false;",
+                "replace": """export let enableHologram = true;  // Penrose hologram rendering
+  export let enableWebcam = false;   // Webcam capture (separate concern)"""
+            },
+            {
+                "find": "{#if enableVideo && !videoReady}",
+                "replace": "{#if enableWebcam && !videoReady && videoSource === 'webcam'}"
+            },
+            {
+                "find": "if (!enableVideo) return;",
+                "replace": "if (!enableWebcam) return;"
+            },
+            {
+                "find": "function toggleVideo() {",
+                "replace": """function toggleVideo() {
+    // This now only controls webcam, not hologram rendering"""
+            }
+        ]
+    }
+    
+    # Patch 3: Update +layout.svelte to auto-start
+    layout_patch = {
+        "file": "tori_ui_svelte/src/routes/+layout.svelte",
+        "description": "Add hologram auto-start to layout",
+        "changes": [
+            {
+                "find": "import '../app.css';",
+                "replace": """import '../app.css';
+  import { onMount } from 'svelte';
+  import { autoStartHologram } from '$lib/stores/hologram';"""
+            },
+            {
+                "find": "<slot />",
+                "replace": """<slot />
+
+<script>
+  // Auto-start hologram when app loads
+  onMount(() => {
+    autoStartHologram();
+  });
+</script>"""
+            }
+        ]
+    }
+    
+    # Save patches as JSON for review
+    patches = [memory_panel_patch, holographic_display_patch, layout_patch]
+    
+    for i, patch in enumerate(patches):
+        patch_file = patches_dir / f"patch_{i+1}_{patch['file'].split('/')[-1]}.json"
+        with open(patch_file, 'w', encoding='utf-8') as f:
+            json.dump(patch, f, indent=2)
+        print(f"✅ Created patch: {patch_file.name}")
+    
+    # Create apply script
+    apply_script = '''#!/usr/bin/env python3
+"""Apply patches to refactor components"""
+
+import json
+from pathlib import Path
+
+def apply_patch(patch_data):
+    """Apply a single patch file"""
+    file_path = Path(r"C:\\Users\\jason\\Desktop\\tori\\kha") / patch_data["file"]
+    
+    if not file_path.exists():
+        print(f"❌ File not found: {file_path}")
+        return False
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    original = content
+    for change in patch_data["changes"]:
+        if change["find"] in content:
+            content = content.replace(change["find"], change["replace"])
+            print(f"  ✓ Applied: {change['find'][:30]}...")
+        else:
+            print(f"  ⚠ Not found: {change['find'][:30]}...")
+    
+    if content != original:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return True
+    return False
+
+def main():
+    patches_dir = Path(r"str(PROJECT_ROOT / "patches")
+    
+    for patch_file in sorted(patches_dir.glob("patch_*.json")):
+        print(f"\\n📝 Applying {patch_file.name}...")
+        
+        with open(patch_file, 'r') as f:
+            patch_data = json.load(f)
+        
+        print(f"   {patch_data['description']}")
+        
+        if apply_patch(patch_data):
+            print("   ✅ Patch applied successfully")
+        else:
+            print("   ❌ Patch failed")
+
+if __name__ == "__main__":
+    main()
+'''
+    
+    apply_path = patches_dir / "apply_patches.py"
+    with open(apply_path, 'w', encoding='utf-8') as f:
+        f.write(apply_script)
+    
+    print(f"\n✅ Created apply script: {apply_path}")
+    print("\n📋 Next steps:")
+    print("1. Review the patch files in patches/")
+    print("2. Run: python patches/apply_patches.py")
+    print("3. Test the changes")
+
+if __name__ == "__main__":
+    create_component_patches()

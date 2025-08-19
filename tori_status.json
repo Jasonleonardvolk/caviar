@@ -1,0 +1,31 @@
+{
+  "timestamp": "2025-08-06T04:46:50.466905",
+  "stage": "frontend_startup",
+  "status": "success",
+  "details": {
+    "port": 5173,
+    "url": "http://localhost:5173",
+    "proxy_working": true,
+    "upload_status": "working",
+    "hologram_enabled": true,
+    "audio_bridge_connected": true,
+    "concept_bridge_connected": true
+  },
+  "session_id": "20250806_044554",
+  "api_port": 8001,
+  "prajna_port": 8001,
+  "system_health": {
+    "cpu_percent": 41.3,
+    "memory_percent": 46.0,
+    "memory_available_gb": 34.40294647216797,
+    "disk_free_gb": 298.0826644897461,
+    "healthy": true
+  },
+  "mcp_running": false,
+  "prajna_running": false,
+  "bridge_ready": false,
+  "penrose_backend": "rust",
+  "hologram_enabled": true,
+  "audio_bridge_port": 8765,
+  "concept_mesh_bridge_port": 8766
+}

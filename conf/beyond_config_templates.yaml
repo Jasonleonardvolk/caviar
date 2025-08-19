@@ -1,0 +1,68 @@
+# Beyond Metacognition Configuration Files
+# Place these in conf/ directory
+
+---
+
+# conf/runtime.yaml
+beyond_metacognition:
+  observer_synthesis:
+    reflex_budget: 60  # measurements per hour
+    measurement_cooldown_ms: 100
+    oscillation_detection_window: 10
+  
+  creative_feedback:
+    novelty_threshold_high: 0.7
+    novelty_threshold_low: 0.2
+    max_exploration_steps: 1000
+    emergency_threshold: 0.08
+    max_lambda_allowed: 0.1
+  
+  safety:
+    auto_rollback_threshold: 0.08  # lambda_max
+    auto_rollback_duration_min: 3
+    enable_emergency_damping: true
+
+---
+
+# conf/braid.yaml
+temporal_braiding:
+  buffers:
+    micro:
+      capacity: 10000
+      window_us: 1000  # 1ms
+      persist_path: "braid_buffers/micro_buffer.json"
+    
+    meso:
+      capacity: 1000
+      window_us: 60000000  # 1 minute
+      persist_path: "braid_buffers/meso_buffer.json"
+    
+    macro:
+      capacity: 100
+      window_us: 3600000000  # 1 hour
+      persist_path: "braid_buffers/macro_buffer.json"
+  
+  aggregation:
+    micro_interval_ms: 100
+    meso_interval_s: 10
+    macro_interval_s: 300
+
+---
+
+# conf/origin.yaml
+origin_sentry:
+  novelty_threshold: 0.7  # EPS for dimensional expansion
+  gap_min: 0.02  # Minimum spectral gap
+  spectral_db:
+    max_entries: 10000
+    max_size_mb: 200
+    persist_path: "spectral_db.json"
+  
+  coherence_bands:
+    local: [0, 0.01]
+    global: [0.01, 0.04]
+    critical: [0.04, inf]
+  
+  topology:
+    enable_betti: false  # Set true only if gudhi/ripser available
+    max_dim: 2

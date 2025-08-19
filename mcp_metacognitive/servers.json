@@ -1,0 +1,43 @@
+{
+  "servers": [
+    {
+      "name": "example_tool_server",
+      "module": "extensions.example_tool",
+      "class": "ExampleToolServer",
+      "config": {
+        "api_key": "${EXAMPLE_API_KEY}",
+        "timeout": 30
+      },
+      "metadata": {
+        "description": "Example external tool integration",
+        "enabled": false,
+        "auto_start": false,
+        "endpoints": [
+          {"path": "/api/example/process", "method": "POST", "description": "Process with example tool"}
+        ],
+        "dependencies": [],
+        "version": "0.1.0"
+      }
+    },
+    {
+      "name": "memory_server",
+      "module": "extensions.memory_manager",
+      "class": "MemoryManagerServer",
+      "config": {
+        "storage_path": "./data/memories",
+        "max_memories": 10000
+      },
+      "metadata": {
+        "description": "Advanced memory management server",
+        "enabled": false,
+        "auto_start": false,
+        "endpoints": [
+          {"path": "/api/memory/store", "method": "POST", "description": "Store memory"},
+          {"path": "/api/memory/recall", "method": "GET", "description": "Recall memories"}
+        ],
+        "dependencies": [],
+        "version": "0.2.0"
+      }
+    }
+  ]
+}

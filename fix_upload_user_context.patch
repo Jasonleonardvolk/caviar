@@ -1,0 +1,28 @@
+
+// In your Svelte upload component, add user context:
+
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Add user context
+    const userId = getCurrentUser() || 'adminuser';  // Get from auth system
+    
+    const response = await fetch('/api/upload/pdf', {
+        method: 'POST',
+        headers: {
+            'X-User-Id': userId,  // Add user ID header
+        },
+        body: formData
+    });
+    
+    return response.json();
+}
+
+// In your backend API endpoint, extract the user:
+def upload_pdf(request: Request, file: UploadFile):
+    user_id = request.headers.get('X-User-Id', 'default')
+    
+    # Pass user_id to the ingestion pipeline
+    result = await ingest_pdf(file, user_id=user_id)
+    return result

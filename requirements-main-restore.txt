@@ -1,0 +1,14 @@
+# Main tori-kha environment requirements
+# These are the CORRECT versions that should be in D:\Dev\kha\.venv
+# DO NOT downgrade these for Penrose - Penrose uses its own isolated env
+
+fastapi==0.115.12
+starlette==0.46.2
+anyio==4.9.0
+numpy>=1.26.4
+pydantic==2.11.7
+uvicorn[standard]==0.34.2
+
+# Note: Penrose service has its own isolated environment at:
+# D:\Dev\kha\services\penrose\.venv
+# with different versions that won't conflict

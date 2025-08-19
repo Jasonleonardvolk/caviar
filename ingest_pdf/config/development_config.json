@@ -1,0 +1,77 @@
+{
+  "oscillator": {
+    "steps": 60,
+    "tolerance": 0.001,
+    "cohesion_threshold": 0.15,
+    "phase_bins": 25,
+    "singleton_merge_threshold": 0.4,
+    "orphan_reassign_threshold": 0.3,
+    "max_iterations": 100
+  },
+  "kmeans": {
+    "auto_k": true,
+    "k": null,
+    "max_iterations": 100,
+    "n_init": 10,
+    "tol": 0.0001
+  },
+  "hdbscan": {
+    "min_cluster_size": 2,
+    "min_samples": null,
+    "metric": "cosine",
+    "alpha": 1.0,
+    "cluster_selection_epsilon": 0.0
+  },
+  "affinity_propagation": {
+    "preference": null,
+    "convergence_iter": 15,
+    "max_iter": 200,
+    "damping": 0.5
+  },
+  "benchmark": {
+    "enabled_methods": [
+      "oscillator",
+      "kmeans"
+    ],
+    "compute_silhouette": true,
+    "compute_ground_truth_metrics": false,
+    "save_results": true,
+    "enable_logging": true,
+    "parallel_execution": true
+  },
+  "performance": {
+    "batch_size": 100,
+    "max_memory_mb": 200,
+    "enable_caching": true,
+    "cache_ttl_hours": 24,
+    "use_multiprocessing": true,
+    "max_workers": 4
+  },
+  "quality": {
+    "min_cohesion": 0.25,
+    "min_silhouette": 0.2,
+    "max_singleton_ratio": 0.4,
+    "min_cluster_size": 2,
+    "quality_weight_cohesion": 0.6,
+    "quality_weight_silhouette": 0.4
+  },
+  "monitoring": {
+    "enable_monitoring": true,
+    "alert_thresholds": {
+      "min_cohesion": 0.25,
+      "min_silhouette": 0.2,
+      "max_runtime_seconds": 10.0,
+      "max_memory_mb": 500.0,
+      "min_convergence_efficiency": 0.5,
+      "max_singleton_ratio": 0.4,
+      "min_quality_score": 0.6
+    },
+    "history_retention_days": 30,
+    "log_level": "DEBUG",
+    "enable_alerts": true
+  },
+  "default_method": "oscillator",
+  "fallback_method": "kmeans",
+  "enable_method_selection": true,
+  "method_selection_criteria": "quality"
+}

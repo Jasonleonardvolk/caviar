@@ -1,0 +1,50 @@
+# bps_config.py
+# -------------------------------------------------------------------
+# Centralized configuration and runtime toggles for BPS integration
+# -------------------------------------------------------------------
+
+# BPS feature flags
+enable_bps_hot_swap = True
+enable_bps_energy_harvest = True
+enable_bps_diagnostics = True
+
+# Charge-related settings
+ALLOWED_Q_VALUES = [-2, -1, 0, 1, 2]     # Restrictable range of Q
+ENERGY_PER_Q = 1.0                        # Energy per soliton charge unit
+
+# Diagnostic tolerances
+LAGRANGIAN_TOLERANCE = 1e-6
+MAX_ALLOWED_CHARGE_DRIFT = 0             # In strict mode, Q must be exactly conserved
+
+# Default gain for oscillator phase-locking
+BPS_PHASE_LOCK_GAIN = 1.0
+
+# Laplacian interpolation duration (in cycles or ticks)
+DEFAULT_SWAP_RAMP_DURATION = 10
+
+# Symbolic soliton tags (optional, for UI or debug mapping)
+SYMBOLIC_TAGS = {
+    +1: "Bright BPS",
+    -1: "Dark BPS",
+    0: "Neutral",
+    +2: "Composite",
+    -2: "Anti-Composite"
+}
+
+# Enable fallback or force-fail on Q/E mismatch
+strict_mode = True                       # If True, abort on any conservation violation
+allow_fallback_on_swap_failure = False  # If True, revert to classical logic on BPS swap error
+
+# Logging levels
+default_logging_level = "INFO"
+log_debug_to_console = True
+
+# Reserved future features (used for registry/autoload validation)
+experimental_flags = {
+    "bps_quantum_field_mode": False,
+    "bps_lattice_curvature": False,
+    "bps_adaptive_moduli_flow": False
+}
+
+# Runtime identity (injected by top-level config if needed)
+runtime_identity = "TORI::BPS-Core"

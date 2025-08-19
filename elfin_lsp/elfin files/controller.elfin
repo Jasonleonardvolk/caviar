@@ -1,0 +1,39 @@
+// Controller module for testing ELFIN imports
+template Controller(kp, ki=0.0, kd=0.0) {
+  // A simple PID controller template
+  parameters {
+    kp: dimensionless = kp;
+    ki: dimensionless = ki;
+    kd: dimensionless = kd;
+  }
+  
+  internal_state {
+    error_sum: dimensionless = 0.0;
+    last_error: dimensionless = 0.0;
+  }
+  
+  functions {
+    // Compute control output for given error
+    compute(error: dimensionless, dt: time[s]) -> dimensionless {
+      // Proportional term
+      p_term = kp * error;
+      
+      // Integral term
+      error_sum += error * dt;
+      i_term = ki * error_sum;
+      
+      // Derivative term
+      d_term = kd * (error - last_error) / dt;
+      last_error = error;
+      
+      // Return combined control output
+      return p_term + i_term + d_term;
+    }
+    
+    // Reset controller state
+    reset() {
+      error_sum = 0.0;
+      last_error = 0.0;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Banksy oscillator configuration settings
+SPIN_MODE: true
+DAMPING: 0.02
+
+# Other existing configuration settings (preserved)
+# Add any other required settings here if they exist in the current file

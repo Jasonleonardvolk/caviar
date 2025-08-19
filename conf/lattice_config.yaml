@@ -1,0 +1,224 @@
+# Enhanced Lattice Configuration with Dark Soliton Support
+# Complete configuration for self-organizing soliton memory system
+
+# Core lattice settings
+lattice:
+  initial_topology: "kagome"  # Start with stable Kagome for maximum lifetime
+  size: 10000  # Initial oscillator capacity
+  
+  # Topology configurations
+  topologies:
+    kagome:
+      intra_cell_coupling: 1.0    # t1: Strong triangle coupling
+      inter_cell_coupling: 0.5    # t2: Weak inter-triangle
+      breathing_ratio: 2.0        # t1/t2 for flat band
+      coordination_number: 4
+      stability_factor: 0.95
+      
+    hexagonal:
+      coupling_strength: 0.5
+      coordination_number: 3
+      stability_factor: 0.8
+      
+    square:
+      coupling_strength: 0.3
+      coordination_number: 4
+      grid_width: 100
+      stability_factor: 0.7
+      
+    small_world:
+      base_coupling: 0.05
+      rewiring_probability: 0.1
+      num_neighbors: 4
+      stability_factor: 0.85
+      
+    all_to_all:  # For consolidation phases
+      coupling_strength: 0.05
+      stability_factor: 0.5
+
+# Dark soliton configuration
+dark_solitons:
+  enabled: true
+  baseline_amplitude: 1.0  # Background field level
+  suppression_modes:
+    - "contradiction"      # Cancel contradictory information
+    - "traumatic"         # Suppress traumatic memories
+    - "intentional"       # User-requested forgetting
+    - "obsolete"          # Outdated information
+  
+  # Collision resolution
+  collision_resolution:
+    threshold: 0.8        # Dark needs 80% of bright's strength to win
+    mode: "suppress"      # Options: suppress, weaken, merge
+
+# Nightly consolidation settings  
+nightly_consolidation:
+  enabled: true
+  hour: 3  # 3 AM local time
+  
+  # Phases configuration
+  phases:
+    - name: "topology_switch"
+      target: "all_to_all"
+      duration: 10  # seconds
+      damping: 0.1
+      
+    - name: "equilibration"
+      duration: 2
+      
+    - name: "soliton_voting"
+      enabled: true
+      
+    - name: "interactions"
+      fusion:
+        enabled: true
+        similarity_threshold: 0.8
+        max_per_cycle: 50
+      fission:
+        enabled: true
+        complexity_threshold: 3  # concepts
+        amplitude_threshold: 1.5
+        content_length_threshold: 1000
+      collision:
+        enabled: true
+        
+    - name: "crystallization"
+      hot_threshold: 0.7
+      cold_threshold: 0.1
+      stability_boost: 0.2
+      decay_rate: 0.9
+      
+    - name: "comfort_optimization"
+      stress_threshold: 0.8
+      coupling_reduction: 0.1
+      
+    - name: "return_topology"
+      target: "kagome"
+      blend_rate: 0.05
+
+# Topology morphing settings
+topology_morphing:
+  blend_rate: 0.02  # Default blend rate
+  smooth_transitions: true
+  energy_harvesting:
+    enabled: true
+    efficiency: 0.8
+  
+  # Laplacian blending
+  laplacian_blending:
+    interpolation_steps: 50
+    threshold: 0.001  # Minimum coupling to keep
+
+# Comfort metrics and self-optimization
+comfort_optimization:
+  enabled: true
+  update_interval: 300  # 5 minutes
+  
+  # Thresholds
+  thresholds:
+    high_stress: 0.8
+    low_energy: 0.2
+    high_flux: 0.9
+    high_perturbation: 0.8
+  
+  # Automated responses
+  responses:
+    high_stress:
+      action: "reduce_coupling"
+      factor: 0.9
+    low_energy:
+      action: "boost_amplitude"
+      factor: 1.2
+    high_flux:
+      action: "migrate"
+      target: "stable_region"
+
+# Soliton voting system
+soliton_voting:
+  enabled: true
+  vote_weight_factors:
+    amplitude: 1.0
+    stability: 1.0
+    heat: 0.5
+    age: -0.1  # Negative weight for age
+  
+  # Decision thresholds
+  thresholds:
+    suppress: 0.0     # Net vote <= 0 means suppress
+    weaken: 0.5       # 0 < vote < 0.5 means weaken
+    reinforce: 0.5    # vote >= 0.5 means reinforce
+
+# Memory lifecycle parameters
+memory_lifecycle:
+  # Heat management
+  heat:
+    initial: 0.5
+    access_boost: 0.2
+    decay_rate: 0.95
+    
+  # Stability
+  stability:
+    initial: 0.8
+    kagome_boost: 0.95    # In Kagome flat band
+    hexagonal_boost: 0.8
+    square_boost: 0.7
+    
+  # Decay
+  amplitude_decay:
+    cold_memory_rate: 0.9
+    minimum_threshold: 0.1
+
+# Dynamic topology policy
+topology_policy:
+  enabled: true
+  min_switch_interval: 300  # 5 minutes
+  
+  # State-based rules
+  states:
+    idle:
+      preferred: "kagome"
+      memory_density_max: 0.3
+      activity_rate_max: 0.2
+      
+    active:
+      preferred: "hexagonal"
+      memory_density_range: [0.3, 0.7]
+      activity_rate_range: [0.2, 0.6]
+      
+    intensive:
+      preferred: "square"
+      memory_density_range: [0.7, 1.0]
+      soliton_count_min: 2000
+      
+    emergency:
+      preferred: "kagome"  # Fallback to stable
+      trigger: "high_stress"
+
+# Continuous optimization (daytime)
+continuous_optimization:
+  enabled: true
+  interval: 1800  # 30 minutes
+  skip_hours: [2, 3, 4]  # Skip during nightly consolidation
+  
+  # Light adjustments only
+  max_topology_changes_per_day: 5
+  blend_rate: 0.02
+
+# Performance and safety
+performance:
+  max_oscillators: 100000
+  sparse_matrix_threshold: 0.001
+  gpu_acceleration: false  # Enable if available
+  
+safety:
+  max_amplitude: 10.0
+  runaway_detection: true
+  emergency_damping: 0.5
+
+# Logging
+logging:
+  level: "INFO"
+  dark_soliton_events: true
+  topology_changes: true
+  consolidation_summary: true
+  comfort_warnings: true

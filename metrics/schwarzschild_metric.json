@@ -1,0 +1,7 @@
+{
+  "type": "schwarzschild",
+  "mass": 1.0,
+  "persistence": "persistent",
+  "coordinates": ["r", "theta", "phi"],
+  "description": "Non-rotating black hole metric"
+}

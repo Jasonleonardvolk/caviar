@@ -1,0 +1,105 @@
+// frontend/lib/webgpu/fftCompute.ts - Diagnostic patch
+// Add this diagnostic version of dispatchKernel to debug GPU device loss
+
+// Find the dispatchKernel method and replace it with this enhanced version:
+private dispatchKernel(
+    encoder: GPUCommandEncoder,
+    kernelName: string,
+    inputBuffer: GPUBuffer,
+    outputBuffer: GPUBuffer
+): void {
+    const pipeline = this.pipelines.get(kernelName);
+    if (!pipeline) {
+        throw new Error(`Pipeline not found: ${kernelName}`);
+    }
+    
+    // Get auxiliary buffer
+    let auxBuffer: GPUBuffer;
+    switch (kernelName) {
+        case 'bitReversal':
+            auxBuffer = this.bitReversalBuffer;
+            break;
+        case 'butterfly':
+        case 'butterflyStage':
+            auxBuffer = this.twiddleBuffer;
+            break;
+        case 'normalize':
+            auxBuffer = this.twiddleBuffer; // Dummy
+            break;
+        case 'fftShift':
+            auxBuffer = this.twiddleBuffer; // Dummy
+            break;
+        case 'transpose':
+            auxBuffer = this.twiddleBuffer; // Dummy
+            break;
+        default:
+            auxBuffer = this.twiddleBuffer; // Dummy for kernels that don't use aux
+    }
+    
+    // Validate buffers before creating bind group
+    console.log(`[FFT] Validating buffers for ${kernelName}:`);
+    console.log(`  - Uniform buffer: ${this.uniformBuffer.size} bytes`);
+    console.log(`  - Aux buffer: ${auxBuffer.size} bytes`);
+    console.log(`  - Input buffer: ${inputBuffer.size} bytes`);
+    console.log(`  - Output buffer: ${outputBuffer.size} bytes`);
+    
+    // Check if any buffer is destroyed
+    if (!this.uniformBuffer || !auxBuffer || !inputBuffer || !outputBuffer) {
+        throw new Error(`[FFT] One or more buffers are null for ${kernelName}`);
+    }
+    
+    const bindGroup = this.device.createBindGroup({
+        layout: this.bindGroupLayout,
+        entries: [
+            { binding: 0, resource: { buffer: this.uniformBuffer } },
+            { binding: 1, resource: { buffer: auxBuffer } },
+            { binding: 2, resource: { buffer: inputBuffer } },
+            { binding: 3, resource: { buffer: outputBuffer } }
+        ]
+    });
+    
+    const pass = encoder.beginComputePass({
+        label: `FFT ${kernelName} pass`
+    });
+    
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    
+    // Get dispatch parameters with validation
+    const dispatch = FFTOptimizations.getDispatchParams(
+        kernelName,
+        this.config.size,
+        this.config.batchSize!,
+        this.config.workgroupSize!
+    );
+    
+    // Log dispatch dimensions
+    console.log(`[FFT] Dispatching ${kernelName} with workgroups: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+    
+    // Validate dispatch dimensions
+    if (dispatch.x === 0 || dispatch.y === 0 || dispatch.z === 0) {
+        console.error(`[FFT] ERROR: Zero dispatch dimension for ${kernelName}!`);
+        throw new Error(`Invalid dispatch dimensions for ${kernelName}: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+    }
+    
+    // Check device limits
+    const limits = this.device.limits;
+    if (dispatch.x > limits.maxComputeWorkgroupsPerDimension ||
+        dispatch.y > limits.maxComputeWorkgroupsPerDimension ||
+        dispatch.z > limits.maxComputeWorkgroupsPerDimension) {
+        console.error(`[FFT] ERROR: Dispatch exceeds device limits!`);
+        console.error(`  Device limit: ${limits.maxComputeWorkgroupsPerDimension}`);
+        console.error(`  Requested: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+        throw new Error(`Dispatch dimensions exceed device limits for ${kernelName}`);
+    }
+    
+    try {
+        pass.dispatchWorkgroups(dispatch.x, dispatch.y, dispatch.z);
+        console.log(`[FFT] ✓ ${kernelName} dispatched successfully`);
+    } catch (error) {
+        console.error(`[FFT] ERROR dispatching ${kernelName}:`, error);
+        throw error;
+    }
+    
+    pass.end();
+}

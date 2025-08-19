@@ -1,0 +1,6 @@
+# Live-reload thresholds (watcher in pipeline.py)
+enable_context_extraction: true
+enable_frequency_tracking: true
+enable_smart_filtering: true
+quality_min: 0.65
+frequency_min: 2

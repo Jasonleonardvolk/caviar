@@ -1,0 +1,64 @@
+﻿SHADER VALIDATION REPORT
+========================
+Generated: 2025-08-01 12:41:31
+
+SUMMARY
+-------
+Total Expected: 11
+Valid:         8
+Invalid:       3  
+Missing:       0
+
+VALID SHADERS
+-------------
+avatarShader.wgsl
+bitReversal.wgsl
+butterflyStage.wgsl
+fftShift.wgsl
+normalize.wgsl
+propagation.wgsl
+transpose.wgsl
+wavefieldEncoder_optimized.wgsl
+
+INVALID SHADERS
+---------------
+lenticularInterlace.wgsl
+naga.exe : Could not parse WGSL:
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Could not parse WGSL::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: wrong number of arguments: expected 3, found 2
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\lenticularInterlace.wgsl:358:12
+    Γöé
+358 Γöé     return textureLoad(quilt_texture, quilt_coord);
+    Γöé            ^^^^^^^^^^^ wrong number of arguments
+ multiViewSynthesis.wgsl
+naga.exe : Could not parse WGSL:
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Could not parse WGSL::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: wrong number of arguments: expected 3, found 2
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl:151:42
+    Γöé
+151 Γöé             shared_field_r[shared_idx] = textureLoad(wavefield_r, clamped_coord);
+    Γöé                                          ^^^^^^^^^^^ wrong number of arguments
+ velocityField.wgsl
+naga.exe : Could not parse WGSL:
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Could not parse WGSL::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: wrong number of arguments: expected 3, found 2
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\velocityField.wgsl:82:40
+   Γöé
+82 Γöé         shared_wavefield[shared_idx] = textureLoad(wavefield_texture, clamped_coord);
+   Γöé                                        ^^^^^^^^^^^ wrong number of arguments
+

@@ -1,0 +1,742 @@
+# Hybrid System Control Implementation
+# This file demonstrates ELFIN syntax for hybrid systems with both
+# continuous dynamics and discrete mode transitions
+
+# Import helper functions from standard library
+import StdHelpers from "std/helpers.elfin";
+
+# Helper functions specific to this file
+helpers: {
+  # Sigmoid function for smooth transitions
+  sigmoid(x) = 1 / (1 + exp(-10 * (x - 0.5)));
+}
+
+# Define a simple bouncing ball hybrid system
+hybrid_system BouncingBall {
+  # Continuous state: position (height), velocity
+  continuous_state: [h, v];
+  
+  # Discrete state: mode (bounce count)
+  discrete_state: [bounce_count];
+  
+  # Input: none for this example
+  input: [];
+  
+  # System parameters
+  params: {
+    g: 9.81;         # Gravity (m/s^2)
+    cor: 0.8;        # Coefficient of restitution
+    h_max: 10.0;     # Maximum height
+    m: 1.0;          # Mass (kg) - added to match Lyapunov function
+    epsilon: 0.001;  # Small value to prevent Zeno behavior
+  };
+  
+  # Continuous dynamics (falling under gravity)
+  flow_dynamics: {
+    dh = v;          # Height changes based on velocity
+    dv = -g;         # Velocity decreases due to gravity
+  };
+  
+  # Invariant: height must be non-negative
+  invariant: h >= 0;
+  
+  # Guard: collision with ground
+  guard: h <= 0 && v < 0;
+  
+  # Jump map: velocity reversal on impact
+  # Using epsilon to prevent immediate re-triggering of the guard (avoid Zeno behavior)
+  jump_map: {
+    h+ = epsilon;    # Small positive value to lift off ground
+    v+ = -cor * v;   # Reverse velocity with coefficient of restitution
+    bounce_count+ = bounce_count + 1;
+  };
+}
+
+# Define hybrid system for a thermostat with explicit locations
+hybrid_system Thermostat {
+  # Continuous state: temperature
+  continuous_state: [T];
+  
+  # Discrete state: heater mode (0 = off, 1 = on)
+  discrete_state: [mode];
+  
+  # Input: target temperature
+  input: [T_target];
+  
+  # System parameters
+  params: {
+    R: 0.1;          # Thermal resistance
+    C: 100.0;        # Thermal capacitance
+    T_env: 20.0;     # Environmental temperature
+    Q_heat: 100.0;   # Heating power
+    hysteresis: 0.5; # Hysteresis band
+  };
+  
+  # Define separate locations for each mode
+  # Location 1: Heater OFF
+  location HeaterOff {
+    # Dynamic equations for this location
+    flow_dynamics: {
+      dT = (T_env - T)/(R*C);
+    };
+    
+    # Invariant: temperature must stay above lower threshold
+    invariant: T >= T_target - hysteresis;
+    
+    # Guard: temperature reaches lower threshold
+    guard: T <= T_target - hysteresis;
+    
+    # Jump map: switch to HeaterOn
+    jump_map: {
+      T+ = T;
+      mode+ = 1;
+    };
+    
+    # Target location for the jump
+    jump_target: HeaterOn;
+  }
+  
+  # Location 2: Heater ON
+  location HeaterOn {
+    # Dynamic equations for this location
+    flow_dynamics: {
+      dT = (T_env - T)/(R*C) + Q_heat/C;
+    };
+    
+    # Invariant: temperature must stay below upper threshold
+    invariant: T <= T_target + hysteresis;
+    
+    # Guard: temperature reaches upper threshold
+    guard: T >= T_target + hysteresis;
+    
+    # Jump map: switch to HeaterOff
+    jump_map: {
+      T+ = T;
+      mode+ = 0;
+    };
+    
+    # Target location for the jump
+    jump_target: HeaterOff;
+  }
+  
+  # Initial location based on mode value
+  initial_location: if mode == 0 then HeaterOff else HeaterOn;
+}
+
+# Define hybrid system for a legged robot with explicit locations
+hybrid_system LeggedRobot {
+  # Continuous state: position, velocity, height
+  continuous_state: [x, v, h];
+  
+  # Discrete state: leg mode (0 = stance, 1 = flight)
+  discrete_state: [leg_mode];
+  
+  # Input: thrust force
+  input: [thrust];
+  
+  # System parameters
+  params: {
+    m: 5.0;          # Mass (kg)
+    g: 9.81;         # Gravity (m/s^2)
+    k: 500.0;        # Spring constant (N/m)
+    b: 10.0;         # Damping (N*s/m)
+    rest_length: 0.5; # Rest length of spring (m)
+  };
+  
+  # Location 1: Stance phase
+  location Stance {
+    # Dynamic equations for stance phase (spring-loaded inverted pendulum)
+    flow_dynamics: {
+      dx = v;                                # Horizontal position changes with velocity
+      dv = -k/m * (rest_length - h) - b/m * v + thrust/m;  # Spring force + damping + thrust
+      dh = 0;                               # Height is constrained in stance
+    };
+    
+    # Invariant: leg contacts ground
+    invariant: h <= 0;
+    
+    # Guard: takeoff condition
+    guard: v > 0 && thrust > m*g;
+    
+    # Jump map: transition to flight
+    jump_map: {
+      x+ = x;
+      v+ = v;
+      h+ = 0;
+      leg_mode+ = 1;
+    };
+    
+    # Target location for the jump
+    jump_target: Flight;
+  }
+  
+  # Location 2: Flight phase
+  location Flight {
+    # Dynamic equations for flight phase (ballistic motion)
+    # NOTE: Height 'h' is measured positively upward from the ground
+    flow_dynamics: {
+      dx = v;                               # Horizontal position changes with velocity 
+      dv = thrust/m - g;                    # Gravity affects acceleration (the rate of change of velocity)
+      dh = v;                               # Height changes based on velocity (positive is up)
+    };
+    
+    # Invariant: leg is off the ground
+    invariant: h > 0;
+    
+    # Guard: landing condition
+    guard: h <= 0;
+    
+    # Jump map: transition to stance
+    # Cap height to prevent negative drift due to numerical integration errors
+    jump_map: {
+      x+ = x;
+      v+ = v;
+      h+ = h_max(0, h);  # Ensure non-negative height after landing
+      leg_mode+ = 0;
+    };
+    
+    # Target location for the jump
+    jump_target: Stance;
+  }
+  
+  # Initial location based on leg_mode value
+  initial_location: if leg_mode == 0 then Stance else Flight;
+}
+
+# Define a system to be referenced by barrier functions
+hybrid_system DifferentialDrive {
+  # State: position (x, y), orientation (theta), linear/angular velocity (v, omega)
+  continuous_state: [x, y, theta, v, omega, phi];
+  
+  # Input: left and right wheel velocities
+  input: [v_l, v_r];
+  
+  # System parameters
+  params: {
+    wheel_radius: 0.05;   # Wheel radius (m)
+    wheel_base: 0.3;      # Distance between wheels (m)
+    max_speed: 1.0;       # Maximum linear speed (m/s)
+    max_omega: 3.0;       # Maximum angular speed (rad/s)
+    mass: 10.0;           # Robot mass (kg)
+    inertia: 0.2;         # Moment of inertia around z-axis (kg*m^2)
+    friction: 0.1;        # Friction coefficient
+  };
+  
+  # Continuous dynamics (differential drive kinematics)
+  flow_dynamics: {
+    dx = v * cos(theta);
+    dy = v * sin(theta);
+    dtheta = omega;
+    dv = (wheel_radius/2) * (v_r + v_l) - friction * v;
+    domega = (wheel_radius/wheel_base) * (v_r - v_l) - friction * omega;
+    dphi = 0;             # Placeholder for barriers that need roll angle
+  };
+}
+
+# Define a hybrid system for autonomous lane changing
+hybrid_system LaneChanging {
+  # Continuous state: position, lateral position, velocity, heading
+  continuous_state: [x, y, v, theta];
+  
+  # Discrete state: lane mode (0 = cruising, 1 = changing, 2 = emergency)
+  discrete_state: [lane_mode];
+  
+  # Input: acceleration, steering angle
+  input: [a, delta];
+  
+  # External state variables (environment flags)
+  # NOTE: These must be updated via sensor/event blocks or from the controller during simulation
+  # to ensure proper transitions (particularly for the global EmergencyTrigger)
+  external_state: [change_requested, safe_to_change, obstacle_detected, obstacle_distance];
+  
+  # Helper functions
+  helpers: {
+    # Lane center based on mode
+    lane_center(mode) = if mode == 0 then 0.0 else lane_width;
+  };
+  
+  # System parameters
+  params: {
+    m: 1500.0;       # Vehicle mass (kg)
+    L: 2.8;          # Wheelbase (m)
+    lane_width: 3.5; # Lane width (m)
+    v_max: 30.0;     # Maximum speed (m/s)
+    safe_dist: 50.0; # Safe distance to obstacles (m)
+  };
+  
+  # Continuous dynamics (bicycle model)
+  flow_dynamics: {
+    dx = v * cos(theta);
+    dy = v * sin(theta);
+    dv = a;
+    dtheta = v * tan(delta) / L;
+  };
+  
+  # Location 1: Lane cruising
+  location Cruising {
+    # Invariant for cruising: stay near lane center
+    invariant: h_abs(y - lane_center(0)) < 0.5 * lane_width;
+    
+    # Guard: lane change request when safe
+    guard: lane_mode == 0 && change_requested == 1 && safe_to_change == 1;
+    
+    # Jump map: transition to changing lanes
+    jump_map: {
+      x+ = x;
+      y+ = y;
+      v+ = v;
+      theta+ = theta;
+      lane_mode+ = 1;
+    };
+    
+    # Target location for the jump
+    jump_target: Changing;
+  }
+  
+  # Location 2: Changing lanes
+  location Changing {
+    # Invariant for changing: no explicit constraint
+    invariant: true;
+    
+    # Guard: reached target lane with small heading
+    guard: lane_mode == 1 && h_abs(y - lane_width) < 0.1 && h_abs(theta) < 0.05;
+    
+    # Jump map: transition to cruising in new lane
+    jump_map: {
+      x+ = x;
+      y+ = y;
+      v+ = v;
+      theta+ = 0;    # Reset heading to straight
+      lane_mode+ = 0;
+    };
+    
+    # Target location for the jump
+    jump_target: Cruising;
+  }
+  
+  # Location 3: Emergency maneuver
+  location Emergency {
+    # Invariant for emergency: moving forward
+    invariant: v > 0;
+    
+    # Guard: no exit condition for emergency (simplified)
+    guard: false;    # No transition out of emergency in this example
+    
+    # Jump map: not needed since no exit from emergency
+    jump_map: {
+      x+ = x;
+      y+ = y;
+      v+ = v;
+      theta+ = theta;
+      lane_mode+ = 2;
+    };
+    
+    # Target location for the jump (self-loop)
+    jump_target: Emergency;
+  }
+  
+  # Global emergency guard (can trigger from any location)
+  # This demonstrates how to model preemptive transitions
+  transition EmergencyTrigger {
+    # Guard: obstacle detected too close
+    guard: obstacle_detected == 1 && obstacle_distance < safe_dist;
+    
+    # Jump map: maintain state but change mode
+    jump_map: {
+      x+ = x;
+      y+ = y;
+      v+ = v;
+      theta+ = theta;
+      lane_mode+ = 2;
+    };
+    
+    # Target location for the jump
+    jump_target: Emergency;
+  }
+  
+  # Initial location based on lane_mode value
+  initial_location: if lane_mode == 0 then Cruising
+                   else if lane_mode == 1 then Changing
+                   else Emergency;
+}
+
+# Define a Lyapunov function for the bouncing ball
+hybrid_lyapunov BouncingBallLyap {
+  system: BouncingBall;
+  
+  # Energy-based Lyapunov function
+  # Note: m parameter is now defined in the BouncingBall system
+  V: m*g*h + 0.5*m*v**2;
+}
+
+# Define a barrier function for the thermostat
+hybrid_barrier ThermostatSafetyBarrier {
+  system: Thermostat;
+  
+  # Safety constraint: temperature within safe bounds
+  # This barrier is positive when T is within [T_min, T_max]
+  # B > 0 means safe, B = 0 at boundary, B < 0 means unsafe
+  B: (T_max - T) * (T - T_min);
+  
+  # Parameters
+  params: {
+    T_min: 5.0;      # Minimum safe temperature (prevent freezing)
+    T_max: 30.0;     # Maximum safe temperature
+    alpha: 1.0;      # Class-K function parameter
+  };
+  
+  # Class-K function is outside params block as required
+  alpha_fun: alpha * B;
+}
+
+# Define a barrier function for lane changing
+hybrid_barrier LaneChangingBarrier {
+  system: LaneChanging;
+  
+  # Safety constraint: stay within road bounds
+  # This barrier is positive when y is within [y_min, y_max]
+  # B > 0 means safe, B = 0 at boundary, B < 0 means unsafe
+  B: (y_max - y) * (y - y_min);
+  
+  # Parameters
+  params: {
+    y_min: -1.75;    # Left road boundary (center of leftmost lane)
+    y_max: 5.25;     # Right road boundary (center of rightmost lane plus half lane)
+    alpha: 1.0;      # Class-K function parameter
+  };
+  
+  # Class-K function is outside params block as required
+  alpha_fun: alpha * B;
+}
+
+# Define an improved attitude safety barrier for aircraft
+hybrid_barrier ImprovedAttitudeSafetyBarrier {
+  system: DifferentialDrive;  # Using our defined reference system
+  
+  # Safety constraint: keep roll and pitch within safe limits
+  # Using linear terms to avoid issues at phi=theta=0
+  # B > 0 means safe (within bounds), B = 0 at boundary, B < 0 means unsafe
+  B: (phi_max - phi) * (phi - phi_min) * (theta_max - theta) * (theta - theta_min);
+  
+  params: {
+    phi_min: -0.7;   # Minimum safe roll angle (radians) ~-40 degrees
+    phi_max: 0.7;    # Maximum safe roll angle (radians) ~40 degrees
+    theta_min: -0.7; # Minimum safe pitch angle (radians) ~-40 degrees
+    theta_max: 0.7;  # Maximum safe pitch angle (radians) ~40 degrees
+    alpha: 1.0;      # Class-K function parameter
+  };
+  
+  # Class-K function
+  alpha_fun: alpha * B;
+}
+
+# Define a barrier function for multiple obstacles with smooth approximation
+hybrid_barrier SmoothMultiObstacleBarrier {
+  system: DifferentialDrive;  # Using our defined reference system
+  
+  # Safety constraint: maintain safe distance from all obstacles
+  # Using log-sum-exp for smooth min approximation
+  # IMPORTANT: Current formulation gives B > 0 when SAFE (outside obstacles)
+  # B > 0 means safe, B = 0 at boundary, B < 0 means unsafe (inside obstacle)
+  B: -1/k_smooth * log(
+       exp(-k_smooth * ((x - x_obs1)**2 + (y - y_obs1)**2 - r_safe**2)) +
+       exp(-k_smooth * ((x - x_obs2)**2 + (y - y_obs2)**2 - r_safe**2)) +
+       exp(-k_smooth * ((x - x_obs3)**2 + (y - y_obs3)**2 - r_safe**2))
+     );
+  
+  params: {
+    # Obstacle 1
+    x_obs1: 2.0;
+    y_obs1: 1.0;
+    
+    # Obstacle 2
+    x_obs2: -1.0;
+    y_obs2: 3.0;
+    
+    # Obstacle 3
+    x_obs3: 4.0;
+    y_obs3: -2.0;
+    
+    r_safe: 0.8;     # Safe distance (robot radius + obstacle radius + margin)
+    k_smooth: 0.5;   # Smoothing factor (higher = sharper approximation)
+    alpha: 1.0;      # Class-K function parameter
+  };
+  
+  # Class-K function
+  alpha_fun: alpha * B;
+}
+
+# Define a barrier function for wind disturbance
+hybrid_barrier WindDisturbanceBarrier {
+  system: DifferentialDrive;  # Using our defined reference system
+  
+  # Define v_max before using it to avoid undefined symbol error
+  # Adjust maximum velocity based on wind magnitude
+  v_max: v_max_base * exp(-k_wind * wind_magnitude);
+  
+  # Compute wind magnitude
+  wind_magnitude: sqrt(wind_x**2 + wind_y**2 + wind_z**2);
+  
+  # Safety constraint: limit maximum velocity in high wind
+  # B > 0 means safe (v < v_max), B = 0 at boundary, B < 0 means unsafe (v > v_max)
+  # IMPORTANT: This definition aligns with our convention where B > 0 is safe
+  B: v_max**2 - v**2;
+  
+  params: {
+    v_max_base: 10.0;  # Base maximum velocity (m/s)
+    k_wind: 0.1;       # Wind scaling factor
+    wind_x: 0.0;       # Wind in x-direction (m/s)
+    wind_y: 0.0;       # Wind in y-direction (m/s)
+    wind_z: 0.0;       # Wind in z-direction (m/s)
+    alpha: 1.0;        # Class-K function parameter
+  };
+  
+  # Class-K function
+  alpha_fun: alpha * B;
+}
+
+# Define a hybrid controller for the bouncing ball
+hybrid_controller BouncingBallController {
+  system: BouncingBall;
+  
+  # No continuous control input for this example
+  continuous_controller: {
+    # No inputs to control
+  };
+  
+  # Discrete controller logic
+  discrete_controller: {
+    # Stop simulation after 10 bounces
+    if bounce_count >= 10 {
+      terminate = true;
+    }
+  };
+}
+
+# Define a hybrid controller for the thermostat
+hybrid_controller ThermostatController {
+  system: Thermostat;
+  
+  # No continuous control input for this example
+  continuous_controller: {
+    # No inputs to control
+  };
+  
+  # Discrete controller logic - implements bang-bang control
+  discrete_controller: {
+    if T < T_target - hysteresis {
+      mode = 1;      # Turn on heater
+    } else if T > T_target + hysteresis {
+      mode = 0;      # Turn off heater
+    }
+  };
+}
+
+# Define a hybrid controller for the legged robot
+hybrid_controller LeggedRobotController {
+  system: LeggedRobot;
+  
+  # Continuous controller based on mode
+  continuous_controller: {
+    # Use conditional to select control action based on mode
+    thrust = if leg_mode == 0 then
+              # Hopping control in stance phase
+              k_hop * (h_desired - h)
+            else
+              # Zero thrust in flight
+              0;
+  };
+  
+  # Discrete controller logic
+  discrete_controller: {
+    # Reset bounce counter or handle specific events
+    if leg_mode == 0 && h == 0 && thrust > m*g {
+      # Preparing for takeoff
+      h_desired = h_desired + 0.1;  # Increase desired height gradually
+    }
+  };
+  
+  # Controller parameters
+  params: {
+    k_hop: 200.0;    # Hopping control gain
+    h_desired: 0.3;  # Desired hopping height
+  };
+}
+
+# Define a hybrid controller for lane changing
+hybrid_controller LaneChangingController {
+  system: LaneChanging;
+  
+  # External functions converted to helpers
+  helpers: {
+    should_change_lane() = false;
+    check_safety() = true;
+    detect_obstacles() = 0;
+    nearest_obstacle_distance() = 100.0;
+  };
+  
+  # Continuous controller with inline conditionals
+  continuous_controller: {
+    # Variables to be used in controller
+    lateral_error = y - lane_center(lane_mode);
+    heading_desired = -k_lane * lateral_error;
+    heading_error = heading_desired - theta;
+    
+    # Lane changing progress and desired trajectory
+    progress = (x - change_start_x) / change_distance;
+    y_desired = lane_center(0) + (lane_center(1) - lane_center(0)) * sigmoid(progress);
+    y_error = y_desired - y;
+    
+    # Conditional output computation based on mode
+    delta = if lane_mode == 0 then
+              # Lane keeping control (cruising)
+              k_steer * heading_error
+            else if lane_mode == 1 then
+              # Lane changing control
+              k_steer * y_error
+            else
+              # Emergency control
+              0;      # Steer straight
+              
+    a = if lane_mode < 2 then
+          # Normal acceleration (cruising or changing)
+          k_speed * (v_desired - v)
+        else
+          # Emergency deceleration
+          -a_max;
+  };
+  
+  # Discrete controller logic
+  discrete_controller: {
+    # Check if lane change is requested and safe
+    if lane_mode == 0 && should_change_lane() {
+      change_requested = 1;
+      change_start_x = x;
+    }
+    
+    # Update safety flag based on environment
+    safe_to_change = check_safety();
+    
+    # Update obstacle detection
+    obstacle_detected = detect_obstacles();
+    obstacle_distance = nearest_obstacle_distance();
+    
+    # Normalize heading angle using wrap_angle helper
+    theta = wrap_angle(theta);
+  };
+  
+  # Controller parameters
+  params: {
+    k_lane: 0.5;     # Lane keeping gain
+    k_steer: 1.0;    # Steering control gain
+    k_speed: 0.5;    # Speed control gain
+    v_desired: 20.0; # Desired cruising speed (m/s)
+    a_max: 5.0;      # Maximum acceleration/deceleration (m/s^2)
+    change_distance: 50.0; # Lane change distance (m)
+    change_start_x: 0.0;   # Starting position for lane change (populated during execution)
+  };
+}
+
+# Define a VTOL transition controller (updated to match LeggedRobot)
+hybrid_controller VTOLTransitionController {
+  system: LeggedRobot;  # Using as placeholder - would be VTOL system in reality
+  
+  # External states
+  external_state: [transition_requested];
+  
+  # Continuous controller for transition
+  continuous_controller: {
+    # Altitude control common to both modes
+    desired_altitude = 100.0;
+    altitude_error = desired_altitude - h;
+    
+    # Where thrust values would be calculated based on mode
+    thrust_hover = 9.81 * m + k_alt * altitude_error;  # Hover thrust
+    thrust_forward = m * g * 0.2 + k_alt_fw * altitude_error;  # Forward thrust
+    
+    # Blended thrust based on mode
+    thrust = thrust_hover * (1.0 - leg_mode) + thrust_forward * leg_mode;
+  };
+  
+  # Discrete controller for mode transitions
+  discrete_controller: {
+    # Transition logic (simplified)
+    if transition_requested && v > v_min_transition {
+      leg_mode = h_min(leg_mode + transition_rate, 1.0);  # Increase toward fixed-wing
+    }
+    
+    if transition_requested && v < v_min_transition {
+      leg_mode = h_max(leg_mode - transition_rate, 0.0);  # Decrease toward multirotor
+    }
+  };
+  
+  # Parameters for the controller
+  params: {
+    k_alt: 2.0;      # Altitude control gain (hover)
+    k_alt_fw: 1.0;   # Altitude control gain (forward)
+    v_min_transition: 10.0; # Minimum speed for transition
+    transition_rate: 0.1;   # Rate of transition between modes
+  };
+}
+
+# Define hybrid verification specification
+hybrid_verification BouncingBallSpec {
+  system: BouncingBall;
+  
+  # Verification objectives
+  reach_set: true;   # Compute reachable sets
+  stability: true;   # Verify stability
+  safety: true;      # Verify safety properties
+  
+  # Safety specification
+  safety_property: h <= h_max;
+  
+  # Reachability parameters
+  time_horizon: 10.0;
+  # Widened initial set to accommodate non-zero velocities after bounces
+  initial_set: {
+    h: [9.0, 10.0];
+    v: [-2.0, 2.0];  # Widened to allow for velocity changes after bounces
+    bounce_count: [0, 10];  # Widened to allow for multiple bounces
+  };
+  
+  # Parameters
+  params: {
+    h_max: 10.0;     # Maximum height
+  };
+}
+
+# Define hybrid simulation
+hybrid_simulation LaneChangingSim {
+  system: LaneChanging;
+  controller: LaneChangingController;
+  
+  # Simulation parameters
+  time_step: 0.01;   # Simulation time step
+  time_horizon: 20.0;# Simulation horizon
+  
+  # Initial conditions
+  initial_state: {
+    x: 0.0;
+    y: 0.0;
+    v: 20.0;
+    theta: 0.0;
+    lane_mode: 0;
+  };
+  
+  # Event triggers
+  events: [
+    {time: 5.0, event: "change_requested = 1"},
+    {time: 15.0, event: "obstacle_detected = 1, obstacle_distance = 30.0"}
+  ];
+  
+  # Visualization settings
+  visualize: {
+    variables: ["x", "y", "v", "theta", "lane_mode"];
+    plots: [
+      {x: "x", y: "y", title: "Vehicle Trajectory"},
+      {x: "time", y: "v", title: "Velocity Profile"},
+      {x: "time", y: "lane_mode", title: "Lane Mode"}
+    ];
+  };
+}

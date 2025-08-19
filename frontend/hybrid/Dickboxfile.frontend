@@ -1,0 +1,46 @@
+# TORI Frontend Dickbox Image
+# ============================
+FROM node:18-alpine
+
+# Metadata
+LABEL maintainer="TORI Team"
+LABEL version="1.0.0"
+LABEL description="TORI Hybrid Multi-Modal Frontend"
+
+# Environment
+ENV NODE_ENV=production
+ENV DICKBOX_CONTAINER=true
+
+# Create app user
+RUN addgroup -g 1000 tori && \
+    adduser -D -u 1000 -G tori tori && \
+    mkdir -p /app && \
+    chown -R tori:tori /app
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY --chown=tori:tori package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy application
+COPY --chown=tori:tori . .
+
+# Build application
+RUN npm run build
+
+# Switch to app user
+USER tori
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000 || exit 1
+
+# Start application
+CMD ["npm", "run", "preview"]

@@ -1,0 +1,12 @@
+{
+  "id": "error_1752187596505_0",
+  "timestamp": 1752187596.5058832,
+  "error_type": "ingestion_failure",
+  "source": "temp_chunk_200_300.txt",
+  "error": "",
+  "metadata": {
+    "source_pdf": "D:\Dev\kha\anewapproach.pdf",
+    "pages": "201-300",
+    "chunk_of": 1096
+  }
+}

@@ -1,0 +1,49 @@
+# Google Drive ignore file
+# Prevents these from syncing to Google Drive
+
+# Video files
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.webm
+*.m4v
+*.wmv
+*.flv
+
+# Large binary files
+*.exe
+*.dll
+*.iso
+*.zip
+*.rar
+*.7z
+
+# Specific directories with media
+content/wowpack/input/
+content/wowpack/video/
+content/wowpack/stills/
+tori_ui_svelte/static/media/wow/*.mp4
+tori_ui_svelte/static/media/hls/
+tools/ffmpeg/
+
+# Python environments (large)
+.venv/
+venv/
+__pycache__/
+
+# Node modules (huge)
+node_modules/
+**/node_modules/
+
+# Build outputs
+.svelte-kit/
+build/
+dist/
+.vite/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp.driveupload/
+.tmp.drivedownload*/

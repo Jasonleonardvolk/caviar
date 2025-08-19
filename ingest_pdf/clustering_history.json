@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp": 1748456583.3710315,
+    "method": "kmeans",
+    "n_concepts": 10,
+    "n_clusters": 2,
+    "avg_cohesion": 0.1866392907916101,
+    "silhouette_score": 0.0,
+    "runtime_seconds": 0.03741192817687988,
+    "memory_usage_mb": 0.0014905929565429688,
+    "convergence_efficiency": 0.5,
+    "singleton_ratio": 0.0,
+    "quality_score": 0.31198357447496605
+  }
+]

@@ -1,0 +1,37 @@
+﻿frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(5,1): error TS1128: Declaration or statement expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(6,12): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(7,15): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(8,16): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(9,17): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(10,2): error TS1005: ';' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(11,11): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(11,52): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(12,9): error TS1003: Identifier expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(17,5): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(17,9): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(17,29): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(19,9): error TS1128: Declaration or statement expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(19,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(19,27): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(20,47): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(21,18): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(22,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(22,25): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(23,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(23,30): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(24,43): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(25,18): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(26,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(26,25): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(27,43): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(28,18): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(29,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(29,24): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(30,43): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(31,18): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(32,14): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(32,25): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(33,43): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(34,18): error TS1005: ':' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(36,43): error TS1005: ',' expected.
+frontend/lib/webgpu/fftCompute_diagnostic_patch.ts(105,1): error TS1128: Declaration or statement expected.

@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "server_name": "ingest-bus",
+  "server_version": "1.0.0",
+  "server_url": "http://localhost:8000",
+  "tools": [
+    {
+      "name": "ingest.queue",
+      "description": "Queue a document for ingestion",
+      "parameters": {
+        "file_url": {
+          "type": "string",
+          "description": "URL to the file to process"
+        },
+        "track": {
+          "type": "string",
+          "description": "Track to assign the document to",
+          "enum": ["programming", "math_physics", "ai_ml", "domain", "ops_sre"]
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata"
+        }
+      },
+      "required": ["file_url"]
+    },
+    {
+      "name": "ingest.status",
+      "description": "Get the status of an ingest job or list of jobs",
+      "parameters": {
+        "job_id": {
+          "type": "string",
+          "description": "Job ID (optional, if not provided, returns a list of jobs)"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of jobs to return",
+          "default": 10
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Number of jobs to skip",
+          "default": 0
+        }
+      },
+      "required": []
+    },
+    {
+      "name": "ingest.metrics",
+      "description": "Get metrics about the ingest process",
+      "parameters": {},
+      "required": []
+    }
+  ],
+  "resources": []
+}

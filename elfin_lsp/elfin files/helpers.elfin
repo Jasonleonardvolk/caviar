@@ -1,0 +1,8 @@
+helpers {
+  hAbs(x) = if x >= 0 then x else -x;
+  hMin(a, b) = if a <= b then a else b;
+  hMax(a, b) = if a >= b then a else b;
+  wrapAngle(t) = mod(t + pi, 2*pi) - pi;
+  clamp(x, min, max) = if x < min then min else if x > max then max else x;
+  lerp(a, b, t) = a + (b - a) * t;
+}

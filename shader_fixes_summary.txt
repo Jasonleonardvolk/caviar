@@ -1,0 +1,40 @@
+SHADER FIXES SUMMARY
+===================
+Date: 2025-08-01
+
+All shader validation errors have been fixed. Here's what was done:
+
+1. avatarShader.wgsl
+   - Fixed: Parse error with bare '{' at beginning of file
+   - Solution: Created proper WGSL structure with struct declarations and functions
+
+2. lenticularInterlace.wgsl
+   - Fixed: Swizzle assignment errors (color.rgb = ...)
+   - Solution: Used individual channel assignments (color.r = ..., color.g = ..., color.b = ...)
+   - Fixed: textureLoad calls - Added LOD parameter for sampled texture
+   - Solution: textureLoad(quilt_texture, quilt_coord, 0)
+
+3. multiViewSynthesis.wgsl
+   - Fixed: Type mismatch in vec2<i32> constructor
+   - Solution: Cast u32 to i32: vec2<i32>(i32(shared_x), i32(shared_y))
+   - Fixed: textureLoad calls - Added LOD parameter for sampled textures
+   - Solution: textureLoad(wavefield_r, clamped_coord, 0)
+
+4. propagation.wgsl
+   - Fixed: Storage texture access mode
+   - Solution: Changed output_field from 'write' to 'read_write'
+
+5. velocityField.wgsl
+   - Fixed: Invalid @group/@binding in function parameters
+   - Solution: Moved resource bindings to module scope
+   - Fixed: textureLoad calls - Added LOD parameter for sampled texture
+   - Solution: textureLoad(wavefield_texture, clamped_coord, 0)
+
+KEY INSIGHTS:
+- Storage textures (texture_storage_2d) use 2-argument textureLoad
+- Sampled textures (texture_2d) require 3-argument textureLoad with LOD level
+- WGSL doesn't allow swizzle assignments - must assign each component individually
+- Resource bindings must be at module scope, not in function parameters
+- Type conversions must be explicit (u32 to i32)
+
+All shaders should now pass validation!

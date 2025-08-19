@@ -1,0 +1,11 @@
+import compileall
+import pathlib
+
+# Recompile all Python files in python/core
+compileall.compile_dir("C:\\Users\\jason\\Desktop\\tori\\kha\\python\\core", force=True, quiet=1)
+
+# Remove all .pyc files
+for p in pathlib.Path("C:\\Users\\jason\\Desktop\\tori\\kha\\python\\core").rglob("*.pyc"):
+    p.unlink(missing_ok=True)
+
+print("Bytecode cache flushed successfully!")

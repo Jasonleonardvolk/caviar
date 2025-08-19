@@ -1,0 +1,36 @@
+# ALAN IDE Phase 3 Feature Flags
+# 
+# This file controls feature toggles for the ALAN IDE Phase 3 implementation.
+# Changes to this file will be picked up at application startup.
+# Server-side feature control does not require redeployment.
+
+# User Consent & Telemetry
+telemetryOptIn: false  # When true, allows anonymous performance and error metrics collection
+
+# Security Features
+secretDetection: true  # When true, enables detection of hard-coded secrets and enforces vault flow
+vaultFileBackup: true  # When true, enables nightly backup of Project Vault keystores
+
+# UI Features
+newAgentPanels: true  # When true, enables the new agent panel UIs
+newGraphVirtualization: true  # When true, enables virtualization for large concept graphs
+
+# Demo & Development Features
+offlineDemoMode: false  # When true, enables offline demo mode with cached responses
+multiAgentParallel: false  # When true, enables parallel execution of multiple agent tasks
+autoWriteFile: false  # When true, allows agents to write files without explicit user confirmation
+
+# Accessibility Features
+accessibilityGuidance: true  # When true, shows additional accessibility guidance in the UI
+highContrastSupport: true  # When true, enhances high contrast mode support
+
+# Performance Features
+aggressiveCaching: true  # When true, enables aggressive caching for concept graph operations
+memoryBudgetEnforcement: true  # When true, enforces memory budgets for key workflows
+
+# Internationalization
+i18nEnabled: false  # When true, enables internationalization features
+
+# Experimental Features
+experimentalKoopmanView: false  # When true, enables experimental Koopman operator visualization
+experimentalAgentCollaboration: false  # When true, enables experimental multi-agent collaboration features

@@ -1,0 +1,136 @@
+TORI PROJECT ANALYSIS REPORT
+============================
+Generated: Tuesday, July 08, 2025
+Location: ${IRIS_ROOT}
+
+PROJECT OVERVIEW
+================
+This appears to be a sophisticated AI/consciousness system called "TORI" with multiple interconnected components. The project combines Python backend services, JavaScript/TypeScript frontend, and various AI/ML capabilities.
+
+KEY COMPONENTS
+==============
+
+1. CORE AI SYSTEMS
+------------------
+- **ALAN**: Advanced reasoning system (alan_core.py, ALAN_REASONING_README.md)
+- **PRAJNA**: Cognitive enhancement system with PDF processing capabilities
+- **TONKA**: Learning and integration system
+- **BANKSY**: Restoration and integration module
+- **ELFIN**: Language server protocol implementation
+
+2. CONSCIOUSNESS & COGNITIVE SYSTEMS
+------------------------------------
+- Collective consciousness implementation
+- Metacognitive integration
+- Self-transformation architecture
+- Cognitive evolution bridge
+- Multi-agent metacognition
+
+3. MEMORY SYSTEMS
+-----------------
+- Memory system server (memory_system_server.cjs)
+- Advanced memory integration
+- Braid memory connection
+- Ghost memory implementation
+- Memory vault system
+
+4. DATA PROCESSING
+------------------
+- Extensive PDF processing capabilities:
+  - batch_process_pdfs.py (26.32 KB)
+  - advanced_pdf_processor.py (19.79 KB)
+  - Multiple PDF extraction and analysis tools
+- ArXiv paper downloading and processing
+- Concept extraction and mesh systems
+- Universal extraction capabilities
+
+5. MATHEMATICAL & PHYSICS ENGINES
+---------------------------------
+- Koopman operator implementations
+- Phase dynamics systems
+- Lyapunov training
+- Optimized math operations
+- Quantum PCC guide
+
+6. DEPLOYMENT & INFRASTRUCTURE
+------------------------------
+- Multiple deployment scripts (Windows .bat and Unix .sh)
+- Docker support (docker-compose.yml)
+- MCP (Model Context Protocol) integration
+- Production deployment configurations
+- Multi-tenant architecture support
+
+7. FRONTEND COMPONENTS
+----------------------
+- Svelte-based UI (tori_ui_svelte/)
+- React components (.jsx files)
+- Chat interface implementation
+- Various visualization panels:
+  - ConceptFieldCanvas
+  - AttractorMapPanel
+  - PhaseDynamicsPanel
+  - KoopmanSpectrumPanel
+
+8. DOCUMENTATION
+----------------
+Extensive documentation including:
+- Quick start guides
+- Integration guides
+- Architecture documentation
+- Deployment checklists
+- API documentation
+- Multiple README files for different components
+
+FILE STATISTICS
+===============
+- Total Files: 865
+- Total Directories: 88
+- Combined Size: 35.16 MB
+
+LARGEST FILES
+=============
+1. booyah.txt - 886.28 KB (appears to be data/logs)
+2. concept_mesh_data.json - 921.44 KB
+3. psi_trajectory.json - 684.54 KB
+4. concept-files-index.txt - 3.12 MB
+5. project-index.txt - 3.14 MB
+
+KEY TECHNOLOGIES
+================
+- Python (extensive .py files)
+- JavaScript/TypeScript
+- Svelte framework
+- React
+- FastAPI (Python web framework)
+- MCP (Model Context Protocol)
+- WebSocket connections
+- PDF processing libraries
+
+NOTABLE FEATURES
+================
+1. **AI/ML Integration**: Multiple AI models and reasoning systems
+2. **Consciousness Simulation**: Advanced consciousness and metacognitive systems
+3. **Document Processing**: Sophisticated PDF and document analysis
+4. **Academic Integration**: ArXiv paper downloading and processing
+5. **Visualization**: Multiple visualization components for data display
+6. **Production Ready**: Extensive deployment and monitoring tools
+7. **Multi-User Support**: Multi-tenant architecture implementation
+
+RECENT ACTIVITY
+===============
+Based on file names and timestamps:
+- Active development with multiple "COMPLETE" status files
+- Recent work on MCP integration
+- Ongoing PDF processing improvements
+- Authentication and security implementations
+- Production deployment preparations
+
+RECOMMENDATION
+==============
+This is a highly complex, research-oriented AI system that appears to be in active development. The project combines:
+- Advanced AI/consciousness research
+- Practical document processing capabilities
+- Production-ready deployment infrastructure
+- Sophisticated visualization and user interfaces
+
+The system appears designed for processing and understanding large amounts of academic/research content while implementing advanced AI consciousness concepts.

@@ -1,0 +1,31 @@
+[package]
+name        = "{{name}}"
+version     = "0.1.0"
+authors     = ["{{author}}"]
+edition     = "{{edition}}"
+description = "Hybrid system control and verification package using ELFIN"
+
+[dependencies]
+elfin-core  = "^1.0.0"
+cvxpy       = "^1.4.0"
+numpy       = "^1.20.0"
+scipy       = "^1.7.0"
+matplotlib  = "^3.5.0"
+networkx    = "^2.6.0"  # For discrete mode transitions
+gurobipy    = "^9.5.0"  # For optimization-based verification
+
+[solver]
+mosek.enabled = true
+mosek.msk_license_file = "${HOME}/mosek.lic"
+gurobi.enabled = true
+gurobi.license_file = "${HOME}/gurobi.lic"
+
+[verification]
+mixed_integer.enabled = true
+reach_set.enabled = true
+mode_transitions.enabled = true
+
+[simulation]
+hybrid_dynamics.enabled = true
+jump_detection.enabled = true
+zeno_detection.enabled = true

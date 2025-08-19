@@ -1,0 +1,101 @@
+[tool.poetry]
+name = "tori-kha"
+version = "0.9.6"
+description = "TORI Knowledge Harmonization Architecture - A multi-modal cognitive system"
+authors = ["TORI Team"]
+readme = "README.md"
+license = "MIT"
+packages = [
+    { include = "concept_mesh" },
+    { include = "ingest_pdf" },
+    { include = "prajna" },
+    { include = "python" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+# Core dependencies
+fastapi = ">=0.104.0"
+uvicorn = ">=0.24.0"
+pydantic = ">=2.0.0"
+numpy = ">=1.24.0"
+scipy = ">=1.10.0"
+scikit-learn = ">=1.3.0"
+
+# PDF processing
+pypdf2 = ">=3.0"
+
+# API and networking
+httpx = ">=0.25.0"
+sse-starlette = ">=1.8,<2"
+python-multipart = "*"
+aiofiles = ">=23.0"
+
+# Utilities
+python-dotenv = ">=1.0.0"
+psutil = ">=5.9.0"
+requests = "*"
+
+# Data processing
+pandas = ">=2.0.0"
+deepdiff = ">=6.7"
+
+[tool.poetry.group.dev.dependencies]
+# Build / packaging
+maturin = ">=1.5"
+setuptools = ">=61.0"
+wheel = "*"
+
+# Document extraction
+yake = ">=0.4"
+keybert = "*"
+sentence-transformers = "*"
+spacy = ">=3.7"
+
+# OCR (optional)
+pytesseract = "*"
+pdf2image = "*"
+pillow = "*"
+
+# Testing
+pytest = ">=7.4.0"
+pytest-asyncio = ">=0.21.0"
+pytest-cov = "*"
+
+# Code quality
+black = "*"
+ruff = "*"
+pre-commit = "*"
+
+# Additional tools
+reportlab = ">=3.6"
+
+[tool.poetry.group.ml.dependencies]
+torch = ">=2.0.0"
+transformers = ">=4.35.0"
+
+[tool.poetry.group.mcp.dependencies]
+mcp = ">=1.0.0"
+fastmcp = {version = ">=0.1.0", python = "*"}  # Fix for Python version warning
+
+[tool.poetry.scripts]
+tori = "enhanced_launcher:main"
+tori-api = "prajna.api.prajna_api:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-v --tb=short"

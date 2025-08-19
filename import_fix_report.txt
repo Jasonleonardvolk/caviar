@@ -1,0 +1,19 @@
+
+=== TORI/KHA Import Fix Report ===
+
+Fixes Applied: 89
+Errors Found: 1
+
+Errors:
+  - Error processing ${IRIS_ROOT}\alan_backend\core\tests\__init__.py: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+
+Summary:
+- Commented out broken KoopmanOperator/LyapunovAnalyzer imports
+- Fixed Python import paths to include 'python.' prefix
+- Created bridge usage examples
+- Ready for Python bridge integration
+
+Next Steps:
+1. Update TypeScript files to use Python bridges
+2. Test the start_tori.py script
+3. Verify all services start correctly

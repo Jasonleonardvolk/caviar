@@ -1,0 +1,22 @@
+// Main module for testing ELFIN imports
+system MainSystem {
+  // Import a component from another module
+  import Controller from "controller.elfin";
+  import { Vector3, Matrix3 } from "math/linear.elfin";
+  import Sensor as DistanceSensor from "sensors/distance.elfin";
+  
+  continuous_state {
+    position: Vector3;
+    orientation: Matrix3;
+  }
+  
+  components {
+    controller: Controller(kp=10.0, ki=0.1, kd=0.5);
+    sensor: DistanceSensor(range=100.0);
+  }
+  
+  flow_dynamics {
+    position_dot = Vector3(1.0, 0.0, 0.0);
+    orientation_dot = Matrix3.zero();
+  }
+}

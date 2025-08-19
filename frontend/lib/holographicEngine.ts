@@ -1,0 +1,1432 @@
+﻿import { WebGPUQuiltGenerator } from './webgpu/quilt/WebGPUQuiltGenerator';
+// ${IRIS_ROOT}\frontend\lib\holographicEngine_refactored.ts
+// Refactored holographic engine with improved error handling and architecture
+
+import { FFTCompute } from './webgpu/fftCompute';
+import { HologramPropagation } from './webgpu/hologramPropagation';
+import { ShaderLoader } from './webgpu/shaderLoader';
+import { getConstantsForShader } from './webgpu/shaderConstantManager';
+import type { ShaderConstantConfig } from './webgpu/shaderConstantManager';
+
+// === Types & Interfaces ===
+
+export interface OscillatorState {
+    psi_phase: number;
+    phase_coherence: number;
+    oscillator_phases: number[];
+    oscillator_frequencies: number[];
+    coupling_strength: number;
+    dominant_frequency: number;
+}
+
+export interface WavefieldParameters {
+    phase_modulation: number;
+    coherence: number;
+    oscillator_phases: number[];
+    dominant_freq: number;
+    spatial_frequencies: [number, number][];
+    amplitudes: number[];  // Pre-computed amplitudes
+}
+
+export interface CalibrationData {
+    pitch: number;
+    tilt: number;
+    center: number;
+    viewCone: number;
+    invView: number;
+    verticalAngle: number;
+    DPI: number;
+    screenW: number;
+    screenH: number;
+    flipImageX: number;
+    flipImageY: number;
+    flipSubp: number;
+    numViews: number;
+    quiltWidth: number;
+    quiltHeight: number;
+    tileWidth: number;
+    tileHeight: number;
+}
+
+export interface RenderOptions {
+    propagationDistance?: number;
+    quality?: 'low' | 'medium' | 'high' | 'ultra';
+    enableVelocityField?: boolean;
+    enableAdaptiveQuality?: boolean;
+    maxFrameTime?: number;
+}
+
+export interface PerformanceMetrics {
+    wavefieldTime: number;
+    propagationTime: number;
+    viewSynthesisTime: number;
+    totalTime: number;
+    fps: number;
+    gpuMemoryUsed: number;
+}
+
+// === Error Classes ===
+
+export class HolographicEngineError extends Error {
+    constructor(message: string, public readonly code: string) {
+        super(message);
+        this.name = 'HolographicEngineError';
+    }
+}
+
+export class WebGPUNotSupportedError extends HolographicEngineError {
+    constructor() {
+        super('WebGPU is not supported in this browser', 'WEBGPU_NOT_SUPPORTED');
+    }
+}
+
+export class DeviceLostError extends HolographicEngineError {
+    constructor(reason: string) {
+        super(`GPU device was lost: ${reason}`, 'DEVICE_LOST');
+    }
+}
+
+export class ShaderCompilationError extends HolographicEngineError {
+    constructor(shader: string, error: string) {
+        super(`Failed to compile shader ${shader}: ${error}`, 'SHADER_COMPILATION_FAILED');
+    }
+}
+
+// === Helper Classes ===
+
+class BufferManager {
+    constructor(private device: GPUDevice) {}
+    
+    createAlignedBuffer(name: string, data: ArrayBuffer | ArrayBufferView): GPUBuffer {
+        // Ensure 16-byte alignment
+        const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
+        const size = Math.ceil(byteLength / 16) * 16;
+        
+        const buffer = this.device.createBuffer({
+            label: `StorageBuffer_${name}`,
+            size,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        
+        // Write data
+        this.device.queue.writeBuffer(buffer, 0, data as ArrayBuffer.buffer);
+        
+        return buffer;
+    }
+    
+    updateBuffer(buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset: number = 0) {
+        this.device.queue.writeBuffer(buffer, offset, data instanceof ArrayBuffer ? data : (data as ArrayBufferView).buffer);
+    }
+}
+
+class TexturePoolManager {
+    private pools: Map<string, GPUTexture[]> = new Map();
+    private inUse: Set<GPUTexture> = new Set();
+    
+    constructor(private device: GPUDevice) {}
+    
+    acquire(key: string, descriptor: GPUTextureDescriptor): GPUTexture {
+        const pool = this.pools.get(key) || [];
+        
+        // Find matching texture
+        for (let i = 0; i < pool.length; i++) {
+            const texture = pool[i];
+            const size = descriptor.size as GPUExtent3DDict;
+            if (!this.inUse.has(texture) &&
+                texture.width === size.width &&
+                texture.height === (size.height || 1) &&
+                texture.format === descriptor.format) {
+                // Mark as in use
+                this.inUse.add(texture);
+                pool.splice(i, 1);
+                return texture;
+            }
+        }
+        
+        // Create new texture
+        const texture = this.device.createTexture({
+            ...descriptor,
+            label: `${key}_${Date.now()}`
+        });
+        this.inUse.add(texture);
+        return texture;
+    }
+    
+    release(key: string, texture: GPUTexture) {
+        this.inUse.delete(texture);
+        
+        const pool = this.pools.get(key) || [];
+        pool.push(texture);
+        this.pools.set(key, pool);
+    }
+    
+    cleanup() {
+        // Destroy all pooled textures
+        for (const pool of this.pools.values()) {
+            for (const texture of pool) {
+                if (!this.inUse.has(texture)) {
+                    texture.destroy();
+                }
+            }
+        }
+        this.pools.clear();
+    }
+}
+
+// === WebSocket Manager ===
+
+class HologramWebSocketManager {
+    private ws: WebSocket | null = null;
+    private reconnectTimer: number | null = null;
+    private messageQueue: any[] = [];
+    
+    constructor(
+        private sessionId: string,
+        private onMessage: (data: any) => void,
+        private onError?: (error: Event) => void
+    ) {}
+    
+    connect() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/api/v2/hologram/ws/${this.sessionId}`;
+        
+        try {
+            this.ws = new WebSocket(wsUrl);
+            this.setupEventHandlers();
+        } catch (error) {
+            console.error('WebSocket connection failed:', error);
+            this.scheduleReconnect();
+        }
+    }
+    
+    private setupEventHandlers() {
+        if (!this.ws) return;
+        
+        this.ws.onopen = () => {
+            console.log('Hologram WebSocket connected');
+            this.flushMessageQueue();
+        };
+        
+        this.ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                this.onMessage(data);
+            } catch (error) {
+                console.error('Failed to parse WebSocket message:', error);
+            }
+        };
+        
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            this.onError?.(error);
+        };
+        
+        this.ws.onclose = () => {
+            console.log('WebSocket closed');
+            this.ws = null;
+            this.scheduleReconnect();
+        };
+    }
+    
+    private scheduleReconnect() {
+        if (this.reconnectTimer) return;
+        
+        this.reconnectTimer = window.setTimeout(() => {
+            this.reconnectTimer = null;
+            this.connect();
+        }, 3000);
+    }
+    
+    private flushMessageQueue() {
+        while (this.messageQueue.length > 0 && this.isConnected()) {
+            const message = this.messageQueue.shift();
+            this.send(message);
+        }
+    }
+    
+    send(data: any) {
+        if (this.isConnected()) {
+            this.ws!.send(JSON.stringify(data));
+        } else {
+            this.messageQueue.push(data);
+        }
+    }
+    
+    isConnected(): boolean {
+        return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    }
+    
+    close() {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+        
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+        
+        this.messageQueue = [];
+    }
+}
+
+// === Main Engine Class ===
+
+export class SpectralHologramEngine {
+    private device!: GPUDevice;
+    private context!: GPUCanvasContext;
+    private format!: GPUTextureFormat;
+    
+    // Managers
+    private bufferManager!: BufferManager;
+    private texturePool!: TexturePoolManager;
+    private wsManager?: HologramWebSocketManager;
+    
+    // Core resources
+    private pipelines: Map<string, GPUComputePipeline | GPURenderPipeline> = new Map();
+    private bindGroups: Map<string, GPUBindGroup> = new Map();
+    private textures: Map<string, GPUTexture> = new Map();
+    private buffers: Map<string, GPUBuffer> = new Map();
+    
+    // Helper modules
+    private fftCompute!: FFTCompute;
+    private hologramPropagation!: HologramPropagation;
+    
+    // Configuration
+    private config = {
+        hologramSize: 1024,
+        quiltCols: 8,
+        quiltRows: 6,
+        numViews: 45,
+        wavelength: 0.000633,
+        maxOscillators: 32  // Match shader constant
+    };
+    
+    // Quality settings
+    private qualityPresets = {
+        low: { hologramSize: 512, numViews: 25, quiltCols: 5, quiltRows: 5 },
+        medium: { hologramSize: 1024, numViews: 35, quiltCols: 7, quiltRows: 5 },  // Changed from 768 to 1024
+        high: { hologramSize: 1024, numViews: 45, quiltCols: 8, quiltRows: 6 },
+        ultra: { hologramSize: 2048, numViews: 100, quiltCols: 10, quiltRows: 10 }
+    };
+    
+    // State
+    private calibration!: CalibrationData;
+    private currentQuality: keyof typeof this.qualityPresets = 'high';
+    private isInitialized = false;
+    private deviceLostHandler?: () => void;
+    
+    // Performance monitoring
+    private frameMetrics = {
+        times: new Float32Array(30),
+        index: 0,
+        querySet: null as GPUQuerySet | null
+    };
+
+    async initialize(
+        canvas: HTMLCanvasElement, 
+        calibration: CalibrationData, 
+        sessionId?: string
+    ): Promise<void> {
+        try {
+            // Check WebGPU support
+            if (!navigator.gpu) {
+                throw new WebGPUNotSupportedError();
+            }
+            
+            // Request adapter
+            const adapter = await navigator.gpu.requestAdapter({
+                powerPreference: 'high-performance'
+            });
+            
+            if (!adapter) {
+                throw new WebGPUNotSupportedError();
+            }
+            
+            // Check limits and features
+            const requiredFeatures: GPUFeatureName[] = [];
+            const requiredLimits: Record<string, number> = {
+                maxTextureDimension2D: 4096,
+                maxBufferSize: 256 * 1024 * 1024,
+                maxUniformBufferBindingSize: 64 * 1024
+            };
+            
+            if (adapter.features.has('timestamp-query')) {
+                requiredFeatures.push('timestamp-query');
+            }
+            
+            // Request device
+            this.device = await adapter.requestDevice({
+                requiredFeatures,
+                requiredLimits
+            });
+            
+            // Set up device lost handler
+            this.setupDeviceLostHandler();
+            
+            // Initialize context
+            this.context = this.initializeCanvasContext(canvas);
+            
+            // Initialize managers
+            this.bufferManager = new BufferManager(this.device);
+            this.texturePool = new TexturePoolManager(this.device);
+            
+            // Store calibration
+            this.calibration = calibration;
+            
+            // Apply quality settings
+            this.applyQualityPreset(this.currentQuality);
+            
+            // Initialize helper modules
+            await this.initializeHelperModules();
+            
+            // Create GPU resources
+            await this.createResources();
+            
+            // Connect WebSocket if session provided
+            if (sessionId) {
+                this.connectWebSocket(sessionId);
+            }
+            
+            this.isInitialized = true;
+            
+        } catch (error) {
+            console.error('Failed to initialize holographic engine:', error);
+            throw error;
+        }
+    }
+    
+    private initializeCanvasContext(canvas: HTMLCanvasElement): GPUCanvasContext {
+        const context = canvas.getContext('webgpu');
+        if (!context) {
+            throw new HolographicEngineError(
+                'Failed to get WebGPU context from canvas',
+                'CONTEXT_CREATION_FAILED'
+            );
+        }
+        
+        this.format = navigator.gpu.getPreferredCanvasFormat();
+        
+        context.configure({
+            device: this.device,
+            format: this.format,
+            alphaMode: 'premultiplied',
+        });
+        
+        return context;
+    }
+    
+    private setupDeviceLostHandler() {
+        this.device.lost.then((info) => {
+            console.error('GPU device lost:', info);
+            
+            if (this.deviceLostHandler) {
+                this.deviceLostHandler();
+            } else {
+                // Default behavior: try to reinitialize
+                throw new DeviceLostError(info.reason || 'unknown');
+            }
+        });
+    }
+    
+    private applyQualityPreset(quality: keyof typeof this.qualityPresets) {
+        const preset = this.qualityPresets[quality];
+        this.config.hologramSize = preset.hologramSize;
+        this.config.numViews = preset.numViews;
+        this.config.quiltCols = preset.quiltCols;
+        this.config.quiltRows = preset.quiltRows;
+        this.currentQuality = quality;
+    }
+    
+    private async initializeHelperModules() {
+        this.fftCompute = new FFTCompute(this.device, {
+            size: this.config.hologramSize,
+            precision: 'f32',
+            normalization: 'none',
+            direction: 'forward',
+            dimensions: 2
+        });
+        this.hologramPropagation = new HologramPropagation(this.device, this.config.hologramSize);
+        
+        await Promise.all([
+            this.fftCompute.initialize(),
+            this.hologramPropagation.initialize(),
+        ]);
+    }
+    
+    private async createResources() {
+        // Create textures
+        this.createTextures();
+        
+        // Create uniform buffers
+        this.createUniformBuffers();
+        
+        // Create pipelines
+        await this.createPipelines();
+        
+        // Create bind groups
+        this.createBindGroups();
+        
+        // Initialize performance monitoring
+        if (this.device.features.has('timestamp-query')) {
+            this.initializePerformanceMonitoring();
+        }
+    }
+    
+    private createTextures() {
+        const textureConfigs = [
+            {
+                key: 'wavefield',
+                descriptor: {
+                    size: [this.config.hologramSize, this.config.hologramSize],
+                    format: 'rg32float' as GPUTextureFormat,
+                    usage: GPUTextureUsage.STORAGE_BINDING | 
+                           GPUTextureUsage.TEXTURE_BINDING |
+                           GPUTextureUsage.COPY_SRC
+                }
+            },
+            {
+                key: 'propagated',
+                descriptor: {
+                    size: [this.config.hologramSize, this.config.hologramSize],
+                    format: 'rg32float' as GPUTextureFormat,
+                    usage: GPUTextureUsage.STORAGE_BINDING | 
+                           GPUTextureUsage.TEXTURE_BINDING
+                }
+            },
+            {
+                key: 'depth',
+                descriptor: {
+                    size: [this.config.hologramSize, this.config.hologramSize],
+                    format: 'r32float' as GPUTextureFormat,
+                    usage: GPUTextureUsage.STORAGE_BINDING |
+                           GPUTextureUsage.TEXTURE_BINDING |
+                           GPUTextureUsage.COPY_DST
+                }
+            },
+            {
+                key: 'quilt',
+                descriptor: {
+                    size: [
+                        this.calibration.tileWidth * this.config.quiltCols,
+                        this.calibration.tileHeight * this.config.quiltRows
+                    ],
+                    format: 'rgba8unorm' as GPUTextureFormat,
+                    usage: GPUTextureUsage.RENDER_ATTACHMENT | 
+                           GPUTextureUsage.TEXTURE_BINDING |
+                           GPUTextureUsage.COPY_DST
+                }
+            }
+        ];
+        
+        for (const config of textureConfigs) {
+            const texture = this.texturePool.acquire(config.key, config.descriptor);
+            this.textures.set(config.key, texture);
+        }
+        
+        // Create noise texture
+        this.createNoiseTexture();
+    }
+    
+    private createNoiseTexture() {
+        const size = 256;
+        const noiseData = new Float32Array(size * size);
+        
+        // Generate noise
+        for (let i = 0; i < noiseData.length; i++) {
+            noiseData[i] = Math.random();
+        }
+        
+        const texture = this.device.createTexture({
+            label: 'NoiseTexture',
+            size: [size, size],
+            format: 'r32float',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+        });
+        
+        this.device.queue.writeTexture(
+            { texture },
+            noiseData,
+            { bytesPerRow: size * 4 },
+            { width: size, height: size }
+        );
+        
+        this.textures.set('noise', texture);
+    }
+    
+    private createUniformBuffers() {
+        // Wavefield parameters (extended for 32 oscillators)
+        const wavefieldDataSize = 
+            4 * 4 + // phase_modulation, coherence, time, scale
+            32 * 4 + // phases
+            32 * 8 + // spatial frequencies
+            32 * 4;  // amplitudes
+        
+        const wavefieldData = new Float32Array(wavefieldDataSize / 4);
+        this.buffers.set('wavefield', this.device.createBuffer({
+            label: 'StorageBuffer_wavefield',
+            size: wavefieldDataSize,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        }));
+        this.device.queue.writeBuffer(this.buffers.get('wavefield')!, 0, wavefieldData.buffer);
+        
+        // Oscillator data
+        const oscDataSize = 
+            4 * 4 + // psi_phase, coherence, coupling, dominant_freq
+            32 * 4 + // phases
+            32 * 8 + // spatial frequencies  
+            32 * 4;  // amplitudes
+        
+        const oscData = new Float32Array(oscDataSize / 4);
+        this.buffers.set('oscillator', this.device.createBuffer({
+            label: 'StorageBuffer_oscillator',
+            size: oscDataSize,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        }));
+        this.device.queue.writeBuffer(this.buffers.get('oscillator')!, 0, oscData.buffer);
+        
+        // Calibration data
+        const calibData = this.packCalibrationData(this.calibration);
+        this.buffers.set('calibration', this.bufferManager.createAlignedBuffer('calibration', calibData));
+        
+        // Propagation parameters
+        const propData = new Float32Array([
+            0.3, // distance
+            this.config.wavelength,
+            0.5, // amplitude scale
+            0.1  // phase noise
+        ]);
+        this.buffers.set('propagation', this.device.createBuffer({
+            label: 'StorageBuffer_propagation',
+            size: Math.ceil(propData.byteLength / 16) * 16,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        }));
+        this.device.queue.writeBuffer(this.buffers.get('propagation')!, 0, propData.buffer);
+        
+        // Quality settings
+        const qualityData = new Uint32Array([
+            1.0, // resolution scale
+            4,   // sample count
+            1,   // enable chromatic
+            0    // enable volumetric
+        ]);
+        this.buffers.set('quality', this.device.createBuffer({
+            label: 'StorageBuffer_quality',
+            size: Math.ceil(qualityData.byteLength / 16) * 16,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        }));
+        this.device.queue.writeBuffer(this.buffers.get('quality')!, 0, qualityData.buffer);
+    }
+    
+    private packCalibrationData(calibration: CalibrationData): Float32Array {
+        return new Float32Array([
+            calibration.pitch,
+            calibration.tilt,
+            calibration.center,
+            calibration.viewCone,
+            calibration.invView,
+            calibration.verticalAngle,
+            calibration.DPI,
+            calibration.screenW,
+            calibration.screenH,
+            calibration.flipImageX,
+            calibration.flipImageY,
+            calibration.flipSubp,
+            calibration.numViews,
+            calibration.quiltWidth,
+            calibration.quiltHeight,
+            calibration.tileWidth,
+            calibration.tileHeight,
+            0, 0, 0 // padding
+        ]);
+    }
+    
+    private async createPipelines() {
+        // Load and compile shaders with error handling
+        const shaderSources = await this.loadShaders([
+            'wavefieldEncoder_optimized.wgsl',
+            'bitReversal.wgsl',
+            'propagation.wgsl',
+            'multiViewSynthesis.wgsl',
+            'lenticularInterlace.wgsl',
+            'velocityField.wgsl'
+        ]);
+        
+        // Create compute pipelines
+        this.pipelines.set('wavefield', await this.createComputePipeline(
+            'wavefieldEncoder_optimized',
+            shaderSources['wavefieldEncoder_optimized.wgsl'],
+            'main'
+        ));
+        
+        // Create FFT-related pipelines if bitReversal shader is loaded
+        if (shaderSources['bitReversal.wgsl']) {
+            this.pipelines.set('bitReversal', await this.createComputePipeline(
+                'bitReversal',
+                shaderSources['bitReversal.wgsl'],
+                'main'
+            ));
+        }
+        
+        this.pipelines.set('propagation', await this.createComputePipeline(
+            'propagation',
+            shaderSources['propagation.wgsl'],
+            'main'
+        ));
+        
+        this.pipelines.set('viewSynthesis', await this.createComputePipeline(
+            'multiViewSynthesis',
+            shaderSources['multiViewSynthesis.wgsl'],
+            'main'
+        ));
+        
+        this.pipelines.set('velocityField', await this.createComputePipeline(
+            'velocityField',
+            shaderSources['velocityField.wgsl'],
+            'main'
+        ));
+        
+        // Create render pipeline
+        this.pipelines.set('lenticular', await this.createRenderPipeline(
+            'lenticular',
+            shaderSources['lenticularInterlace.wgsl']
+        ));
+    }
+    
+    private async loadShaders(filenames: string[]): Promise<Record<string, string>> {
+        const sources: Record<string, string> = {};
+        
+        await Promise.all(filenames.map(async (filename) => {
+            try {
+                // Use ShaderLoader instead of fetch
+                // Remove .wgsl extension if present for the loader
+                const shaderName = filename.replace('.wgsl', '');
+                const source = await ShaderLoader.load(`shaders/${shaderName}.wgsl`);
+                sources[filename] = source;
+            } catch (error) {
+                console.error(`Failed to load shader ${filename}:`, error);
+                // Return a minimal placeholder shader
+                sources[filename] = `
+                    @compute @workgroup_size(1)
+                    fn main() {}
+                `;
+            }
+        }));
+        
+        return sources;
+    }
+    
+    private async createComputePipeline(
+        name: string,
+        code: string,
+        entryPoint: string
+    ): Promise<GPUComputePipeline> {
+        try {
+            const shaderModule = this.device.createShaderModule({
+                label: `${name}_shader`,
+                code
+            });
+            
+            // Check for compilation errors
+            const compilationInfo = await shaderModule.getCompilationInfo();
+            if (compilationInfo.messages.length > 0) {
+                const errors = compilationInfo.messages
+                    .filter(m => m.type === 'error')
+                    .map(m => m.message)
+                    .join('\n');
+                
+                if (errors) {
+                    throw new ShaderCompilationError(name, errors);
+                }
+            }
+            
+            // Get proper constants for the shader
+            const constantConfig: ShaderConstantConfig = {
+                workgroupSizeX: 256, // Default FFT workgroup size
+                normalizationMode: 0, // Dynamic normalization
+                enableDebug: false,
+                enableTemporal: true,
+                maxAASamples: 4,
+                hologramSize: this.config.hologramSize
+            };
+            const constants = getConstantsForShader(name, constantConfig);
+            
+            return this.device.createComputePipeline({
+                label: `${name}_pipeline`,
+                layout: 'auto',
+                compute: {
+                    module: shaderModule,
+                    entryPoint,
+                    constants
+                }
+            });
+            
+        } catch (error) {
+            console.error(`Failed to create compute pipeline ${name}:`, error);
+            throw error;
+        }
+    }
+    
+    private async createRenderPipeline(
+        name: string,
+        code: string
+    ): Promise<GPURenderPipeline> {
+        try {
+            const shaderModule = this.device.createShaderModule({
+                label: `${name}_shader`,
+                code
+            });
+            
+            return this.device.createRenderPipeline({
+                label: `${name}_pipeline`,
+                layout: 'auto',
+                vertex: {
+                    module: shaderModule,
+                    entryPoint: 'vs_main'
+                },
+                fragment: {
+                    module: shaderModule,
+                    entryPoint: 'fs_main',
+                    targets: [{
+                        format: this.format,
+                        blend: {
+                            color: {
+                                srcFactor: 'src-alpha',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add'
+                            },
+                            alpha: {
+                                srcFactor: 'one',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add'
+                            }
+                        }
+                    }]
+                },
+                primitive: {
+                    topology: 'triangle-list'
+                }
+            });
+            
+        } catch (error) {
+            console.error(`Failed to create render pipeline ${name}:`, error);
+            throw error;
+        }
+    }
+    
+    private createBindGroups() {
+        // Create sampler for textures
+        const sampler = this.device.createSampler({
+            label: 'LinearSampler',
+            magFilter: 'linear',
+            minFilter: 'linear',
+            addressModeU: 'clamp-to-edge',
+            addressModeV: 'clamp-to-edge'
+        });
+        
+        // Create bind group layout for wavefield with storage buffers
+        const wavefieldLayout = this.device.createBindGroupLayout({
+            label: 'wavefield_layout',
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: { type: 'read-only-storage' }
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.COMPUTE,
+                    storageTexture: {
+                        access: 'read-only',
+                        format: 'r32float',
+                        viewDimension: '2d'
+                    }
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.COMPUTE,
+                    storageTexture: {
+                        access: 'write-only',
+                        format: 'rg32float',
+                        viewDimension: '2d'
+                    }
+                },
+                {
+                    binding: 3,
+                    visibility: GPUShaderStage.COMPUTE,
+                    texture: {
+                        sampleType: 'unfilterable-float',
+                        viewDimension: '2d'
+                    }
+                }
+            ]
+        });
+        
+        // Wavefield bind group
+        this.createBindGroup('wavefield', [
+            { binding: 0, resource: { buffer: this.buffers.get('wavefield')! } },
+            { binding: 1, resource: this.textures.get('depth')!.createView() },
+            { binding: 2, resource: this.textures.get('wavefield')!.createView() },
+            { binding: 3, resource: this.textures.get('noise')!.createView() }
+        ], this.pipelines.get('wavefield') as GPUComputePipeline);
+        
+        // Additional bind groups...
+        // Simplified for brevity - would create all necessary bind groups
+    }
+    
+    private createBindGroup(
+        name: string,
+        entries: GPUBindGroupEntry[],
+        pipeline: GPUComputePipeline | GPURenderPipeline
+    ) {
+        const bindGroup = this.device.createBindGroup({
+            label: `${name}_bindGroup`,
+            layout: pipeline.getBindGroupLayout(0),
+            entries
+        });
+        
+        this.bindGroups.set(name, bindGroup);
+    }
+    
+    private initializePerformanceMonitoring() {
+        this.frameMetrics.querySet = this.device.createQuerySet({
+            type: 'timestamp',
+            count: 8
+        });
+    }
+    
+    private connectWebSocket(sessionId: string) {
+        this.wsManager = new HologramWebSocketManager(
+            sessionId,
+            (data) => this.handleWebSocketMessage(data),
+            (error) => console.error('WebSocket error:', error)
+        );
+        
+        this.wsManager.connect();
+    }
+    
+    private handleWebSocketMessage(data: any) {
+        switch (data.type) {
+            case 'wavefield_update':
+                if (data.wavefield_params) {
+                    this.updateFromWavefieldParams(data.wavefield_params);
+                }
+                break;
+            
+            case 'quality_adjustment':
+                if (data.quality) {
+                    this.setQuality(data.quality);
+                }
+                break;
+                
+            default:
+                console.log('Unhandled WebSocket message type:', data.type);
+        }
+    }
+    
+    // === Public API ===
+    
+    updateFromOscillator(oscState: OscillatorState) {
+        if (!this.isInitialized) {
+            console.warn('Engine not initialized');
+            return;
+        }
+        
+        const data = this.packOscillatorData(oscState);
+        this.bufferManager.updateBuffer(this.buffers.get('oscillator')!, data);
+    }
+    
+    updateFromWavefieldParams(params: WavefieldParameters) {
+        if (!this.isInitialized) {
+            console.warn('Engine not initialized');
+            return;
+        }
+        
+        const data = this.packWavefieldData(params);
+        this.bufferManager.updateBuffer(this.buffers.get('wavefield')!, data);
+    }
+    
+    updateDepthTexture(depthData: Float32Array | ImageBitmap | HTMLCanvasElement) {
+        if (!this.isInitialized) return;
+        
+        const depthTexture = this.textures.get('depth');
+        if (!depthTexture) return;
+        
+        if (depthData instanceof Float32Array) {
+            this.device.queue.writeTexture(
+                { texture: depthTexture },
+                depthData.buffer as ArrayBuffer,
+                {
+                    bytesPerRow: this.config.hologramSize * 4,
+                    rowsPerImage: this.config.hologramSize
+                },
+                { width: this.config.hologramSize, height: this.config.hologramSize }
+            );
+        } else if (depthData instanceof HTMLCanvasElement) {
+            // Use createImageBitmap for async processing
+            createImageBitmap(depthData).then(bitmap => {
+                this.device.queue.copyExternalImageToTexture(
+                    { source: bitmap },
+                    { texture: depthTexture },
+                    { width: this.config.hologramSize, height: this.config.hologramSize }
+                );
+                bitmap.close();
+            });
+        } else {
+            // ImageBitmap
+            this.device.queue.copyExternalImageToTexture(
+                { source: depthData },
+                { texture: depthTexture },
+                { width: this.config.hologramSize, height: this.config.hologramSize }
+            );
+        }
+    }
+    
+    async setQuality(quality: keyof typeof this.qualityPresets) {
+        if (this.currentQuality === quality) return;
+        
+        console.log(`Changing quality from ${this.currentQuality} to ${quality}`);
+        
+        // Apply new settings
+        this.applyQualityPreset(quality);
+        
+        // Recreate resources
+        await this.recreateResourcesForQuality();
+    }
+    
+    private async recreateResourcesForQuality() {
+        // Release old textures
+        for (const [key, texture] of this.textures) {
+            if (key !== 'noise') { // Keep noise texture
+                this.texturePool.release(key, texture);
+            }
+        }
+        this.textures.clear();
+        
+        // Clear bind groups
+        this.bindGroups.clear();
+        
+        // Recreate with new sizes
+        this.createTextures();
+        
+        // Reinitialize helper modules
+        this.fftCompute.destroy();
+        this.hologramPropagation.destroy();
+        
+        await this.initializeHelperModules();
+        
+        // Recreate bind groups
+        this.createBindGroups();
+    }
+    
+    async render(options: RenderOptions = {}) {
+        if (!this.isInitialized) {
+            console.warn('Engine not initialized');
+            return;
+        }
+        
+        const {
+            propagationDistance = 0.3,
+            enableVelocityField = false,
+            enableAdaptiveQuality = true,
+            maxFrameTime = 16.67
+        } = options;
+        
+        const startTime = performance.now();
+        
+        try {
+            const commandEncoder = this.device.createCommandEncoder({
+                label: 'HologramRender'
+            });
+            
+            // Execute render passes
+            this.executeWavefieldPass(commandEncoder);
+            await this.executePropagationPass(commandEncoder, propagationDistance);
+            
+            if (enableVelocityField) {
+                this.executeVelocityFieldPass(commandEncoder);
+            }
+            
+            this.executeViewSynthesisPass(commandEncoder);
+            this.executeLenticularPass(commandEncoder);
+            
+            // Submit
+            this.device.queue.submit([commandEncoder.finish()]);
+            
+            // Update metrics
+            const frameTime = performance.now() - startTime;
+            this.updateFrameMetrics(frameTime);
+            
+            // Adaptive quality
+            if (enableAdaptiveQuality) {
+                this.checkAdaptiveQuality(maxFrameTime);
+            }
+            
+            // Report performance
+            if (this.wsManager?.isConnected()) {
+                this.reportPerformance();
+            }
+            
+        } catch (error) {
+            console.error('Render error:', error);
+            throw error;
+        }
+    }
+    
+    private executeWavefieldPass(commandEncoder: GPUCommandEncoder) {
+        const passEncoder = commandEncoder.beginComputePass({
+            label: 'WavefieldGeneration'
+        });
+        
+        const pipeline = this.pipelines.get('wavefield') as GPUComputePipeline;
+        const bindGroup = this.bindGroups.get('wavefield')!;
+        
+        passEncoder.setPipeline(pipeline);
+        passEncoder.setBindGroup(0, bindGroup);
+        
+        const workgroupsX = Math.ceil(this.config.hologramSize / 8);
+        const workgroupsY = Math.ceil(this.config.hologramSize / 8);
+        passEncoder.dispatchWorkgroups(workgroupsX, workgroupsY);
+        
+        passEncoder.end();
+    }
+    
+    private async executePropagationPass(
+        commandEncoder: GPUCommandEncoder,
+        distance: number
+    ) {
+        // Update propagation distance
+        const propData = new Float32Array([
+            distance,
+            this.config.wavelength,
+            0.5,
+            0.1
+        ]);
+        this.bufferManager.updateBuffer(this.buffers.get('propagation')!, propData);
+        
+        // Use FFT propagation
+        await this.hologramPropagation.propagate(
+            commandEncoder,
+            this.textures.get('wavefield')!,
+            this.textures.get('propagated')!,
+            distance,
+            this.config.wavelength
+        );
+    }
+    
+    private executeVelocityFieldPass(commandEncoder: GPUCommandEncoder) {
+        // Implement velocity field computation
+        // Simplified for brevity
+    }
+    
+    private executeViewSynthesisPass(commandEncoder: GPUCommandEncoder) {
+        // Implement view synthesis
+        // Simplified for brevity
+    }
+    
+    private executeLenticularPass(commandEncoder: GPUCommandEncoder) {
+        const textureView = this.context.getCurrentTexture().createView();
+        
+        const renderPassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: [{
+                view: textureView,
+                clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                loadOp: 'clear',
+                storeOp: 'store'
+            }]
+        };
+        
+        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+        const pipeline = this.pipelines.get('lenticular') as GPURenderPipeline;
+        
+        passEncoder.setPipeline(pipeline);
+        // Set bind groups...
+        passEncoder.draw(6); // Full-screen quad
+        passEncoder.end();
+    }
+    
+    private updateFrameMetrics(frameTime: number) {
+        this.frameMetrics.times[this.frameMetrics.index] = frameTime;
+        this.frameMetrics.index = (this.frameMetrics.index + 1) % this.frameMetrics.times.length;
+    }
+    
+    private checkAdaptiveQuality(targetFrameTime: number) {
+        // Calculate average frame time
+        let sum = 0;
+        let count = 0;
+        
+        for (const time of this.frameMetrics.times) {
+            if (time > 0) {
+                sum += time;
+                count++;
+            }
+        }
+        
+        if (count < 10) return; // Need enough samples
+        
+        const avgFrameTime = sum / count;
+        
+        // Check if quality adjustment needed
+        if (avgFrameTime > targetFrameTime * 1.2) {
+            // Downgrade quality
+            const qualities = ['low', 'medium', 'high', 'ultra'] as const;
+            const currentIndex = qualities.indexOf(this.currentQuality);
+            
+            if (currentIndex > 0) {
+                this.setQuality(qualities[currentIndex - 1]);
+            }
+        } else if (avgFrameTime < targetFrameTime * 0.6) {
+            // Upgrade quality
+            const qualities = ['low', 'medium', 'high', 'ultra'] as const;
+            const currentIndex = qualities.indexOf(this.currentQuality);
+            
+            if (currentIndex < qualities.length - 1) {
+                this.setQuality(qualities[currentIndex + 1]);
+            }
+        }
+    }
+    
+    private reportPerformance() {
+        const avgFps = this.calculateAverageFps();
+        
+        this.wsManager?.send({
+            type: 'performance_report',
+            fps: avgFps,
+            quality: this.currentQuality,
+            timestamp: Date.now()
+        });
+    }
+    
+    private calculateAverageFps(): number {
+        let sum = 0;
+        let count = 0;
+        
+        for (const time of this.frameMetrics.times) {
+            if (time > 0) {
+                sum += time;
+                count++;
+            }
+        }
+        
+        return count > 0 ? 1000 / (sum / count) : 0;
+    }
+    
+    // === Data Packing Helpers ===
+    
+    private packOscillatorData(state: OscillatorState): Float32Array {
+        const data = new Float32Array(164); // Size for 32 oscillators
+        
+        // Header
+        data[0] = state.psi_phase;
+        data[1] = state.phase_coherence;
+        data[2] = state.coupling_strength;
+        data[3] = state.dominant_frequency;
+        
+        // Phases (32)
+        for (let i = 0; i < 32; i++) {
+            data[4 + i] = i < state.oscillator_phases.length ? state.oscillator_phases[i] : 0;
+        }
+        
+        // Spatial frequencies (32 * 2)
+        const offset = 36;
+        for (let i = 0; i < 32; i++) {
+            if (i < state.oscillator_frequencies.length) {
+                const freq = state.oscillator_frequencies[i];
+                const angle = (i / 32) * 2 * Math.PI;
+                const spiral = 1 + 0.1 * i;
+                data[offset + i * 2] = (freq / 1000) * Math.cos(angle) * spiral;
+                data[offset + i * 2 + 1] = (freq / 1000) * Math.sin(angle) * spiral;
+            }
+        }
+        
+        // Amplitudes (32) - pre-compute for shader
+        const ampOffset = 100;
+        for (let i = 0; i < 32; i++) {
+            if (i < state.oscillator_frequencies.length) {
+                const freq = state.oscillator_frequencies[i];
+                data[ampOffset + i] = Math.exp(-freq / 10000) * state.phase_coherence;
+            }
+        }
+        
+        return data;
+    }
+    
+    private packWavefieldData(params: WavefieldParameters): Float32Array {
+        const data = new Float32Array(164);
+        
+        // Header
+        data[0] = params.phase_modulation;
+        data[1] = params.coherence;
+        data[2] = Date.now() / 1000; // time
+        data[3] = 1.0; // scale
+        
+        // Phases
+        for (let i = 0; i < 32; i++) {
+            data[4 + i] = i < params.oscillator_phases.length ? params.oscillator_phases[i] : 0;
+        }
+        
+        // Spatial frequencies
+        const offset = 36;
+        for (let i = 0; i < 32; i++) {
+            if (i < params.spatial_frequencies.length) {
+                data[offset + i * 2] = params.spatial_frequencies[i][0];
+                data[offset + i * 2 + 1] = params.spatial_frequencies[i][1];
+            }
+        }
+        
+        // Amplitudes
+        const ampOffset = 100;
+        for (let i = 0; i < 32; i++) {
+            data[ampOffset + i] = i < params.amplitudes.length ? params.amplitudes[i] : 0;
+        }
+        
+        return data;
+    }
+    
+    // === Lifecycle ===
+    
+    setDeviceLostHandler(handler: () => void) {
+        this.deviceLostHandler = handler;
+    }
+    
+    async getPerformanceMetrics(): Promise<PerformanceMetrics> {
+        const fps = this.calculateAverageFps();
+        const avgFrameTime = fps > 0 ? 1000 / fps : 0;
+        
+        return {
+            wavefieldTime: avgFrameTime * 0.3, // Estimate
+            propagationTime: avgFrameTime * 0.4,
+            viewSynthesisTime: avgFrameTime * 0.2,
+            totalTime: avgFrameTime,
+            fps,
+            gpuMemoryUsed: 0 // Would need to track allocations
+        };
+    }
+    
+    destroy() {
+        if (!this.isInitialized) return;
+        
+        console.log('Destroying holographic engine');
+        
+        // Close WebSocket
+        this.wsManager?.close();
+        
+        // Destroy textures
+        for (const [key, texture] of this.textures) {
+            this.texturePool.release(key, texture);
+        }
+        this.texturePool.cleanup();
+        
+        // Destroy buffers
+        for (const buffer of this.buffers.values()) {
+            buffer.destroy();
+        }
+        
+        // Destroy query set
+        if (this.frameMetrics.querySet) {
+            this.frameMetrics.querySet.destroy();
+        }
+        
+        // Destroy helper modules
+        this.fftCompute?.destroy();
+        this.hologramPropagation?.destroy();
+        
+        this.isInitialized = false;
+    }
+}
+
+// === Export Utilities ===
+
+export function getDefaultCalibration(
+    displayType: 'looking_glass_portrait' | 'looking_glass_32' | 'looking_glass_65' | 'webgpu_only'
+): CalibrationData {
+    const calibrations: Record<string, CalibrationData> = {
+        looking_glass_portrait: {
+            pitch: 49.825,
+            tilt: -0.1745,
+            center: 0.04239,
+            viewCone: 40,
+            invView: 1,
+            verticalAngle: 0,
+            DPI: 324,
+            screenW: 1536,
+            screenH: 2048,
+            flipImageX: 0,
+            flipImageY: 0,
+            flipSubp: 0,
+            numViews: 45,
+            quiltWidth: 3360,
+            quiltHeight: 3360,
+            tileWidth: 420,
+            tileHeight: 560
+        },
+        looking_glass_32: {
+            pitch: 52.56,
+            tilt: -0.1745,
+            center: 0.0,
+            viewCone: 50,
+            invView: 1,
+            verticalAngle: 0,
+            DPI: 330,
+            screenW: 7680,
+            screenH: 4320,
+            flipImageX: 0,
+            flipImageY: 0,
+            flipSubp: 0,
+            numViews: 45,
+            quiltWidth: 8192,
+            quiltHeight: 8192,
+            tileWidth: 1024,
+            tileHeight: 1024
+        },
+        looking_glass_65: {
+            pitch: 63.42,
+            tilt: -0.1745,
+            center: 0.0,
+            viewCone: 53,
+            invView: 1,
+            verticalAngle: 0,
+            DPI: 283,
+            screenW: 7680,
+            screenH: 4320,
+            flipImageX: 0,
+            flipImageY: 0,
+            flipSubp: 0,
+            numViews: 100,
+            quiltWidth: 8192,
+            quiltHeight: 8192,
+            tileWidth: 819,
+            tileHeight: 819
+        },
+        webgpu_only: {
+            pitch: 50.0,
+            tilt: 0.0,
+            center: 0.0,
+            viewCone: 45,
+            invView: 1,
+            verticalAngle: 0,
+            DPI: 96,
+            screenW: 1920,
+            screenH: 1080,
+            flipImageX: 0,
+            flipImageY: 0,
+            flipSubp: 0,
+            numViews: 25,
+            quiltWidth: 2560,
+            quiltHeight: 1600,
+            tileWidth: 512,
+            tileHeight: 320
+        }
+    };
+    
+    return calibrations[displayType] || calibrations.webgpu_only;
+}
+
+
+
+
+
+
+
+

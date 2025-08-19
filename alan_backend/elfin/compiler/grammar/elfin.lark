@@ -1,0 +1,128 @@
+// ELFIN Grammar Definition in Lark PEG Format
+
+// An ELFIN program consists of multiple sections
+start: (comment | import_stmt | section)*
+
+// Comments
+comment: "//" /[^\n]*/
+
+// Import statements
+import_stmt: "import" NAME "from" STRING ";"?
+
+// Section definition
+section: helpers_section
+       | system_section
+       | lyapunov_section
+       | barrier_section
+       | mode_section
+       | planner_section
+       | integration_section
+
+// Helpers section
+helpers_section: "helpers" [NAME] "{" (helper_function | comment)* "}"
+helper_function: NAME "(" [parameter_list] ")" "=" expression ";"?
+
+// System section
+system_section: "system" NAME "{" system_element* "}"
+system_element: continuous_state
+              | input_block
+              | params_block
+              | flow_dynamics
+              | comment
+
+continuous_state: "continuous_state" ":" list_expr ";"?
+                | "continuous_state" "{" NAME ";"* "}"
+
+input_block: "input" ":" list_expr ";"?
+          | "input" "{" NAME ";"* "}"
+
+params_block: "params" "{" (param_def | comment)* "}"
+param_def: NAME ":" expression ["[" UNIT "]"] ";"?
+UNIT: /[a-zA-Z0-9\/\*\^\-\s\.]+/
+
+flow_dynamics: "flow_dynamics" "{" (equation | comment)* "}"
+equation: NAME "=" expression ";"?
+
+// Lyapunov section
+lyapunov_section: "lyapunov" NAME "{" lyapunov_element* "}"
+lyapunov_element: "system" NAME ";"?
+                | "V" "=" expression ";"?
+                | params_block
+                | comment
+
+// Barrier section
+barrier_section: "barrier" NAME "{" barrier_element* "}"
+barrier_element: "system" NAME ";"?
+                | "B" "=" expression ";"?
+                | "alpha_fun" "=" expression ";"?
+                | params_block
+                | comment
+
+// Mode section
+mode_section: "mode" NAME "{" mode_element* "}"
+mode_element: "system" NAME ";"?
+            | "lyapunov" NAME ";"?
+            | "barriers" list_expr ";"?
+            | controller_block
+            | params_block
+            | comment
+
+controller_block: "controller" "{" (equation | comment)* "}"
+
+// Planner section
+planner_section: "planner" NAME "{" planner_element* "}"
+planner_element: "system" NAME ";"?
+               | "config" "{" (config_item | comment)* "}"
+               | "obstacles" list_expr ";"?
+               | params_block
+               | comment
+
+config_item: NAME ":" expression ";"?
+
+// Integration section
+integration_section: "integration" NAME "{" integration_element* "}"
+integration_element: "planner" NAME ";"?
+                   | "controller" NAME ";"?
+                   | "config" "{" (config_item | comment)* "}"
+                   | comment
+
+// Common elements
+parameter_list: NAME ("," NAME)*
+list_expr: "[" [expression ("," expression)*] "]"
+
+// Expressions
+expression: NAME                           -> var_ref
+          | NUMBER                         -> number
+          | STRING                         -> string
+          | list_expr                      -> list
+          | "{" object_items "}"           -> object
+          | expression "." NAME            -> member_access
+          | expression "**" expression     -> power
+          | expression "*" expression      -> mul
+          | expression "/" expression      -> div
+          | expression "+" expression      -> add
+          | expression "-" expression      -> sub
+          | expression "==" expression     -> eq
+          | expression "!=" expression     -> neq
+          | expression "<=" expression     -> le
+          | expression ">=" expression     -> ge
+          | expression "<" expression      -> lt
+          | expression ">" expression      -> gt
+          | "if" expression "then" expression "else" expression -> if_expr
+          | function_call
+          | "(" expression ")"             -> parenthesis
+
+function_call: NAME "(" [argument_list] ")"
+
+argument_list: expression ("," expression)*
+object_items: [object_item ("," object_item)*]
+object_item: NAME ":" expression
+
+// Terminal definitions
+NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
+NUMBER: /[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/
+STRING: /"[^"]*"/
+
+// Ignore whitespace
+%import common.WS
+%ignore WS

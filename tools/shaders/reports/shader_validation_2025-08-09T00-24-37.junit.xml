@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Shader Quality Gate" tests="17" failures="2" errors="0" time="1" timestamp="2025-08-09T00:24:37.720Z">
+    <testcase name="frontend\lib\webgpu\shaders\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder_optimized.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder_optimized.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

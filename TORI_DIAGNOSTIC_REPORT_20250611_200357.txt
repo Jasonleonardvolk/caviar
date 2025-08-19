@@ -1,0 +1,333 @@
+TORI COMPREHENSIVE DIAGNOSTIC REPORT
+==================================================
+Generated: 2025-06-11 20:04:27
+Duration: 30.54 seconds
+==================================================
+
+[20:03:57.133] START: 🚀 STARTING COMPREHENSIVE TORI DIAGNOSTIC
+[20:03:57.133] INFO:    Report will be saved to: TORI_DIAGNOSTIC_REPORT_20250611_200357.txt
+[20:03:57.133] INFO: ================================================================================
+[20:03:57.134] SYSTEM: 🖥️ SYSTEM RESOURCE CHECK
+[20:03:58.135] INFO:    CPU Usage: 14.1%
+[20:03:58.148] INFO:    Memory Usage: 39.2% (25.0GB / 63.7GB)
+[20:03:58.149] INFO:    Disk Usage: 54.8% (522.0GB / 953.0GB)
+[20:03:58.150] INFO:    🔍 TORI-related processes:
+[20:03:59.222] INFO:      PID 4656: node.exe - node C:\Users\jason\AppData\Roaming\npm-cache\_npx\be9bcbed6978f068\node_modules\.bin\\..\@modelcont
+[20:03:59.224] INFO:        CPU: 0.0%, Memory: 39.0MB
+[20:03:59.228] INFO:      PID 4932: cmd.exe - C:\windows\System32\cmd.exe /C C:\Program Files\nodejs\npx.cmd -y @modelcontextprotocol/server-seque
+[20:03:59.229] INFO:        CPU: 0.0%, Memory: 5.9MB
+[20:04:00.279] INFO:      PID 11256: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:\Users\jason\.vscode\extensions\d
+[20:04:00.281] INFO:        CPU: 0.0%, Memory: 103.0MB
+[20:04:00.286] INFO:      PID 14040: node.exe - C:\Program Files\nodejs\\node.exe C:\Program Files\nodejs\\node_modules\npm\bin\npx-cli.js -y @model
+[20:04:00.288] INFO:        CPU: 0.0%, Memory: 46.7MB
+[20:04:00.290] INFO:      PID 14232: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --type=utility --utility-sub-type=n
+[20:04:00.293] INFO:        CPU: 0.0%, Memory: 110.4MB
+[20:04:00.298] INFO:      PID 17176: node.exe - node C:\Users\jason\AppData\Roaming\npm\\node_modules\@modelcontextprotocol\server-sequential-thinki
+[20:04:00.301] INFO:        CPU: 0.0%, Memory: 39.1MB
+[20:04:00.308] INFO:      PID 18544: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --type=utility --utility-sub-type=n
+[20:04:00.310] INFO:        CPU: 0.0%, Memory: 107.3MB
+[20:04:00.313] INFO:      PID 18968: python.exe - C:\ALANPY311\python.exe enhanced_launcher.py
+[20:04:00.314] INFO:        CPU: 0.0%, Memory: 1181.9MB
+[20:04:00.318] INFO:      PID 19768: node.exe - node C:\Users\jason\AppData\Roaming\npm\\node_modules\@modelcontextprotocol\server-filesystem\dist\i
+[20:04:00.322] INFO:        CPU: 0.0%, Memory: 44.4MB
+[20:04:00.324] INFO:      PID 20416: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:\Users\jason\.vscode\extensions\g
+[20:04:00.327] INFO:        CPU: 0.0%, Memory: 340.9MB
+[20:04:00.328] INFO:      PID 20524: cmd.exe - C:\windows\System32\cmd.exe /d /s /c mcp-server-filesystem C:/Users/jason/AppData/Roaming/Claude C:/
+[20:04:00.330] INFO:        CPU: 0.0%, Memory: 5.9MB
+[20:04:00.335] INFO:      PID 21916: node.exe - node C:\Users\jason\AppData\Roaming\npm\\node_modules\@modelcontextprotocol\server-memory\dist\index
+[20:04:00.338] INFO:        CPU: 0.0%, Memory: 37.7MB
+[20:04:00.342] INFO:      PID 22104: node.exe - C:\Program Files\nodejs\\node.exe C:\Program Files\nodejs\\node_modules\npm\bin\npx-cli.js -y @model
+[20:04:00.344] INFO:        CPU: 0.0%, Memory: 46.2MB
+[20:04:00.346] INFO:      PID 22456: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:/Users/jason/AppData/Local/Progra
+[20:04:00.348] INFO:        CPU: 0.0%, Memory: 100.6MB
+[20:04:00.352] INFO:      PID 23188: esbuild.exe - c:\Users\jason\Desktop\tori\kha\tori_ui_svelte\node_modules\@esbuild\win32-x64\esbuild.exe --service
+[20:04:00.355] INFO:        CPU: 0.0%, Memory: 18.4MB
+[20:04:00.358] INFO:      PID 24184: cmd.exe - C:\windows\System32\cmd.exe /C C:\Program Files\nodejs\npx.cmd -y @modelcontextprotocol/server-brave
+[20:04:00.360] INFO:        CPU: 0.0%, Memory: 5.9MB
+[20:04:00.362] INFO:      PID 24216: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --max-old-space-size=3072 c:\Users\
+[20:04:00.364] INFO:        CPU: 0.0%, Memory: 148.2MB
+[20:04:00.365] INFO:      PID 24368: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --type=utility --utility-sub-type=n
+[20:04:00.367] INFO:        CPU: 0.0%, Memory: 100.6MB
+[20:04:00.372] INFO:      PID 24656: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:\Users\jason\AppData\Local\Progra
+[20:04:00.374] INFO:        CPU: 0.0%, Memory: 104.5MB
+[20:04:00.376] INFO:      PID 25480: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:\Users\jason\.vscode\extensions\s
+[20:04:00.377] INFO:        CPU: 0.0%, Memory: 102.8MB
+[20:04:00.379] INFO:      PID 25640: node.exe - C:\Program Files\nodejs\\node.exe C:\Program Files\nodejs\\node_modules\npm\bin\npx-cli.js -y @model
+[20:04:00.380] INFO:        CPU: 0.0%, Memory: 46.1MB
+[20:04:00.381] INFO:      PID 25704: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --experimental-modules c:\Users\jas
+[20:04:00.383] INFO:        CPU: 0.0%, Memory: 123.3MB
+[20:04:00.392] INFO:      PID 26456: cmd.exe - C:\windows\System32\cmd.exe /C C:\Program Files\nodejs\npx.cmd -y @modelcontextprotocol/server-files
+[20:04:00.394] INFO:        CPU: 0.0%, Memory: 5.9MB
+[20:04:00.396] INFO:      PID 27908: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --max-old-space-size=3072 c:\Users\
+[20:04:00.398] INFO:        CPU: 0.0%, Memory: 100.7MB
+[20:04:00.400] INFO:      PID 28288: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe --type=utility --utility-sub-type=n
+[20:04:00.405] INFO:        CPU: 0.0%, Memory: 894.9MB
+[20:04:00.407] INFO:      PID 28372: node.exe - C:\Program Files\nodejs\\node.exe C:\Program Files\nodejs\\node_modules\npm\bin\npm-cli.js run dev -
+[20:04:00.409] INFO:        CPU: 0.0%, Memory: 54.5MB
+[20:04:00.412] INFO:      PID 30552: python.exe - C:\ALANPY311\python.exe tori_comprehensive_diagnostic.py
+[20:04:00.413] INFO:        CPU: 0.0%, Memory: 35.0MB
+[20:04:00.416] INFO:      PID 31944: node.exe - node ${IRIS_ROOT}\tori_ui_svelte\node_modules\.bin\\..\vite\bin\vite.js dev --por
+[20:04:00.420] INFO:        CPU: 0.0%, Memory: 184.0MB
+[20:04:00.427] INFO:      PID 36048: Code.exe - C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\Code.exe c:\Users\jason\AppData\Local\Progra
+[20:04:00.429] INFO:        CPU: 0.0%, Memory: 102.6MB
+[20:04:00.431] INFO:      PID 36256: cmd.exe - C:\windows\System32\cmd.exe /C C:\Program Files\nodejs\npx.cmd -y @modelcontextprotocol/server-memor
+[20:04:00.432] INFO:        CPU: 0.0%, Memory: 6.2MB
+[20:04:00.437] INFO:      PID 37544: node.exe - C:\Program Files\nodejs\\node.exe C:\Program Files\nodejs\\node_modules\npm\bin\npx-cli.js -y @model
+[20:04:00.440] INFO:        CPU: 0.0%, Memory: 45.6MB
+[20:04:00.444] INFO:      PID 40772: esbuild.exe - ${IRIS_ROOT}\tori_ui_svelte\node_modules\@esbuild\win32-x64\esbuild.exe --service
+[20:04:00.445] INFO:        CPU: 0.0%, Memory: 26.9MB
+[20:04:00.448] INFO: ================================================================================
+[20:04:00.453] SYSTEM: 📁 FILE SYSTEM CHECK
+[20:04:00.455] INFO:    ✅ prajna_api.py: 33695 bytes, modified 2025-06-11 19:59:09.514077
+[20:04:00.457] INFO:    ✅ vite.config.js: 1339 bytes, modified 2025-06-11 19:45:30.568532
+[20:04:00.459] INFO:    ✅ enhanced_launcher_improved.py: 56838 bytes, modified 2025-06-11 14:41:37.540116
+[20:04:00.460] INFO:    ✅ enhanced_launcher.py: 54436 bytes, modified 2025-06-11 15:10:36.304144
+[20:04:00.463] INFO:    ✅ tmp/: 39 items
+[20:04:00.464] INFO:    ✅ soliton_concept_memory.json: 154 bytes, modified 2025-06-06 09:15:39.972639
+[20:04:00.465] INFO: ================================================================================
+[20:04:00.466] SECTION: 🏥 BACKEND HEALTH TESTS
+[20:04:00.467] TEST: 🧪 TESTING: Basic Health Check
+[20:04:00.476] INFO:    Method: GET
+[20:04:00.478] INFO:    URL: http://localhost:8002/api/health
+[20:04:02.541] INFO:    ✅ Response Time: 2.063s
+[20:04:02.542] INFO:    📊 Status Code: 200
+[20:04:02.546] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:01 GMT', 'server': 'uvicorn', 'content-length': '414', 'content-type': 'application/json'}
+[20:04:02.548] INFO:    📄 JSON Response: {
+  "status": "healthy",
+  "prajna_available": true,
+  "prajna_loaded": true,
+  "pdf_processing_available": true,
+  "mesh_available": true,
+  "upload_directory": "PROJECT_ROOT/"tmp",
+  "upload_directory_exists": true,
+  "configuration": {
+    "model_type": "saigon",
+    "temperature": 1.0,
+    "device": "cpu"
+  },
+  "features": [
+    "bulletproof_upload",
+    "fallback_pdf_processing",
+    "multi_level_error_handling",
+    "safe_imports",
+    "comprehensive_logging"
+  ]
+}
+[20:04:02.566] TEST: 🧪 TESTING: Basic Stats
+[20:04:02.567] INFO:    Method: GET
+[20:04:02.572] INFO:    URL: http://localhost:8002/api/stats
+[20:04:04.627] INFO:    ✅ Response Time: 2.055s
+[20:04:04.629] INFO:    📊 Status Code: 200
+[20:04:04.633] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:03 GMT', 'server': 'uvicorn', 'content-length': '140', 'content-type': 'application/json'}
+[20:04:04.637] INFO:    📄 JSON Response: {
+  "uptime": 1749690244.6206498,
+  "users_by_tier": {
+    "basic": 12,
+    "research": 6,
+    "enterprise": 2
+  },
+  "total_concepts": 123456,
+  "upload_system": "bulletproof"
+}
+[20:04:04.651] TEST: 🧪 TESTING: Prajna Stats
+[20:04:04.653] INFO:    Method: GET
+[20:04:04.659] INFO:    URL: http://localhost:8002/api/prajna/stats
+[20:04:06.733] INFO:    ✅ Response Time: 2.072s
+[20:04:06.735] INFO:    📊 Status Code: 200
+[20:04:06.739] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:05 GMT', 'server': 'uvicorn', 'content-length': '347', 'content-type': 'application/json'}
+[20:04:06.742] INFO:    📄 JSON Response: {
+  "status": "available",
+  "model_ready": true,
+  "configuration": {
+    "model_type": "saigon",
+    "temperature": 1.0
+  },
+  "runtime_stats": {
+    "model_type": "saigon",
+    "model_loaded": true,
+    "device": "cpu",
+    "max_context_length": 2048,
+    "temperature": 1.0,
+    "total_requests": 0,
+    "successful_responses": 0,
+    "average_response_time": 0.0,
+    "total_tokens_generated": 0
+  },
+  "timestamp": 1749690246.727142
+}
+[20:04:06.759] INFO: ================================================================================
+[20:04:06.765] SECTION: 🌊 SOLITON MEMORY TESTS
+[20:04:06.767] TEST: 🧪 TESTING: Soliton Health Check
+[20:04:06.768] INFO:    Method: GET
+[20:04:06.769] INFO:    URL: http://localhost:8002/api/soliton/health
+[20:04:08.832] INFO:    ✅ Response Time: 2.061s
+[20:04:08.835] INFO:    📊 Status Code: 200
+[20:04:08.839] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:08 GMT', 'server': 'uvicorn', 'content-length': '191', 'content-type': 'application/json'}
+[20:04:08.843] INFO:    📄 JSON Response: {
+  "success": true,
+  "status": "operational",
+  "engine": "fallback",
+  "message": "Soliton memory system operational in fallback mode",
+  "features": [
+    "phase_correlation",
+    "memory_vaulting",
+    "lattice_storage"
+  ]
+}
+[20:04:08.855] TEST: 🧪 TESTING: Soliton Initialization
+[20:04:08.856] INFO:    Method: POST
+[20:04:08.858] INFO:    URL: http://localhost:8002/api/soliton/init
+[20:04:08.859] INFO:    Data: {
+  "userId": "test_user"
+}
+[20:04:10.949] INFO:    ✅ Response Time: 2.083s
+[20:04:10.951] INFO:    📊 Status Code: 200
+[20:04:10.954] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:10 GMT', 'server': 'uvicorn', 'content-length': '136', 'content-type': 'application/json'}
+[20:04:10.957] INFO:    📄 JSON Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "test_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[20:04:10.965] TEST: 🧪 TESTING: Soliton Init with Empty Body
+[20:04:10.966] INFO:    Method: POST
+[20:04:10.967] INFO:    URL: http://localhost:8002/api/soliton/init
+[20:04:13.024] INFO:    ✅ Response Time: 2.056s
+[20:04:13.027] INFO:    📊 Status Code: 200
+[20:04:13.033] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:12 GMT', 'server': 'uvicorn', 'content-length': '139', 'content-type': 'application/json'}
+[20:04:13.035] INFO:    📄 JSON Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "default_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[20:04:13.049] TEST: 🧪 TESTING: Soliton Init with No Body
+[20:04:13.051] INFO:    Method: POST
+[20:04:13.053] INFO:    URL: http://localhost:8002/api/soliton/init
+[20:04:15.102] INFO:    ✅ Response Time: 2.048s
+[20:04:15.104] INFO:    📊 Status Code: 200
+[20:04:15.106] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:14 GMT', 'server': 'uvicorn', 'content-length': '139', 'content-type': 'application/json'}
+[20:04:15.109] INFO:    📄 JSON Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "default_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[20:04:15.119] TEST: 🧪 TESTING: Soliton Memory Store
+[20:04:15.121] INFO:    Method: POST
+[20:04:15.121] INFO:    URL: http://localhost:8002/api/soliton/store
+[20:04:15.123] INFO:    Data: {
+  "userId": "test_user",
+  "conceptId": "test_concept",
+  "content": "test memory content",
+  "importance": 0.8
+}
+[20:04:17.173] INFO:    ✅ Response Time: 2.038s
+[20:04:17.176] INFO:    📊 Status Code: 200
+[20:04:17.181] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:16 GMT', 'server': 'uvicorn', 'content-length': '146', 'content-type': 'application/json'}
+[20:04:17.184] INFO:    📄 JSON Response: {
+  "success": true,
+  "memoryId": "soliton_1749690257_1784",
+  "conceptId": "test_concept",
+  "phaseTag": 1.1209202588008382,
+  "amplitude": 0.8,
+  "engine": "fallback"
+}
+[20:04:17.193] TEST: 🧪 TESTING: Soliton Memory Recall
+[20:04:17.200] INFO:    Method: GET
+[20:04:17.201] INFO:    URL: http://localhost:8002/api/soliton/recall/test_user/test_concept
+[20:04:19.238] INFO:    ✅ Response Time: 2.035s
+[20:04:19.240] INFO:    📊 Status Code: 200
+[20:04:19.245] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:18 GMT', 'server': 'uvicorn', 'content-length': '246', 'content-type': 'application/json'}
+[20:04:19.248] INFO:    📄 JSON Response: {
+  "success": true,
+  "memory": {
+    "id": "memory_1784",
+    "conceptId": "test_concept",
+    "content": "Stored memory for concept: test_concept",
+    "phaseTag": 1.1209202588008382,
+    "amplitude": 0.8,
+    "stability": 0.9,
+    "vaultStatus": "Active"
+  },
+  "fidelity": 0.95,
+  "engine": "fallback"
+}
+[20:04:19.269] TEST: 🧪 TESTING: Soliton Stats
+[20:04:19.270] INFO:    Method: GET
+[20:04:19.272] INFO:    URL: http://localhost:8002/api/soliton/stats/test_user
+[20:04:21.301] INFO:    ✅ Response Time: 2.028s
+[20:04:21.303] INFO:    📊 Status Code: 200
+[20:04:21.308] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:20 GMT', 'server': 'uvicorn', 'content-length': '206', 'content-type': 'application/json'}
+[20:04:21.311] INFO:    📄 JSON Response: {
+  "user": "test_user",
+  "stats": {
+    "concept_memories": {},
+    "phase_registry": {},
+    "evolution_lineage": {},
+    "psi_anchors": {},
+    "last_updated": "2025-06-06T09:15:39.972638"
+  },
+  "timestamp": 1749690261.2971747,
+  "total_concepts": 0
+}
+[20:04:21.321] INFO: ================================================================================
+[20:04:21.322] SECTION: 📤 UPLOAD ENDPOINT TESTS
+[20:04:21.323] TEST: 🧪 TESTING: Upload Endpoint GET (should fail)
+[20:04:21.325] INFO:    Method: GET
+[20:04:21.326] INFO:    URL: http://localhost:8002/upload
+[20:04:23.400] INFO:    ✅ Response Time: 2.067s
+[20:04:23.402] INFO:    📊 Status Code: 405
+[20:04:23.405] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:22 GMT', 'server': 'uvicorn', 'allow': 'POST', 'content-length': '31', 'content-type': 'application/json'}
+[20:04:23.407] INFO:    📄 JSON Response: {
+  "detail": "Method Not Allowed"
+}
+[20:04:23.411] TEST: 🧪 TESTING: API Upload Endpoint GET (should fail)
+[20:04:23.412] INFO:    Method: GET
+[20:04:23.413] INFO:    URL: http://localhost:8002/api/upload
+[20:04:25.481] INFO:    ✅ Response Time: 2.066s
+[20:04:25.483] INFO:    📊 Status Code: 405
+[20:04:25.487] INFO:    📋 Headers: {'date': 'Thu, 12 Jun 2025 01:04:24 GMT', 'server': 'uvicorn', 'allow': 'POST', 'content-length': '31', 'content-type': 'application/json'}
+[20:04:25.489] INFO:    📄 JSON Response: {
+  "detail": "Method Not Allowed"
+}
+[20:04:25.494] INFO: ================================================================================
+[20:04:25.495] SECTION: 🌐 FRONTEND CONNECTIVITY TESTS
+[20:04:25.501] TEST: 🧪 TESTING: Frontend Root
+[20:04:25.503] INFO:    Method: GET
+[20:04:25.504] INFO:    URL: http://localhost:5173/
+[20:04:27.631] INFO:    ✅ Response Time: 2.126s
+[20:04:27.632] INFO:    📊 Status Code: 200
+[20:04:27.635] INFO:    📋 Headers: {'Access-Control-Allow-Origin': '*', 'content-length': '61727', 'content-security-policy': "script-src 'self' 'nonce-JAyneKd6KcSczn22PTUCYg=='", 'content-type': 'text/html', 'etag': '"1pr08lr"', 'x-sveltekit-page': 'true', 'Date': 'Thu, 12 Jun 2025 01:04:27 GMT', 'Connection': 'keep-alive', 'Keep-Alive': 'timeout=5'}
+[20:04:27.638] INFO:    📝 Text Response: <!DOCTYPE html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="TORI - Advanced Memory System Interface with scalable architecture" />
+    <meta name="theme-color" content="#4f46e5" />
+    <title>TORI - Temporal Ontological Reality Interface</title>
+    
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" hre...
+[20:04:27.649] INFO: ================================================================================
+[20:04:27.650] INSIGHTS: 🧠 DIAGNOSTIC INSIGHTS & RECOMMENDATIONS
+[20:04:27.651] INFO:    Total diagnostic time: 30.52 seconds
+[20:04:27.653] INFO:    ✅ Backend is responding to basic health checks
+[20:04:27.660] INFO:    📊 Soliton endpoint success rate: 100.0% (7/7)
+[20:04:27.661] INFO:    ✅ Soliton endpoints are mostly working
+[20:04:27.662] INFO:    ✅ Frontend is accessible
+[20:04:27.663] INFO:    🔗 INTEGRATION ANALYSIS:
+[20:04:27.664] INFO:      ✅ Full system integration looks good
+[20:04:27.665] INFO:      🎯 NEXT STEPS: Test PDF upload in browser
+[20:04:27.666] INFO:    ⚡ PERFORMANCE NOTES:
+[20:04:27.667] INFO:      - Backend response times should be < 1 second for health checks
+[20:04:27.668] INFO:      - Soliton endpoints should respond in < 500ms
+[20:04:27.672] INFO:      - Frontend should load in < 3 seconds
+
+==================================================
+END OF DIAGNOSTIC REPORT

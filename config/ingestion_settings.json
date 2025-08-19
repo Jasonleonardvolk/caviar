@@ -1,0 +1,76 @@
+{
+  "ingestion_settings": {
+    "description": "TORI Concept Ingestion Pipeline Configuration",
+    "version": "1.0.0",
+    "last_updated": "2025-01-28"
+  },
+  
+  "thresholds": {
+    "min_confidence": 0.5,
+    "fallback_min_count": 3,
+    "max_concepts_default": 20,
+    "description": "Core confidence and count thresholds (Issue #2 & #3 fixes)"
+  },
+  
+  "media_type_adjustments": {
+    "pdf": 0.0,
+    "audio": -0.1,
+    "video": -0.1,
+    "conversation": -0.05,
+    "ocr": -0.15,
+    "description": "Per-media-type threshold adjustments to account for quality differences"
+  },
+  
+  "adaptive_thresholds": {
+    "enable": true,
+    "min_content_length": 500,
+    "length_multiplier": 0.0001,
+    "max_adjustment": 0.2,
+    "description": "Dynamic threshold adjustment based on content characteristics"
+  },
+  
+  "logging": {
+    "loop_records": true,
+    "concept_summaries": true,
+    "empty_segment_warnings": true,
+    "json_format": false,
+    "log_level": "INFO",
+    "description": "Enhanced logging configuration (Issue #1 fix)"
+  },
+  
+  "metadata_preservation": {
+    "confidence_tracking": true,
+    "method_tracking": true,
+    "source_reference": true,
+    "context_snippets": true,
+    "lineage_tracking": true,
+    "description": "Metadata fields to preserve (Issue #4 fix)"
+  },
+  
+  "validation": {
+    "enable_runtime_validation": true,
+    "required_fields": ["name", "confidence", "method", "source"],
+    "confidence_bounds": [0.0, 1.0],
+    "description": "Runtime validation settings for concept quality assurance"
+  },
+  
+  "diagnostics": {
+    "enable_health_monitoring": true,
+    "auto_generate_reports": true,
+    "comparison_baseline_dir": "./diagnostics/baselines/",
+    "output_dir": "./diagnostics/reports/",
+    "description": "Diagnostic tooling configuration (Issue #5 fix)"
+  },
+  
+  "integration": {
+    "concept_mesh_injection": true,
+    "psi_trajectory_logging": true,
+    "callback_urls": [],
+    "batch_processing": {
+      "enabled": true,
+      "batch_size": 10,
+      "max_concurrent": 3
+    },
+    "description": "External system integration settings"
+  }
+}

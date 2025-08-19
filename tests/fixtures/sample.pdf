@@ -1,0 +1,9 @@
+# tests/fixtures/sample.pdf
+This is a placeholder for a sample PDF file.
+In production, this would be an actual PDF file for testing.
+
+For now, this text file contains sample content about:
+- Koopman operators in dynamical systems
+- Spectral analysis of nonlinear systems
+- Phase space reconstruction techniques
+- Embedding theorems and their applications

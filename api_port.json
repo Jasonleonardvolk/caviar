@@ -1,0 +1,32 @@
+{
+  "api_port": 8001,
+  "api_url": "http://localhost:8001",
+  "prajna_port": 8001,
+  "prajna_url": "http://localhost:8001",
+  "frontend_port": 5173,
+  "frontend_url": "http://localhost:5173",
+  "mcp_metacognitive_port": 8100,
+  "mcp_metacognitive_url": "http://localhost:8100/sse",
+  "timestamp": 1754473611.4764354,
+  "status": "active",
+  "session_id": "20250806_044554",
+  "mcp_integrated": true,
+  "mcp_metacognitive_integrated": true,
+  "prajna_integrated": true,
+  "frontend_integrated": true,
+  "proxy_working": true,
+  "system_health": {
+    "cpu_percent": 26.4,
+    "memory_percent": 46.0,
+    "memory_available_gb": 34.38945007324219,
+    "disk_free_gb": 298.0825996398926,
+    "healthy": true
+  },
+  "hologram_services": {
+    "enabled": true,
+    "audio_bridge_port": 8765,
+    "audio_bridge_url": "ws://localhost:8765/audio_stream",
+    "concept_mesh_bridge_port": 8766,
+    "concept_mesh_bridge_url": "ws://localhost:8766/concepts"
+  }
+}

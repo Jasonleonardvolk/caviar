@@ -1,0 +1,157 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ELFIN",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#operators" },
+    { "include": "#units" },
+    { "include": "#blocks" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.elfin",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.elfin",
+          "match": "\\b(if|then|else|for|while|import|from)\\b"
+        },
+        {
+          "name": "storage.type.elfin",
+          "match": "\\b(system|params|continuous_state|inputs|flow_dynamics|helpers)\\b"
+        },
+        {
+          "name": "constant.language.elfin",
+          "match": "\\b(true|false|pi|e)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.elfin",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.elfin",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.elfin",
+          "match": "\\b\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.float.elfin",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.scientific.elfin",
+          "match": "\\b\\d+(\\.\\d+)?[eE][+-]?\\d+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arithmetic.elfin",
+          "match": "[+\\-*/^]"
+        },
+        {
+          "name": "keyword.operator.comparison.elfin",
+          "match": "(==|!=|<|>|<=|>=)"
+        },
+        {
+          "name": "keyword.operator.logical.elfin",
+          "match": "(&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.assignment.elfin",
+          "match": "="
+        }
+      ]
+    },
+    "units": {
+      "name": "unit.elfin",
+      "match": "\\[(\\w+(/\\w+)?)(\\*\\w+(/\\w+)?)*\\]"
+    },
+    "blocks": {
+      "patterns": [
+        {
+          "name": "meta.block.system.elfin",
+          "begin": "(system)\\s+(\\w+)\\s*\\{",
+          "beginCaptures": {
+            "1": { "name": "storage.type.elfin" },
+            "2": { "name": "entity.name.type.elfin" }
+          },
+          "end": "\\}",
+          "patterns": [
+            { "include": "$self" }
+          ]
+        },
+        {
+          "name": "meta.block.helpers.elfin",
+          "begin": "(helpers)\\s*\\{",
+          "beginCaptures": {
+            "1": { "name": "storage.type.elfin" }
+          },
+          "end": "\\}",
+          "patterns": [
+            { "include": "$self" }
+          ]
+        },
+        {
+          "name": "meta.block.params.elfin",
+          "begin": "(params)\\s*\\{",
+          "beginCaptures": {
+            "1": { "name": "storage.type.elfin" }
+          },
+          "end": "\\}",
+          "patterns": [
+            { "include": "$self" }
+          ]
+        },
+        {
+          "name": "meta.block.flow_dynamics.elfin",
+          "begin": "(flow_dynamics)\\s*\\{",
+          "beginCaptures": {
+            "1": { "name": "storage.type.elfin" }
+          },
+          "end": "\\}",
+          "patterns": [
+            { "include": "$self" }
+          ]
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.parameter.elfin",
+          "match": "\\b\\w+(?=\\s*:)"
+        },
+        {
+          "name": "entity.name.function.elfin",
+          "match": "\\b\\w+(?=\\s*\\()"
+        },
+        {
+          "name": "variable.other.elfin",
+          "match": "\\b\\w+\\b"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.elfin"
+}

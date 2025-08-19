@@ -1,0 +1,119 @@
+system Quadrotor {
+  continuous_state: [x, y, z, phi, theta, psi, vx, vy, vz, p, q, r];
+  inputs: [f1, f2, f3, f4];
+
+  params {
+    m: mass[kg] = 0.5;              # Mass of the quadrotor
+    l: length[m] = 0.25;            # Arm length
+    g: acceleration[m/s^2] = 9.81;  # Gravitational acceleration
+    
+    # Moments of inertia
+    Ixx: inertia[kg*m^2] = 0.0023;
+    Iyy: inertia[kg*m^2] = 0.0023;
+    Izz: inertia[kg*m^2] = 0.0046;
+    
+    # Aerodynamic coefficients
+    kf: thrust_coef = 1.0e-5;       # Thrust coefficient
+    km: moment_coef = 2.5e-7;       # Moment coefficient
+  }
+
+  flow_dynamics {
+    # Position derivatives
+    x_dot = vx;
+    y_dot = vy;
+    z_dot = vz;
+    
+    # Attitude derivatives (Euler angles)
+    phi_dot = p + sin(phi) * tan(theta) * q + cos(phi) * tan(theta) * r;
+    theta_dot = cos(phi) * q - sin(phi) * r;
+    psi_dot = sin(phi) / cos(theta) * q + cos(phi) / cos(theta) * r;
+    
+    # Calculate total thrust and moments
+    f_total = kf * (f1 + f2 + f3 + f4);
+    tau_x = kf * l * (f1 - f3);
+    tau_y = kf * l * (f2 - f4);
+    tau_z = km * (f1 - f2 + f3 - f4);
+    
+    # Linear acceleration
+    vx_dot = -f_total * sin(theta) / m;
+    vy_dot = f_total * sin(phi) * cos(theta) / m;
+    vz_dot = f_total * cos(phi) * cos(theta) / m - g;
+    
+    # Angular acceleration
+    p_dot = (tau_x + (Iyy - Izz) * q * r) / Ixx;
+    q_dot = (tau_y + (Izz - Ixx) * p * r) / Iyy;
+    r_dot = (tau_z + (Ixx - Iyy) * p * q) / Izz;
+  }
+}
+
+lyapunov QuadrotorLyapunov {
+  system: Quadrotor;
+  
+  # Energy-based Lyapunov function for hovering
+  v = 0.5 * m * (vx^2 + vy^2 + vz^2) + 
+      0.5 * (Ixx * p^2 + Iyy * q^2 + Izz * r^2) +
+      m * g * (z_ref - z) +
+      0.5 * kp_pos * ((x - x_ref)^2 + (y - y_ref)^2) +
+      0.5 * kp_att * ((phi - phi_ref)^2 + (theta - theta_ref)^2 + (psi - psi_ref)^2);
+  
+  params {
+    x_ref = 0.0;    # Reference x position
+    y_ref = 0.0;    # Reference y position
+    z_ref = 1.0;    # Reference altitude
+    phi_ref = 0.0;  # Reference roll angle
+    theta_ref = 0.0; # Reference pitch angle
+    psi_ref = 0.0;  # Reference yaw angle
+    kp_pos = 0.5;   # Position error weight
+    kp_att = 0.2;   # Attitude error weight
+  }
+}
+
+mode QuadrotorController {
+  system: Quadrotor;
+  lyapunov: QuadrotorLyapunov;
+  
+  controller {
+    # PD controller for position and attitude
+    # Altitude control
+    u_z = kp_z * (z_ref - z) - kd_z * vz;
+    
+    # Attitude control for x-y position
+    phi_cmd = kp_xy * (y_ref - y) - kd_xy * vy;
+    theta_cmd = -kp_xy * (x_ref - x) + kd_xy * vx;
+    
+    # Attitude controller
+    u_phi = kp_rp * (phi_cmd - phi) - kd_rp * p;
+    u_theta = kp_rp * (theta_cmd - theta) - kd_rp * q;
+    u_psi = kp_y * (psi_ref - psi) - kd_y * r;
+    
+    # Compute desired thrust and moments
+    f_total = m * (g + u_z);
+    tau_x = u_phi * Ixx;
+    tau_y = u_theta * Iyy;
+    tau_z = u_psi * Izz;
+    
+    # Convert to individual motor commands
+    f1 = f_total / (4 * kf) + tau_x / (2 * kf * l) + tau_z / (4 * km);
+    f2 = f_total / (4 * kf) + tau_y / (2 * kf * l) - tau_z / (4 * km);
+    f3 = f_total / (4 * kf) - tau_x / (2 * kf * l) + tau_z / (4 * km);
+    f4 = f_total / (4 * kf) - tau_y / (2 * kf * l) - tau_z / (4 * km);
+  }
+  
+  params {
+    # Reference states
+    x_ref = 0.0;
+    y_ref = 0.0;
+    z_ref = 1.0;
+    psi_ref = 0.0;
+    
+    # Controller gains
+    kp_z = 10.0;    # Proportional gain for altitude
+    kd_z = 5.0;     # Derivative gain for altitude
+    kp_xy = 2.0;    # Proportional gain for xy-position
+    kd_xy = 1.0;    # Derivative gain for xy-position
+    kp_rp = 8.0;    # Proportional gain for roll/pitch
+    kd_rp = 4.0;    # Derivative gain for roll/pitch
+    kp_y = 5.0;     # Proportional gain for yaw
+    kd_y = 2.5;     # Derivative gain for yaw
+  }
+}

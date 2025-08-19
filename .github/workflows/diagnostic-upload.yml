@@ -1,0 +1,86 @@
+name: Diagnostic Upload
+
+on:
+  workflow_run:
+    workflows: ["CI", "Build", "Test"]
+    types: [completed]
+    branches: [main, dev, release/**]
+
+jobs:
+  upload-diagnostics:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download workflow artifacts
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          name: crash-dumps
+          path: crash_dumps
+      
+      - name: Check for crash dumps
+        id: check-dumps
+        run: |
+          if [ -d "crash_dumps" ] && [ "$(ls -A crash_dumps)" ]; then
+            echo "dumps_found=true" >> $GITHUB_OUTPUT
+            echo "Found crash dumps:"
+            ls -la crash_dumps
+          else
+            echo "dumps_found=false" >> $GITHUB_OUTPUT
+            echo "No crash dumps found"
+            # Create empty directory for the next step to work with
+            mkdir -p crash_dumps
+          fi
+      
+      - name: Search logs for crash signatures
+        if: steps.check-dumps.outputs.dumps_found == 'false'
+        run: |
+          # Download logs
+          gh run view ${{ github.event.workflow_run.id }} --log --log-failed > workflow_logs.txt
+          
+          # Extract crash patterns
+          cat workflow_logs.txt | grep -A 10 -B 3 "panic\|CRASH\|SIGSEGV\|SIGABRT\|ERROR:" > crash_dumps/extracted_crashes.log || true
+          
+          if [ -s "crash_dumps/extracted_crashes.log" ]; then
+            echo "Crash patterns extracted from logs"
+          else
+            echo "No crash patterns found in logs"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Symbolicate crash dumps
+        if: steps.check-dumps.outputs.dumps_found == 'true'
+        id: symbolicate
+        run: |
+          # Process each crash dump found
+          for dump in crash_dumps/*.zip; do
+            echo "Processing crash dump: $dump"
+            ci/triage.sh "$dump"
+          done
+          echo "triage_report=triage_report.txt" >> $GITHUB_OUTPUT
+      
+      - name: Upload diagnostic artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: diagnostic-data
+          path: |
+            crash_dumps/
+            workflow_logs.txt
+            triage_report.txt
+          retention-days: 14
+      
+      - name: Create diagnostic report issue with symbolicated stack
+        if: steps.check-dumps.outputs.dumps_found == 'true'
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+        with:
+          filename: .github/DIAGNOSTIC_REPORT_TEMPLATE.md

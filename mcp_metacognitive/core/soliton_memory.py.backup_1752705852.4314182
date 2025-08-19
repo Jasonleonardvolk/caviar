@@ -1,0 +1,983 @@
+"""
+mcp_metacognitive/core/soliton_memory.py
+
+Core Soliton Memory engine module that interfaces with the concept mesh
+and provides the primary APIs for memory storage and retrieval.
+
+NOTE: This file is not being modified substantially as it already correctly 
+interfaces with the Soliton engine. This version just includes enhanced
+connectivity verification to ensure all sources (chat and ingest) are
+properly sending data to the memory system.
+"""
+
+import os
+import logging
+import time
+import json
+import asyncio
+from typing import Dict, List, Any, Optional, Tuple, Union
+from datetime import datetime
+from enum import Enum
+
+# VaultStatus enum for memory vault states
+class VaultStatus(Enum):
+    OPEN = "open"
+    SEALED = "sealed"
+    ARCHIVING = "archiving"
+    READY = "ready"
+    ERROR = "error"
+
+# ContentType enum for different content types
+class ContentType(Enum):
+    TEXT = "text"
+    AUDIO = "audio"
+    VIDEO = "video"
+    IMAGE = "image"
+    PDF = "pdf"
+    DOCUMENT = "document"
+    CODE = "code"
+    UNKNOWN = "unknown"
+
+# Import concept mesh if available
+try:
+    # Try production Rust wheel first
+    import concept_mesh_rs
+    from concept_mesh_rs.interface import ConceptMesh
+    from concept_mesh_rs.types import MemoryEntry, MemoryQuery, PhaseTag
+    CONCEPT_MESH_AVAILABLE = True
+    USING_RUST_WHEEL = True
+except ImportError:
+    try:
+        # Fall back to Python stub for development
+        from concept_mesh.interface import ConceptMesh
+        from concept_mesh.types import MemoryEntry, MemoryQuery, PhaseTag
+        CONCEPT_MESH_AVAILABLE = True
+        USING_RUST_WHEEL = False
+        logging.info("Using Python concept_mesh stub for development")
+    except ImportError:
+        logging.warning("⚠️ Neither concept_mesh_rs nor concept_mesh stub available - using mock implementation")
+        CONCEPT_MESH_AVAILABLE = False
+        USING_RUST_WHEEL = False
+    
+    # Mock types for development
+    class MemoryEntry:
+        def __init__(self, id, content, embedding=None, strength=0.7, timestamp=None, tags=None, metadata=None):
+            self.id = id
+            self.content = content
+            self.embedding = embedding or []
+            self.strength = strength
+            self.timestamp = timestamp or datetime.now()
+            self.tags = tags or []
+            self.metadata = metadata or {}
+            
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "content": self.content,
+                "strength": self.strength,
+                "timestamp": self.timestamp.isoformat() if isinstance(self.timestamp, datetime) else self.timestamp,
+                "tags": self.tags,
+                "metadata": self.metadata
+            }
+    
+    class MemoryQuery:
+        def __init__(self, text, limit=5, min_strength=0.3, tags=None):
+            self.text = text
+            self.limit = limit
+            self.min_strength = min_strength
+            self.tags = tags or []
+            
+        def to_dict(self):
+            return {
+                "text": self.text,
+                "limit": self.limit,
+                "min_strength": self.min_strength,
+                "tags": self.tags
+            }
+    
+    class PhaseTag:
+        def __init__(self, phase, amplitude=0.5, frequency=0.5, coherence=1.0):
+            self.phase = phase
+            self.amplitude = amplitude
+            self.frequency = frequency
+            self.coherence = coherence
+            
+        def to_dict(self):
+            return {
+                "phase": self.phase,
+                "amplitude": self.amplitude,
+                "frequency": self.frequency,
+                "coherence": self.coherence
+            }
+
+# Configure logging
+logger = logging.getLogger("soliton_memory")
+
+# Configuration
+SOLITON_API_URL = os.environ.get("SOLITON_API_URL", "http://localhost:8002/api/soliton")
+CONCEPT_MESH_URL = os.environ.get("CONCEPT_MESH_URL", "http://localhost:8003/api/mesh")
+DEFAULT_VECTOR_DIM = 128
+LOCAL_CACHE_ENABLED = os.environ.get("SOLITON_LOCAL_CACHE", "true").lower() == "true"
+DEBUG_MODE = os.environ.get("SOLITON_DEBUG", "false").lower() == "true"
+
+class SolitonMemoryClient:
+    """
+    Client for interacting with the Soliton Memory system.
+    Provides methods for storing, retrieving, and querying memories.
+    """
+    
+    def __init__(self, api_url: Optional[str] = None):
+        """
+        Initialize the Soliton Memory client
+        
+        Args:
+            api_url: Optional URL to the Soliton API. If not provided,
+                    will use the default from environment variables.
+        """
+        self.api_url = api_url or SOLITON_API_URL
+        self.id_prefix = "soliton_"
+        self.vault_bridge = None
+        
+        # Initialize concept mesh if available
+        if CONCEPT_MESH_AVAILABLE:
+            try:
+                # Try instantiating without parameters first
+                self.mesh = ConceptMesh()
+                self.mesh_available = True
+                logger.info("✅ Connected to Concept Mesh")
+            except Exception as e:
+                logger.error(f"❌ Failed to initialize Concept Mesh: {str(e)}")
+                self.mesh_available = False
+        else:
+            self.mesh_available = False
+            logger.warning("⚠️ Concept Mesh not available - some operations will be limited")
+        
+        # Initialize HTTP client for API calls
+        self.http = None  # Will be initialized when needed
+        
+        # Initialize local cache if enabled
+        self.local_cache = {} if LOCAL_CACHE_ENABLED else None
+        
+        # Source tracking for diagnostics
+        self.source_counters = {
+            "chat": 0,
+            "ingest": 0,
+            "other": 0
+        }
+        
+        logger.info(f"🌊 SolitonMemoryClient initialized")
+        logger.info(f"🌊 Soliton API URL: {self.api_url}")
+        logger.info(f"🌊 Concept Mesh: {'AVAILABLE' if self.mesh_available else 'UNAVAILABLE'}")
+        logger.info(f"🌊 Local cache: {'ENABLED' if LOCAL_CACHE_ENABLED else 'DISABLED'}")
+    
+    async def _get_http_client(self):
+        """Get or create HTTP client for API calls"""
+        if self.http is None:
+            import httpx
+            self.http = httpx.AsyncClient(timeout=30.0)
+        return self.http
+    
+    async def _call_api(self, endpoint: str, method: str = "GET", data: Any = None) -> Dict[str, Any]:
+        """
+        Call the Soliton API
+        
+        Args:
+            endpoint: API endpoint path
+            method: HTTP method (GET, POST, etc.)
+            data: Optional data to send
+            
+        Returns:
+            API response as dictionary
+        """
+        url = f"{self.api_url}/{endpoint.lstrip('/')}"
+        http = await self._get_http_client()
+        
+        try:
+            if method.upper() == "GET":
+                response = await http.get(url)
+            elif method.upper() == "POST":
+                response = await http.post(url, json=data)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"❌ API call failed: {response.status_code} - {response.text}")
+                return {"success": False, "error": f"API call failed: {response.status_code}"}
+                
+        except Exception as e:
+            logger.error(f"❌ Error calling API: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    async def initialize_user(self, user_id: str, options: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Initialize a user's memory space
+        
+        Args:
+            user_id: User ID to initialize
+            options: Optional initialization options
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not user_id:
+            logger.error("❌ Cannot initialize user with empty ID")
+            return False
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                result = await self.mesh.initialize_user(user_id, **(options or {}))
+                if result:
+                    logger.info(f"✅ Initialized user {user_id} via Concept Mesh")
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to initialize user via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        data = {
+            "userId": user_id,
+            "options": options or {}
+        }
+        
+        result = await self._call_api("initialize", "POST", data)
+        
+        if result.get("success"):
+            logger.info(f"✅ Initialized user {user_id} via API")
+            return True
+        else:
+            logger.error(f"❌ Failed to initialize user {user_id}: {result.get('error', 'Unknown error')}")
+            return False
+    
+    async def store_memory(self,
+                          user_id: str,
+                          memory_id: str,
+                          content: str,
+                          strength: float = 0.7,
+                          tags: Optional[List[str]] = None,
+                          metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Store a memory in the Soliton system
+        
+        Args:
+            user_id: User ID who owns the memory
+            memory_id: Unique identifier for the memory
+            content: Text content of the memory
+            strength: Memory strength (0-1)
+            tags: Optional tags for categorization
+            metadata: Optional metadata about the memory
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not user_id or not memory_id or not content:
+            logger.error("❌ Missing required parameters for storing memory")
+            return False
+        
+        # Default tags and metadata
+        tags = tags or []
+        metadata = metadata or {}
+        
+        # Add timestamp if not present
+        if "timestamp" not in metadata:
+            metadata["timestamp"] = datetime.now().isoformat()
+        
+        # Track memory source for diagnostics
+        source = "other"
+        if any(tag in tags for tag in ["chat", "message", "conversation"]):
+            source = "chat"
+        elif any(tag in tags for tag in ["ingested", "pdf", "document"]):
+            source = "ingest"
+        
+        self.source_counters[source] += 1
+        
+        # Add source to metadata if not present
+        if "source" not in metadata:
+            metadata["source"] = source
+        
+        # Generate embedding if using concept mesh directly
+        embedding = None
+        if self.mesh_available:
+            try:
+                embedding = await self.mesh.generate_embedding(content, DEFAULT_VECTOR_DIM)
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to generate embedding via Concept Mesh: {str(e)}")
+        
+        # Create memory entry
+        memory = {
+            "id": memory_id,
+            "content": content,
+            "embedding": embedding,
+            "strength": strength,
+            "timestamp": metadata.get("timestamp"),
+            "tags": tags,
+            "metadata": metadata
+        }
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                result = await self.mesh.store_memory(user_id, MemoryEntry(**memory))
+                if result:
+                    logger.info(f"✅ Stored memory {memory_id} for user {user_id} via Concept Mesh")
+                    
+                    # Update local cache if enabled
+                    if self.local_cache is not None:
+                        if user_id not in self.local_cache:
+                            self.local_cache[user_id] = {}
+                        self.local_cache[user_id][memory_id] = memory
+                    
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to store memory via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        data = {
+            "userId": user_id,
+            "memory": memory
+        }
+        
+        result = await self._call_api("store", "POST", data)
+        
+        if result.get("success"):
+            logger.info(f"✅ Stored memory {memory_id} for user {user_id} via API")
+            
+            # Update local cache if enabled
+            if self.local_cache is not None:
+                if user_id not in self.local_cache:
+                    self.local_cache[user_id] = {}
+                self.local_cache[user_id][memory_id] = memory
+            
+            return True
+        else:
+            logger.error(f"❌ Failed to store memory {memory_id}: {result.get('error', 'Unknown error')}")
+            return False
+    
+    def set_vault_bridge(self, vault):
+        """Bridge to UnifiedMemoryVault for ID coordination"""
+        self.vault_bridge = vault
+        logger.info("✅ Soliton-Vault bridge established")
+    
+    def _generate_unified_id(self, content: str, user_id: str) -> str:
+        """Generate unified ID compatible with vault system"""
+        import hashlib
+        combined = f"{content}:{user_id}:{time.time()}"
+        return hashlib.sha256(combined.encode()).hexdigest()[:16]
+    
+    async def store_memory_unified(
+        self,
+        user_id: str,
+        content: str,
+        strength: float = 0.7,
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Store with unified ID across Vault and Soliton"""
+        # Generate unified ID
+        base_id = self._generate_unified_id(content, user_id)
+        memory_id = f"{self.id_prefix}{base_id}"
+        
+        # Store in Soliton
+        success = await self.store_memory(
+            user_id=user_id,
+            memory_id=memory_id,
+            content=content,
+            strength=strength,
+            tags=tags,
+            metadata=metadata
+        )
+        
+        # Also register in Vault index if bridge exists
+        if success and self.vault_bridge:
+            # Import MemoryType at runtime to avoid circular dependencies
+            try:
+                from python.core.memory_vault import MemoryType
+                await self.vault_bridge._update_indices(
+                    memory_id=memory_id,
+                    memory_type=MemoryType.SOLITON,
+                    tags=tags
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update vault indices: {e}")
+        
+        return memory_id if success else None
+    
+    async def find_related_memories(self,
+                                   user_id: str,
+                                   query: str,
+                                   limit: int = 5,
+                                   min_strength: float = 0.3,
+                                   tags: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """
+        Find memories related to a query
+        
+        Args:
+            user_id: User ID to search memories for
+            query: The query text to search for
+            limit: Maximum number of results
+            min_strength: Minimum memory strength to consider
+            tags: Optional tags to filter by
+            
+        Returns:
+            List of related memories
+        """
+        if not user_id or not query:
+            logger.error("❌ Missing required parameters for finding related memories")
+            return []
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                memory_query = MemoryQuery(
+                    text=query,
+                    limit=limit,
+                    min_strength=min_strength,
+                    tags=tags or []
+                )
+                
+                memories = await self.mesh.find_related_memories(user_id, memory_query)
+                if memories:
+                    logger.info(f"✅ Found {len(memories)} related memories via Concept Mesh")
+                    return [memory.to_dict() for memory in memories]
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to find related memories via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        data = {
+            "userId": user_id,
+            "query": query,
+            "limit": limit,
+            "minStrength": min_strength,
+            "tags": tags or []
+        }
+        
+        result = await self._call_api("recall", "POST", data)
+        
+        if result.get("success") and "memories" in result:
+            logger.info(f"✅ Found {len(result['memories'])} related memories via API")
+            return result["memories"]
+        else:
+            logger.error(f"❌ Failed to find related memories: {result.get('error', 'Unknown error')}")
+            return []
+    
+    async def find_memories_by_tag(self,
+                                 user_id: str,
+                                 tag: str,
+                                 limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Find memories with a specific tag
+        
+        Args:
+            user_id: User ID to search memories for
+            tag: Tag to search for
+            limit: Maximum number of results
+            
+        Returns:
+            List of memories with the tag
+        """
+        if not user_id or not tag:
+            logger.error("❌ Missing required parameters for finding memories by tag")
+            return []
+        
+        # Try local cache first if enabled
+        if self.local_cache is not None and user_id in self.local_cache:
+            memories = []
+            for memory_id, memory in self.local_cache[user_id].items():
+                if tag in memory.get("tags", []):
+                    memories.append(memory)
+                    if len(memories) >= limit:
+                        break
+            
+            if memories:
+                logger.info(f"✅ Found {len(memories)} memories with tag '{tag}' in local cache")
+                return memories
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                memories = await self.mesh.find_memories_by_tag(user_id, tag, limit)
+                if memories:
+                    logger.info(f"✅ Found {len(memories)} memories with tag '{tag}' via Concept Mesh")
+                    return [memory.to_dict() for memory in memories]
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to find memories by tag via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        result = await self._call_api(f"memories?userId={user_id}&tag={tag}&limit={limit}", "GET")
+        
+        if result.get("success") and "memories" in result:
+            logger.info(f"✅ Found {len(result['memories'])} memories with tag '{tag}' via API")
+            return result["memories"]
+        else:
+            logger.error(f"❌ Failed to find memories by tag: {result.get('error', 'Unknown error')}")
+            return []
+    
+    async def get_memory(self,
+                        user_id: str,
+                        memory_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific memory by ID
+        
+        Args:
+            user_id: User ID who owns the memory
+            memory_id: ID of the memory to retrieve
+            
+        Returns:
+            Memory dictionary if found, None otherwise
+        """
+        if not user_id or not memory_id:
+            logger.error("❌ Missing required parameters for getting memory")
+            return None
+        
+        # Try local cache first if enabled
+        if self.local_cache is not None and user_id in self.local_cache and memory_id in self.local_cache[user_id]:
+            logger.info(f"✅ Found memory {memory_id} in local cache")
+            return self.local_cache[user_id][memory_id]
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                memory = await self.mesh.get_memory(user_id, memory_id)
+                if memory:
+                    logger.info(f"✅ Retrieved memory {memory_id} via Concept Mesh")
+                    return memory.to_dict()
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to get memory via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        result = await self._call_api(f"memories/{memory_id}?userId={user_id}", "GET")
+        
+        if result.get("success") and "memory" in result:
+            logger.info(f"✅ Retrieved memory {memory_id} via API")
+            
+            # Update local cache if enabled
+            if self.local_cache is not None:
+                if user_id not in self.local_cache:
+                    self.local_cache[user_id] = {}
+                self.local_cache[user_id][memory_id] = result["memory"]
+            
+            return result["memory"]
+        else:
+            logger.error(f"❌ Failed to get memory {memory_id}: {result.get('error', 'Unknown error')}")
+            return None
+    
+    async def get_user_stats(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get statistics about a user's memory space
+        
+        Args:
+            user_id: User ID to get stats for
+            
+        Returns:
+            Dictionary of statistics
+        """
+        if not user_id:
+            logger.error("❌ Missing user ID for getting stats")
+            return {
+                "totalMemories": 0,
+                "activeWaves": 0,
+                "averageStrength": 0,
+                "clusterCount": 0,
+                "error": "Missing user ID"
+            }
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                stats = await self.mesh.get_user_stats(user_id)
+                if stats:
+                    logger.info(f"✅ Retrieved stats for user {user_id} via Concept Mesh")
+                    return stats
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to get user stats via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        result = await self._call_api(f"stats?userId={user_id}", "GET")
+        
+        if result.get("success") and "stats" in result:
+            logger.info(f"✅ Retrieved stats for user {user_id} via API")
+            return result["stats"]
+        else:
+            logger.error(f"❌ Failed to get stats for user {user_id}: {result.get('error', 'Unknown error')}")
+            
+            # If we have local cache, estimate some basic stats
+            if self.local_cache is not None and user_id in self.local_cache:
+                memories = self.local_cache[user_id].values()
+                count = len(memories)
+                active = sum(1 for m in memories if m.get("strength", 0) >= 0.5)
+                avg_strength = sum(m.get("strength", 0) for m in memories) / max(count, 1)
+                
+                return {
+                    "totalMemories": count,
+                    "activeWaves": active,
+                    "averageStrength": avg_strength,
+                    "clusterCount": 0,  # Can't estimate without actual clustering
+                    "source": "local_cache"
+                }
+            
+            return {
+                "totalMemories": 0,
+                "activeWaves": 0,
+                "averageStrength": 0,
+                "clusterCount": 0,
+                "error": result.get("error", "Unknown error")
+            }
+    
+    async def record_phase_change(self,
+                                 user_id: str,
+                                 phase: str,
+                                 amplitude: float = 0.5,
+                                 frequency: float = 0.5,
+                                 coherence: float = 1.0,
+                                 metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Record a phase change event
+        
+        Args:
+            user_id: User ID associated with the phase change
+            phase: Phase name/identifier
+            amplitude: Phase amplitude (0-1)
+            frequency: Phase frequency (0-1)
+            coherence: Phase coherence (0-1)
+            metadata: Optional metadata about the phase change
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not user_id or not phase:
+            logger.error("❌ Missing required parameters for recording phase change")
+            return False
+        
+        # Create phase tag
+        phase_tag = PhaseTag(
+            phase=phase,
+            amplitude=amplitude,
+            frequency=frequency,
+            coherence=coherence
+        )
+        
+        # Add timestamp and source to metadata
+        metadata = metadata or {}
+        metadata["timestamp"] = datetime.now().isoformat()
+        metadata["source"] = "ghost_ai"
+        
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                result = await self.mesh.record_phase_change(user_id, phase_tag, metadata)
+                if result:
+                    logger.info(f"✅ Recorded phase change {phase} for user {user_id} via Concept Mesh")
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to record phase change via Concept Mesh: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        data = {
+            "userId": user_id,
+            "phase": phase,
+            "amplitude": amplitude,
+            "frequency": frequency,
+            "coherence": coherence,
+            "metadata": metadata
+        }
+        
+        result = await self._call_api("phase-change", "POST", data)
+        
+        if result.get("success"):
+            logger.info(f"✅ Recorded phase change {phase} for user {user_id} via API")
+            return True
+        else:
+            logger.error(f"❌ Failed to record phase change: {result.get('error', 'Unknown error')}")
+            return False
+    
+    async def check_health(self) -> Dict[str, Any]:
+        """
+        Check health status of the Soliton Memory system
+        
+        Returns:
+            Health status information
+        """
+        # Try using concept mesh directly if available
+        if self.mesh_available:
+            try:
+                status = await self.mesh.get_status()
+                if status:
+                    logger.info(f"✅ Concept Mesh is operational")
+                    return {
+                        "status": "operational",
+                        "engine": "concept_mesh",
+                        "message": "Concept Mesh is operational",
+                        "details": status
+                    }
+            except Exception as e:
+                logger.warning(f"⚠️ Concept Mesh health check failed: {str(e)}")
+                # Fall through to API call
+        
+        # Call API
+        result = await self._call_api("health", "GET")
+        
+        if "status" in result:
+            logger.info(f"✅ Soliton API health check: {result['status']}")
+            return result
+        else:
+            logger.error(f"❌ Soliton API health check failed: {result.get('error', 'Unknown error')}")
+            return {
+                "status": "error",
+                "engine": "unknown",
+                "message": result.get("error", "Unknown error")
+            }
+    
+    def get_source_metrics(self) -> Dict[str, int]:
+        """
+        Get metrics about memory sources
+        
+        Returns:
+            Dictionary of source counters
+        """
+        return self.source_counters
+    
+    async def close(self):
+        """Close the client and release resources"""
+        if self.http is not None:
+            await self.http.aclose()
+            self.http = None
+        
+        logger.info("🌊 SolitonMemoryClient closed")
+
+
+class UnifiedSolitonMemory(SolitonMemoryClient):
+    """Soliton Memory with unified ID space"""
+    
+    def __init__(self, api_url: Optional[str] = None):
+        super().__init__(api_url)
+        self.id_prefix = "soliton_"
+        self.vault_bridge = None
+        
+    def set_vault_bridge(self, vault):
+        """Bridge to UnifiedMemoryVault for ID coordination"""
+        self.vault_bridge = vault
+        logger.info("✅ Soliton-Vault bridge established")
+    
+    async def store_memory_unified(
+        self,
+        user_id: str,
+        content: str,
+        strength: float = 0.7,
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Store with unified ID across Vault and Soliton"""
+        # Generate unified ID
+        base_id = self._generate_unified_id(content, user_id)
+        memory_id = f"{self.id_prefix}{base_id}"
+        
+        # Store in Soliton
+        success = await self.store_memory(
+            user_id=user_id,
+            memory_id=memory_id,
+            content=content,
+            strength=strength,
+            tags=tags,
+            metadata=metadata
+        )
+        
+        # Also register in Vault index if bridge exists
+        if success and self.vault_bridge:
+            # Import MemoryType at runtime to avoid circular dependencies  
+            try:
+                from python.core.memory_vault import MemoryType
+                await self.vault_bridge._update_indices(
+                    memory_id=memory_id,
+                    memory_type=MemoryType.SOLITON,
+                    tags=tags
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update vault indices: {e}")
+        
+        return memory_id if success else None
+
+
+# Create singleton instance
+soliton_client = SolitonMemoryClient()
+
+# Create alias for backward compatibility
+SolitonMemoryLattice = SolitonMemoryClient
+SolitonMemory = SolitonMemoryClient  # Another backward compatibility alias
+
+# Define exports
+__all__ = [
+    'SolitonMemoryClient',
+    'SolitonMemoryLattice',
+    'SolitonMemory',
+    'UnifiedSolitonMemory',
+    'VaultStatus',
+    'ContentType',
+    'soliton_client',
+    'initialize_user',
+    'store_memory',
+    'find_related_memories',
+    'get_user_stats',
+    'record_phase_change',
+    'check_health',
+    'verify_connectivity'
+]
+
+# Export for API usage
+async def initialize_user(user_id: str, options: Optional[Dict[str, Any]] = None) -> bool:
+    """Initialize a user's memory space"""
+    return await soliton_client.initialize_user(user_id, options)
+
+async def store_memory(user_id: str,
+                     memory_id: str,
+                     content: str,
+                     strength: float = 0.7,
+                     tags: Optional[List[str]] = None,
+                     metadata: Optional[Dict[str, Any]] = None) -> bool:
+    """Store a memory in the Soliton system"""
+    return await soliton_client.store_memory(user_id, memory_id, content, strength, tags, metadata)
+
+async def find_related_memories(user_id: str,
+                              query: str,
+                              limit: int = 5,
+                              min_strength: float = 0.3,
+                              tags: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    """Find memories related to a query"""
+    return await soliton_client.find_related_memories(user_id, query, limit, min_strength, tags)
+
+async def get_user_stats(user_id: str) -> Dict[str, Any]:
+    """Get statistics about a user's memory space"""
+    return await soliton_client.get_user_stats(user_id)
+
+async def record_phase_change(user_id: str,
+                            phase: str,
+                            amplitude: float = 0.5,
+                            frequency: float = 0.5,
+                            coherence: float = 1.0,
+                            metadata: Optional[Dict[str, Any]] = None) -> bool:
+    """Record a phase change event"""
+    return await soliton_client.record_phase_change(user_id, phase, amplitude, frequency, coherence, metadata)
+
+async def check_health() -> Dict[str, Any]:
+    """Check health status of the Soliton Memory system"""
+    return await soliton_client.check_health()
+
+# Verification function to confirm connectivity from all sources
+async def verify_connectivity():
+    """
+    Verify connectivity from all sources (chat, ingest, etc.)
+    
+    Returns:
+        Dictionary with verification results
+    """
+    # Check if Soliton API is available
+    health = await check_health()
+    api_available = health.get("status") == "operational"
+    
+    # Check source metrics
+    source_metrics = soliton_client.get_source_metrics()
+    chat_count = source_metrics.get("chat", 0)
+    ingest_count = source_metrics.get("ingest", 0)
+    other_count = source_metrics.get("other", 0)
+    
+    # Check if all sources are sending data
+    all_sources_active = chat_count > 0 and ingest_count > 0
+    
+    logger.info(f"🌊 Soliton Memory Connectivity Verification:")
+    logger.info(f"🌊 API Available: {api_available}")
+    logger.info(f"🌊 Chat Sources: {chat_count} memories")
+    logger.info(f"🌊 Ingest Sources: {ingest_count} memories")
+    logger.info(f"🌊 Other Sources: {other_count} memories")
+    logger.info(f"🌊 All Sources Active: {all_sources_active}")
+    
+    return {
+        "api_available": api_available,
+        "chat_memories": chat_count,
+        "ingest_memories": ingest_count,
+        "other_memories": other_count,
+        "all_sources_active": all_sources_active,
+        "health": health
+    }
+
+# Test function
+if __name__ == "__main__":
+    import sys
+    
+    # Set up basic logging
+    logging.basicConfig(level=logging.INFO, 
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    async def test_client():
+        if len(sys.argv) < 2:
+            print("Usage: python soliton_memory.py <command> [args...]")
+            print("Commands:")
+            print("  health - Check health status")
+            print("  verify - Verify connectivity from all sources")
+            print("  init <user_id> - Initialize a user")
+            print("  store <user_id> <content> [strength] - Store a memory")
+            print("  recall <user_id> <query> [limit] - Find related memories")
+            print("  stats <user_id> - Get user stats")
+            sys.exit(1)
+        
+        command = sys.argv[1]
+        
+        if command == "health":
+            result = await check_health()
+            print(json.dumps(result, indent=2))
+            
+        elif command == "verify":
+            result = await verify_connectivity()
+            print(json.dumps(result, indent=2))
+            
+        elif command == "init" and len(sys.argv) >= 3:
+            user_id = sys.argv[2]
+            result = await initialize_user(user_id)
+            print(f"Initialization result: {result}")
+            
+        elif command == "store" and len(sys.argv) >= 4:
+            user_id = sys.argv[2]
+            content = sys.argv[3]
+            strength = float(sys.argv[4]) if len(sys.argv) >= 5 else 0.7
+            
+            memory_id = f"test_{int(time.time())}"
+            result = await store_memory(
+                user_id=user_id,
+                memory_id=memory_id,
+                content=content,
+                strength=strength,
+                tags=["test"],
+                metadata={"source": "test"}
+            )
+            
+            print(f"Storage result: {result} (memory_id: {memory_id})")
+            
+        elif command == "recall" and len(sys.argv) >= 4:
+            user_id = sys.argv[2]
+            query = sys.argv[3]
+            limit = int(sys.argv[4]) if len(sys.argv) >= 5 else 5
+            
+            memories = await find_related_memories(user_id, query, limit)
+            print(f"Found {len(memories)} related memories:")
+            for memory in memories:
+                print(f"  - {memory.get('id')}: {memory.get('content')[:50]}...")
+            
+        elif command == "stats" and len(sys.argv) >= 3:
+            user_id = sys.argv[2]
+            stats = await get_user_stats(user_id)
+            print(json.dumps(stats, indent=2))
+            
+        else:
+            print("Invalid command or missing arguments")
+            sys.exit(1)
+        
+        # Close client
+        await soliton_client.close()
+    
+    asyncio.run(test_client())

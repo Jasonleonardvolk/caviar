@@ -1,0 +1,441 @@
+/**
+ * HolographicPipelineIntegrator.ts
+ * 
+ * Main integration layer that connects:
+ * - PropagationPipeline (wave physics)
+ * - QuiltRenderer (multi-view display)
+ * - PoseController (head tracking)
+ * - AdaptiveRenderer (performance tuning)
+ * 
+ * This bridges the 2% gap between your physics engine and display output.
+ */
+
+import type { PropagationPipeline } from '../../../../standalone-holo/src/pipelines/PropagationPipeline';
+import type { QuiltRenderer } from '../../../lib/pipeline/quilt/QuiltRenderer';
+import type { PoseController } from '../../../../standalone-holo/src/parallax/pose_controller';
+import type { AdaptiveRenderer } from '../adaptiveRenderer';
+import type { SLMEncoderPipeline } from '../../../../standalone-holo/src/pipelines/SLMEncoderPipeline';
+
+export interface IntegratorConfig {
+  device: GPUDevice;
+  canvas: HTMLCanvasElement;
+  qualityScale?: number;
+  enablePrediction?: boolean;
+  debugMode?: boolean;
+}
+
+export class HolographicPipelineIntegrator {
+  private device: GPUDevice;
+  private canvas: HTMLCanvasElement;
+  
+  // Core components
+  private propagator: PropagationPipeline;
+  private quiltRenderer: QuiltRenderer | null = null;
+  private poseController: PoseController;
+  private adaptiveRenderer: AdaptiveRenderer;
+  private encoder: SLMEncoderPipeline;
+  
+  // Cached field data
+  private fieldBuffer: {
+    real: Float32Array;
+    imag: Float32Array;
+    width: number;
+    height: number;
+  } | null = null;
+  
+  // Performance metrics
+  private frameCount = 0;
+  private lastFrameTime = 0;
+  private currentFPS = 0;
+  
+  // Render settings
+  private renderMode: 'quilt' | 'stereo' | 'hologram' = 'quilt';
+  private viewCount = 48;
+  private propagationDistance = 0.5; // meters
+  private wavelength = 532e-9; // green laser
+  
+  constructor(config: IntegratorConfig) {
+    this.device = config.device;
+    this.canvas = config.canvas;
+  }
+  
+  
+  /**
+   * Convert complex field arrays to GPU texture
+   */
+  private async createTextureFromField(field: { real: Float32Array, imag: Float32Array }): Promise<GPUTexture> {
+    const texture = this.device.createTexture({
+      size: {
+        width: this.fieldBuffer!.width,
+        height: this.fieldBuffer!.height
+      },
+      format: 'rg32float',  // RG for real/imaginary
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    
+    // Combine real and imag into interleaved format
+    const combined = new Float32Array(field.real.length * 2);
+    for (let i = 0; i < field.real.length; i++) {
+      combined[i * 2] = field.real[i];
+      combined[i * 2 + 1] = field.imag[i];
+    }
+    
+    // Write to texture
+    this.device.queue.writeTexture(
+      { texture },
+      combined,
+      { bytesPerRow: this.fieldBuffer!.width * 8 },  // 2 floats * 4 bytes
+      {
+        width: this.fieldBuffer!.width,
+        height: this.fieldBuffer!.height
+      }
+    );
+    
+    return texture;
+  }
+  
+  /**
+   * Initialize all pipeline components
+   */
+  async initialize(
+    propagator: PropagationPipeline,
+    encoder: SLMEncoderPipeline,
+    poseController: PoseController,
+    adaptiveRenderer: AdaptiveRenderer,
+    quiltRenderer?: QuiltRenderer
+  ): Promise<void> {
+    this.propagator = propagator;
+    this.encoder = encoder;
+    this.poseController = poseController;
+    this.adaptiveRenderer = adaptiveRenderer;
+    this.quiltRenderer = quiltRenderer || null;
+    
+    // Allocate field buffer based on adaptive settings
+    const settings = await this.adaptiveRenderer.initialize();
+    const size = Math.floor(256 * settings.resolutionScale);
+    
+    this.fieldBuffer = {
+      real: new Float32Array(size * size),
+      imag: new Float32Array(size * size),
+      width: size,
+      height: size
+    };
+    
+    console.log(`[Integrator] Initialized with ${size}x${size} field, ${settings.viewCount} views`);
+  }
+  
+  /**
+   * Main render loop connection
+   */
+  async renderFrame(sourceTexture: GPUTexture): Promise<void> {
+    const startTime = performance.now();
+    
+    // 1. Get current head pose
+    const pose = this.poseController.getPose();
+    
+    // 2. Calculate propagation parameters based on pose
+    const propagationParams = this.calculatePropagationParams(pose);
+    
+    // 3. Convert texture to arrays for propagation (if needed)
+    // For now, use the cached field buffer
+    // TODO: Read from sourceTexture if needed
+    
+    // 4. Propagate the field using the correct signature
+    const propagatedField = await this.propagator.propagate(
+      this.fieldBuffer!.real,  // ampField
+      this.fieldBuffer!.imag,  // phiField  
+      this.fieldBuffer!.width,
+      this.fieldBuffer!.height,
+      propagationParams.distance,
+      this.wavelength
+    );
+    
+    // 5. Generate multi-view quilt if renderer available
+    if (this.quiltRenderer && this.renderMode === 'quilt') {
+      // Convert propagated field to texture for quilt generation
+      const fieldTexture = await this.createTextureFromField(propagatedField);
+      await this.generateQuiltViews(fieldTexture, pose);
+    }
+    
+    // 6. Encode for display using the propagated field
+    const encodedTexture = await this.encoder.encodeToTexture(
+      propagatedField.real,  // Use propagated real part
+      propagatedField.imag,  // Use propagated imag part
+      this.fieldBuffer!.width,
+      this.fieldBuffer!.height,
+      'phase_only'
+    );
+    
+    // 6. Render to canvas
+    this.renderToCanvas(encodedTexture);
+    
+    // Update FPS
+    this.updatePerformanceMetrics(startTime);
+  }
+  
+  /**
+   * Generate multiple views for quilt rendering
+   */
+  private async generateQuiltViews(fieldTexture: GPUTexture, pose: any): Promise<void> {
+    if (!this.quiltRenderer) return;
+    
+    const settings = this.adaptiveRenderer.settings;
+    const numViews = settings.viewCount;
+    
+    // View cone angle (radians)
+    const viewCone = Math.PI / 6; // 30 degrees total
+    const viewStep = viewCone / (numViews - 1);
+    
+    // Generate each view by applying phase tilt
+    for (let i = 0; i < numViews; i++) {
+      const viewAngle = -viewCone/2 + i * viewStep;
+      
+      // Apply phase tilt for this view angle
+      const tiltedField = await this.applyPhaseTilt(
+        fieldTexture,
+        viewAngle,
+        pose.rx, // Additional tilt from head pose
+        pose.ry
+      );
+      
+      // Store in quilt tile
+      await this.writeToQuiltTile(tiltedField, i);
+    }
+  }
+  
+  /**
+   * Apply phase tilt to simulate different viewing angles
+   */
+  private async applyPhaseTilt(
+    fieldTexture: GPUTexture,
+    angle: number,
+    additionalTiltX: number,
+    additionalTiltY: number
+  ): Promise<GPUTexture> {
+    // Create compute pass for phase tilting
+    const pipeline = await this.createPhaseTiltPipeline();
+    
+    const outputTexture = this.device.createTexture({
+      size: { 
+        width: this.fieldBuffer!.width,
+        height: this.fieldBuffer!.height
+      },
+      format: 'rg32float',
+      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING
+    });
+    
+    // Uniform buffer for tilt parameters
+    const uniformBuffer = this.device.createBuffer({
+      size: 16,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+    
+    const uniformData = new Float32Array([
+      angle,
+      additionalTiltX,
+      additionalTiltY,
+      this.wavelength
+    ]);
+    
+    this.device.queue.writeBuffer(uniformBuffer, 0, uniformData.buffer);
+    
+    const bindGroup = this.device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: fieldTexture.createView() },
+        { binding: 1, resource: outputTexture.createView() },
+        { binding: 2, resource: { buffer: uniformBuffer } }
+      ]
+    });
+    
+    const commandEncoder = this.device.createCommandEncoder();
+    const computePass = commandEncoder.beginComputePass();
+    
+    computePass.setPipeline(pipeline);
+    computePass.setBindGroup(0, bindGroup);
+    computePass.dispatchWorkgroups(
+      Math.ceil(this.fieldBuffer!.width / 8),
+      Math.ceil(this.fieldBuffer!.height / 8)
+    );
+    
+    computePass.end();
+    this.device.queue.submit([commandEncoder.finish()]);
+    
+    return outputTexture;
+  }
+  
+  /**
+   * Create the phase tilt compute pipeline
+   */
+  private async createPhaseTiltPipeline(): Promise<GPUComputePipeline> {
+    const shaderCode = `
+      struct Params {
+        angle: f32,
+        tiltX: f32,
+        tiltY: f32,
+        wavelength: f32,
+      }
+      
+      @group(0) @binding(0) var inputField: texture_2d<f32>;
+      @group(0) @binding(1) var outputField: texture_storage_2d<rg32float, write>;
+      @group(0) @binding(2) var<uniform> params: Params;
+      
+      const PI: f32 = 3.14159265359;
+      
+      @compute @workgroup_size(8, 8)
+      fn main(@builtin(global_invocation_id) id: vec3<u32>) {
+        let dims = textureDimensions(inputField);
+        if (id.x >= dims.x || id.y >= dims.y) { return; }
+        
+        // Load complex field (real, imag)
+        let field = textureLoad(inputField, vec2<i32>(id.xy), 0);
+        
+        // Calculate phase tilt based on position and angle
+        let x_norm = (f32(id.x) / f32(dims.x) - 0.5) * 2.0;
+        let y_norm = (f32(id.y) / f32(dims.y) - 0.5) * 2.0;
+        
+        let k = 2.0 * PI / params.wavelength;
+        let phase_shift = k * (
+          sin(params.angle) * x_norm +
+          sin(params.tiltX) * x_norm +
+          sin(params.tiltY) * y_norm
+        );
+        
+        // Apply phase shift to complex field
+        let cos_phi = cos(phase_shift);
+        let sin_phi = sin(phase_shift);
+        
+        let real_out = field.r * cos_phi - field.g * sin_phi;
+        let imag_out = field.r * sin_phi + field.g * cos_phi;
+        
+        textureStore(outputField, vec2<i32>(id.xy), vec4<f32>(real_out, imag_out, 0.0, 1.0));
+      }
+    `;
+    
+    const shaderModule = this.device.createShaderModule({ code: shaderCode });
+    
+    return this.device.createComputePipeline({
+      layout: 'auto',
+      compute: {
+        module: shaderModule,
+        entryPoint: 'main'
+      }
+    });
+  }
+  
+  /**
+   * Write processed field to quilt tile
+   */
+  private async writeToQuiltTile(fieldTexture: GPUTexture, viewIndex: number): Promise<void> {
+    if (!this.quiltRenderer) return;
+    
+    const layout = (this.quiltRenderer as any).layout;
+    const col = viewIndex % layout.cols;
+    const row = Math.floor(viewIndex / layout.cols);
+    
+    // Calculate tile position in quilt texture
+    const tileX = col * layout.tileW;
+    const tileY = row * layout.tileH;
+    
+    // Copy field to quilt tile
+    const commandEncoder = this.device.createCommandEncoder();
+    
+    commandEncoder.copyTextureToTexture(
+      { texture: fieldTexture },
+      { 
+        texture: this.quiltRenderer.quiltTexture,
+        origin: { x: tileX, y: tileY }
+      },
+      { width: layout.tileW, height: layout.tileH }
+    );
+    
+    this.device.queue.submit([commandEncoder.finish()]);
+  }
+  
+  /**
+   * Calculate propagation parameters based on head pose
+   */
+  private calculatePropagationParams(pose: any) {
+    // Adjust propagation distance based on head position
+    const baseDist = this.propagationDistance;
+    const depthOffset = pose.tz * 0.1; // Scale head Z movement
+    
+    return {
+      distance: baseDist + depthOffset,
+      tiltX: pose.rx,
+      tiltY: pose.ry
+    };
+  }
+  
+  /**
+   * Render final result to canvas
+   */
+  private renderToCanvas(texture: GPUTexture): void {
+    const context = this.canvas.getContext('webgpu')!;
+    const commandEncoder = this.device.createCommandEncoder();
+    
+    const textureView = context.getCurrentTexture().createView();
+    
+    // Simple blit pass
+    const renderPass = commandEncoder.beginRenderPass({
+      colorAttachments: [{
+        view: textureView,
+        clearValue: { r: 0, g: 0, b: 0, a: 1 },
+        loadOp: 'clear',
+        storeOp: 'store'
+      }]
+    });
+    
+    // Use existing QuiltCompose or similar for final blit
+    renderPass.end();
+    
+    this.device.queue.submit([commandEncoder.finish()]);
+  }
+  
+  /**
+   * Update performance metrics and adapt quality if needed
+   */
+  private updatePerformanceMetrics(startTime: number): void {
+    const frameTime = performance.now() - startTime;
+    this.frameCount++;
+    
+    // Calculate FPS every 30 frames
+    if (this.frameCount % 30 === 0) {
+      const deltaTime = performance.now() - this.lastFrameTime;
+      this.currentFPS = 30000 / deltaTime;
+      this.lastFrameTime = performance.now();
+      
+      // Trigger adaptive quality adjustment if FPS drops
+      if (this.currentFPS < 50 && this.adaptiveRenderer) {
+        console.log(`[Integrator] FPS dropped to ${this.currentFPS.toFixed(1)}, adjusting quality...`);
+        // Adaptive renderer will handle this automatically
+      }
+    }
+  }
+  
+  // Public API methods
+  
+  setRenderMode(mode: 'quilt' | 'stereo' | 'hologram'): void {
+    this.renderMode = mode;
+    console.log(`[Integrator] Render mode set to: ${mode}`);
+  }
+  
+  setPropagationDistance(distance: number): void {
+    this.propagationDistance = Math.max(0.1, Math.min(2.0, distance));
+  }
+  
+  setViewCount(count: number): void {
+    this.viewCount = Math.max(1, Math.min(64, count));
+    if (this.adaptiveRenderer) {
+      this.adaptiveRenderer.settings.viewCount = this.viewCount;
+    }
+  }
+  
+  getStats(): { fps: number; viewCount: number; fieldSize: number } {
+    return {
+      fps: this.currentFPS,
+      viewCount: this.viewCount,
+      fieldSize: this.fieldBuffer?.width || 0
+    };
+  }
+}

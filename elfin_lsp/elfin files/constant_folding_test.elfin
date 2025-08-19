@@ -1,0 +1,41 @@
+# Test file for constant folding and dimensional propagation
+# This demonstrates the compiler's ability to fold constants and
+# verify dimensional consistency at compile time
+
+system ConstantFoldingTest {
+  # State variables
+  continuous_state: [x, v];
+  
+  # Parameters with units
+  params {
+    g: acceleration[m/s^2] = 9.81;    # Gravitational acceleration
+    t: time[s] = 2.0;                 # Time
+    h: height[m] = 5.0;               # Initial height
+    m: mass[kg] = 1.0;                # Mass
+    
+    # Simple folding: 2 * 3 = 6
+    simple_fold = 2 * 3;
+    
+    # Folding with units: 2[m] * 3 = 6[m]
+    length_fold = 2 * h;
+    
+    # Dimensional propagation: g[m/s^2] * t[s] = v[m/s]
+    velocity = g * t;
+    
+    # Dimensional propagation: g[m/s^2] * t^2 / 2 = d[m]
+    # This is the displacement formula: d = gt²/2
+    displacement = g * t^2 / 2;
+    
+    # Complex folding: m[kg] * g[m/s^2] * h[m] = E[kg*m^2/s^2] = E[J]
+    potential_energy = m * g * h;
+    
+    # This should cause a dimensional warning
+    invalid_add = g + h;
+  }
+  
+  # Dynamics (using folded constants)
+  flow_dynamics {
+    x_dot = v;
+    v_dot = -g;  # Constant gravity
+  }
+}

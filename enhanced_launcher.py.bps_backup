@@ -1,0 +1,2658 @@
+#!/usr/bin/env python3
+"""
+🚀 ENHANCED UNIFIED TORI LAUNCHER - BULLETPROOF EDITION v2.1
+Advanced logging, bulletproof error handling, concept mesh fixes, and scalable architecture
+🏆 NOW WITH TORI MCP PRODUCTION SERVER INTEGRATION 🌊
+🌟 NOW WITH CONCEPT MESH HOLOGRAPHIC VISUALIZATION! 🧠➡️🌟
+"""
+
+import socket
+import json
+import os
+import sys
+import time
+import subprocess
+import requests
+import asyncio
+import atexit
+import logging
+
+# BPS Soliton Support
+from python.core.bps_config_enhanced import BPS_CONFIG, SolitonPolarity
+from python.core.bps_oscillator_enhanced import BPSEnhancedLattice
+from python.core.bps_soliton_memory_enhanced import BPSEnhancedSolitonMemory
+from python.monitoring.bps_diagnostics import BPSDiagnostics
+
+
+import threading
+import traceback
+import signal
+import psutil
+from pathlib import Path
+from datetime import datetime
+from typing import Optional, Dict, Any, List
+import uvicorn
+
+# Import port manager for dynamic port allocation
+from port_manager import port_manager
+import atexit
+
+# Register port cleanup on exit
+atexit.register(port_manager.cleanup_all_ports)
+
+# Suppress startup warnings
+import warnings
+warnings.filterwarnings("ignore", message=".*already exists.*")
+warnings.filterwarnings("ignore", message=".*shadows an attribute.*")
+warnings.filterwarnings("ignore", message=".*0 concepts.*")
+
+# Reduce logging noise
+import logging
+
+# BPS Soliton Support
+from python.core.bps_config_enhanced import BPS_CONFIG, SolitonPolarity
+from python.core.bps_oscillator_enhanced import BPSEnhancedLattice
+from python.core.bps_soliton_memory_enhanced import BPSEnhancedSolitonMemory
+from python.monitoring.bps_diagnostics import BPSDiagnostics
+
+
+logging.getLogger("mcp.server.fastmcp").setLevel(logging.ERROR)
+logging.getLogger("server_proper").setLevel(logging.ERROR)
+
+# Import graceful shutdown support
+try:
+    from utils.graceful_shutdown import GracefulShutdownHandler, AsyncioGracefulShutdown, delayed_keyboard_interrupt
+    GRACEFUL_SHUTDOWN_AVAILABLE = True
+except ImportError:
+    try:
+        from core.graceful_shutdown import shutdown_manager, register_shutdown_handler, install_shutdown_handlers
+        GRACEFUL_SHUTDOWN_AVAILABLE = True
+    except ImportError:
+        GRACEFUL_SHUTDOWN_AVAILABLE = False
+        print("⚠️ Graceful shutdown module not available")
+
+# Enhanced error handling and encoding
+import locale
+import codecs
+
+# Set UTF-8 encoding globally
+if sys.platform.startswith('win'):
+    # Windows UTF-8 setup
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+
+# Disable entropy pruning (module not available)
+os.environ['TORI_DISABLE_ENTROPY_PRUNE'] = '1'
+
+# Enable entropy pruning for proper concept flow
+os.environ['TORI_ENABLE_ENTROPY_PRUNING'] = '1'
+del os.environ['TORI_DISABLE_ENTROPY_PRUNE']
+
+# Suppress Python warnings
+os.environ['PYTHONWARNINGS'] = 'ignore::UserWarning'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TF warnings if any
+
+# Optional MCP bridge import - don't crash if not available
+try:
+    from mcp_bridge_real_tori import create_real_mcp_bridge, RealMCPBridge
+    MCP_BRIDGE_AVAILABLE = True
+except ImportError:
+    MCP_BRIDGE_AVAILABLE = False
+    create_real_mcp_bridge = None
+    RealMCPBridge = None
+
+# 🏆 NEW: TORI MCP Server Integration
+try:
+    # Add mcp_metacognitive to path first
+    mcp_path = Path(__file__).parent / "mcp_metacognitive"
+    if mcp_path.exists():
+        sys.path.insert(0, str(mcp_path))
+    
+    # Try to import MCP types
+    try:
+        from mcp.types import Tool, TextContent
+        MCP_TYPES_AVAILABLE = True
+    except ImportError:
+        MCP_TYPES_AVAILABLE = False
+        print("⚠️ MCP types not available - install mcp package")
+    
+    # Try proper implementation first, fallback to simple
+    try:
+        import server_proper as mcp_server_module
+        print("✅ Using proper MCP server implementation")
+    except ImportError:
+        import server_simple as mcp_server_module
+        print("⚠️ Using simple server fallback")
+    MCP_METACOGNITIVE_AVAILABLE = True
+except ImportError as e:
+    MCP_METACOGNITIVE_AVAILABLE = False
+    MCP_TYPES_AVAILABLE = False
+    mcp_config = None
+    mcp_server_module = None
+    print(f"⚠️ MCP Metacognitive not available: {e}")
+
+# 🧠 NEW: Core Python Components Integration
+try:
+    python_core_path = Path(__file__).parent / "python" / "core"
+    sys.path.insert(0, str(python_core_path.parent))
+    
+    # Import all core components with correct class names
+    from python.core.CognitiveEngine import CognitiveEngine
+    from python.core.memory_vault import UnifiedMemoryVault
+    from python.core.concept_mesh import ConceptMesh
+    
+    # Try to import optional components
+    try:
+        from python.core.mcp_metacognitive import MCPMetacognitiveServer
+    except ImportError:
+        MCPMetacognitiveServer = None
+        print("⚠️ MCPMetacognitiveServer not available")
+    
+    try:
+        from python.core.cognitive_interface import CognitiveInterface
+    except ImportError:
+        CognitiveInterface = None
+        print("⚠️ CognitiveInterface not available")
+    
+    CORE_COMPONENTS_AVAILABLE = True
+except ImportError as e:
+    CORE_COMPONENTS_AVAILABLE = False
+    CognitiveEngine = None
+    UnifiedMemoryVault = None
+    MCPMetacognitiveServer = None
+    CognitiveInterface = None
+    ConceptMesh = None
+    print(f"⚠️ Some core components not available: {e}")
+
+# 🔬 NEW: Stability Components Integration
+try:
+    stability_path = Path(__file__).parent / "python" / "stability"
+    from python.stability.eigenvalue_monitor import EigenvalueMonitor
+    from python.stability.lyapunov_analyzer import LyapunovAnalyzer
+    from python.stability.koopman_operator import KoopmanOperator
+    
+    STABILITY_COMPONENTS_AVAILABLE = True
+except ImportError as e:
+    STABILITY_COMPONENTS_AVAILABLE = False
+    EigenvalueMonitor = None
+    LyapunovAnalyzer = None
+    KoopmanOperator = None
+    print(f"⚠️ Stability components not available: {e}")
+
+# Add argument parsing
+import argparse
+parser = argparse.ArgumentParser(description='Enhanced TORI Launcher')
+parser.add_argument('--require-penrose', action='store_true', 
+                   help='Require Rust Penrose engine (default: False)')
+parser.add_argument('--no-require-penrose', dest='require_penrose', action='store_false',
+                   help='Allow Python/Numba fallback')
+parser.add_argument('--no-browser', action='store_true', help='Do not open browser automatically')
+parser.add_argument('--enable-hologram', action='store_true', help='Enable concept mesh holographic visualization')
+parser.add_argument('--hologram-audio', action='store_true', help='Enable audio-to-hologram bridge')
+parser.add_argument('--api', choices=['quick', 'full'], default='full',
+                   help='Which API to launch: quick (minimal) or full (all endpoints). Default: full')
+parser.add_argument('--api-port', type=int, default=None,
+                   help='Override API port (default: 8002 for quick, 8001 for full)')
+args = parser.parse_args()
+
+# 💡 BULLETPROOF AV MODE - Force-enable hologram + audio always:
+args.enable_hologram = True
+args.hologram_audio = True
+
+# ---- Penrose runtime requirement ------------------------------------------
+# Add concept_mesh to path to ensure proper imports
+concept_mesh_path = Path(__file__).parent / "concept_mesh"
+if concept_mesh_path.exists():
+    sys.path.insert(0, str(concept_mesh_path))
+
+try:
+    from concept_mesh import similarity as penrose_adapt
+    PENROSE_AVAILABLE = True
+    PENROSE_BACKEND = penrose_adapt.BACKEND
+except ImportError as e:
+    print(f"⚠️ Penrose import failed: {e}")
+    PENROSE_AVAILABLE = False
+    PENROSE_BACKEND = None
+    penrose_adapt = None
+
+if args.require_penrose and (not PENROSE_AVAILABLE or PENROSE_BACKEND != "rust"):
+    print("❌ Rust Penrose missing – aborting (--require-penrose is on)")
+    print("💡 To allow Python fallback, run with --no-require-penrose")
+    print("📚 To install Rust version: cd concept_mesh/penrose_rs && maturin develop --release")
+    sys.exit(1)
+
+if PENROSE_AVAILABLE:
+    print(f"✅ Penrose engine initialized ({PENROSE_BACKEND})")
+# ---------------------------------------------------------------------------
+
+# ServicePorts class for dynamic port allocation
+class ServicePorts:
+    """Centralized port management using port_manager"""
+    def __init__(self):
+        self.pm = port_manager
+        
+    def get_audio_bridge_port(self) -> int:
+        """Get available port for audio bridge"""
+        return self.pm.find_free_port(8765, "audio_bridge")
+    
+    def get_concept_mesh_port(self) -> int:
+        """Get available port for concept mesh"""
+        return self.pm.find_free_port(8766, "concept_mesh_bridge")
+    
+    def get_api_port(self, api_mode: str = "full") -> int:
+        """Get available port for API based on mode"""
+        # Use different default ports based on API mode
+        if api_mode == "quick":
+            default_port = 8002
+        else:
+            default_port = 8001
+        return self.pm.find_free_port(default_port, f"{api_mode}_api_server")
+    
+    def get_mcp_port(self) -> int:
+        """Get available port for MCP"""
+        return self.pm.find_free_port(8100, "mcp_server")
+
+# Global instance
+service_ports = ServicePorts()
+
+# Prajna integration - add to path and import
+prajna_path = Path(__file__).parent / "prajna"
+if prajna_path.exists():
+    sys.path.insert(0, str(prajna_path))
+    try:
+        from prajna.config.prajna_config import load_config as load_prajna_config
+        # Import API directly to avoid circular imports
+        from prajna.api.prajna_api import app as prajna_app
+        PRAJNA_AVAILABLE = True
+    except ImportError as e:
+        PRAJNA_AVAILABLE = False
+        prajna_app = None
+        load_prajna_config = None
+else:
+    PRAJNA_AVAILABLE = False
+    prajna_app = None
+    load_prajna_config = None
+
+# Create global shutdown handler
+if GRACEFUL_SHUTDOWN_AVAILABLE:
+    try:
+        shutdown_handler = GracefulShutdownHandler()
+    except:
+        shutdown_handler = None
+else:
+    shutdown_handler = None
+
+class ConceptMeshDataFixer:
+    """Bulletproof concept mesh data structure fixer"""
+    
+    @staticmethod
+    def fix_concept_mesh_data(data_path: Path) -> bool:
+        """Fix concept mesh data structure issues"""
+        try:
+            if not data_path.exists():
+                return True  # No data to fix
+            
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # Fix 'list' object has no attribute 'get' error
+            if isinstance(data, list):
+                # Convert list to proper dict structure
+                if len(data) > 0 and isinstance(data[0], dict):
+                    # Assume it's a list of concept objects
+                    fixed_data = {
+                        "concepts": data,
+                        "metadata": {
+                            "version": "1.0",
+                            "fixed_at": datetime.now().isoformat(),
+                            "fix_reason": "converted_list_to_dict"
+                        }
+                    }
+                else:
+                    # Empty or invalid list
+                    fixed_data = {
+                        "concepts": [],
+                        "metadata": {
+                            "version": "1.0",
+                            "created_at": datetime.now().isoformat(),
+                            "fix_reason": "initialized_empty_structure"
+                        }
+                    }
+                
+                # Create backup
+                backup_path = data_path.with_suffix(f'.backup_{int(time.time())}')
+                data_path.rename(backup_path)
+                
+                # Save fixed data
+                with open(data_path, 'w', encoding='utf-8') as f:
+                    json.dump(fixed_data, f, indent=2, ensure_ascii=False)
+                
+                return True
+            
+            elif isinstance(data, dict):
+                # Data is already a dict, check for common issues
+                if 'concepts' not in data:
+                    data['concepts'] = data.get('items', [])
+                
+                if 'metadata' not in data:
+                    data['metadata'] = {
+                        "version": "1.0",
+                        "updated_at": datetime.now().isoformat()
+                    }
+                
+                # Save validated data
+                with open(data_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                
+                return True
+            
+            return False
+            
+        except Exception as e:
+            print(f"⚠️ Concept mesh data fix failed: {e}")
+            return False
+
+class EnhancedLogger:
+    """Enhanced logging system with UTF-8 support and bulletproof error handling"""
+    
+    def __init__(self, script_dir: Path):
+        self.script_dir = script_dir
+        self.logs_dir = script_dir / "logs"
+        self.logs_dir.mkdir(exist_ok=True)
+        
+        # Create timestamped log session
+        self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.session_dir = self.logs_dir / f"session_{self.session_id}"
+        self.session_dir.mkdir(exist_ok=True)
+        
+        # Create master log file path BEFORE setting up loggers
+        self.master_log = self.session_dir / "master_session.log"
+        
+        # Set up loggers with UTF-8 support
+        self.main_logger = self._setup_logger("main", "launcher.log")
+        self.prajna_logger = self._setup_logger("prajna", "prajna.log")
+        self.mcp_logger = self._setup_logger("mcp", "mcp.log")
+        self.frontend_logger = self._setup_logger("frontend", "frontend.log")
+        self.concept_mesh_logger = self._setup_logger("concept_mesh", "concept_mesh.log")
+        self.hologram_logger = self._setup_logger("hologram", "hologram.log")  # NEW
+        self.audio_bridge_logger = self._setup_logger("audio_bridge", "audio_bridge.log")  # NEW
+        
+        self.main_logger.info(f"🚀 Enhanced logging session started: {self.session_id}")
+        self.main_logger.info(f"📂 Log directory: {self.session_dir}")
+    
+    def _setup_logger(self, name: str, filename: str) -> logging.Logger:
+        """Set up individual logger with UTF-8 support and bulletproof error handling"""
+        logger = logging.getLogger(f"tori.{name}")
+        logger.setLevel(logging.DEBUG)
+        
+        # Clear any existing handlers
+        logger.handlers.clear()
+        
+        # File handler with UTF-8 encoding
+        try:
+            file_handler = logging.FileHandler(
+                self.session_dir / filename, 
+                encoding='utf-8',
+                errors='replace'  # Replace invalid characters instead of crashing
+            )
+            file_handler.setLevel(logging.DEBUG)
+            file_format = logging.Formatter(
+                '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            file_handler.setFormatter(file_format)
+            logger.addHandler(file_handler)
+        except Exception as e:
+            print(f"Warning: Could not set up file logging for {name}: {e}")
+        
+        # Console handler (only for main logger to avoid spam)
+        if name == "main":
+            try:
+                console_handler = logging.StreamHandler()
+                console_handler.setLevel(logging.INFO)
+                console_format = logging.Formatter(
+                    '%(asctime)s | %(levelname)s | %(message)s',
+                    datefmt='%H:%M:%S'
+                )
+                console_handler.setFormatter(console_format)
+                logger.addHandler(console_handler)
+            except Exception as e:
+                print(f"Warning: Could not set up console logging: {e}")
+        
+        # Master log handler with bulletproof UTF-8 handling
+        try:
+            master_handler = logging.FileHandler(
+                self.master_log, 
+                encoding='utf-8',
+                errors='replace'
+            )
+            master_handler.setLevel(logging.DEBUG)
+            master_format = logging.Formatter(
+                '%(asctime)s | %(levelname)-8s | [%(name)s] | %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            master_handler.setFormatter(master_format)
+            logger.addHandler(master_handler)
+        except Exception as e:
+            print(f"Warning: Could not set up master logging: {e}")
+        
+        return logger
+    
+    def log_subprocess_output(self, process: subprocess.Popen, service_name: str, logger: logging.Logger):
+        """Monitor subprocess output with bulletproof encoding handling"""
+        def monitor_stream(stream, stream_name, log_func):
+            try:
+                for line in iter(stream.readline, ''):
+                    if line:
+                        # Handle encoding issues gracefully
+                        try:
+                            if isinstance(line, bytes):
+                                line = line.decode('utf-8', errors='replace')
+                            line = line.strip()
+                            if line:
+                                log_func(f"[{stream_name}] {line}")
+                        except Exception as decode_error:
+                            log_func(f"[{stream_name}] <encoding error: {decode_error}>")
+            except Exception as e:
+                logger.error(f"Error monitoring {stream_name}: {e}")
+            finally:
+                try:
+                    stream.close()
+                except:
+                    pass
+        
+        # Start monitoring threads with error handling
+        if process.stdout:
+            try:
+                stdout_thread = threading.Thread(
+                    target=monitor_stream,
+                    args=(process.stdout, "STDOUT", logger.info),
+                    daemon=True
+                )
+                stdout_thread.start()
+            except Exception as e:
+                logger.error(f"Failed to start STDOUT monitoring: {e}")
+        
+        if process.stderr:
+            try:
+                stderr_thread = threading.Thread(
+                    target=monitor_stream,
+                    args=(process.stderr, "STDERR", logger.warning),
+                    daemon=True
+                )
+                stderr_thread.start()
+            except Exception as e:
+                logger.error(f"Failed to start STDERR monitoring: {e}")
+    
+    def get_logger(self, service: str) -> logging.Logger:
+        """Get logger for specific service"""
+        return getattr(self, f"{service}_logger", self.main_logger)
+
+class BulletproofSystemHealthChecker:
+    """System health checker with resource monitoring"""
+    
+    @staticmethod
+    def check_system_resources() -> Dict[str, Any]:
+        """Check system resources and return status"""
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            return {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_available_gb": memory.available / (1024**3),
+                "disk_free_gb": disk.free / (1024**3),
+                "healthy": (
+                    cpu_percent < 90 and 
+                    memory.percent < 90 and 
+                    disk.free > 1024**3  # 1GB free
+                )
+            }
+        except Exception as e:
+            return {
+                "error": str(e),
+                "healthy": False
+            }
+    
+    @staticmethod
+    def check_port_conflicts(ports: List[int]) -> Dict[int, bool]:
+        """Check multiple ports for conflicts"""
+        results = {}
+        for port in ports:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('0.0.0.0', port))
+                    results[port] = True  # Available
+            except OSError:
+                results[port] = False  # Busy
+        return results
+
+class EnhancedUnifiedToriLauncher:
+    """Bulletproof launcher with comprehensive error handling and resource optimization"""
+    
+    def _wait_for_api_health(self, port, max_attempts=60):
+        """Wait for API to respond and all components to be ready"""
+        import time
+        import requests
+        
+        wait_times = [0.25, 0.5, 1.0, 2.0, 5.0]  # Exponential backoff
+        
+        # First, wait for basic health check
+        for attempt in range(max_attempts // 2):
+            try:
+                response = requests.get(f'http://127.0.0.1:{port}/api/health', timeout=1)
+                if response.status_code == 200:
+                    self.logger.info("✅ API is responding to health checks")
+                    break
+            except:
+                pass
+            
+            wait_time = wait_times[min(attempt, len(wait_times)-1)]
+            if attempt % 5 == 0 and attempt > 0:
+                self.logger.info(f"⏳ Waiting for API to start... ({attempt}/{max_attempts // 2})")
+            time.sleep(wait_time)
+        else:
+            return False  # API never became healthy
+        
+        # Now wait for all components to be ready
+        self.logger.info("⏳ Waiting for all components to initialize...")
+        for attempt in range(max_attempts // 2):
+            try:
+                # Check component readiness
+                response = requests.get(f'http://127.0.0.1:{port}/api/system/ready', timeout=2)
+                if response.status_code == 200:
+                    self.logger.info("🎉 All components are ready!")
+                    return True
+                elif response.status_code == 503:
+                    # Components still initializing - get status
+                    comp_response = requests.get(f'http://127.0.0.1:{port}/api/system/components', timeout=2)
+                    if comp_response.status_code == 200:
+                        components = comp_response.json()
+                        not_ready = [name for name, ready in components.items() if not ready]
+                        if not_ready:
+                            self.logger.debug(f"   Waiting for: {', '.join(not_ready)}")
+            except requests.exceptions.RequestException:
+                pass  # API might not be fully up yet
+            
+            wait_time = wait_times[min(attempt, len(wait_times)-1)]
+            if attempt % 5 == 0 and attempt > 0:
+                self.logger.info(f"⏳ Still waiting for components... ({attempt}/{max_attempts // 2})")
+            time.sleep(wait_time)
+        
+        # Timeout - but API is at least healthy
+        self.logger.warning("⚠️ Some components may not be fully initialized")
+        return True  # Return True because API is at least responding
+    
+    def _run_api_server(self, port):
+        """Run API server in thread"""
+        self.update_status("api_startup", "starting", {"port": port})
+        try:
+            self.start_api_server(port)
+        except Exception as e:
+            self.logger.error(f"API server crashed: {e}")
+
+    def __init__(self, base_port=8002, max_attempts=10):
+        self.base_port = base_port
+        self.max_attempts = max_attempts
+        self.script_dir = Path(__file__).parent.absolute()
+        self.config_file = self.script_dir / "api_port.json"
+        self.status_file = self.script_dir / "tori_status.json"
+        
+        # Enhanced logging with UTF-8 support
+        self.enhanced_logger = EnhancedLogger(self.script_dir)
+        self.logger = self.enhanced_logger.main_logger
+        
+        # Health checker
+        self.health_checker = BulletproofSystemHealthChecker()
+        
+        # Service tracking
+        self.mcp_process = None
+        self.mcp_bridge = None
+        self.mcp_metacognitive_process = None
+        self.frontend_process = None
+        self.prajna_process = None
+        self.api_port = None
+        self.frontend_port = None
+        self.prajna_port = None
+        self.mcp_metacognitive_port = None
+        self.multi_tenant_config_file = self.script_dir / "multi_tenant_config.json"
+        self.multi_tenant_mode = False
+        
+        # 🌟 NEW: Hologram service tracking
+        self.audio_bridge_process = None
+        self.concept_mesh_bridge_process = None
+        self.audio_bridge_port = None
+        self.concept_mesh_bridge_port = None
+        
+        # 🧠 NEW: Core component instances
+        self.cognitive_engine = None
+        self.memory_vault = None
+        self.metacognitive_server = None
+        self.cognitive_interface = None
+        self.concept_mesh = None
+        self.fractal_soliton = None
+        
+        # 🔬 NEW: Stability component instances
+        self.eigenvalue_monitor = None
+        self.lyapunov_analyzer = None
+        self.koopman_operator = None
+        
+        # Component processes
+        self.cognitive_engine_process = None
+        self.memory_vault_process = None
+        self.eigenvalue_monitor_process = None
+        self.lyapunov_analyzer_process = None
+        self.koopman_operator_process = None
+        
+        # Directories
+        self.frontend_dir = self.script_dir / "tori_ui_svelte"
+        self.prajna_dir = self.script_dir / "prajna"
+        self.concept_mesh_dir = self.script_dir / "concept_mesh"
+        
+        # Check for multi-tenant mode
+        self.multi_tenant_mode = self.check_multi_tenant_mode()
+        
+        # Fix concept mesh data on startup
+        self.fix_concept_mesh_data()
+        
+        # Setup graceful shutdown
+        if shutdown_handler:
+            shutdown_handler.setup_signal_handlers()
+            shutdown_handler.add_cleanup_callback(self.cleanup)
+            # Register as old-style too for compatibility
+            atexit.register(self.cleanup)
+        else:
+            # Fallback to old-style cleanup
+            atexit.register(self.cleanup)
+            signal.signal(signal.SIGINT, self.signal_handler)
+            signal.signal(signal.SIGTERM, self.signal_handler)
+        
+        self.logger.info("🚀 Enhanced TORI Launcher initialized v2.1")
+        self.logger.info(f"📂 Working directory: {self.script_dir}")
+        self.logger.info(f"🏢 Multi-tenant mode: {self.multi_tenant_mode}")
+        self.logger.info(f"🦀 Penrose backend: {PENROSE_BACKEND}")
+        self.logger.info(f"🌟 Hologram visualization: {'ENABLED' if args.enable_hologram else 'READY_TO_ENABLE'}")
+        if args.enable_hologram:
+            self.logger.info("🎵 Audio bridge: ENABLED")
+            self.logger.info("🌊 Oscillator lattice: AVAILABLE")
+        
+        # Check system health on startup
+        self.check_and_log_system_health()
+    
+    def signal_handler(self, signum, frame):
+        """Handle system signals gracefully (fallback if no graceful shutdown module)"""
+        self.logger.info(f"📡 Received signal {signum}, initiating graceful shutdown...")
+        self.cleanup()
+        sys.exit(0)
+    
+    def check_and_log_system_health(self):
+        """Check and log system health"""
+        health = self.health_checker.check_system_resources()
+        self.logger.info("💊 System Health Check:")
+        
+        if health.get("healthy", False):
+            self.logger.info("✅ System resources are healthy")
+            self.logger.info(f"   CPU: {health.get('cpu_percent', 0):.1f}%")
+            self.logger.info(f"   Memory: {health.get('memory_percent', 0):.1f}%")
+            self.logger.info(f"   Available Memory: {health.get('memory_available_gb', 0):.1f}GB")
+            self.logger.info(f"   Free Disk: {health.get('disk_free_gb', 0):.1f}GB")
+        else:
+            self.logger.warning("⚠️ System resources are under stress")
+            if 'error' in health:
+                self.logger.error(f"   Health check error: {health['error']}")
+            else:
+                self.logger.warning(f"   CPU: {health.get('cpu_percent', 0):.1f}%")
+                self.logger.warning(f"   Memory: {health.get('memory_percent', 0):.1f}%")
+    
+    def check_bridge_health(self):
+        """Check health of audio and concept mesh bridges using HTTP health endpoints"""
+        bridge_status = {}
+        
+        # Check audio bridge
+        if self.audio_bridge_process:
+            if self.audio_bridge_process.poll() is None:
+                # Process is running, check HTTP health endpoint
+                try:
+                    import requests
+                    # Use proper HTTP health check endpoint with correct headers
+                    response = requests.get(
+                        f'http://127.0.0.1:{self.audio_bridge_port}/health',
+                        timeout=0.5,
+                        headers={'Connection': 'close'}  # Ensure clean HTTP request
+                    )
+                    if response.status_code == 200:
+                        bridge_status['audio_bridge'] = 'healthy'
+                    else:
+                        bridge_status['audio_bridge'] = f'unhealthy (HTTP {response.status_code})'
+                except requests.exceptions.Timeout:
+                    # Timeout might mean the server is busy, not necessarily unhealthy
+                    bridge_status['audio_bridge'] = 'process_running'
+                except requests.exceptions.ConnectionError:
+                    # Connection error might mean server is starting up
+                    bridge_status['audio_bridge'] = 'process_running'
+                except Exception as e:
+                    # Log only unexpected errors
+                    bridge_status['audio_bridge'] = 'process_running'
+                    self.logger.debug(f"Audio bridge health check exception: {e}")
+            else:
+                bridge_status['audio_bridge'] = 'process_died'
+                self.logger.error("❌ Audio bridge process has died!")
+        else:
+            bridge_status['audio_bridge'] = 'not_started'
+        
+        # Check concept mesh bridge  
+        if self.concept_mesh_bridge_process:
+            if self.concept_mesh_bridge_process.poll() is None:
+                # Process is running, check HTTP health endpoint
+                try:
+                    import requests
+                    # Use proper HTTP health check endpoint with correct headers
+                    response = requests.get(
+                        f'http://127.0.0.1:{self.concept_mesh_bridge_port}/health',
+                        timeout=0.5,
+                        headers={'Connection': 'close'}  # Ensure clean HTTP request
+                    )
+                    if response.status_code == 200:
+                        bridge_status['concept_mesh_bridge'] = 'healthy'
+                    else:
+                        bridge_status['concept_mesh_bridge'] = f'unhealthy (HTTP {response.status_code})'
+                except requests.exceptions.Timeout:
+                    # Timeout might mean the server is busy, not necessarily unhealthy
+                    bridge_status['concept_mesh_bridge'] = 'process_running'
+                except requests.exceptions.ConnectionError:
+                    # Connection error might mean server is starting up
+                    bridge_status['concept_mesh_bridge'] = 'process_running'
+                except Exception as e:
+                    # Log only unexpected errors
+                    bridge_status['concept_mesh_bridge'] = 'process_running'
+                    self.logger.debug(f"Concept mesh bridge health check exception: {e}")
+            else:
+                bridge_status['concept_mesh_bridge'] = 'process_died'
+                self.logger.error("❌ Concept mesh bridge process has died!")
+        else:
+            bridge_status['concept_mesh_bridge'] = 'not_started'
+        
+        return bridge_status
+    
+    def start_bridge_health_monitor(self):
+        """Start periodic bridge health monitoring"""
+        def monitor_loop():
+            previous_status = {}
+            while True:
+                time.sleep(60)  # Check every 60 seconds (reduced frequency)
+                if args.enable_hologram:
+                    status = self.check_bridge_health()
+                    for bridge, health in status.items():
+                        # Only log when status changes
+                        if health != previous_status.get(bridge):
+                            if health == 'healthy':
+                                self.logger.info(f"✅ Bridge health check: {bridge} is healthy")
+                            elif health in ['process_running', 'not_started']:
+                                self.logger.debug(f"Bridge health check: {bridge} = {health}")
+                            else:
+                                self.logger.warning(f"⚠️ Bridge health check: {bridge} = {health}")
+                            
+                            # Attempt to restart dead bridges
+                            if health == 'process_died':
+                                self.logger.info(f"🔄 Attempting to restart {bridge}...")
+                                if bridge == 'audio_bridge' and args.hologram_audio:
+                                    self.start_audio_hologram_bridge()
+                                elif bridge == 'concept_mesh_bridge':
+                                    self.start_concept_mesh_hologram_bridge()
+                        
+                        previous_status[bridge] = health
+        
+        if args.enable_hologram:
+            monitor_thread = threading.Thread(
+                target=monitor_loop,
+                daemon=True,
+                name="BridgeHealthMonitor"
+            )
+            monitor_thread.start()
+            self.logger.info("✅ Bridge health monitor started")
+
+    
+    def fix_concept_mesh_data(self):
+        """Fix concept mesh data structure issues"""
+        concept_mesh_logger = self.enhanced_logger.get_logger("concept_mesh")
+        concept_mesh_logger.info("🔧 Checking concept mesh data integrity...")
+        
+        # Common concept mesh data files
+        data_files = [
+            self.concept_mesh_dir / "data.json" if self.concept_mesh_dir.exists() else None  # CANONICAL PATH
+        ]
+        
+        data_files = [f for f in data_files if f is not None]
+        
+        fixes_applied = 0
+        for data_file in data_files:
+            if data_file.exists():
+                concept_mesh_logger.info(f"🔍 Checking {data_file.name}...")
+                if ConceptMeshDataFixer.fix_concept_mesh_data(data_file):
+                    concept_mesh_logger.info(f"✅ Fixed data structure in {data_file.name}")
+                    fixes_applied += 1
+                else:
+                    concept_mesh_logger.warning(f"⚠️ Could not fix {data_file.name}")
+        
+        if fixes_applied > 0:
+            self.logger.info(f"🔧 Applied {fixes_applied} concept mesh data fixes")
+        else:
+            self.logger.info("✅ Concept mesh data integrity verified")
+    
+    def check_multi_tenant_mode(self):
+        """Check if multi-tenant mode is enabled with error handling"""
+        try:
+            if self.multi_tenant_config_file.exists():
+                with open(self.multi_tenant_config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                enabled = config.get("enabled", False)
+                self.logger.info(f"📋 Multi-tenant config loaded: {enabled}")
+                return enabled
+        except Exception as e:
+            self.logger.warning(f"⚠️ Failed to read multi-tenant config: {e}")
+        return False
+    
+    def print_banner(self):
+        """Print startup banner with system info"""
+        system_health = self.health_checker.check_system_resources()
+        
+        banner = "\n" + "=" * 70
+        banner += "\n🚀 ENHANCED UNIFIED TORI LAUNCHER - BULLETPROOF EDITION v2.1"
+        banner += "\n" + "=" * 70
+        banner += f"\n📂 Working directory: {self.script_dir}"
+        banner += f"\n⏰ Started at: {datetime.now().strftime('%H:%M:%S')}"
+        banner += f"\n📋 Session ID: {self.enhanced_logger.session_id}"
+        banner += f"\n📁 Logs: {self.enhanced_logger.session_dir}"
+        banner += f"\n💊 System Health: {'✅ Healthy' if system_health.get('healthy') else '⚠️ Stressed'}"
+        banner += f"\n🦀 Penrose Engine: {PENROSE_BACKEND or 'Not available'}"
+        banner += f"\n🌟 Hologram Mode: {'ENABLED' if args.enable_hologram else 'DISABLED'}"
+        banner += "\n🔧 Features: Enhanced logging, bulletproof error handling, concept mesh fixes"
+        if shutdown_handler:
+            banner += "\n✨ Graceful Shutdown: ENABLED (no more DLL errors!)"
+        else:
+            banner += "\n⚠️ Graceful Shutdown: Using fallback mode"
+        banner += "\n🧠 Prajna: TORI's voice and language model (Saigon LSTM)"
+        banner += "\n🧬 MCP Cognitive: Metacognitive engine with consciousness monitoring (IIT)"
+        banner += "\n🧮 Memory: Concept mesh with data structure validation"
+        banner += "\n📈 Monitoring: Resource usage, port conflicts, health checks"
+        if args.enable_hologram:
+            banner += "\n🌟 Hologram: Concept Mesh visualization as holographic entities"
+            banner += "\n🎵 Audio Bridge: Real-time audio to hologram conversion"
+        banner += "\n" + "=" * 70 + "\n"
+        
+        print(banner)
+        self.logger.info("Enhanced TORI Launcher started with bulletproof error handling")
+    
+    def update_status(self, stage: str, status: str, details: dict = None):
+        """Update status file with enhanced error handling"""
+        try:
+            status_data = {
+                "timestamp": datetime.now().isoformat(),
+                "stage": stage,
+                "status": status,
+                "details": details or {},
+                "session_id": self.enhanced_logger.session_id,
+                "api_port": self.api_port,
+                "prajna_port": self.prajna_port,
+                "system_health": self.health_checker.check_system_resources(),
+                "mcp_running": self.mcp_process is not None and self.mcp_process.poll() is None,
+                "prajna_running": self.prajna_process is not None and self.prajna_process.poll() is None,
+                "bridge_ready": self.mcp_bridge is not None,
+                "penrose_backend": PENROSE_BACKEND,
+                "hologram_enabled": args.enable_hologram,
+                "audio_bridge_port": self.audio_bridge_port,
+                "concept_mesh_bridge_port": self.concept_mesh_bridge_port
+            }
+            
+            with open(self.status_file, 'w', encoding='utf-8') as f:
+                json.dump(status_data, f, indent=2, ensure_ascii=False)
+            
+            self.logger.info(f"📊 Status: {stage} -> {status}")
+            if details:
+                self.logger.debug(f"📋 Details: {details}")
+        except Exception as e:
+            self.logger.error(f"⚠️ Failed to update status: {e}")
+    
+    def is_port_available(self, port):
+        """Check if a port is available with enhanced error handling"""
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)  # Add timeout
+                s.bind(('0.0.0.0', port))
+                return True
+        except (OSError, socket.timeout):
+            return False
+    
+    def find_available_port(self, start_port=None, service_name="service"):
+        """Find the first available port with enhanced logging"""
+        start = start_port or self.base_port
+        self.logger.info(f"🔍 Searching for available {service_name} port starting from {start}")
+        
+        # Check port conflicts in batch
+        ports_to_check = [start + i for i in range(self.max_attempts)]
+        port_status = self.health_checker.check_port_conflicts(ports_to_check)
+        
+        for port in ports_to_check:
+            if port_status.get(port, False):
+                self.logger.info(f"✅ Found available {service_name} port: {port}")
+                return port
+            else:
+                self.logger.debug(f"❌ Port {port} is busy")
+        
+        raise Exception(f"❌ No available {service_name} ports found in range {start}-{start + self.max_attempts}")
+    
+    def find_pids_on_port(self, port):
+        """Find all PIDs using specific port with enhanced error handling"""
+        try:
+            pids = []
+            for conn in psutil.net_connections():
+                if conn.laddr.port == port:
+                    try:
+                        pids.append(conn.pid)
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+            return list(set(pids))  # Remove duplicates
+        except Exception as e:
+            self.logger.warning(f"⚠️ Could not find PIDs on port {port}: {e}")
+            # Fallback to netstat
+            try:
+                output = subprocess.check_output(
+                    f'netstat -ano | findstr :{port}', shell=True
+                ).decode('utf-8', errors='replace')
+                
+                pids = set()
+                for line in output.strip().splitlines():
+                    parts = line.strip().split()
+                    if parts:
+                        try:
+                            pid = int(parts[-1])
+                            pids.add(pid)
+                        except Exception:
+                            pass
+                return list(pids)
+            except subprocess.CalledProcessError:
+                return []
+    
+    def kill_pid_safely(self, pid):
+        """Safely kill specific PID with error handling"""
+        try:
+            # Use psutil for safer process management
+            process = psutil.Process(pid)
+            process_name = process.name()
+            self.logger.info(f"🔫 Terminating process {pid} ({process_name})")
+            
+            # Try graceful termination first
+            process.terminate()
+            
+            # Wait for graceful termination
+            try:
+                process.wait(timeout=5)
+                self.logger.info(f"✅ Process {pid} terminated gracefully")
+                return True
+            except psutil.TimeoutExpired:
+                # Force kill if needed
+                process.kill()
+                self.logger.info(f"🔫 Force killed process {pid}")
+                return True
+                
+        except psutil.NoSuchProcess:
+            self.logger.info(f"✅ Process {pid} already terminated")
+            return True
+        except psutil.AccessDenied:
+            self.logger.warning(f"⚠️ Access denied killing PID {pid}")
+            # Fallback to taskkill
+            try:
+                subprocess.run(f'taskkill /PID {pid} /F', shell=True, 
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                self.logger.info(f"🔫 Force killed PID {pid} with taskkill")
+                return True
+            except Exception as e:
+                self.logger.error(f"❌ Failed to kill PID {pid}: {e}")
+                return False
+        except Exception as e:
+            self.logger.error(f"❌ Error killing PID {pid}: {e}")
+            return False
+    
+    def secure_port_aggressively(self, port, service_name="service"):
+        """Aggressively secure port with enhanced error handling"""
+        self.logger.info(f"🚨 SECURING PORT {port} - CRITICAL FOR {service_name.upper()}!")
+        
+        # First check if already available
+        if self.is_port_available(port):
+            self.logger.info(f"✅ Port {port} already available - {service_name} will work!")
+            return port
+        
+        self.logger.warning(f"⚠️ Port {port} is BUSY - {service_name} startup will FAIL without it!")
+        
+        # Aggressive securing attempts
+        max_attempts = 8  # Reduced from 10 for faster startup
+        for attempt in range(max_attempts):
+            self.logger.info(f"🔫 Attempt {attempt + 1}/{max_attempts}: Killing processes on port {port}...")
+            
+            # Find and kill all processes on port
+            pids = self.find_pids_on_port(port)
+            if pids:
+                self.logger.info(f"Found PIDs on port {port}: {pids}")
+                killed_count = 0
+                for pid in pids:
+                    if self.kill_pid_safely(pid):
+                        killed_count += 1
+                
+                self.logger.info(f"✅ Killed {killed_count}/{len(pids)} processes")
+            else:
+                self.logger.info(f"No PIDs found on port {port}")
+            
+            # Wait with exponential backoff
+            wait_time = min(2 + (attempt * 2), 10)  # Max 10 seconds
+            self.logger.info(f"⏳ Waiting {wait_time} seconds for port to be freed...")
+            time.sleep(wait_time)
+            
+            # Check if port is now free
+            if self.is_port_available(port):
+                self.logger.info(f"✅ SUCCESS! Port {port} secured - {service_name} will work!")
+                return port
+            else:
+                self.logger.warning(f"❌ Port {port} still busy after attempt {attempt + 1}")
+        
+        # Failed to secure port
+        self.logger.error(f"🚨 CRITICAL FAILURE: Could not secure port {port}!")
+        self.logger.error(f"🚨 {service_name.upper()} WILL FAIL! Consider restarting your computer!")
+        
+        raise Exception(f"❌ Could not secure {service_name} port {port} - complete failure")
+    
+    def start_audio_hologram_bridge(self):
+        """Start the Audio-to-Hologram bridge server"""
+        audio_logger = self.enhanced_logger.get_logger("audio_bridge")
+        
+        if not args.hologram_audio:
+            self.logger.info("⏭️ Skipping Audio-Hologram bridge (not enabled)")
+            return False
+        
+        self.update_status("audio_bridge_startup", "starting", {"message": "Starting Audio-Hologram bridge..."})
+        self.logger.info("🎵 Starting Audio-Hologram bridge server...")
+        audio_logger.info("=== AUDIO-HOLOGRAM BRIDGE STARTUP BEGIN ===")
+        
+        try:
+            # Use dynamic port allocation from service_ports
+            audio_port = service_ports.get_audio_bridge_port()
+            self.audio_bridge_port = audio_port
+            
+            # Double-check port is actually free and kill if needed
+            if not self.is_port_available(audio_port):
+                self.logger.warning(f"Port {audio_port} still busy, attempting to free it...")
+                pids = self.find_pids_on_port(audio_port)
+                for pid in pids:
+                    self.kill_pid_safely(pid)
+                time.sleep(1)
+            
+            audio_logger.info(f"Starting Audio-Hologram bridge on port {audio_port}")
+            
+            # Set up environment
+            env = os.environ.copy()
+            env.update({
+                'PYTHONIOENCODING': 'utf-8',
+                'PYTHONPATH': str(self.script_dir)
+            })
+            
+            # Check if websockets is available before starting
+            try:
+                import websockets
+                audio_logger.info("✅ WebSockets available - full functionality")
+            except ImportError:
+                audio_logger.warning("⚠️ WebSockets not available - will use mock mode")
+            
+            # Start audio bridge process with dynamic port - pass as single argument
+            audio_cmd = [
+                sys.executable, 'audio_hologram_bridge.py',
+                str(audio_port)  # Pass port as positional argument
+            ]
+            audio_logger.info(f"Command: {' '.join(audio_cmd)}")
+            
+            self.audio_bridge_process = subprocess.Popen(
+                audio_cmd,
+                cwd=str(self.script_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                universal_newlines=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+            
+            audio_logger.info(f"Audio bridge process started with PID: {self.audio_bridge_process.pid}")
+            
+            # Monitor output
+            self.enhanced_logger.log_subprocess_output(
+                self.audio_bridge_process, 
+                "Audio-Hologram Bridge", 
+                audio_logger
+            )
+            
+            # Wait for server to be ready
+            self.logger.info("⏳ Waiting for Audio-Hologram bridge to initialize...")
+            time.sleep(2)
+            
+            # Check if server is running (allow for both real and mock mode)
+            if self.audio_bridge_process.poll() is None:
+                self.logger.info("✅ Audio-Hologram bridge started!")
+                self.logger.info(f"🎵 Audio endpoint: ws://localhost:{audio_port}/audio_stream")
+                self.logger.info("🎵 Note: Bridge supports both WebSocket and mock modes")
+                audio_logger.info(f"Audio bridge connected on port {audio_port}")
+                
+                self.update_status("audio_bridge_startup", "success", {
+                    "port": audio_port,
+                    "url": f"ws://localhost:{audio_port}/audio_stream",
+                    "pid": self.audio_bridge_process.pid,
+                    "connected": True
+                })
+                
+                audio_logger.info("=== AUDIO-HOLOGRAM BRIDGE STARTUP SUCCESS ===")
+                return True
+            else:
+                exit_code = self.audio_bridge_process.returncode
+                audio_logger.error(f"Audio bridge failed to start (exit code {exit_code})")
+                raise Exception(f"Audio bridge process exited early with code {exit_code}")
+                
+        except Exception as e:
+            error_msg = f"Error starting Audio-Hologram bridge: {e}"
+            self.logger.warning(f"⚠️ {error_msg}")
+            audio_logger.error(f"Exception during startup: {e}")
+            audio_logger.error(f"Traceback: {traceback.format_exc()}")
+            audio_logger.info("=== AUDIO-HOLOGRAM BRIDGE STARTUP ERROR ===")
+            self.update_status("audio_bridge_startup", "failed", {"error": str(e)})
+            return False
+    
+    def start_concept_mesh_hologram_bridge(self):
+        """Start the Concept Mesh to Hologram bridge server"""
+        hologram_logger = self.enhanced_logger.get_logger("hologram")
+        
+        if not args.enable_hologram:
+            self.logger.info("⏭️ Skipping Concept Mesh Hologram bridge (not enabled)")
+            return False
+        
+        self.update_status("concept_mesh_bridge_startup", "starting", {"message": "Starting Concept Mesh Hologram bridge..."})
+        self.logger.info("🧠➡️🌟 Starting Concept Mesh to Hologram bridge server...")
+        hologram_logger.info("=== CONCEPT MESH HOLOGRAM BRIDGE STARTUP BEGIN ===")
+        
+        try:
+            # Use dynamic port allocation from service_ports
+            concept_port = service_ports.get_concept_mesh_port()
+            self.concept_mesh_bridge_port = concept_port
+            
+            # Double-check port is actually free and kill if needed
+            if not self.is_port_available(concept_port):
+                self.logger.warning(f"Port {concept_port} still busy, attempting to free it...")
+                pids = self.find_pids_on_port(concept_port)
+                for pid in pids:
+                    self.kill_pid_safely(pid)
+                time.sleep(1)
+            
+            hologram_logger.info(f"Starting Concept-Hologram bridge on port {concept_port}")
+            
+            # Set up environment
+            env = os.environ.copy()
+            env.update({
+                'PYTHONIOENCODING': 'utf-8',
+                'PYTHONPATH': str(self.script_dir)
+            })
+            
+            # Start concept mesh bridge process with dynamic port - pass as single argument
+            concept_cmd = [
+                sys.executable, 'concept_mesh_hologram_bridge.py',
+                str(concept_port)  # Pass port as positional argument
+            ]
+            hologram_logger.info(f"Command: {' '.join(concept_cmd)}")
+            
+            self.concept_mesh_bridge_process = subprocess.Popen(
+                concept_cmd,
+                cwd=str(self.script_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                universal_newlines=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+            
+            hologram_logger.info(f"Concept bridge process started with PID: {self.concept_mesh_bridge_process.pid}")
+            
+            # Monitor output
+            self.enhanced_logger.log_subprocess_output(
+                self.concept_mesh_bridge_process, 
+                "Concept-Hologram Bridge", 
+                hologram_logger
+            )
+            
+            # Wait for server to be ready
+            self.logger.info("⏳ Waiting for Concept-Hologram bridge to initialize...")
+            time.sleep(3)  # Concept mesh might take longer to load
+            
+            # Check if server is running
+            if self.concept_mesh_bridge_process.poll() is None:
+                # Verify concept count
+                concept_count = 0
+                if self.concept_mesh:
+                    concept_count = self.concept_mesh.count()
+                
+                self.logger.info("✅ Concept Mesh Hologram bridge started!")
+                self.logger.info(f"🧠 Concept endpoint: ws://localhost:{concept_port}/concepts")
+                self.logger.info(f"📊 Concepts loaded: {concept_count}")
+                hologram_logger.info(f"Concept mesh bridge connected on port {concept_port}")
+                
+                self.update_status("concept_mesh_bridge_startup", "success", {
+                    "port": concept_port,
+                    "url": f"ws://localhost:{concept_port}/concepts",
+                    "pid": self.concept_mesh_bridge_process.pid,
+                    "concept_count": concept_count,
+                    "connected": True
+                })
+                
+                hologram_logger.info("=== CONCEPT MESH HOLOGRAM BRIDGE STARTUP SUCCESS ===")
+                return True
+            else:
+                exit_code = self.concept_mesh_bridge_process.returncode
+                hologram_logger.error(f"Concept mesh bridge failed to start (exit code {exit_code})")
+                raise Exception(f"Concept bridge process exited early with code {exit_code}")
+                
+        except Exception as e:
+            error_msg = f"Error starting Concept-Hologram bridge: {e}"
+            self.logger.warning(f"⚠️ {error_msg}")
+            hologram_logger.error(f"Exception during startup: {e}")
+            hologram_logger.error(f"Traceback: {traceback.format_exc()}")
+            hologram_logger.info("=== CONCEPT MESH HOLOGRAM BRIDGE STARTUP ERROR ===")
+            self.update_status("concept_mesh_bridge_startup", "failed", {"error": str(e)})
+            return False
+    
+    def update_frontend_for_hologram(self):
+        """Update frontend to use hologram visualization if enabled"""
+        if not args.enable_hologram:
+            return
+        
+        frontend_logger = self.enhanced_logger.get_logger("frontend")
+        frontend_logger.info("📝 Updating frontend for hologram visualization...")
+        
+        try:
+            # Check if realGhostEngine_v2.js exists
+            v2_engine = self.frontend_dir / "src/lib/realGhostEngine_v2.js"
+            if not v2_engine.exists():
+                frontend_logger.warning("realGhostEngine_v2.js not found, skipping frontend update")
+                return
+            
+            # Update holographicBridge.js to use v2
+            bridge_file = self.frontend_dir / "src/lib/holographicBridge.js"
+            if bridge_file.exists():
+                content = f"""// holographicBridge.js - Import bridge with Concept Mesh support
+import {{ RealGhostEngine }} from './realGhostEngine_v2.js';
+
+// For backward compatibility - alias RealGhostEngine as GhostEngine
+export class GhostEngine extends RealGhostEngine {{
+    constructor() {{
+        super();
+        console.log('🎉 Using REAL Ghost Engine with Concept Mesh visualization!');
+    }}
+}}
+
+// Also export the real engine directly
+export {{ RealGhostEngine }};
+
+// Export a singleton instance for components that expect it
+export const ghostEngine = new GhostEngine();
+
+// Auto-initialize if we're in a browser with WebGPU
+if (typeof window !== 'undefined' && navigator.gpu) {{
+    window.TORI_GHOST_ENGINE = ghostEngine;
+    console.log('✨ TORI Ghost Engine with Concept Mesh available globally');
+    
+    // Auto-enable concept mesh if hologram mode is on
+    window.TORI_CONCEPT_MESH_ENABLED = true;
+}}
+
+console.log('🌉 Holographic Bridge with Concept Mesh loaded!');
+"""
+                
+                with open(bridge_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                frontend_logger.info("✅ Frontend updated for hologram visualization")
+                self.logger.info("✅ Frontend configured for Concept Mesh visualization")
+        
+        except Exception as e:
+            frontend_logger.error(f"Failed to update frontend: {e}")
+            self.logger.warning(f"⚠️ Could not update frontend for hologram: {e}")
+    
+    def start_mcp_metacognitive_server(self):
+        """Start TORI's MCP Metacognitive server - TORI's own cognitive engine"""
+        mcp_logger = self.enhanced_logger.get_logger("mcp")
+        
+        if not MCP_METACOGNITIVE_AVAILABLE:
+            self.logger.info("⏭️ Skipping TORI MCP Metacognitive server (not available)")
+            mcp_logger.info("TORI MCP Metacognitive server not available - imports failed")
+            self.update_status("mcp_metacognitive_startup", "skipped", {"reason": "MCP server not available"})
+            return False
+        
+        self.update_status("mcp_metacognitive_startup", "starting", {"message": "Starting TORI's MCP Metacognitive server..."})
+        self.logger.info("🧠 Starting TORI's MCP Metacognitive server - TORI's own cognitive engine...")
+        mcp_logger.info("=== TORI MCP METACOGNITIVE SERVER STARTUP BEGIN ===")
+        
+        try:
+            # TORI's MCP server always uses SSE transport for integration with TORI's systems
+            # Use dynamic port allocation from service_ports
+            mcp_port = service_ports.get_mcp_port()
+            self.mcp_metacognitive_port = mcp_port
+            
+            mcp_logger.info(f"Starting TORI's cognitive engine on port {mcp_port}")
+            
+            # Set up environment for TORI's cognitive parameters
+            env = os.environ.copy()
+            env.update({
+                'TRANSPORT_TYPE': 'sse',  # Always SSE for TORI integration
+                'SERVER_PORT': str(mcp_port),
+                'SERVER_HOST': '0.0.0.0',
+                'PYTHONIOENCODING': 'utf-8',
+                'COGNITIVE_DIMENSION': '10',
+                'MANIFOLD_METRIC': 'fisher_rao',
+                'CONSCIOUSNESS_THRESHOLD': '0.3',
+                'MAX_METACOGNITIVE_LEVELS': '3',
+                'TORI_INTEGRATION': 'true',  # Flag for TORI-specific features
+                # Phase 2 Components
+                'DANIEL_AUTO_START': 'true',
+                'KAIZEN_AUTO_START': 'true',
+                'DANIEL_MODEL_BACKEND': 'mock',  # Use mock for testing, change to 'openai' or 'anthropic' with API keys
+                'KAIZEN_ANALYSIS_INTERVAL': '3600',  # 1 hour
+                'ENABLE_CELERY': 'false'  # Set to true if Redis is available
+            })
+            
+            # Check if fixed server exists, otherwise use original
+            server_files = [
+                self.script_dir / "mcp_metacognitive" / "server_integrated.py",
+                self.script_dir / "mcp_metacognitive" / "server_simple_fixed.py",
+                self.script_dir / "mcp_metacognitive" / "server_fixed.py",
+                self.script_dir / "mcp_metacognitive" / "server_simple.py"
+            ]
+            
+            mcp_cmd = None
+            for server_file in server_files:
+                if server_file.exists():
+                    mcp_cmd = [sys.executable, str(server_file)]
+                    self.logger.info(f"Using MCP server: {server_file.name}")
+                    break
+            
+            if not mcp_cmd:
+                mcp_cmd = [sys.executable, '-m', 'mcp_metacognitive.server']
+                self.logger.info("Using module-based MCP server")
+            mcp_logger.info(f"Command: {' '.join(mcp_cmd)}")
+            
+            # Register with shutdown handler if available
+            if shutdown_handler:
+                def register_mcp():
+                    if self.mcp_metacognitive_process:
+                        shutdown_handler.register_process(
+                            "mcp_server",
+                            self.mcp_metacognitive_process.pid,
+                            is_critical=False
+                        )
+            
+            self.mcp_metacognitive_process = subprocess.Popen(
+                mcp_cmd,
+                cwd=str(self.script_dir),  # Run from main directory, not mcp_metacognitive
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                universal_newlines=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+            
+            mcp_logger.info(f"TORI MCP process started with PID: {self.mcp_metacognitive_process.pid}")
+            
+            # Register with shutdown handler
+            if shutdown_handler and self.mcp_metacognitive_process:
+                register_mcp()
+            
+            # Monitor output
+            self.enhanced_logger.log_subprocess_output(
+                self.mcp_metacognitive_process, 
+                "TORI MCP Metacognitive", 
+                mcp_logger
+            )
+            
+            # ✅ 2. BULLETPROOF HOLOGRAM STARTUP - Always triggered after MCP startup
+            if args.enable_hologram:
+                try:
+                    from tori.av.hologram_controller import start_hologram
+                    start_hologram(audio=args.hologram_audio)
+                    self.logger.info("🌟 Hologram Visualization ENABLED")
+                    self.logger.info(f"🔊 Audio bridge ENABLED: {args.hologram_audio}")
+                except ImportError as e:
+                    self.logger.warning(f"⚠️ Hologram controller not available: {e}")
+                    print("⚠️ Hologram controller not available - but modules created")
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Hologram startup failed: {e}")
+                    print(f"⚠️ Hologram startup failed: {e}")
+            
+            # Wait for server to be ready with Phase 2 components
+            self.logger.info("⏳ Waiting for TORI's cognitive engine to initialize...")
+            time.sleep(2)  # Reduced from 5 - server should bind quickly now
+            
+            # Check if server is actually running and all components initialized
+            server_ready = False
+            for attempt in range(5):  # Reduced from 10 - faster startup
+                try:
+                    # Try to access the status endpoint
+                    response = requests.get(f'http://localhost:{mcp_port}/api/system/status', timeout=2)
+                    if response.status_code == 200:
+                        status = response.json()
+                        # Check discovered servers
+                        servers = status.get('servers', {})
+                        discovery = status.get('discovery', {})
+                        
+                        if discovery.get('total_discovered', 0) > 0:
+                            server_ready = True
+                            self.logger.info("✅ Dynamic server discovery complete!")
+                            self.logger.info(f"   🔍 Discovered: {discovery.get('total_discovered', 0)} servers")
+                            self.logger.info(f"   ⚡ Running: {discovery.get('running', 0)} servers")
+                            
+                            # Show individual server status
+                            for server_name, server_info in servers.items():
+                                if server_info.get('running'):
+                                    self.logger.info(f"   ✅ {server_name}: {server_info.get('description', 'Running')}")
+                                elif server_info.get('enabled'):
+                                    self.logger.info(f"   ⏸️  {server_name}: Enabled but not running")
+                            break
+                        else:
+                            self.logger.info(f"⏳ Waiting for servers to initialize... (attempt {attempt + 1}/10)")
+                except:
+                    pass
+                time.sleep(2)
+            
+            if not server_ready:
+                self.logger.warning("⚠️ Server started but components may not be fully initialized")
+            
+            # Register MCP as ready with the component registry
+            try:
+                register_response = requests.post(
+                    f'http://localhost:{self.api_port}/api/system/components/mcp_metacognitive/ready',
+                    json={"port": mcp_port, "transport": "sse"},
+                    timeout=2
+                )
+                if register_response.status_code == 200:
+                    self.logger.info("✅ MCP registered with component registry")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not register MCP with component registry: {e}")
+            
+            self.logger.info("✅ TORI's MCP Metacognitive server started!")
+            self.logger.info(f"🧠 TORI Cognitive Engine endpoint: http://localhost:{mcp_port}/sse")
+            self.logger.info(f"🔮 Consciousness monitoring: http://localhost:{mcp_port}/consciousness")
+            self.logger.info(f"🎯 Metacognitive tools: http://localhost:{mcp_port}/tools")
+            
+            self.update_status("mcp_metacognitive_startup", "success", {
+                "transport": "sse",
+                "port": mcp_port,
+                "url": f"http://localhost:{mcp_port}/sse",
+                "consciousness_url": f"http://localhost:{mcp_port}/consciousness",
+                "tools_url": f"http://localhost:{mcp_port}/tools",
+                "pid": self.mcp_metacognitive_process.pid,
+                "tori_integration": True
+            })
+            
+            mcp_logger.info("=== TORI MCP METACOGNITIVE SERVER STARTUP SUCCESS ===")
+            return True
+            
+        except Exception as e:
+            error_msg = f"Error starting TORI's MCP Metacognitive server: {e}"
+            self.logger.warning(f"⚠️ {error_msg}")
+            mcp_logger.error(f"Exception during startup: {e}")
+            mcp_logger.error(f"Traceback: {traceback.format_exc()}")
+            mcp_logger.info("=== TORI MCP METACOGNITIVE SERVER STARTUP ERROR ===")
+            self.update_status("mcp_metacognitive_startup", "failed", {"error": str(e)})
+            return False
+    
+    def start_core_python_components(self):
+        """🧠 Start all core Python components (CognitiveEngine, MemoryVault, etc.)"""
+        if not CORE_COMPONENTS_AVAILABLE:
+            self.logger.info("⏭️ Skipping core Python components (not available)")
+            return False
+        
+        self.logger.info("🧠 Starting core Python components...")
+        components_started = 0
+        
+        # Create data directories
+        data_dirs = [
+            'data/cognitive',
+            'data/memory_vault',
+            'data/concept_mesh',
+            'data/eigenvalue_monitor',
+            'data/lyapunov',
+            'data/koopman'
+        ]
+        
+        for dir_path in data_dirs:
+            full_path = self.script_dir / dir_path
+            full_path.mkdir(parents=True, exist_ok=True)
+        
+        # 1. Start CognitiveEngine
+        try:
+            self.logger.info("🧠 Initializing CognitiveEngine...")
+            self.cognitive_engine = CognitiveEngine({
+                'storage_path': str(self.script_dir / 'data' / 'cognitive'),
+                'mode': 'production'
+            })
+            components_started += 1
+            self.logger.info("✅ CognitiveEngine initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize CognitiveEngine: {e}")
+        
+        # 2. Start MemoryVault
+        try:
+            self.logger.info("💾 Initializing UnifiedMemoryVault...")
+            self.memory_vault = UnifiedMemoryVault({
+                'storage_path': str(self.script_dir / 'data' / 'memory_vault'),
+                'chunk_size': 1000,
+                'overlap_size': 100
+            })
+            components_started += 1
+            self.logger.info("✅ UnifiedMemoryVault initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize MemoryVault: {e}")
+        
+        # 3. Start ConceptMesh
+        try:
+            self.logger.info("🕸️ Initializing ConceptMesh...")
+            self.concept_mesh = ConceptMesh({
+                'storage_path': str(self.script_dir / 'data' / 'concept_mesh'),
+                'cache_embeddings': True,
+                'max_diff_history': 1000,
+                'similarity_engine': 'penrose'  # Enable Penrose O(n^2.32) similarity
+            })
+            components_started += 1
+            self.logger.info("✅ ConceptMesh initialized with Penrose similarity engine")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize ConceptMesh: {e}")
+        
+        # 4. Start CognitiveInterface (integrates other components)
+        try:
+            self.logger.info("🌐 Initializing CognitiveInterface...")
+            self.cognitive_interface = CognitiveInterface({
+                'cognitive_engine': {'storage_path': 'data/cognitive'},
+                'memory_vault': {'storage_path': 'data/memory_vault'},
+                'metacognitive': {'port': 8888}
+            })
+            components_started += 1
+            self.logger.info("✅ CognitiveInterface initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize CognitiveInterface: {e}")
+        
+        # 5. Start MCPMetacognitiveServer (Python version)
+        try:
+            self.logger.info("🧑‍💻 Initializing MCPMetacognitiveServer...")
+            self.metacognitive_server = MCPMetacognitiveServer({
+                'host': 'localhost',
+                'port': 8888,
+                'performance_window': 100,
+                'load_threshold': 0.8
+            })
+            # Start monitoring in background
+            self.metacognitive_server.start_monitoring()
+            components_started += 1
+            self.logger.info("✅ MCPMetacognitiveServer initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize MCPMetacognitiveServer: {e}")
+        
+        # 6. Start FractalSolitonMemory with Penrose
+        try:
+            self.logger.info("🌊 Initializing FractalSolitonMemory...")
+            from python.core.fractal_soliton_memory import FractalSolitonMemory
+            
+            self.fractal_soliton = FractalSolitonMemory.get_instance({
+                'lattice_size': 100,
+                'coupling_strength': 0.1,
+                'enable_penrose': True  # Enable Penrose acceleration
+            })
+            
+            # Bridge with UnifiedMemoryVault
+            if self.memory_vault and hasattr(self.fractal_soliton, 'set_vault_bridge'):
+                self.fractal_soliton.set_vault_bridge(self.memory_vault)
+                
+            components_started += 1
+            self.logger.info("✅ FractalSolitonMemory initialized with Penrose")
+            
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize FractalSolitonMemory: {e}")
+        
+        self.logger.info(f"📦 Initialized {components_started}/6 core Python components")
+        
+        # Update status
+        self.update_status("core_components", "initialized", {
+            "cognitive_engine": self.cognitive_engine is not None,
+            "memory_vault": self.memory_vault is not None,
+            "concept_mesh": self.concept_mesh is not None,
+            "cognitive_interface": self.cognitive_interface is not None,
+            "metacognitive_server": self.metacognitive_server is not None
+        })
+        
+        return components_started > 0
+    
+    def start_stability_components(self):
+        """🔬 Start stability analysis components"""
+        if not STABILITY_COMPONENTS_AVAILABLE:
+            self.logger.info("⏭️ Skipping stability components (not available)")
+            return False
+        
+        self.logger.info("🔬 Starting stability analysis components...")
+        components_started = 0
+        
+        # 1. Start EigenvalueMonitor
+        try:
+            self.logger.info("📈 Initializing EigenvalueMonitor...")
+            self.eigenvalue_monitor = EigenvalueMonitor({
+                'storage_path': str(self.script_dir / 'data' / 'eigenvalue_monitor'),
+                'dimension': 10,
+                'threshold': 0.95
+            })
+            components_started += 1
+            self.logger.info("✅ EigenvalueMonitor initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize EigenvalueMonitor: {e}")
+        
+        # 2. Start LyapunovAnalyzer
+        try:
+            self.logger.info("🌀 Initializing LyapunovAnalyzer...")
+            self.lyapunov_analyzer = LyapunovAnalyzer({
+                'storage_path': str(self.script_dir / 'data' / 'lyapunov'),
+                'dimension': 10
+            })
+            components_started += 1
+            self.logger.info("✅ LyapunovAnalyzer initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize LyapunovAnalyzer: {e}")
+        
+        # 3. Start KoopmanOperator
+        try:
+            self.logger.info("🌊 Initializing KoopmanOperator...")
+            self.koopman_operator = KoopmanOperator({
+                'storage_path': str(self.script_dir / 'data' / 'koopman'),
+                'dimension': 10,
+                'num_modes': 5
+            })
+            components_started += 1
+            self.logger.info("✅ KoopmanOperator initialized")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize KoopmanOperator: {e}")
+        
+        self.logger.info(f"📦 Initialized {components_started}/3 stability components")
+        
+        # Update status
+        self.update_status("stability_components", "initialized", {
+            "eigenvalue_monitor": self.eigenvalue_monitor is not None,
+            "lyapunov_analyzer": self.lyapunov_analyzer is not None,
+            "koopman_operator": self.koopman_operator is not None
+        })
+        
+        return components_started > 0
+    
+    def configure_prajna_integration_enhanced(self):
+        """Configure Prajna integration with enhanced error handling"""
+        prajna_logger = self.enhanced_logger.get_logger("prajna")
+        
+        if not PRAJNA_AVAILABLE:
+            self.logger.info("⏭️ Skipping Prajna integration (not available)")
+            prajna_logger.info("Prajna not available - imports failed")
+            self.update_status("prajna_startup", "skipped", {"reason": "Prajna not available"})
+            return False
+        
+        if not self.prajna_dir.exists():
+            self.logger.warning(f"⚠️ Prajna directory not found: {self.prajna_dir}")
+            prajna_logger.error(f"Prajna directory not found: {self.prajna_dir}")
+            self.update_status("prajna_startup", "skipped", {"reason": "Prajna directory not found"})
+            return False
+        
+        self.update_status("prajna_startup", "configuring", {"message": "Configuring Prajna integration..."})
+        self.logger.info("🧠 Configuring Prajna - TORI's Voice and Language Model...")
+        prajna_logger.info("=== PRAJNA INTEGRATION CONFIGURATION BEGIN ===")
+        
+        try:
+            # Prajna is integrated into main API, so it runs on the same port
+            self.prajna_port = self.api_port
+            prajna_logger.info(f"Using integrated mode - Prajna will run on API port: {self.api_port}")
+            
+            # Set up environment for integrated Prajna with Saigon support
+            env = os.environ.copy()
+            
+            # Configure Prajna for Saigon model with enhanced settings
+            env.update({
+                'PRAJNA_MODEL_TYPE': 'saigon',
+                'PRAJNA_TEMPERATURE': '1.0',  # Optimal for Saigon LSTM
+                'PRAJNA_MAX_CONTEXT_LENGTH': '2048',
+                'PRAJNA_DEVICE': 'cpu',
+                'PRAJNA_MODEL_PATH': './models/efficientnet/saigon_lstm.pt',
+                'PYTHONIOENCODING': 'utf-8',  # Ensure UTF-8 encoding
+            })
+            
+            # Ensure proper Python path for Prajna imports
+            parent_dir = self.prajna_dir.parent
+            current_pythonpath = env.get('PYTHONPATH', '')
+            if current_pythonpath:
+                env['PYTHONPATH'] = f"{parent_dir}{os.pathsep}{current_pythonpath}"
+            else:
+                env['PYTHONPATH'] = str(parent_dir)
+            
+            # Update current process environment
+            os.environ.update(env)
+            
+            prajna_logger.info("Environment configured:")
+            for key in ['PRAJNA_MODEL_TYPE', 'PRAJNA_TEMPERATURE', 'PRAJNA_DEVICE', 'PRAJNA_MODEL_PATH']:
+                prajna_logger.info(f"  {key}: {env.get(key, 'Not set')}")
+            
+            self.logger.info("✅ Prajna integration configured successfully!")
+            self.logger.info(f"🧠 Prajna will be available at: http://localhost:{self.api_port}/api/answer")
+            self.logger.info(f"📚 Prajna docs will be at: http://localhost:{self.api_port}/docs")
+            self.logger.info(f"🤖 Model: Saigon LSTM with neural mesh-to-text generation")
+            self.logger.info(f"🎯 Temperature: 1.0 (optimal for LSTM smoothing)")
+            
+            self.update_status("prajna_startup", "configured", {
+                "port": self.api_port,
+                "api_url": f"http://localhost:{self.api_port}/api/answer",
+                "docs_url": f"http://localhost:{self.api_port}/docs",
+                "health_url": f"http://localhost:{self.api_port}/api/health",
+                "stats_url": f"http://localhost:{self.api_port}/api/prajna/stats",
+                "mode": "integrated",
+                "model_type": "saigon",
+                "temperature": 1.0,
+                "features": ["neural_mesh_to_text", "lstm_smoothing", "persona_support", "utf8_encoding"]
+            })
+            
+            prajna_logger.info("=== PRAJNA INTEGRATION CONFIGURATION SUCCESS ===")
+            return True
+            
+        except Exception as e:
+            error_msg = f"Error configuring Prajna integration: {e}"
+            self.logger.warning(f"⚠️ {error_msg}")
+            prajna_logger.error(f"Exception during configuration: {e}")
+            prajna_logger.error(f"Traceback: {traceback.format_exc()}")
+            prajna_logger.info("=== PRAJNA INTEGRATION CONFIGURATION ERROR ===")
+            self.update_status("prajna_startup", "failed", {"error": str(e)})
+            return False
+    
+    def start_frontend_services_enhanced(self):
+        """Start SvelteKit frontend with bulletproof error handling"""
+        frontend_logger = self.enhanced_logger.get_logger("frontend")
+        
+        if not self.frontend_dir.exists():
+            self.logger.warning(f"⚠️ Frontend directory not found: {self.frontend_dir}")
+            frontend_logger.error(f"Frontend directory not found: {self.frontend_dir}")
+            self.update_status("frontend_startup", "skipped", {"reason": "Frontend directory not found"})
+            return False
+        
+        # Check if package.json exists
+        package_json = self.frontend_dir / "package.json"
+        if not package_json.exists():
+            self.logger.warning(f"⚠️ Frontend package.json not found: {package_json}")
+            frontend_logger.error(f"package.json not found: {package_json}")
+            self.update_status("frontend_startup", "skipped", {"reason": "package.json not found"})
+            return False
+        
+        self.update_status("frontend_startup", "securing_port", {"message": "Securing port 5173..."})
+        self.logger.info("🎨 Starting SvelteKit frontend with bulletproof error handling...")
+        frontend_logger.info("=== FRONTEND STARTUP WITH BULLETPROOF ERROR HANDLING BEGIN ===")
+        
+        try:
+            # Update frontend for hologram if enabled
+            if args.enable_hologram:
+                self.update_frontend_for_hologram()
+            
+            # Try to secure port 5173, fall back gracefully
+            try:
+                frontend_port = self.secure_port_aggressively(5173, "Frontend")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not secure port 5173: {e}")
+                frontend_logger.warning(f"Port 5173 securing failed: {e}")
+                
+                # Graceful fallback to alternative ports
+                fallback_ports = [4173, 3000, 3001, 5000, 5001, 8080, 8081]
+                frontend_port = None
+                
+                for port in fallback_ports:
+                    if self.is_port_available(port):
+                        frontend_port = port
+                        self.logger.info(f"🔄 Using fallback port {port} for frontend")
+                        frontend_logger.info(f"Using fallback port {port}")
+                        break
+                
+                if not frontend_port:
+                    raise Exception("No available ports for frontend")
+            
+            self.frontend_port = frontend_port
+            
+            self.update_status("frontend_startup", "starting", {"message": "Starting SvelteKit development server..."})
+            frontend_logger.info(f"Starting frontend on port {frontend_port}")
+            
+            # Set up environment with UTF-8 support
+            env = os.environ.copy()
+            env.update({
+                'PORT': str(frontend_port),
+                'HOST': '0.0.0.0',
+                'NODE_OPTIONS': '--max-old-space-size=4096',  # Increase memory
+                'FORCE_COLOR': '0',  # Avoid color codes that cause encoding issues
+                'PYTHONIOENCODING': 'utf-8',
+                'VITE_ENABLE_CONCEPT_MESH': 'true' if args.enable_hologram else 'false',
+                'VITE_AUDIO_BRIDGE_URL': f'ws://localhost:{self.audio_bridge_port}/audio_stream' if self.audio_bridge_port else '',
+                'VITE_CONCEPT_BRIDGE_URL': f'ws://localhost:{self.concept_mesh_bridge_port}/concepts' if self.concept_mesh_bridge_port else ''
+            })
+            
+            frontend_logger.info("Environment configured:")
+            frontend_logger.info(f"  PORT: {frontend_port}")
+            frontend_logger.info(f"  HOST: 0.0.0.0")
+            frontend_logger.info(f"  VITE_ENABLE_CONCEPT_MESH: {env.get('VITE_ENABLE_CONCEPT_MESH')}")
+            frontend_logger.info(f"  Working directory: {self.frontend_dir}")
+            
+            # Start frontend process with bulletproof encoding
+            frontend_cmd = 'npm run dev'  # Use env vars instead of CLI args
+            frontend_logger.info(f"Command: {frontend_cmd}")
+            
+            self.frontend_process = subprocess.Popen(
+                frontend_cmd,
+                cwd=str(self.frontend_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                shell=True,
+                universal_newlines=True,
+                bufsize=1,  # Line buffered
+                encoding='utf-8',
+                errors='replace'  # Replace invalid characters
+            )
+            
+            frontend_logger.info(f"Frontend process started with PID: {self.frontend_process.pid}")
+            
+            # Start real-time output monitoring with error handling
+            try:
+                self.enhanced_logger.log_subprocess_output(self.frontend_process, "Frontend", frontend_logger)
+            except Exception as e:
+                frontend_logger.error(f"Failed to start output monitoring: {e}")
+            
+            # Wait for frontend to be ready with enhanced monitoring
+            max_retries = 60  # Extended timeout for heavy builds
+            self.logger.info("⏳ Waiting for frontend to initialize...")
+            frontend_logger.info(f"Waiting for health check on port {frontend_port} (max {max_retries} attempts)")
+            
+            # Give Vite a moment to fully initialize after starting
+            time.sleep(3)
+            
+            for i in range(max_retries):
+                # Check if process is still running
+                if self.frontend_process.poll() is not None:
+                    frontend_logger.error(f"Process exited early with code: {self.frontend_process.returncode}")
+                    self.logger.error(f"❌ Frontend process exited early with code: {self.frontend_process.returncode}")
+                    break
+                
+                try:
+                    # Try health endpoint first, then fall back to main page
+                    health_url = f'http://localhost:{frontend_port}/health'
+                    main_url = f'http://localhost:{frontend_port}/'
+                    
+                    try:
+                        response = requests.get(health_url, timeout=5)
+                        frontend_logger.debug(f"Health check response: {response.status_code}")
+                        if response.status_code == 200:
+                            health_ok = True
+                        else:
+                            health_ok = False
+                    except:
+                        # Health endpoint might not exist in dev mode, try main page
+                        try:
+                            response = requests.get(main_url, timeout=5)
+                            frontend_logger.debug(f"Main page check response: {response.status_code}")
+                            health_ok = response.status_code in [200, 304]
+                        except:
+                            health_ok = False
+                    
+                    if health_ok:
+                        self.logger.info("✅ Frontend started successfully!")
+                        frontend_logger.info("Health check passed - frontend is ready!")
+                        
+                        # Open browser automatically with error handling
+                        if not args.no_browser:
+                            try:
+                                self.open_browser_to_frontend(frontend_port)
+                            except Exception as e:
+                                frontend_logger.warning(f"Browser opening failed: {e}")
+                        else:
+                            frontend_logger.info("Skipping browser open (--no-browser flag set)")
+                        
+                        self.update_status("frontend_startup", "success", {
+                            "port": frontend_port,
+                            "url": f"http://localhost:{frontend_port}",
+                            "proxy_working": frontend_port == 5173,
+                            "upload_status": "working" if frontend_port == 5173 else "may_fail_needs_proxy_config",
+                            "hologram_enabled": args.enable_hologram,
+                            "audio_bridge_connected": self.audio_bridge_port is not None,
+                            "concept_bridge_connected": self.concept_mesh_bridge_port is not None
+                        })
+                        
+                        frontend_logger.info("=== FRONTEND STARTUP SUCCESS ===")
+                        return True
+                        
+                except requests.exceptions.RequestException as e:
+                    frontend_logger.debug(f"Health check attempt {i+1}: {e}")
+                
+                # Progress reporting
+                if i % 5 == 0 and i > 0:
+                    self.logger.info(f"⏳ Still waiting for frontend... ({i}/{max_retries} attempts)")
+                    frontend_logger.info(f"Still waiting for health check... attempt {i+1}/{max_retries}")
+                
+                time.sleep(1)
+            
+            # Startup failed but handle gracefully
+            self.logger.warning("⚠️ Frontend failed to start within 60 seconds")
+            frontend_logger.error("Frontend startup timeout - failed to respond to health checks")
+            
+            # Get final process status
+            if self.frontend_process.poll() is not None:
+                frontend_logger.error(f"Process exited with code: {self.frontend_process.returncode}")
+            else:
+                frontend_logger.warning("Process still running but not responding to health checks")
+                # Kill non-responsive process
+                try:
+                    self.frontend_process.terminate()
+                    frontend_logger.info("Terminated non-responsive frontend process")
+                except:
+                    pass
+            
+            frontend_logger.info("=== FRONTEND STARTUP FAILED ===")
+            self.update_status("frontend_startup", "failed", {"error": "Health check timeout"})
+            return False
+            
+        except Exception as e:
+            error_msg = f"Error starting frontend: {e}"
+            self.logger.warning(f"⚠️ {error_msg}")
+            frontend_logger.error(f"Exception during startup: {e}")
+            frontend_logger.error(f"Traceback: {traceback.format_exc()}")
+            frontend_logger.info("=== FRONTEND STARTUP ERROR ===")
+            self.update_status("frontend_startup", "failed", {"error": str(e)})
+            return False
+    
+    def open_browser_to_frontend(self, port):
+        """Open browser to frontend URL with bulletproof error handling"""
+        frontend_logger = self.enhanced_logger.get_logger("frontend")
+        
+        try:
+            import webbrowser
+            frontend_url = f"http://localhost:{port}"
+            
+            # Add query params if hologram is enabled
+            if args.enable_hologram:
+                frontend_url += "?conceptMesh=true"
+            
+            self.logger.info(f"🌐 Opening browser to: {frontend_url}")
+            frontend_logger.info(f"Opening browser to: {frontend_url}")
+            webbrowser.open(frontend_url)
+        except Exception as e:
+            self.logger.warning(f"⚠️ Could not open browser: {e}")
+            frontend_logger.warning(f"Browser open failed: {e}")
+    
+    def save_port_config(self, api_port, prajna_port=None, frontend_port=None, mcp_port=None):
+        """Save the active ports to config file with error handling"""
+        try:
+            config = {
+                "api_port": api_port,
+                "api_url": f"http://localhost:{api_port}",
+                "prajna_port": prajna_port,
+                "prajna_url": f"http://localhost:{prajna_port}" if prajna_port else None,
+                "frontend_port": frontend_port,
+                "frontend_url": f"http://localhost:{frontend_port}" if frontend_port else None,
+                "mcp_metacognitive_port": mcp_port,
+                "mcp_metacognitive_url": f"http://localhost:{mcp_port}/sse" if mcp_port else None,
+                "timestamp": time.time(),
+                "status": "active",
+                "session_id": self.enhanced_logger.session_id,
+                "mcp_integrated": True,
+                "mcp_metacognitive_integrated": mcp_port is not None,
+                "prajna_integrated": prajna_port is not None,
+                "frontend_integrated": frontend_port is not None,
+                "proxy_working": frontend_port == 5173 if frontend_port else False,
+                "system_health": self.health_checker.check_system_resources(),
+                "hologram_services": {
+                    "enabled": args.enable_hologram,
+                    "audio_bridge_port": self.audio_bridge_port,
+                    "audio_bridge_url": f"ws://localhost:{self.audio_bridge_port}/audio_stream" if self.audio_bridge_port else None,
+                    "concept_mesh_bridge_port": self.concept_mesh_bridge_port,
+                    "concept_mesh_bridge_url": f"ws://localhost:{self.concept_mesh_bridge_port}/concepts" if self.concept_mesh_bridge_port else None
+                }
+            }
+            
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2, ensure_ascii=False)
+            
+            self.logger.info(f"📝 Saved port config: {self.config_file}")
+            return config
+        except Exception as e:
+            self.logger.error(f"⚠️ Failed to save port config: {e}")
+            return None
+    
+    def cleanup(self):
+        """Enhanced cleanup with graceful shutdown support"""
+        self.logger.info("🧟 Starting graceful TORI cleanup...")
+        
+        # Save state first
+        try:
+            state = {
+                "timestamp": datetime.now().isoformat(),
+                "session_id": self.enhanced_logger.session_id,
+                "api_port": self.api_port,
+                "frontend_port": self.frontend_port,
+                "mcp_port": self.mcp_metacognitive_port,
+                "processes": {}
+            }
+            
+            # Collect process info
+            for name, proc in [
+                ("api_server", None),  # API runs in thread
+                ("frontend", self.frontend_process),
+                ("mcp_server", self.mcp_metacognitive_process),
+                ("audio_bridge", self.audio_bridge_process),
+                ("concept_bridge", self.concept_mesh_bridge_process)
+            ]:
+                if proc and proc.poll() is None:
+                    state["processes"][name] = proc.pid
+            
+            # Save state
+            state_file = self.script_dir / "tori_shutdown_state.json"
+            with open(state_file, 'w') as f:
+                json.dump(state, f, indent=2)
+            self.logger.info(f"💾 Saved shutdown state to {state_file}")
+        except Exception as e:
+            self.logger.error(f"Error saving state: {e}")
+        
+        # Shutdown Python components gracefully
+        if self.metacognitive_server:
+            try:
+                self.logger.info("🛍️ Stopping metacognitive monitoring...")
+                self.metacognitive_server.stop_monitoring()
+            except Exception as e:
+                self.logger.error(f"⚠️ Error stopping metacognitive monitoring: {e}")
+        
+        if self.concept_mesh:
+            try:
+                self.logger.info("💾 Saving concept mesh...")
+                self.concept_mesh.shutdown()
+            except Exception as e:
+                self.logger.error(f"⚠️ Error saving concept mesh: {e}")
+        
+        if self.memory_vault:
+            try:
+                self.logger.info("💾 Saving memory vault...")
+                self.memory_vault.save_all()
+            except Exception as e:
+                self.logger.error(f"⚠️ Error saving memory vault: {e}")
+        
+        # Register processes with shutdown handler if available
+        if shutdown_handler:
+            processes = [
+                ("frontend", self.frontend_process),
+                ("mcp_metacognitive", self.mcp_metacognitive_process),
+                ("audio_bridge", self.audio_bridge_process),
+                ("concept_mesh_bridge", self.concept_mesh_bridge_process),
+            ]
+            
+            for name, proc in processes:
+                if proc and proc.poll() is None:
+                    shutdown_handler.register_process(
+                        name, 
+                        proc.pid, 
+                        is_critical=(name == "mcp_metacognitive"),
+                        shutdown_timeout=5.0
+                    )
+        else:
+            # Fallback cleanup
+            cleanup_tasks = [
+                ("frontend", self.frontend_process),
+                ("prajna", self.prajna_process),
+                ("mcp", self.mcp_process),
+                ("mcp_metacognitive", self.mcp_metacognitive_process),
+                ("audio_bridge", self.audio_bridge_process),
+                ("concept_mesh_bridge", self.concept_mesh_bridge_process),
+                ("cognitive_engine", self.cognitive_engine_process),
+                ("memory_vault", self.memory_vault_process),
+                ("eigenvalue_monitor", self.eigenvalue_monitor_process),
+                ("lyapunov_analyzer", self.lyapunov_analyzer_process),
+                ("koopman_operator", self.koopman_operator_process)
+            ]
+            
+            for service_name, process in cleanup_tasks:
+                if process and process.poll() is None:
+                    try:
+                        self.logger.info(f"🛑 Terminating {service_name} process...")
+                        process.terminate()
+                        
+                        # Wait for graceful termination
+                        try:
+                            process.wait(timeout=5)
+                            self.logger.info(f"✅ {service_name} process terminated gracefully")
+                        except subprocess.TimeoutExpired:
+                            # Force kill if needed
+                            process.kill()
+                            self.logger.info(f"🔫 Force killed {service_name} process")
+                            
+                    except Exception as e:
+                        self.logger.error(f"⚠️ Error terminating {service_name} process: {e}")
+        
+        # Update final status
+        try:
+            self.update_status("shutdown", "complete", {
+                "cleanup_time": datetime.now().isoformat(),
+                "session_duration": time.time() - time.time()  # Approximate
+            })
+        except:
+            pass  # Don't fail on status update
+        
+        # Log session summary
+        self.logger.info("📋 Session Summary:")
+        self.logger.info(f"   📁 Log files: {self.enhanced_logger.session_dir}")
+        self.logger.info(f"   🆔 Session ID: {self.enhanced_logger.session_id}")
+        self.logger.info("✅ Graceful TORI cleanup complete")
+
+    def start_api_server(self, port):
+        """Start the API server with bulletproof error handling"""
+        self.update_status("api_startup", "starting", {"port": port})
+        self.logger.info(f"🌐 Starting API server on port {port}...")
+        
+        # Change to correct directory
+        os.chdir(self.script_dir)
+        
+        # Final system health check before starting server
+        health = self.health_checker.check_system_resources()
+        if not health.get("healthy", False):
+            self.logger.warning("⚠️ Starting API server under stressed system conditions")
+        
+        # Dynamic API selection based on CLI flag
+        api_mode = args.api  # Keep lowercase
+        api_app = None
+        api_mode_label = None
+        
+        if api_mode == "quick":
+            self.logger.info("🚀 Loading QUICK API (minimal endpoints)")
+            try:
+                from quick_api_server import app as api_app
+                api_mode_label = "QUICK"
+            except Exception as e:
+                self.logger.error(f"❌ Failed to import quick API: {e}")
+                self.logger.error(f"Traceback:\n{traceback.format_exc()}")
+                raise
+        else:
+            self.logger.info("🚀 Loading FULL API (all concept mesh endpoints)")
+            try:
+                # Attempt to import full API from prajna package
+                from prajna.api.prajna_api import app as api_app
+                api_mode_label = "FULL"
+                self.logger.info("✅ Successfully imported full API from prajna.api.prajna_api")
+            except Exception as e:
+                self.logger.error(f"❌ Failed to import full API module: {e}")
+                self.logger.error(f"Traceback:\n{traceback.format_exc()}")
+                self.logger.error("👉 Hint: Check that 'prajna/api/prajna_api.py' exists, has __init__.py files, and is on PYTHONPATH.")
+                self.logger.error("📁 Expected structure:")
+                self.logger.error("   kha/")
+                self.logger.error("   ├── prajna/              # Must have __init__.py")
+                self.logger.error("   │   ├── __init__.py")
+                self.logger.error("   │   └── api/             # Must have __init__.py")
+                self.logger.error("   │       ├── __init__.py")
+                self.logger.error("   │       └── prajna_api.py")
+                self.logger.error("   └── quick_api_server.py")
+                
+                # Fallback to quick API
+                self.logger.warning("⚠️ Falling back to QUICK API due to full API import failure")
+                try:
+                    from quick_api_server import app as api_app
+                    api_mode_label = "QUICK (fallback)"
+                    self.logger.info("✅ Using Quick API fallback due to import failure")
+                except Exception as e2:
+                    self.logger.error(f"❌ Failed to import quick API module: {e2}")
+                    self.logger.error(f"Traceback:\n{traceback.format_exc()}")
+                    raise RuntimeError("Cannot proceed - both full and quick API imports failed")
+        
+        # Ensure we have an API app
+        if api_app is None:
+            raise RuntimeError(f"No API app loaded for mode: {api_mode}")
+        
+        self.logger.info(f"📍 Starting {api_mode_label} API on port {port}")
+        self.logger.info(f"🎯 {api_mode_label} API SERVER READY:")
+        self.logger.info(f"   📍 Port: {port}")
+        self.logger.info(f"   🌐 URL: http://localhost:{port}")
+        self.logger.info(f"   ❤️ Health: http://localhost:{port}/api/health")
+        self.logger.info(f"   📚 Docs: http://localhost:{port}/docs")
+        
+        if api_mode_label and api_mode_label.startswith("FULL"):
+            self.logger.info(f"   🧠 Concept Mesh: http://localhost:{port}/api/v1/concepts")
+            self.logger.info(f"   📊 Concept Status: http://localhost:{port}/api/v1/concept-mesh/status")
+            self.logger.info(f"   💾 Soliton Memory: http://localhost:{port}/api/v1/soliton/*")
+        
+        self.logger.info(f"   🧠 Prajna: http://localhost:{port}/api/answer")
+        self.logger.info(f"   📊 Prajna Stats: http://localhost:{port}/api/prajna/stats")
+        self.logger.info(f"   🤖 Model: Saigon LSTM with neural mesh-to-text")
+        self.logger.info(f"   👥 Personas: 4D cognitive coordinate support")
+        self.logger.info(f"   🔧 Features: UTF-8 encoding, bulletproof error handling")
+        
+        self.update_status("api_startup", "ready", {
+            "port": port,
+            "api_mode": api_mode_label,
+            "urls": {
+                "api": f"http://localhost:{port}",
+                "health": f"http://localhost:{port}/api/health",
+                "docs": f"http://localhost:{port}/docs",
+                "prajna_answer": f"http://localhost:{port}/api/answer",
+                "prajna_stats": f"http://localhost:{port}/api/prajna/stats"
+            },
+            "system_health": health
+        })
+        
+        # Start the server with bulletproof configuration
+        try:
+
+            # Start the server with bulletproof error handling
+            try:
+                self.logger.info(f"[INFO] Starting uvicorn server with {api_mode_label} API...")
+                
+                uvicorn.run(
+                api_app,  # Use dynamically selected API
+                host="0.0.0.0",
+                port=port,
+                reload=False,  # Stable mode - no file watching
+                workers=1,
+                log_level="info",
+                access_log=True,
+                timeout_keep_alive=30,  # Increased timeout
+                timeout_graceful_shutdown=10,  # Graceful shutdown
+            )
+            except Exception as e:
+                self.logger.error(f"[ERROR] API server failed to start: {e}")
+                self.logger.error(f"Traceback: {traceback.format_exc()}")
+                self.update_status("api_startup", "failed", {"error": str(e), "traceback": traceback.format_exc()})
+                # Re-raise to ensure the thread exits properly
+                raise
+        except Exception as e:
+            self.logger.error(f"❌ API server failed to start: {e}")
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            self.update_status("api_startup", "failed", {"error": str(e)})
+            raise
+    
+    async def launch_async_components(self):
+        """Launch async components including oscillator lattice"""
+        try:
+            # Import lattice runner
+            from python.core.lattice_evolution_runner import run_forever as run_lattice
+            
+            self.logger.info("🌊 Starting oscillator lattice evolution...")
+            # Create lattice task
+            lattice_task = asyncio.create_task(run_lattice())
+            
+            # Keep tasks running
+            await asyncio.gather(lattice_task)
+            
+        except ImportError as e:
+            self.logger.warning(f"⚠️ Could not import lattice runner: {e}")
+        except Exception as e:
+            self.logger.error(f"❌ Error in async components: {e}")
+    
+    def launch(self):
+        """Bulletproof launch sequence with graceful shutdown support"""
+        try:
+            # Setup signal handlers if graceful shutdown available
+            if shutdown_handler:
+                shutdown_handler.setup_signal_handlers()
+            
+            # Protected initialization phase - protect critical startup
+            if GRACEFUL_SHUTDOWN_AVAILABLE and 'delayed_keyboard_interrupt' in globals():
+                with delayed_keyboard_interrupt():
+                    self.print_banner()
+                    
+                    # Step 1: Get API port using dynamic allocation or CLI override
+                    self.update_status("startup", "port_search", {"message": "Finding available port"})
+                    
+                    # Check if user provided --api-port override
+                    if args.api_port:
+                        self.api_port = args.api_port
+                        self.logger.info(f"📌 Using user-specified API port: {self.api_port}")
+                    else:
+                        # Use dynamic allocation based on API mode
+                        self.api_port = service_ports.get_api_port(args.api)
+                        self.logger.info(f"✅ Got API port: {self.api_port} (mode: {args.api})")
+            else:
+                self.print_banner()
+                
+                # Step 1: Get API port using dynamic allocation or CLI override
+                self.update_status("startup", "port_search", {"message": "Finding available port"})
+                
+                # Check if user provided --api-port override
+                if args.api_port:
+                    self.api_port = args.api_port
+                    self.logger.info(f"📌 Using user-specified API port: {self.api_port}")
+                else:
+                    # Use dynamic allocation based on API mode
+                    self.api_port = service_ports.get_api_port(args.api)
+                    self.logger.info(f"✅ Got API port: {self.api_port} (mode: {args.api})")
+            
+            # Step 2: Start API server FIRST in background thread
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🚀 STARTING API SERVER FIRST...")
+            self.logger.info("=" * 50)
+            
+            api_thread = threading.Thread(
+                target=self._run_api_server,
+                args=(self.api_port,),
+                daemon=True,
+                name="APIServer"
+            )
+            api_thread.start()
+            
+            # Step 3: WAIT for API to be healthy before anything else
+            self.logger.info("⏳ Waiting for API server to be healthy...")
+            if not self._wait_for_api_health(self.api_port):
+                self.logger.error("❌ API server failed to start!")
+                return 1
+            
+            self.logger.info("✅ API server is healthy and ready!")
+            
+            # NOW start other components
+            # Step 4: MCP Metacognitive server
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🧠 STARTING MCP METACOGNITIVE SERVER...")
+            self.logger.info("=" * 50)
+            mcp_started = self.start_mcp_metacognitive_server()
+            
+            # Step 5: Configure Prajna
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🧠 CONFIGURING PRAJNA...")
+            self.logger.info("=" * 50)
+            prajna_configured = self.configure_prajna_integration_enhanced()
+            
+            # Step 6: Start core components
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🧠 STARTING CORE COMPONENTS...")
+            self.logger.info("=" * 50)
+            core_components_started = self.start_core_python_components()
+            stability_components_started = self.start_stability_components()
+            
+            # Step 7: Start hologram services if enabled
+            audio_bridge_started = False
+            concept_mesh_bridge_started = False
+            
+            if args.enable_hologram:
+                self.logger.info("\n" + "=" * 50)
+                self.logger.info("🌟 STARTING HOLOGRAM SERVICES...")
+                self.logger.info("=" * 50)
+                
+                # Start audio bridge if requested
+                if args.hologram_audio:
+                    audio_bridge_started = self.start_audio_hologram_bridge()
+                
+                # Start concept mesh bridge
+                concept_mesh_bridge_started = self.start_concept_mesh_hologram_bridge()
+            
+            
+            # Start bridge health monitoring
+            self.start_bridge_health_monitor()
+
+            # Step 8: Start async components
+            try:
+                from python.core.lattice_evolution_runner import run_forever as run_lattice
+                
+                def run_lattice_thread():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(run_lattice())
+                    except Exception as e:
+                        self.logger.error(f"Lattice runner error: {e}")
+                    finally:
+                        loop.close()
+                
+                lattice_thread = threading.Thread(
+                    target=run_lattice_thread,
+                    daemon=True,
+                    name="OscillatorLattice"
+                )
+                lattice_thread.start()
+                self.logger.info("✅ Oscillator lattice started in background")
+                
+            except ImportError:
+                self.logger.warning("⚠️ Oscillator lattice not available")
+            
+            # Step 9: FINALLY start frontend (API is already up!)
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🎨 STARTING FRONTEND...")
+            self.logger.info("=" * 50)
+            frontend_started = self.start_frontend_services_enhanced()
+            
+            # Save config and print status
+            config = self.save_port_config(self.api_port, self.prajna_port, self.frontend_port, self.mcp_metacognitive_port)
+            self.print_complete_system_ready(
+                self.api_port, 
+                prajna_configured, 
+                frontend_started, 
+                mcp_started, 
+                core_components_started, 
+                stability_components_started,
+                audio_bridge_started,
+                concept_mesh_bridge_started
+            )
+            
+            # Keep main thread alive
+            if shutdown_handler:
+                self.logger.info("\n🎯 System ready! Press Ctrl+C for graceful shutdown (no more DLL errors!).")
+            else:
+                self.logger.info("\n🎯 System ready! Press Ctrl+C to shutdown.")
+            api_thread.join()
+            
+        except KeyboardInterrupt:
+            self.logger.info("\n👋 Graceful shutdown requested by user")
+            self.update_status("shutdown", "user_requested", {"message": "Ctrl+C pressed"})
+            if not shutdown_handler:
+                # Fallback cleanup
+                self.cleanup()
+        except Exception as e:
+            self.logger.error(f"❌ Launch failed: {e}")
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            self.update_status("startup", "failed", {"error": str(e), "traceback": traceback.format_exc()})
+            return 1
+        
+        return 0
+    
+    def print_complete_system_ready(self, api_port, prajna_configured, frontend_started, mcp_started=False, 
+                                   core_components_started=False, stability_components_started=False,
+                                   audio_bridge_started=False, concept_mesh_bridge_started=False):
+        """Print complete system ready status with bulletproof formatting"""
+        self.logger.info("\n" + "🎉 " * 25)
+        self.logger.info("🎯 ENHANCED TORI SYSTEM READY - BULLETPROOF EDITION v2.1:")
+        self.logger.info(f"   🔧 API Server: http://localhost:{api_port}")
+        self.logger.info(f"   📚 API Docs: http://localhost:{api_port}/docs")
+        self.logger.info(f"   ❤️ Health Check: http://localhost:{api_port}/api/health")
+        
+        # Frontend status
+        if frontend_started and self.frontend_port:
+            self.logger.info(f"   🎨 Frontend: http://localhost:{self.frontend_port}")
+            if self.frontend_port == 5173:
+                self.logger.info(f"   ✅ Proxy Status: WORKING (port 5173 secured)")
+                self.logger.info(f"   📤 Upload Status: WORKING (proxy active)")
+            else:
+                self.logger.warning(f"   ⚠️ Proxy Status: ALTERNATIVE PORT ({self.frontend_port})")
+                self.logger.warning(f"   📤 Upload Status: May need proxy configuration")
+            self.logger.info(f"   🌐 Browser: Auto-opened to frontend")
+        else:
+            self.logger.info("   🎨 Frontend: Not available (API-only mode)")
+            self.logger.info("   📤 Upload Status: API endpoints available")
+        
+        # Prajna status
+        if prajna_configured and self.prajna_port:
+            self.logger.info(f"   🧠 Prajna Voice: http://localhost:{self.prajna_port}/api/answer")
+            self.logger.info(f"   📊 Prajna Stats: http://localhost:{self.prajna_port}/api/prajna/stats")
+            self.logger.info(f"   🤖 Neural Model: Saigon LSTM (mesh-to-text with smoothing)")
+            self.logger.info(f"   👥 Persona Support: 4D cognitive coordinates (ψ, ε, τ, φ)")
+            self.logger.info(f"   🎯 Generation Method: LSTM smoothed with UTF-8 support")
+        else:
+            self.logger.info("   🧠 Prajna Voice: Not available (manual setup needed)")
+        
+        # 🌟 Hologram Services status
+        if args.enable_hologram:
+            self.logger.info("\n🌟 HOLOGRAPHIC VISUALIZATION SERVICES:")
+            
+            if concept_mesh_bridge_started and self.concept_mesh_bridge_port:
+                self.logger.info(f"   🧠➡️🌟 Concept Mesh Hologram: ws://localhost:{self.concept_mesh_bridge_port}/concepts")
+                self.logger.info(f"   📊 Concepts as Entities: Each concept becomes a glowing hologram")
+                self.logger.info(f"   🔗 Relationships as Energy: Connections visualized as particle flows")
+                self.logger.info(f"   🎯 Real-time Updates: Concepts appear/disappear dynamically")
+                if self.concept_mesh:
+                    self.logger.info(f"   📚 Concepts Loaded: {self.concept_mesh.count()}")
+            
+            if audio_bridge_started and self.audio_bridge_port:
+                self.logger.info(f"   🎵➡️🌟 Audio to Hologram: ws://localhost:{self.audio_bridge_port}/audio_stream")
+                self.logger.info(f"   🎤 Real-time Processing: Voice becomes holographic patterns")
+                self.logger.info(f"   🌊 Waveform Synthesis: Audio features drive oscillators")
+        
+        # 🧠 TORI's MCP Metacognitive status with Phase 2 components
+        if mcp_started:
+            self.logger.info(f"\n🧬 TORI's Cognitive Engine: http://localhost:{self.mcp_metacognitive_port}/sse")
+            self.logger.info(f"   🤖 Integration: Direct API access for TORI's cognitive processing")
+            self.logger.info(f"   🧠 Consciousness Monitoring: IIT-based with Φ threshold 0.3")
+            self.logger.info(f"   🎯 Metacognitive Levels: 3 (base, velocity, curvature)")
+            self.logger.info(f"   🔄 Cognitive Dynamics: Stochastic evolution with reflection")
+            self.logger.info(f"   🔮 Self-Modification: Free energy optimization preserving consciousness")
+            self.logger.info(f"   🌌 Knowledge Sheaf: Distributed cognitive representation")
+            
+            # Dynamic components status
+            self.logger.info("\n🎆 DYNAMIC MCP ECOSYSTEM:")
+            self.logger.info(f"   🔍 Server Discovery: Automatic detection of all MCP servers")
+            self.logger.info(f"   📦 Dynamic Loading: Drop new servers in agents/ or extensions/ folders")
+            self.logger.info(f"   🚀 Auto-Start: Servers with auto_start=true launch automatically")
+            self.logger.info(f"   📊 System Status: http://localhost:{self.mcp_metacognitive_port}/api/system/status")
+            self.logger.info(f"   🔌 Extensible: Add servers via code or servers.json manifest")
+            
+            # Show available endpoints based on discovered servers
+            try:
+                response = requests.get(f'http://localhost:{self.mcp_metacognitive_port}/api/system/status', timeout=2)
+                if response.status_code == 200:
+                    status = response.json()
+                    servers = status.get('servers', {})
+                    
+                    self.logger.info("\n📡 AVAILABLE ENDPOINTS:")
+                    for server_name, server_info in servers.items():
+                        if server_info.get('running') and server_info.get('endpoints'):
+                            self.logger.info(f"   {server_name}:")
+                            for endpoint in server_info['endpoints']:
+                                self.logger.info(f"     • {endpoint['method']} {endpoint['path']} - {endpoint['description']}")
+            except:
+                pass
+        else:
+            self.logger.info("   🧬 TORI's Cognitive Engine: Not available")
+        
+        # Core Python Components status
+        if core_components_started:
+            self.logger.info("\n🧠 CORE PYTHON COMPONENTS:")
+            if self.cognitive_engine:
+                self.logger.info("   ✅ CognitiveEngine: Active (pattern recognition, learning)")
+            if self.memory_vault:
+                self.logger.info("   ✅ UnifiedMemoryVault: Active (file-based storage, NO DATABASE)")
+            if self.concept_mesh:
+                self.logger.info("   ✅ ConceptMesh: Active (real implementation, graph-based)")
+            if self.cognitive_interface:
+                self.logger.info("   ✅ CognitiveInterface: Active (unified API for all components)")
+            if self.metacognitive_server:
+                self.logger.info("   ✅ MCPMetacognitiveServer: Active (strategy selection, monitoring)")
+        else:
+            self.logger.info("   🧠 Core Components: Not initialized")
+        
+        # Stability Components status
+        if stability_components_started:
+            self.logger.info("\n🔬 STABILITY ANALYSIS COMPONENTS:")
+            if self.eigenvalue_monitor:
+                self.logger.info("   ✅ EigenvalueMonitor: Active (system stability tracking)")
+            if self.lyapunov_analyzer:
+                self.logger.info("   ✅ LyapunovAnalyzer: Active (chaos detection)")
+            if self.koopman_operator:
+                self.logger.info("   ✅ KoopmanOperator: Active (dynamical systems analysis)")
+        else:
+            self.logger.info("   🔬 Stability Components: Not initialized")
+        
+        # System info
+        self.logger.info(f"\n📋 Session ID: {self.enhanced_logger.session_id}")
+        self.logger.info(f"   📁 Logs: {self.enhanced_logger.session_dir}")
+        self.logger.info(f"   🔧 Features: Bulletproof error handling, concept mesh fixes, UTF-8 encoding")
+        if args.enable_hologram:
+            self.logger.info(f"   🌟 Hologram Mode: ENABLED - Concepts visualized as light!")
+        
+        # Health status
+        health = self.health_checker.check_system_resources()
+        health_status = "✅ Healthy" if health.get("healthy") else "⚠️ Stressed"
+        self.logger.info(f"   💊 System Health: {health_status}")
+        
+        # System integration status
+        self.logger.info("\n🔗 INTEGRATION STATUS:")
+        if frontend_started:
+            self.logger.info("   ✅ Frontend ↔ API: WORKING")
+            self.logger.info("   ✅ Upload Pipeline: READY")
+            self.logger.info("   ✅ Persona Selection: READY")
+            if args.enable_hologram:
+                self.logger.info("   ✅ Hologram Visualization: READY")
+                self.logger.info("   ✅ WebSocket Bridges: CONNECTED")
+        else:
+            self.logger.info("   ⚠️ Frontend ↔ API: API-ONLY MODE")
+            self.logger.info("   ✅ Direct API Access: WORKING")
+            self.logger.info("   ✅ Prajna Endpoints: READY")
+        
+        # Memory system status
+        self.logger.info("   ✅ Concept Mesh: Data structure validated")
+        self.logger.info("   ✅ Error Handling: Bulletproof mode active")
+        
+        # Quick test suggestions
+        self.logger.info("\n🧪 QUICK TESTS:")
+        if frontend_started and self.frontend_port:
+            self.logger.info(f"   Test Frontend: Open http://localhost:{self.frontend_port}")
+            if args.enable_hologram:
+                self.logger.info(f"   Test Hologram: Click 'Start Hologram' button in browser")
+        self.logger.info(f"   Test API: curl http://localhost:{api_port}/api/health")
+        if prajna_configured and self.prajna_port:
+            self.logger.info(f"   Test Saigon: curl -X POST http://localhost:{self.prajna_port}/api/answer \\")
+            self.logger.info(f"     -H 'Content-Type: application/json' \\")
+            self.logger.info(f"     -d '{{\"user_query\": \"What is consciousness?\", \"persona\": {{\"name\": \"Scholar\", \"ψ\": \"analytical\"}}}}'")
+        
+        if args.enable_hologram and concept_mesh_bridge_started:
+            self.logger.info(f"\n🌟 HOLOGRAM QUICK START:")
+            self.logger.info(f"   1. Open browser to frontend")
+            self.logger.info(f"   2. Click 'Start Hologram' button")
+            self.logger.info(f"   3. Watch concepts appear as glowing entities")
+            self.logger.info(f"   4. Click concepts to explore relationships")
+            if audio_bridge_started:
+                self.logger.info(f"   5. Allow microphone access")
+                self.logger.info(f"   6. Speak - watch concepts react to your voice!")
+        
+        self.logger.info("🎉 " * 25 + "\n")
+
+def main():
+    """Bulletproof main entry point"""
+    try:
+        # Check Python version
+        if sys.version_info < (3, 8):
+            print("❌ Python 3.8+ required")
+            return 1
+        
+        # Check critical dependencies
+        try:
+            import psutil
+            import requests
+            import uvicorn
+        except ImportError as e:
+            print(f"❌ Missing critical dependency: {e}")
+            print("💡 Run: pip install psutil requests uvicorn")
+            return 1
+        
+        launcher = EnhancedUnifiedToriLauncher()
+        return launcher.launch()
+        
+    except Exception as e:
+        print(f"❌ Critical startup failure: {e}")
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

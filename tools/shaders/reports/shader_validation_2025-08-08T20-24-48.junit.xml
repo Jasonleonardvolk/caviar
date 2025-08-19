@@ -1,0 +1,816 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Shader Quality Gate" tests="84" failures="43" errors="0" time="1" timestamp="2025-08-08T20:24:48.003Z">
+    <testcase name="frontend\hybrid\wgsl\lightFieldComposerEnhanced.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\hybrid\wgsl\.temp_lightFieldComposerEnhanced.wgsl:133:22
+    │
+133 │     let baseColor1 = textureLoad(baseTex, vec2<i32>(localCoord), i32(baseViewIdx));
+    │                      ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\hybrid\wgsl\.temp_lightFieldComposerEnhanced.wgsl:133:22
+    │
+133 │     let baseColor1 = textureLoad(baseTex, vec2<i32>(localCoord), i32(baseViewIdx));
+    │                      ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "\u{feff}"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder.wgsl:1:1
+  │
+1 │ ﻿// C:\Users\jason\Desktop\tori\kha\frontend\shaders\wavefieldEncoder.wgsl
+  │  expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "\u{feff}"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder.wgsl:1:1
+  │
+1 │ ﻿// C:\Users\jason\Desktop\tori\kha\frontend\shaders\wavefieldEncoder.wgsl
+  │  expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\public\hybrid\wgsl\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "\u{feff}"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_wavefieldEncoder.wgsl:1:1
+  │
+1 │ ﻿// C:\Users\jason\Desktop\tori\kha\frontend\shaders\wavefieldEncoder.wgsl
+  │  expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "\u{feff}"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\public\hybrid\wgsl\.temp_wavefieldEncoder.wgsl:1:1
+  │
+1 │ ﻿// C:\Users\jason\Desktop\tori\kha\frontend\shaders\wavefieldEncoder.wgsl
+  │  expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\public\hybrid\wgsl\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__hybrid__hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__hybrid__multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__hybrid__phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__hybrid__wgsl__lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__wgsl__lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__hybrid__wgsl__lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__public__hybrid__wgsl__phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_frontend__public__hybrid__wgsl__topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_frontend__public__hybrid__wgsl__topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__public__hybrid__wgsl__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__public__hybrid__wgsl__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__public__hybrid__wgsl__wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders.bak__avatarShader.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders.bak__avatarShader.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders.bak__avatarShader.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders.bak__bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders.bak__normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders.bak__propagation.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[WARN  naga::valid::interface] 	Usage error for: GlobalVariable { name: Some("output_field"), space: Handle, binding: Some(ResourceBinding { group: 1, binding: 1 }), ty: [6], init: None }
+[WARN  naga::valid::interface] 	Allowed usage: GlobalUse(WRITE | QUERY), requested: GlobalUse(READ | WRITE | QUERY)
+[0m[1m[38;5;9merror[0m[1m: Entry point post_process at Compute is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders.bak__propagation.wgsl:51:23
+   [0m[36m│[0m
+[0m[36m51[0m [0m[36m│[0m @group(1) @binding(1) [0m[31mvar output_field: texture_storage_2d<rg32float, write>;[0m    // Complex field output
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [4][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Global variable [4] is used incorrectly as GlobalUse(READ | WRITE | QUERY)
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [WARN  naga::valid::interface] 	Usage error for: GlobalVariable { name: Some("output_field"), space: Handle, binding: Some(ResourceBinding { group: 1, binding: 1 }), ty: [6], init: None }
+[WARN  naga::valid::interface] 	Allowed usage: GlobalUse(WRITE | QUERY), requested: GlobalUse(READ | WRITE | QUERY)
+[0m[1m[38;5;9merror[0m[1m: Entry point post_process at Compute is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders.bak__propagation.wgsl:51:23
+   [0m[36m│[0m
+[0m[36m51[0m [0m[36m│[0m @group(1) @binding(1) [0m[31mvar output_field: texture_storage_2d<rg32float, write>;[0m    // Complex field output
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [4][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Global variable [4] is used incorrectly as GlobalUse(READ | WRITE | QUERY)
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders.bak__transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__avatarShader.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__avatarShader.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__avatarShader.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: invalid left-hand side of assignment
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__lenticularInterlace.wgsl:300:5
+    │
+300 │     color.rgb = apply_calibration_fast(color.rgb);
+    │     ^^^^^^^^^ cannot assign to this expression
+    │
+    = note: WGSL does not support assignments to swizzles
+    = note: consider assigning each component individually
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: invalid left-hand side of assignment
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__lenticularInterlace.wgsl:300:5
+    │
+300 │     color.rgb = apply_calibration_fast(color.rgb);
+    │     ^^^^^^^^^ cannot assign to this expression
+    │
+    = note: WGSL does not support assignments to swizzles
+    = note: consider assigning each component individually
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)
+NAGA_VALIDATION: Could not parse WGSL:
+error: invalid field accessor `aberration_strength`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__multiViewSynthesis.wgsl:196:52
+    │
+196 │     let aberration_r = view_offset * render_params.aberration_strength * 
+    │                                                    ^^^^^^^^^^^^^^^^^^^ invalid accessor
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__propagation.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[WARN  naga::valid::interface] 	Usage error for: GlobalVariable { name: Some("output_field"), space: Handle, binding: Some(ResourceBinding { group: 1, binding: 1 }), ty: [6], init: None }
+[WARN  naga::valid::interface] 	Allowed usage: GlobalUse(WRITE | QUERY), requested: GlobalUse(READ | WRITE | QUERY)
+[0m[1m[38;5;9merror[0m[1m: Entry point post_process at Compute is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders__propagation.wgsl:51:23
+   [0m[36m│[0m
+[0m[36m51[0m [0m[36m│[0m @group(1) @binding(1) [0m[31mvar output_field: texture_storage_2d<rg32float, write>;[0m    // Complex field output
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [4][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Global variable [4] is used incorrectly as GlobalUse(READ | WRITE | QUERY)
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [WARN  naga::valid::interface] 	Usage error for: GlobalVariable { name: Some("output_field"), space: Handle, binding: Some(ResourceBinding { group: 1, binding: 1 }), ty: [6], init: None }
+[WARN  naga::valid::interface] 	Allowed usage: GlobalUse(WRITE | QUERY), requested: GlobalUse(READ | WRITE | QUERY)
+[0m[1m[38;5;9merror[0m[1m: Entry point post_process at Compute is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders__propagation.wgsl:51:23
+   [0m[36m│[0m
+[0m[36m51[0m [0m[36m│[0m @group(1) @binding(1) [0m[31mvar output_field: texture_storage_2d<rg32float, write>;[0m    // Complex field output
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [4][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Global variable [4] is used incorrectly as GlobalUse(READ | WRITE | QUERY)
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__velocityField.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: unknown attribute: `group`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__velocityField.wgsl:284:21
+    │
+284 │                    @group(0) @binding(5) var<storage, read_write> particles: array<vec4<f32>>) {
+    │                     ^^^^^ unknown attribute
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: unknown attribute: `group`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_frontend__shaders__velocityField.wgsl:284:21
+    │
+284 │                    @group(0) @binding(5) var<storage, read_write> particles: array<vec4<f32>>) {
+    │                     ^^^^^ unknown attribute
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp_frontend__shaders__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\frontend__shaders__wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\tori_ui_svelte__src__shaders__avatarShader.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "["
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_tori_ui_svelte__src__shaders__avatarShader.wgsl:3:1
+  │
+3 │ [[block]] struct Uniforms {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "["
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp_tori_ui_svelte__src__shaders__avatarShader.wgsl:3:1
+  │
+3 │ [[block]] struct Uniforms {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__bitReversal.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Duplicate binding: @group(0) @binding(2)" type="NO_DUPLICATE_BINDINGS"><![CDATA[NO_DUPLICATE_BINDINGS: Duplicate binding: @group(0) @binding(2)
+NO_DUPLICATE_BINDINGS: Duplicate binding: @group(0) @binding(3)]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__fftShift.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: entry point cannot be called
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__fftShift.wgsl:133:5
+    │
+133 │     main(global_id);
+    │     ^^^^ entry point cannot be called
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: entry point cannot be called
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__fftShift.wgsl:133:5
+    │
+133 │     main(global_id);
+    │     ^^^^ entry point cannot be called
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__normalize.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Entry point normalize_and_magnitude at Compute is invalid[0m
+    [0m[36m┌─[0m .temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__normalize.wgsl:118:5
+    [0m[36m│[0m
+[0m[36m118[0m [0m[36m│[0m     [0m[31moutput[idx][0m = [0m[31mvec4<f32>(normalized, magnitude, 0.0)[0m;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^[0m   [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::Expression [21][0m
+    [0m[36m│[0m     [0m[31m│[0m              
+    [0m[36m│[0m     [0m[31mnaga::ir::Expression [19][0m
+    [0m[36m│[0m
+    [0m[36m=[0m The type of [21] doesn't match the type stored in [19]
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Entry point normalize_and_magnitude at Compute is invalid[0m
+    [0m[36m┌─[0m .temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__normalize.wgsl:118:5
+    [0m[36m│[0m
+[0m[36m118[0m [0m[36m│[0m     [0m[31moutput[idx][0m = [0m[31mvec4<f32>(normalized, magnitude, 0.0)[0m;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^[0m   [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::Expression [21][0m
+    [0m[36m│[0m     [0m[31m│[0m              
+    [0m[36m│[0m     [0m[31mnaga::ir::Expression [19][0m
+    [0m[36m│[0m
+    [0m[36m=[0m The type of [21] doesn't match the type stored in [19]
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__lib__webgpu__shaders__fft__transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: invalid left-hand side of assignment
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__lenticularInterlace.wgsl:300:5
+    │
+300 │     color.rgb = apply_calibration_fast(color.rgb);
+    │     ^^^^^^^^^ cannot assign to this expression
+    │
+    = note: WGSL does not support assignments to swizzles
+    = note: consider assigning each component individually
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: invalid left-hand side of assignment
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__lenticularInterlace.wgsl:300:5
+    │
+300 │     color.rgb = apply_calibration_fast(color.rgb);
+    │     ^^^^^^^^^ cannot assign to this expression
+    │
+    = note: WGSL does not support assignments to swizzles
+    = note: consider assigning each component individually
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)
+NAGA_VALIDATION: Could not parse WGSL:
+error: invalid field accessor `aberration_strength`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__multiViewSynthesis.wgsl:180:52
+    │
+180 │     let aberration_r = view_offset * render_params.aberration_strength * 
+    │                                                    ^^^^^^^^^^^^^^^^^^^ invalid accessor
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__propagation.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: name `filter` is a reserved keyword
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__propagation.wgsl:268:13
+    │
+268 │         let filter = raised_cosine_filter(freq);
+    │             ^^^^^^ definition of `filter`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: name `filter` is a reserved keyword
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__propagation.wgsl:268:13
+    │
+268 │         let filter = raised_cosine_filter(freq);
+    │             ^^^^^^ definition of `filter`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__velocityField.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: unknown attribute: `group`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__velocityField.wgsl:284:21
+    │
+284 │                    @group(0) @binding(5) var<storage, read_write> particles: array<vec4<f32>>) {
+    │                     ^^^^^ unknown attribute
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: unknown attribute: `group`
+    ┌─ C:\Users\jason\Desktop\tori\kha\frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\.temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__velocityField.wgsl:284:21
+    │
+284 │                    @group(0) @binding(5) var<storage, read_write> particles: array<vec4<f32>>) {
+    │                     ^^^^^ unknown attribute
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\shaders.bak\duplicates\2025-08-08T15-54-52-296Z\_TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+   [0m[36m┌─[0m .temp__TRASH_2025__.venv__src__penrose-engine-rs__frontend__shaders__wavefieldEncoder.wgsl:47:23
+   [0m[36m│[0m
+[0m[36m47[0m [0m[36m│[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36m│[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

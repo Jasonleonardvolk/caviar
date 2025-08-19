@@ -1,0 +1,295 @@
+{
+  `path`: `hybrid_config.yaml`,
+  `content`: `# hybrid_config.yaml
+# TORI-GAEA Unified Holographic System Configuration
+
+system:
+  name: \"TORI-GAEA Hybrid Holographic Core\"
+  version: \"1.0.0\"
+  architecture: \"hybrid_physical_computational\"
+
+# GAEA-2.1 SLM Hardware Configuration
+gaea_slm:
+  model: \"GAEA-2.1\"
+  resolution:
+    width: 4160
+    height: 2464
+  pixel_pitch: 3.74e-6  # meters
+  diagonal: 0.0178      # 0.7 inches in meters
+  
+  # Supported wavelengths for true holographic mode
+  wavelengths:
+    - 405e-9   # Violet
+    - 532e-9   # Green
+    - 633e-9   # Red
+    - 780e-9   # Near-IR
+  
+  # Performance specifications
+  refresh_rate: 120     # Hz
+  phase_levels: 256     # 8-bit phase control
+  response_time: 0.01   # seconds
+  fill_factor: 0.87     # 87% active area
+
+# Laser System Configuration
+laser_system:
+  coherent_sources:
+    violet_405nm:
+      wavelength: 405e-9
+      power_range: [0.001, 0.1]    # Watts
+      coherence_length: 10.0       # meters
+      stability: 0.001             # 0.1% RMS
+      beam_quality: 1.2            # M²
+    
+    green_532nm:
+      wavelength: 532e-9
+      power_range: [0.001, 0.1]
+      coherence_length: 15.0
+      stability: 0.001
+      beam_quality: 1.1
+    
+    red_633nm:
+      wavelength: 633e-9
+      power_range: [0.001, 0.1]
+      coherence_length: 20.0
+      stability: 0.001
+      beam_quality: 1.1
+    
+    infrared_780nm:
+      wavelength: 780e-9
+      power_range: [0.001, 0.1]
+      coherence_length: 25.0
+      stability: 0.001
+      beam_quality: 1.3
+
+# GPU Computational Configuration
+gpu_compute:
+  target_device: \"RTX_4070\"
+  webgpu_enabled: true
+  
+  # Compute specifications
+  compute_units: 2560
+  memory_bandwidth: 504    # GB/s
+  fp32_performance: 29     # TFLOPS
+  
+  # Shader configuration
+  shaders:
+    wavefield_encoder: \"wavefieldEncoder_optimized.wgsl\"
+    multi_view_synthesis: \"multiViewSynthesis.wgsl\"
+    wave_propagation: \"propagation.wgsl\"
+    phase_occlusion: \"phaseOcclusion.wgsl\"
+  
+  # Threading configuration
+  workgroup_size: [16, 16, 1]
+  max_dispatch_groups: [65535, 65535, 65535]
+
+# ψ-Oscillator Lattice Configuration
+psi_oscillator:
+  lattice_size: 64
+  coupling_strength: 0.1
+  time_step: 0.01
+  integrator: \"rk4\"              # \"euler\" or \"rk4\"
+  
+  # Synchronization parameters
+  base_frequency: 15.0           # Hz
+  detail_frequency: 45.0         # Hz
+  coherence_coupling: true
+  
+  # Memory integration
+  soliton_memory_enabled: true
+  fractal_dimension: 2.5
+  breathing_kagome: true
+
+# Fractal Soliton Memory Configuration
+soliton_memory:
+  lattice_size: 128
+  enable_curvature_coupling: true
+  enable_psi_feedback: true
+  
+  # Stability parameters (from breathing Kagome research)
+  breathing_ratio: 2.0           # t₁/t₂ = 2.0 for flat bands
+  nonlinearity_param: 0.33      # g = 0.33 (defocusing regime)
+  timestep_size: 0.005          # dt = 0.005 for 10⁶ stability
+  gamma_coefficient: 1.5        # W⁻¹·km⁻¹
+  
+  # Memory specifications
+  storage_density: 1e6          # bits/cm²
+  access_time: 10e-12           # 10 ps
+  soliton_lifetime: 10e-3       # 10 ms
+  
+  # Silicon nitride implementation
+  waveguide_dimensions:
+    core_thickness: 710e-9      # nm
+    core_width: 1250e-9         # nm
+    coupling_gap: 250e-9        # nm for breathing control
+    bend_radius: 75e-6          # μm
+
+# Mode Configuration
+rendering_modes:
+  true_holographic:
+    description: \"Physical laser-based reconstruction\"
+    applications: [\"scientific\", \"medical\", \"engineering\", \"research\"]
+    accuracy:
+      wavelength: 1e-9          # nm precision
+      phase: 0.01               # radians
+      depth: 1e-6               # meters
+    
+    quality_targets:
+      research:
+        phase_accuracy: 0.001   # radians RMS
+        power_stability: 0.0001 # 0.01% RMS
+        measurement_precision: 1e-8  # RIU
+      
+      broadcast:
+        phase_accuracy: 0.01
+        power_stability: 0.001
+        measurement_precision: 1e-6
+      
+      consumer:
+        phase_accuracy: 0.05
+        power_stability: 0.01
+        measurement_precision: 1e-4
+  
+  encoded_4d_persona:
+    description: \"GPU computational with time-varying coherence\"
+    applications: [\"entertainment\", \"persona\", \"gaming\", \"telepresence\"]
+    
+    # 4D parameters (3D spatial + temporal coherence)
+    coherence_control:
+      temporal_range: [0.1, 1.0]     # Coherence modulation range
+      spatial_range: [0.1, 1.0]
+      emotion_coupling: true          # Emotion affects coherence
+      interaction_adaptive: true      # Adapts to user interaction
+    
+    persona_parameters:
+      embedding_dimension: 128        # Persona vector size
+      emotion_sensitivity: 0.8        # How much emotion affects rendering
+      memory_length: 100              # Interaction history length
+      adaptation_rate: 0.1            # Learning rate for interactions
+    
+    quality_targets:
+      research:
+        frame_rate: 120             # fps
+        resolution: [4160, 2464]    # Full GAEA resolution
+        coherence_precision: 0.001  # Coherence control precision
+      
+      broadcast:
+        frame_rate: 60
+        resolution: [2080, 1232]    # Half resolution
+        coherence_precision: 0.01
+      
+      consumer:
+        frame_rate: 30
+        resolution: [1040, 616]     # Quarter resolution
+        coherence_precision: 0.1
+  
+  hybrid_blend:
+    description: \"Real-time blend of physical and computational\"
+    applications: [\"research\", \"demonstration\", \"validation\"]
+    
+    blend_control:
+      default_ratio: 0.5            # 50/50 blend
+      adaptive_blending: true       # AI-driven ratio adjustment
+      transition_time: 1.0          # seconds for mode transitions
+      coherence_lock: true          # Lock phase between subsystems
+    
+    performance_targets:
+      min_frame_rate: 30            # fps
+      max_latency: 33               # ms (for 30 fps)
+      coherence_stability: 0.99     # Phase lock stability
+  
+  adaptive:
+    description: \"AI-driven optimal mode selection\"
+    applications: [\"universal\"]
+    
+    ai_parameters:
+      content_analysis_enabled: true
+      user_behavior_tracking: true
+      performance_optimization: true
+      quality_adaptation: true
+    
+    decision_criteria:
+      precision_threshold: 0.7      # Above this -> True Holographic
+      interaction_threshold: 0.7    # Above this -> 4D Persona
+      blend_preference: 0.5         # Default to hybrid
+
+# Performance Monitoring
+monitoring:
+  enable_diagnostics: true
+  metrics_collection:
+    frame_rate: true
+    phase_accuracy: true
+    coherence_stability: true
+    memory_usage: true
+    gpu_utilization: true
+    thermal_monitoring: true
+  
+  alerts:
+    low_frame_rate: 20            # fps
+    high_phase_error: 0.1         # radians
+    low_coherence: 0.8            # coherence factor
+    high_temperature: 70          # Celsius
+  
+  logging:
+    level: \"INFO\"                 # DEBUG, INFO, WARNING, ERROR
+    log_to_file: true
+    max_log_size: 100             # MB
+    performance_logging: true
+
+# Integration Configuration
+integration:
+  psi_phase_bridge:
+    enabled: true
+    bidirectional_learning: true
+    injection_rate: 10            # Hz
+    feedback_enabled: true
+  
+  memory_vault:
+    enabled: true
+    persistent_storage: true
+    backup_interval: 3600         # seconds
+    compression_enabled: false    # Keep full precision
+  
+  external_apis:
+    # Placeholder for future integrations
+    looking_glass_compat: false
+    webxr_support: false
+    ar_vr_bridge: false
+
+# Safety and Limits
+safety:
+  laser_safety:
+    max_power_per_wavelength: 0.1  # Watts
+    eye_safety_interlocks: true
+    beam_containment: true
+    emergency_shutoff: true
+  
+  thermal_limits:
+    max_slm_temperature: 60        # Celsius
+    max_laser_temperature: 45      # Celsius
+    cooling_required: true
+  
+  electrical_limits:
+    max_slm_voltage: 12            # Volts
+    max_current_draw: 5            # Amperes
+    surge_protection: true
+
+# Development and Testing
+development:
+  enable_debug_mode: false
+  simulation_mode: false          # For testing without hardware
+  unit_testing: true
+  performance_profiling: false
+  
+  test_patterns:
+    phase_calibration: true
+    coherence_test: true
+    multi_wavelength: true
+    persona_validation: true
+  
+  debug_outputs:
+    save_phase_patterns: false
+    save_wavefields: false
+    export_diagnostics: true
+    timing_analysis: false
+`
+}

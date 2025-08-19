@@ -1,0 +1,62 @@
+Line Analysis of Cleanup-Shaders.ps1
+=====================================
+
+CONTEXT AROUND LINE 167 (Invoke-ShaderValidation function):
+------------------------------------------------------------
+0157: 
+0158:     # Setup canonical structure
+0159:     Write-ColorOutput "`n📁 Setting up canonical structure..." "Blue"
+0160:     $setupResult = Start-Process -FilePath "node" -ArgumentList @(
+0161:         "tools/shaders/setup_canonical_shaders.mjs"
+0162:     ) -Wait -NoNewWindow -PassThru
+0163:     
+0164:     return $result.ExitCode
+0165: }
+0166: 
+0167: function Invoke-ShaderValidation {
+0168:     Write-ColorOutput "`n✓ Validating shaders..." "Blue"
+0169:     
+0170:     $reportPath = Join-Path $ReportDir "validation_$Timestamp.json"
+0171:     
+0172:     $result = Start-Process -FilePath "node" -ArgumentList @(
+0173:         "tools/shaders/shader_quality_gate_v2.mjs",
+0174:         "--dir=frontend/lib/webgpu/shaders",
+0175:         "--strict",
+0176:         "--fix",
+0177:         "--targets=msl,hlsl",
+
+CONTEXT AROUND LINE 280 (Summary saved output):
+------------------------------------------------
+0268: # Generate summary report
+0269: $summaryPath = Join-Path $ReportDir "summary_$Timestamp.txt"
+0270: @"
+0271: Shader Management Summary
+0272: ========================
+0273: Date: $(Get-Date)
+0274: Action: $Action
+0275: Exit Code: $exitCode
+0276: 
+0277: Final Distribution:
+0278: $(Get-ShaderStats | ConvertTo-Json -Depth 3)
+0279: 
+0280: Reports Generated:
+0281: $((Get-ChildItem $ReportDir -Filter '*$Timestamp*' | Select-Object -ExpandProperty Name) -join "`n")
+0282: "@
+0283: | Out-File -FilePath $summaryPath
+0284: 
+0285: Write-ColorOutput "Summary saved: $summaryPath" "Gray"
+0286: 
+0287: exit $exitCode
+
+ISSUE IDENTIFIED:
+-----------------
+Line 281 contains a backtick sequence "`n" inside a here-string. 
+The backtick character (`) is PowerShell's escape character, and when 
+used inside a here-string, it can cause parsing issues.
+
+The problem is that the parser is interpreting the backtick as an escape
+character, which is breaking the string parsing.
+
+SOLUTION:
+---------
+Replace the backtick-n with a literal newline or use a different approach.

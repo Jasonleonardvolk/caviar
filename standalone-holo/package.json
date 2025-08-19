@@ -1,0 +1,24 @@
+{
+  "name": "standalone-holo",
+  "version": "0.1.0",
+  "description": "Holographic Display PWA",
+  "type": "module",
+  "scripts": {
+    "clean": "clean-vite.bat",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "shaders:sync": "node scripts/sync-shaders.js",
+    "download:models": "powershell -ExecutionPolicy Bypass -File download-models.ps1",
+    "download:models:cmd": "download-models.bat"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.16.3"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@webgpu/types": "^0.1.38"
+  }
+}

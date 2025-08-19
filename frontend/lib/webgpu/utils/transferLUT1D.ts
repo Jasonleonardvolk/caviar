@@ -1,0 +1,169 @@
+// transferLUT1D.ts - 1D radial LUT for transfer functions (100x memory savings)
+// H(λ,z; fx,fy) is radially symmetric in |k|, so we store phase(radius) only
+
+export interface TransferLUTConfig {
+  wavelengths: number[];  // List of wavelengths to precompute
+  distances: number[];    // List of propagation distances
+  resolution: number;     // Number of samples in radial direction
+  maxRadius: number;      // Maximum spatial frequency radius
+}
+
+export class TransferLUT1D {
+  private device: GPUDevice;
+  private luts: Map<string, GPUTexture> = new Map();
+  private config: TransferLUTConfig;
+  
+  constructor(device: GPUDevice, config: TransferLUTConfig) {
+    this.device = device;
+    this.config = config;
+  }
+  
+  async precompute() {
+    for (const wavelength of this.config.wavelengths) {
+      for (const distance of this.config.distances) {
+        const key = this.getKey(wavelength, distance);
+        const lut = await this.computeTransferFunction1D(wavelength, distance);
+        this.luts.set(key, lut);
+      }
+    }
+  }
+  
+  private async computeTransferFunction1D(
+    wavelength: number,
+    distance: number
+  ): Promise<GPUTexture> {
+    const resolution = this.config.resolution;
+    const maxRadius = this.config.maxRadius;
+    
+    // Compute phase values for each radius
+    const phaseData = new Float32Array(resolution);
+    const k = 2 * Math.PI / wavelength;
+    
+    for (let i = 0; i < resolution; i++) {
+      const r = (i / (resolution - 1)) * maxRadius; // Normalized radius [0, maxRadius]
+      const kr = k * r; // Spatial frequency magnitude
+      
+      // Check for evanescent waves (kr > k means evanescent)
+      if (kr * kr > k * k) {
+        // Evanescent wave - exponential decay, no phase change
+        phaseData[i] = 0;
+      } else {
+        // Propagating wave - compute phase
+        const kz = Math.sqrt(k * k - kr * kr);
+        phaseData[i] = kz * distance;
+      }
+    }
+    
+    // Create 1D texture (R16F for phase storage)
+    const texture = this.device.createTexture({
+      size: [resolution, 1, 1],
+      format: 'r16float',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    
+    // Upload phase data
+    this.device.queue.writeTexture(
+      { texture },
+      phaseData,
+      { bytesPerRow: resolution * 2 }, // 2 bytes per R16F
+      [resolution, 1, 1]
+    );
+    
+    return texture;
+  }
+  
+  getLUT(wavelength: number, distance: number): GPUTexture | null {
+    // Find exact match first
+    const key = this.getKey(wavelength, distance);
+    const exact = this.luts.get(key);
+    if (exact) return exact;
+    
+    // Find nearest neighbors for interpolation
+    const nearest = this.findNearest(wavelength, distance);
+    if (nearest.length === 0) return null;
+    
+    // For now, return the closest one (could implement interpolation)
+    return nearest[0].texture;
+  }
+  
+  private findNearest(
+    wavelength: number,
+    distance: number
+  ): Array<{ texture: GPUTexture; weight: number }> {
+    const results: Array<{ key: string; texture: GPUTexture; dist: number }> = [];
+    
+    for (const [key, texture] of this.luts) {
+      const [w, d] = this.parseKey(key);
+      const dist = Math.sqrt(
+        Math.pow((wavelength - w) / wavelength, 2) +
+        Math.pow((distance - d) / distance, 2)
+      );
+      results.push({ key, texture, dist });
+    }
+    
+    // Sort by distance and take top 4 for bilinear interpolation
+    results.sort((a, b) => a.dist - b.dist);
+    const top4 = results.slice(0, 4);
+    
+    // Compute weights (inverse distance weighting)
+    const totalInvDist = top4.reduce((sum, r) => sum + 1 / (r.dist + 1e-6), 0);
+    
+    return top4.map(r => ({
+      texture: r.texture,
+      weight: (1 / (r.dist + 1e-6)) / totalInvDist
+    }));
+  }
+  
+  private getKey(wavelength: number, distance: number): string {
+    return `${wavelength.toFixed(9)}_${distance.toFixed(6)}`;
+  }
+  
+  private parseKey(key: string): [number, number] {
+    const [w, d] = key.split('_').map(Number);
+    return [w, d];
+  }
+  
+  clear() {
+    for (const texture of this.luts.values()) {
+      texture.destroy();
+    }
+    this.luts.clear();
+  }
+  
+  getMemoryUsage(): number {
+    // Each LUT is resolution * 2 bytes (R16F)
+    return this.luts.size * this.config.resolution * 2;
+  }
+}
+
+// Shader binding helper
+export function createTransferLUTBindGroup(
+  device: GPUDevice,
+  pipeline: GPUComputePipeline,
+  lut: GPUTexture,
+  sampler: GPUSampler,
+  params: { z: number; invLambda: number; radiusScale: number }
+): GPUBindGroup {
+  const paramsBuffer = device.createBuffer({
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+  });
+  
+  const paramsData = new Float32Array([
+    params.z,
+    params.invLambda,
+    params.radiusScale,
+    lut.width // LUT size
+  ]);
+  
+  device.queue.writeBuffer(paramsBuffer, 0, paramsData.buffer);
+  
+  return device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: paramsBuffer } },
+      { binding: 1, resource: lut.createView() },
+      { binding: 2, resource: sampler }
+    ]
+  });
+}

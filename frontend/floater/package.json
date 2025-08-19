@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "floater:build": "node ./scripts/build-floater.mjs",
+    "floater:pack":  "npm run floater:build && node ./scripts/pack-floater.mjs",
+    "floater:test":  "npm run build-tests && node ./scripts/serve-tests.mjs"
+  }
+}

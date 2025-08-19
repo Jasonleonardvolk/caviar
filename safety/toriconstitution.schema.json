@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$id": "toriconstitution.schema.json",
+  "title": "TORI Constitution 1.0",
+  "type": "object",
+  "required": ["identity", "resource_budget", "safety_rules", "rollback"],
+  "properties": {
+    "identity": {
+      "description": "Immutable fingerprint of TORI's core self",
+      "type": "object",
+      "required": ["uuid", "hash"],
+      "properties": {
+        "uuid": { "type": "string", "format": "uuid" },
+        "hash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" }
+      }
+    },
+    "resource_budget": {
+      "description": "Hard caps expressed in SI-units",
+      "type": "object",
+      "required": ["cpu_core_seconds", "gpu_seconds", "ram_bytes"],
+      "properties": {
+        "cpu_core_seconds": { "type": "integer", "minimum": 0 },
+        "gpu_seconds":       { "type": "integer", "minimum": 0 },
+        "ram_bytes":         { "type": "integer", "minimum": 0 }
+      }
+    },
+    "safety_rules": {
+      "description": "Action-level guardrails",
+      "type": "object",
+      "required": ["outbound_rate", "forbidden_calls"],
+      "properties": {
+        "outbound_rate": { "type": "integer", "minimum": 0 },
+        "forbidden_calls": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "rollback": {
+      "description": "Reversion keys & quorum requirements",
+      "type": "object",
+      "required": ["history_path", "quorum"],
+      "properties": {
+        "history_path": { "type": "string" },
+        "quorum": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

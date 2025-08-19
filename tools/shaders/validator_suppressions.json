@@ -1,0 +1,23 @@
+{
+  "rules": [
+    {
+      "name": "Dynamic Array Access with Custom Clamp",
+      "messageContains": "Dynamic array access",
+      "fileMustContain": "fn clamp_index_dyn(",
+      "reason": "Runtime-safe custom clamp helper present",
+      "suppressCount": 0
+    },
+    {
+      "name": "Vec3 in Vertex Attributes",
+      "messageContains": "vec3 in storage buffer should be followed by padding",
+      "fileMustContainNot": "var<storage",
+      "reason": "Vertex attribute vec3 (not a storage struct)",
+      "suppressCount": 0
+    }
+  ],
+  "metadata": {
+    "description": "Suppression rules for known false positives in shader validation",
+    "lastUpdated": "2025-08-08",
+    "version": "1.0.0"
+  }
+}

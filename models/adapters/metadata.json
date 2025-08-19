@@ -1,0 +1,185 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-01-01T00:00:00Z",
+  "global": [
+    {
+      "adapter_id": "global_v1",
+      "path": "models/adapters/global_adapter_v1.pt",
+      "version": "1.0.0",
+      "active": true,
+      "created": "2025-01-01T00:00:00Z",
+      "description": "Global default adapter for general inference",
+      "sha256": "placeholder_hash_will_be_computed",
+      "score": 0.85,
+      "training_samples": 10000,
+      "validation_loss": 0.15
+    }
+  ],
+  "domain": {
+    "physics": [
+      {
+        "adapter_id": "physics_quantum_v1",
+        "path": "models/adapters/domain_physics_quantum.pt",
+        "version": "1.0.0",
+        "active": true,
+        "created": "2025-01-01T00:00:00Z",
+        "description": "Specialized adapter for quantum physics",
+        "sha256": "placeholder_hash",
+        "score": 0.92,
+        "training_samples": 5000,
+        "validation_loss": 0.08
+      }
+    ],
+    "biology": [
+      {
+        "adapter_id": "biology_molecular_v1",
+        "path": "models/adapters/domain_biology_molecular.pt",
+        "version": "1.0.0",
+        "active": true,
+        "created": "2025-01-01T00:00:00Z",
+        "description": "Specialized adapter for molecular biology",
+        "sha256": "placeholder_hash",
+        "score": 0.89,
+        "training_samples": 4500,
+        "validation_loss": 0.11
+      }
+    ],
+    "mathematics": [
+      {
+        "adapter_id": "math_topology_v1",
+        "path": "models/adapters/domain_math_topology.pt",
+        "version": "1.0.0",
+        "active": true,
+        "created": "2025-01-01T00:00:00Z",
+        "description": "Specialized adapter for topology and HoTT",
+        "sha256": "placeholder_hash",
+        "score": 0.91,
+        "training_samples": 3500,
+        "validation_loss": 0.09
+      }
+    ]
+  },
+  "user": {
+    "alice": [
+      {
+        "adapter_id": "alice_v3",
+        "path": "models/adapters/user_alice_lora_v3.pt",
+        "version": "3.0.0",
+        "active": true,
+        "created": "2025-01-07T12:00:00Z",
+        "description": "Alice's personalized adapter - quantum computing focus",
+        "sha256": "placeholder_hash",
+        "score": 0.94,
+        "training_samples": 2500,
+        "validation_loss": 0.06,
+        "parent": "alice_v2"
+      },
+      {
+        "adapter_id": "alice_v2",
+        "path": "models/adapters/user_alice_lora_v2.pt",
+        "version": "2.0.0",
+        "active": false,
+        "created": "2025-01-05T10:00:00Z",
+        "description": "Alice's adapter v2 - improved quantum responses",
+        "sha256": "placeholder_hash",
+        "score": 0.90,
+        "training_samples": 2000,
+        "validation_loss": 0.10,
+        "parent": "alice_v1"
+      },
+      {
+        "adapter_id": "alice_v1",
+        "path": "models/adapters/user_alice_lora_v1.pt",
+        "version": "1.0.0",
+        "active": false,
+        "created": "2025-01-01T08:00:00Z",
+        "description": "Alice's initial adapter",
+        "sha256": "placeholder_hash",
+        "score": 0.85,
+        "training_samples": 1500,
+        "validation_loss": 0.15,
+        "parent": null
+      }
+    ],
+    "bob": [
+      {
+        "adapter_id": "bob_v2",
+        "path": "models/adapters/user_bob_lora_v2.pt",
+        "version": "2.0.0",
+        "active": true,
+        "created": "2025-01-06T14:00:00Z",
+        "description": "Bob's adapter - machine learning focus",
+        "sha256": "placeholder_hash",
+        "score": 0.88,
+        "training_samples": 1800,
+        "validation_loss": 0.12,
+        "parent": "bob_v1"
+      },
+      {
+        "adapter_id": "bob_v1",
+        "path": "models/adapters/user_bob_lora_v1.pt",
+        "version": "1.0.0",
+        "active": false,
+        "created": "2025-01-02T09:00:00Z",
+        "description": "Bob's initial adapter",
+        "sha256": "placeholder_hash",
+        "score": 0.82,
+        "training_samples": 1200,
+        "validation_loss": 0.18,
+        "parent": null
+      }
+    ],
+    "charlie": [
+      {
+        "adapter_id": "charlie_v1",
+        "path": "models/adapters/user_charlie_lora.pt",
+        "version": "1.0.0",
+        "active": true,
+        "created": "2025-01-04T11:00:00Z",
+        "description": "Charlie's adapter - kagome lattice research",
+        "sha256": "placeholder_hash",
+        "score": 0.87,
+        "training_samples": 1600,
+        "validation_loss": 0.13,
+        "parent": null
+      }
+    ],
+    "demo_user": [
+      {
+        "adapter_id": "demo_v1",
+        "path": "models/adapters/user_demo_user_lora.pt",
+        "version": "1.0.0",
+        "active": true,
+        "created": "2025-01-01T00:00:00Z",
+        "description": "Demo user adapter for testing",
+        "sha256": "placeholder_hash",
+        "score": 0.80,
+        "training_samples": 500,
+        "validation_loss": 0.20,
+        "parent": null
+      }
+    ]
+  },
+  "symlinks": {
+    "active": {
+      "global": "models/adapters/active/global_adapter.pt",
+      "physics": "models/adapters/active/domain_physics.pt",
+      "biology": "models/adapters/active/domain_biology.pt",
+      "mathematics": "models/adapters/active/domain_mathematics.pt",
+      "alice": "models/adapters/active/user_alice.pt",
+      "bob": "models/adapters/active/user_bob.pt",
+      "charlie": "models/adapters/active/user_charlie.pt",
+      "demo_user": "models/adapters/active/user_demo_user.pt"
+    }
+  },
+  "statistics": {
+    "total_adapters": 14,
+    "active_adapters": 8,
+    "total_users": 4,
+    "total_domains": 3,
+    "average_score": 0.87,
+    "total_training_samples": 45600,
+    "last_training": "2025-01-07T12:00:00Z",
+    "last_validation": "2025-01-07T12:30:00Z"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "timestamp": "2025-08-07T04:56:41.694880",
+  "bps_integration": {
+    "--enable-bps argument": false,
+    "BPSEnhancedLattice import": true,
+    "BPS_CONFIG import": true,
+    "BPSDiagnostics import": true,
+    "BPS lattice initialization": false,
+    "ready": false
+  },
+  "intent_module": {
+    "intent_driven_reasoning.py": {
+      "path": "python\\core\\intent_driven_reasoning.py",
+      "exists": true,
+      "has_stubs": true,
+      "has_implementation": true,
+      "classes": [
+        "ReasoningIntent",
+        "PathStrategy",
+        "ResolutionReport",
+        "ReasoningIntentParser",
+        "CognitiveResolutionEngine",
+        "SelfReflectiveReasoner",
+        "MeshOverlayManager"
+      ],
+      "functions": [
+        "demonstrate_intent_driven_reasoning"
+      ],
+      "stub_references": [
+        {
+          "line": 34,
+          "content": "logger.warning(\"Intent-driven reasoning module not available \u2192 using stubs\")",
+          "keyword": "stub"
+        }
+      ],
+      "issues": [
+        "Contains warning about stub usage"
+      ]
+    },
+    "intent_router.py": {
+      "path": "python\\core\\intent_router.py",
+      "exists": true,
+      "has_stubs": true,
+      "has_implementation": false,
+      "classes": [],
+      "functions": [
+        "is_intent_router_available"
+      ],
+      "stub_references": [
+        {
+          "line": 3,
+          "content": "Full-featured intent routing with NO STUBS",
+          "keyword": "stub"
+        },
+        {
+          "line": 19,
+          "content": "logger.info(\"Intent Router loaded - COMPLETE IMPLEMENTATION (NO STUBS!)\")",
+          "keyword": "stub"
+        }
+      ],
+      "issues": []
+    },
+    "__init__.py": {
+      "path": "python\\core\\intent_router_lib\\__init__.py",
+      "exists": true,
+      "has_stubs": true,
+      "has_implementation": false,
+      "classes": [],
+      "functions": [
+        "route_intent",
+        "add_routing_context",
+        "get_routing_contexts",
+        "clear_routing_contexts",
+        "is_available"
+      ],
+      "stub_references": [
+        {
+          "line": 2,
+          "content": "Intent Router stub implementation",
+          "keyword": "stub"
+        }
+      ],
+      "issues": []
+    },
+    "BPS Config_import": "success",
+    "BPS Lattice_import": "success",
+    "Intent Router_import": "success",
+    "Intent Reasoning_import": "failed: cannot import name 'IntentDrivenReasoning' from 'python.core.intent_driven_reasoning' (D:\Dev\kha\python\\core\\intent_driven_reasoning.py)"
+  },
+  "stub_analysis": {
+    "total_modules_with_stubs": 2,
+    "modules": [
+      "intent_driven_reasoning.py",
+      "unified_metacognitive_integration.py"
+    ]
+  },
+  "recommendations": [
+    "PRIORITY: Fix BPS integration first (quick win)",
+    "Complete BPS integration in enhanced_launcher.py",
+    "Fix BPS integration in enhanced_launcher.py",
+    "Remove stub references from intent module",
+    "Complete partial implementations"
+  ]
+}

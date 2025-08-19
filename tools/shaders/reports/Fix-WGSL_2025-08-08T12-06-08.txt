@@ -1,0 +1,9 @@
+﻿${IRIS_ROOT}\frontend\hybrid\wgsl\lightFieldComposerEnhanced.wgsl: Added mip level to textureLoad
+${IRIS_ROOT}\frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl: Removed leading brace
+${IRIS_ROOT}\frontend\lib\webgpu\shaders\lightFieldComposer.wgsl: Added mip level to textureLoad
+${IRIS_ROOT}\frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl: Converted inline uniform struct to named struct
+${IRIS_ROOT}\frontend\lib\webgpu\shaders\phaseOcclusion.wgsl: Converted inline uniform struct to named struct
+${IRIS_ROOT}\frontend\public\hybrid\wgsl\hybridWavefieldBlend.wgsl: Removed leading brace
+${IRIS_ROOT}\frontend\public\hybrid\wgsl\lightFieldComposer.wgsl: Added mip level to textureLoad
+${IRIS_ROOT}\frontend\public\hybrid\wgsl\multiDepthWaveSynth.wgsl: Converted inline uniform struct to named struct
+${IRIS_ROOT}\frontend\public\hybrid\wgsl\phaseOcclusion.wgsl: Converted inline uniform struct to named struct

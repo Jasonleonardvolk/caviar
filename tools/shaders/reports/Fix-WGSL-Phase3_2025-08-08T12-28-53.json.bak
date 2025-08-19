@@ -1,0 +1,240 @@
+﻿[
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\avatarShader.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\bitReversal.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\butterflyStage.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\fftShift.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\hybridWavefieldBlend.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\lenticularInterlace.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\lightFieldComposer.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\multiDepthWaveSynth.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\multiViewSynthesis.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\normalize.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\phaseOcclusion.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\propagation.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\topologicalOverlay.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\transpose.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\velocityField.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\wavefieldEncoder.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\wavefieldEncoder_optimized.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\avatarShader.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\bitReversal.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\butterflyStage.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\fftShift.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\hybridWavefieldBlend.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\lenticularInterlace.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\lightFieldComposer.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\multiDepthWaveSynth.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\multiViewSynthesis.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\normalize.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\phaseOcclusion.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\propagation.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\topologicalOverlay.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\transpose.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\velocityField.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\wavefieldEncoder.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\wavefieldEncoder_optimized.wgsl",
+        "changed":  false,
+        "changes":  [
+
+                    ]
+    }
+]

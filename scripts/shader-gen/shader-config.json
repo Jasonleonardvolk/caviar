@@ -1,0 +1,142 @@
+{
+  "presets": {
+    "highQuality": {
+      "name": "High Quality",
+      "description": "Maximum visual quality for powerful GPUs",
+      "constants": {
+        "WORKGROUP_SIZE": 8,
+        "VIEW_INTERPOLATION": 2,
+        "TEMPORAL_BLEND": 0.15,
+        "EDGE_ENHANCEMENT": 0.08,
+        "AA_STRENGTH": 0.05,
+        "PRECISION": "f32",
+        "MAX_VIEWS": 100,
+        "FFT_SIZE": 2048,
+        "TILE_SIZE": 1024
+      }
+    },
+    "balanced": {
+      "name": "Balanced",
+      "description": "Good quality with reasonable performance",
+      "constants": {
+        "WORKGROUP_SIZE": 8,
+        "VIEW_INTERPOLATION": 1,
+        "TEMPORAL_BLEND": 0.1,
+        "EDGE_ENHANCEMENT": 0.05,
+        "AA_STRENGTH": 0.03,
+        "PRECISION": "f32",
+        "MAX_VIEWS": 45,
+        "FFT_SIZE": 1024,
+        "TILE_SIZE": 768
+      }
+    },
+    "performance": {
+      "name": "Performance",
+      "description": "Optimized for high frame rates",
+      "constants": {
+        "WORKGROUP_SIZE": 16,
+        "VIEW_INTERPOLATION": 1,
+        "TEMPORAL_BLEND": 0.0,
+        "EDGE_ENHANCEMENT": 0.0,
+        "AA_STRENGTH": 0.0,
+        "PRECISION": "f16",
+        "MAX_VIEWS": 25,
+        "FFT_SIZE": 512,
+        "TILE_SIZE": 512
+      }
+    },
+    "mobile": {
+      "name": "Mobile",
+      "description": "Minimal settings for mobile GPUs",
+      "constants": {
+        "WORKGROUP_SIZE": 4,
+        "VIEW_INTERPOLATION": 0,
+        "TEMPORAL_BLEND": 0.0,
+        "EDGE_ENHANCEMENT": 0.0,
+        "AA_STRENGTH": 0.0,
+        "PRECISION": "f16",
+        "MAX_VIEWS": 9,
+        "FFT_SIZE": 256,
+        "TILE_SIZE": 256
+      }
+    }
+  },
+  "displays": {
+    "looking_glass_portrait": {
+      "DISPLAY_TYPE": 1,
+      "DISPLAY_WIDTH": 1536,
+      "DISPLAY_HEIGHT": 2048,
+      "NUM_VIEWS": 45,
+      "QUILT_COLS": 8,
+      "QUILT_ROWS": 6
+    },
+    "looking_glass_32": {
+      "DISPLAY_TYPE": 2,
+      "DISPLAY_WIDTH": 7680,
+      "DISPLAY_HEIGHT": 4320,
+      "NUM_VIEWS": 45,
+      "QUILT_COLS": 8,
+      "QUILT_ROWS": 6
+    },
+    "looking_glass_65": {
+      "DISPLAY_TYPE": 3,
+      "DISPLAY_WIDTH": 7680,
+      "DISPLAY_HEIGHT": 4320,
+      "NUM_VIEWS": 100,
+      "QUILT_COLS": 10,
+      "QUILT_ROWS": 10
+    }
+  },
+  "uniformStructs": {
+    "LenticularParams": {
+      "fields": [
+        { "name": "pitch", "type": "f32" },
+        { "name": "tilt", "type": "f32" },
+        { "name": "center", "type": "f32" },
+        { "name": "viewCone", "type": "f32" },
+        { "name": "invView", "type": "f32" },
+        { "name": "verticalAngle", "type": "f32" },
+        { "name": "DPI", "type": "f32" },
+        { "name": "screenW", "type": "f32" },
+        { "name": "screenH", "type": "f32" },
+        { "name": "flipImageX", "type": "f32" },
+        { "name": "flipImageY", "type": "f32" },
+        { "name": "flipSubp", "type": "f32" }
+      ]
+    },
+    "PropagationParams": {
+      "fields": [
+        { "name": "distance", "type": "f32" },
+        { "name": "wavelength", "type": "f32" },
+        { "name": "pixel_size", "type": "f32" },
+        { "name": "amplitude_scale", "type": "f32" },
+        { "name": "method", "type": "u32" },
+        { "name": "apply_aperture", "type": "u32" },
+        { "name": "fresnel_number", "type": "f32" },
+        { "name": "use_band_limiting", "type": "u32" }
+      ]
+    },
+    "FFTParams": {
+      "fields": [
+        { "name": "size", "type": "u32" },
+        { "name": "log_size", "type": "u32" },
+        { "name": "direction", "type": "u32" },
+        { "name": "normalization", "type": "f32" }
+      ]
+    }
+  },
+  "lookupTables": {
+    "cos_sin_lut": {
+      "size": 256,
+      "generator": "cosine_sine"
+    },
+    "bit_reversal": {
+      "sizes": [256, 512, 1024, 2048, 4096, 8192],
+      "generator": "bit_reverse"
+    },
+    "twiddle_factors": {
+      "sizes": [256, 512, 1024, 2048, 4096, 8192],
+      "generator": "fft_twiddle"
+    }
+  }
+}

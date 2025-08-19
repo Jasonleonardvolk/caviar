@@ -1,0 +1,9 @@
+{
+  "jason": "user_jason_lora.pt",
+  "_global": "global_adapter_v1.pt",
+  "_metadata": {
+    "created": "2025-08-07",
+    "version": "1.0.0",
+    "description": "Adapter mapping for user-specific and global LoRA adapters"
+  }
+}

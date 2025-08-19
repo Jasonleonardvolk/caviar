@@ -1,0 +1,7 @@
+{
+    "api_port": 8002,
+    "api_url": "http://localhost:8002",
+    "ws_audio_port": 8765,
+    "ws_concept_port": 8766,
+    "frontend_port": 5173
+}

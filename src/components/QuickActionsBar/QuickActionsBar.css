@@ -1,0 +1,133 @@
+/* QuickActionsBar.css */
+.quick-actions-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1e1e1e;
+  color: #fff;
+  border-top: 1px solid #333;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.quick-actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.quick-actions-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-all-button {
+  background-color: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.view-all-button:hover {
+  background-color: #2a2a2a;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.quick-actions-suggestions {
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #333;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  border-left: 4px solid transparent;
+  transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+  background-color: #2a2a2a;
+}
+
+.suggestion-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.suggestion-content {
+  flex: 1;
+}
+
+.suggestion-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.suggestion-explanation {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.apply-button, .dismiss-button {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.apply-button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.dismiss-button {
+  background-color: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+}
+
+.apply-button:hover {
+  background-color: #1d4ed8;
+}
+
+.dismiss-button:hover {
+  background-color: #333;
+}

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["frontend/*"],
+      "$lib/*": ["tori_ui_svelte/src/lib/*"]
+    },
+    "types": ["@webgpu/types", "webxr", "vite/client"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": true
+  }
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Shader Quality Gate" tests="17" failures="3" errors="0" time="1" timestamp="2025-08-08T23:42:07.178Z">
+    <testcase name="frontend\lib\webgpu\shaders\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y, 0), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y, 0), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Global variable [1] 'outputWave' is invalid[0m
+  [0m[36m┌─[0m .temp_multiDepthWaveSynth.wgsl:4:23
+  [0m[36m│[0m
+[0m[36m4[0m [0m[36m│[0m @group(0) @binding(1) [0m[31mvar<storage, write> outputWave: array<vec2<f32>>;[0m // Output combined wave
+  [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [1][0m
+  [0m[36m│[0m
+  [0m[36m=[0m Storage address space doesn't support write-only access
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Global variable [1] 'outputWave' is invalid[0m
+  [0m[36m┌─[0m .temp_multiDepthWaveSynth.wgsl:4:23
+  [0m[36m│[0m
+[0m[36m4[0m [0m[36m│[0m @group(0) @binding(1) [0m[31mvar<storage, write> outputWave: array<vec2<f32>>;[0m // Output combined wave
+  [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [1][0m
+  [0m[36m│[0m
+  [0m[36m=[0m Storage address space doesn't support write-only access
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Global variable [2] 'outputWave' is invalid[0m
+  [0m[36m┌─[0m .temp_phaseOcclusion.wgsl:4:23
+  [0m[36m│[0m
+[0m[36m4[0m [0m[36m│[0m @group(0) @binding(2) [0m[31mvar<storage, write> outputWave: array<vec2<f32>>;[0m // Output wavefield after occlusion
+  [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [2][0m
+  [0m[36m│[0m
+  [0m[36m=[0m Storage address space doesn't support write-only access
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Global variable [2] 'outputWave' is invalid[0m
+  [0m[36m┌─[0m .temp_phaseOcclusion.wgsl:4:23
+  [0m[36m│[0m
+[0m[36m4[0m [0m[36m│[0m @group(0) @binding(2) [0m[31mvar<storage, write> outputWave: array<vec2<f32>>;[0m // Output wavefield after occlusion
+  [0m[36m│[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [2][0m
+  [0m[36m│[0m
+  [0m[36m=[0m Storage address space doesn't support write-only access
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+  </testsuite>
+</testsuites>

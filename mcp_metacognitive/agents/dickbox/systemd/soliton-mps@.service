@@ -1,0 +1,37 @@
+[Unit]
+Description=TORI Soliton MPS Keep-Alive for GPU %i
+After=nvidia-cuda-mps-control.service
+Requires=nvidia-cuda-mps-control.service
+
+[Service]
+Type=simple
+# Verify GPU exists and get index from UUID
+ExecStartPre=/bin/sh -c 'nvidia-smi -L | grep "UUID: %i" || exit 1'
+ExecStartPre=/bin/sh -c 'GPU_IDX=$(nvidia-smi -L | grep "UUID: %i" | sed "s/GPU \([0-9]\):.*/\1/") && echo "GPU_INDEX=${GPU_IDX}" > /run/soliton-mps-%i.env'
+EnvironmentFile=-/run/soliton-mps-%i.env
+ExecStart=/usr/bin/python3 /opt/tori/bin/soliton_mps_keeper.py --gpu-index ${GPU_INDEX} --sleep-interval 10
+Restart=always
+RestartSec=10
+
+# Resource limits
+Slice=tori-helper.slice
+CPUQuota=5%
+MemoryMax=256M
+
+# Environment
+Environment="CUDA_VISIBLE_DEVICES=%i"
+Environment="CUDA_MPS_PIPE_DIRECTORY=/tmp/nvidia-mps"
+
+# Security
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=soliton-mps-%i
+
+[Install]
+WantedBy=multi-user.target

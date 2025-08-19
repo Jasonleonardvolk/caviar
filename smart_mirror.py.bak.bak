@@ -1,0 +1,267 @@
+#!/usr/bin/env python3
+"""
+Smart Mirror System for TORI ↔ Pigpen
+=====================================
+
+This helps you keep critical changes synchronized between TORI and Pigpen
+while maintaining their separate identities.
+"""
+
+import os
+import shutil
+import json
+import hashlib
+from pathlib import Path
+from datetime import datetime
+import difflib
+
+class SmartMirror:
+    def __init__(self):
+        self.tori_path = Path(r"C:\Users\jason\Desktop\tori\kha")
+        self.pigpen_path = Path(r"C:\Users\jason\Desktop\pigpen")
+        self.mirror_config_file = Path(r"C:\Users\jason\Desktop\mirror_config.json")
+        
+        # Files to always sync both ways
+        self.critical_files = [
+            "frontend/lib/webgpu/fftCompute.ts",  # Your concept import fix!
+            "frontend/lib/webgpu/fftOptimizations.ts",
+            "frontend/lib/webgpu/shaderLoader.ts",
+            # Add more critical files here
+        ]
+        
+        # Files to sync only from TORI → Pigpen
+        self.tori_to_pigpen_only = [
+            # Add files that should flow from TORI to Pigpen
+        ]
+        
+        # Files to NEVER sync (Pigpen-specific)
+        self.pigpen_protected = [
+            "concepts.json",
+            "concepts.npz",
+            "concept_mesh_data.json",
+            # Datasets and pigpen-specific configs
+        ]
+        
+    def load_mirror_state(self):
+        """Load the last mirror state"""
+        if self.mirror_config_file.exists():
+            with open(self.mirror_config_file, 'r') as f:
+                return json.load(f)
+        return {"last_sync": {}, "manual_overrides": {}}
+    
+    def save_mirror_state(self, state):
+        """Save the current mirror state"""
+        with open(self.mirror_config_file, 'w') as f:
+            json.dump(state, f, indent=2)
+    
+    def get_file_hash(self, filepath):
+        """Get SHA256 hash of a file"""
+        sha256_hash = hashlib.sha256()
+        with open(filepath, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+        return sha256_hash.hexdigest()
+    
+    def show_diff(self, file_path):
+        """Show the differences between TORI and Pigpen versions"""
+        tori_file = self.tori_path / file_path
+        pigpen_file = self.pigpen_path / file_path
+        
+        if not tori_file.exists() or not pigpen_file.exists():
+            print(f"⚠️  One version missing for {file_path}")
+            return
+        
+        with open(tori_file, 'r', encoding='utf-8') as f:
+            tori_lines = f.readlines()
+        with open(pigpen_file, 'r', encoding='utf-8') as f:
+            pigpen_lines = f.readlines()
+        
+        diff = list(difflib.unified_diff(
+            tori_lines, pigpen_lines,
+            fromfile=f'TORI/{file_path}',
+            tofile=f'Pigpen/{file_path}',
+            n=3
+        ))
+        
+        if diff:
+            print(f"\n📝 Differences in {file_path}:")
+            print("".join(diff[:50]))  # Show first 50 lines of diff
+            if len(diff) > 50:
+                print(f"... and {len(diff) - 50} more lines")
+        else:
+            print(f"✅ {file_path} is identical")
+    
+    def sync_file(self, file_path, direction="auto"):
+        """Sync a single file"""
+        tori_file = self.tori_path / file_path
+        pigpen_file = self.pigpen_path / file_path
+        
+        # Check if files exist
+        tori_exists = tori_file.exists()
+        pigpen_exists = pigpen_file.exists()
+        
+        if not tori_exists and not pigpen_exists:
+            return "missing_both"
+        
+        # Auto-detect direction based on modification time
+        if direction == "auto" and tori_exists and pigpen_exists:
+            tori_mtime = tori_file.stat().st_mtime
+            pigpen_mtime = pigpen_file.stat().st_mtime
+            
+            if pigpen_mtime > tori_mtime:
+                direction = "pigpen_to_tori"
+            else:
+                direction = "tori_to_pigpen"
+        
+        # Perform sync
+        if direction == "tori_to_pigpen" and tori_exists:
+            pigpen_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tori_file, pigpen_file)
+            return "tori_to_pigpen"
+        elif direction == "pigpen_to_tori" and pigpen_exists:
+            tori_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(pigpen_file, tori_file)
+            return "pigpen_to_tori"
+        
+        return "skipped"
+    
+    def analyze_critical_changes(self):
+        """Analyze critical files for changes"""
+        print("🔍 Analyzing critical files...")
+        print("="*60)
+        
+        changes = {
+            "needs_sync": [],
+            "in_sync": [],
+            "protected": []
+        }
+        
+        for file_path in self.critical_files:
+            tori_file = self.tori_path / file_path
+            pigpen_file = self.pigpen_path / file_path
+            
+            if tori_file.exists() and pigpen_file.exists():
+                tori_hash = self.get_file_hash(tori_file)
+                pigpen_hash = self.get_file_hash(pigpen_file)
+                
+                if tori_hash != pigpen_hash:
+                    tori_mtime = datetime.fromtimestamp(tori_file.stat().st_mtime)
+                    pigpen_mtime = datetime.fromtimestamp(pigpen_file.stat().st_mtime)
+                    
+                    newer = "Pigpen" if pigpen_mtime > tori_mtime else "TORI"
+                    changes["needs_sync"].append({
+                        "file": file_path,
+                        "tori_time": tori_mtime.strftime("%Y-%m-%d %H:%M"),
+                        "pigpen_time": pigpen_mtime.strftime("%Y-%m-%d %H:%M"),
+                        "newer": newer
+                    })
+                else:
+                    changes["in_sync"].append(file_path)
+            elif tori_file.exists() or pigpen_file.exists():
+                changes["needs_sync"].append({
+                    "file": file_path,
+                    "exists_in": "TORI" if tori_file.exists() else "Pigpen",
+                    "missing_in": "Pigpen" if tori_file.exists() else "TORI"
+                })
+        
+        return changes
+    
+    def create_sync_script(self):
+        """Create a batch script for quick syncing"""
+        script_content = """@echo off
+REM Auto-generated sync script for TORI ↔ Pigpen
+REM Generated: {timestamp}
+
+echo ========================================
+echo TORI ↔ Pigpen Smart Sync
+echo ========================================
+echo.
+
+REM Critical files that should be synced
+""".format(timestamp=datetime.now().strftime("%Y-%m-%d %H:%M"))
+        
+        # Add copy commands for critical files
+        for file_path in self.critical_files:
+            rel_path = file_path.replace('/', '\\')
+            script_content += f"""
+REM Check {file_path}
+fc /b "C:\\Users\\jason\\Desktop\\tori\\kha\\{rel_path}" "C:\\Users\\jason\\Desktop\\pigpen\\{rel_path}" >nul 2>&1
+if errorlevel 1 (
+    echo Different: {file_path}
+    REM Uncomment the line below to auto-copy from pigpen to TORI
+    REM copy "C:\\Users\\jason\\Desktop\\pigpen\\{rel_path}" "C:\\Users\\jason\\Desktop\\tori\\kha\\{rel_path}"
+) else (
+    echo Identical: {file_path}
+)
+"""
+        
+        script_path = self.tori_path / "sync_tori_pigpen.bat"
+        with open(script_path, 'w') as f:
+            f.write(script_content)
+        
+        print(f"✅ Created sync script: {script_path}")
+    
+    def interactive_sync(self):
+        """Interactive sync mode"""
+        changes = self.analyze_critical_changes()
+        
+        if not changes["needs_sync"]:
+            print("✅ All critical files are in sync!")
+            return
+        
+        print(f"\n📋 Files needing sync: {len(changes['needs_sync'])}")
+        for i, change in enumerate(changes["needs_sync"]):
+            print(f"\n{i+1}. {change['file']}")
+            if "newer" in change:
+                print(f"   TORI: {change['tori_time']}")
+                print(f"   Pigpen: {change['pigpen_time']}")
+                print(f"   Newer: {change['newer']}")
+            else:
+                print(f"   Exists in: {change.get('exists_in', 'N/A')}")
+                print(f"   Missing in: {change.get('missing_in', 'N/A')}")
+        
+        print("\n🔧 Options:")
+        print("1. Sync all newer files automatically")
+        print("2. Copy fftCompute.ts from Pigpen to TORI (your fix!)")
+        print("3. Copy recent TORI changes to Pigpen")
+        print("4. View diffs")
+        print("5. Create sync script")
+        print("6. Exit")
+        
+        choice = input("\nChoice (1-6): ").strip()
+        
+        if choice == "1":
+            for change in changes["needs_sync"]:
+                if "newer" in change:
+                    direction = "pigpen_to_tori" if change["newer"] == "Pigpen" else "tori_to_pigpen"
+                    result = self.sync_file(change["file"], direction)
+                    print(f"✅ Synced {change['file']} ({direction})")
+        
+        elif choice == "2":
+            # Quick fix for your FFT compute
+            result = self.sync_file("frontend/lib/webgpu/fftCompute.ts", "pigpen_to_tori")
+            print("✅ Copied fftCompute.ts from Pigpen to TORI!")
+        
+        elif choice == "3":
+            # Copy TORI changes to Pigpen
+            for change in changes["needs_sync"]:
+                if change.get("newer") == "TORI":
+                    result = self.sync_file(change["file"], "tori_to_pigpen")
+                    print(f"✅ Copied {change['file']} to Pigpen")
+        
+        elif choice == "4":
+            for change in changes["needs_sync"]:
+                self.show_diff(change["file"])
+        
+        elif choice == "5":
+            self.create_sync_script()
+
+def main():
+    print("🔄 Smart Mirror System for TORI ↔ Pigpen")
+    print("="*60)
+    
+    mirror = SmartMirror()
+    mirror.interactive_sync()
+
+if __name__ == "__main__":
+    main()

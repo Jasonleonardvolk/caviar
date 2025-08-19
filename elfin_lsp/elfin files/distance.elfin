@@ -1,0 +1,58 @@
+// Distance sensor module for testing ELFIN imports
+// Represents a generic distance sensor with configurable range
+template Sensor(range=10.0, noise=0.01) {
+  import Vector3 from "../math/linear.elfin";
+  
+  parameters {
+    range: length[m] = range;
+    noise: dimensionless = noise;  // Noise as a fraction of the range
+  }
+  
+  internal_state {
+    last_measurement: length[m] = 0.0;
+    last_target: Vector3 = Vector3(0.0, 0.0, 0.0);
+  }
+  
+  functions {
+    // Measure distance to a target
+    measure(sensor_position: Vector3, target: Vector3) -> length[m] {
+      // Calculate true distance
+      diff = target.subtract(sensor_position);
+      true_distance = diff.magnitude();
+      
+      // Apply range limit
+      if (true_distance > range) {
+        return range;
+      }
+      
+      // Apply noise (simple Gaussian approximation)
+      noise_value = (rand() * 2.0 - 1.0) * noise * range;
+      measured_distance = true_distance + noise_value;
+      
+      // Store for state tracking
+      last_measurement = measured_distance;
+      last_target = target;
+      
+      return measured_distance;
+    }
+    
+    // Check if target is within range
+    is_in_range(sensor_position: Vector3, target: Vector3) -> dimensionless {
+      diff = target.subtract(sensor_position);
+      distance = diff.magnitude();
+      return distance <= range;
+    }
+    
+    // Get bearing to target (unit vector)
+    get_bearing(sensor_position: Vector3, target: Vector3) -> Vector3 {
+      diff = target.subtract(sensor_position);
+      return diff.normalize();
+    }
+    
+    // Reset sensor state
+    reset() {
+      last_measurement = 0.0;
+      last_target = Vector3(0.0, 0.0, 0.0);
+    }
+  }
+}

@@ -1,0 +1,641 @@
+﻿frontend/lib/ai/index.ts(5,15): error TS2459: Module '"../webgpu/kernels/onnxWaveOpRunner"' declares 'OnnxConfig' locally, but it is not exported.
+frontend/lib/av/mobileAudioVideo.ts(288,7): error TS2353: Object literal may only specify known properties, and 'sdpSemantics' does not exist in type 'RTCConfiguration'.
+frontend/lib/deviceDetect.ts(140,49): error TS2307: Cannot find module './webgpuRenderer' or its corresponding type declarations.
+frontend/lib/deviceDetect.ts(145,33): error TS2345: Argument of type '{ views: number; resolution: number[]; samples: number; backend: string; } | { views: number; resolution: number[]; samples: number; backend: string; } | { views: number; resolution: number[]; samples: number; backend: "wasm" | ... 3 more ... | "cpu"; } | { ...; } | { ...; }' is not assignable to parameter of type 'RendererConfig'.
+  Type '{ views: number; resolution: number[]; samples: number; backend: string; }' is not assignable to type 'RendererConfig'.
+    Types of property 'resolution' are incompatible.
+      Type 'number[]' is not assignable to type '[number, number]'.
+        Target requires 2 element(s) but source may have fewer.
+frontend/lib/deviceDetect.ts(149,48): error TS2307: Cannot find module './webglRenderer' or its corresponding type declarations.
+frontend/lib/deviceDetect.ts(154,46): error TS2307: Cannot find module './cpuRenderer' or its corresponding type declarations.
+frontend/lib/deviceDetect.ts(159,42): error TS2307: Cannot find module './cpuRenderer' or its corresponding type declarations.
+frontend/lib/errorHandler.ts(60,43): error TS7006: Parameter 'adapter' implicitly has an 'any' type.
+frontend/lib/errorHandler.ts(61,39): error TS7006: Parameter 'device' implicitly has an 'any' type.
+frontend/lib/errorHandler.ts(62,29): error TS7006: Parameter 'info' implicitly has an 'any' type.
+frontend/lib/holographicEngine.ts(1,10): error TS2724: '"./webgpu/quilt/WebGPUQuiltGenerator"' has no exported member named 'WebGPUQuiltGenerator'. Did you mean 'WebGPUWebGPUQuiltGenerator'?
+frontend/lib/holographicEngine.ts(97,33): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/holographicEngine.ts(99,77): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicEngine.ts(106,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(106,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(115,26): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicEngine.ts(121,32): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicEngine.ts(122,24): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicEngine.ts(124,33): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/holographicEngine.ts(126,38): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/lib/holographicEngine.ts(126,61): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicEngine.ts(152,35): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicEngine.ts(274,22): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/holographicEngine.ts(275,23): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/holographicEngine.ts(276,22): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicEngine.ts(284,36): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/holographicEngine.ts(284,57): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicEngine.ts(285,37): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/holographicEngine.ts(286,35): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicEngine.ts(287,34): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicEngine.ts(321,27): error TS2304: Cannot find name 'GPUQuerySet'.
+frontend/lib/holographicEngine.ts(345,37): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/holographicEngine.ts(397,65): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/holographicEngine.ts(408,17): error TS2339: Property 'configure' does not exist on type 'RenderingContext'.
+  Property 'configure' does not exist on type 'CanvasRenderingContext2D'.
+frontend/lib/holographicEngine.ts(418,32): error TS7006: Parameter 'info' implicitly has an 'any' type.
+frontend/lib/holographicEngine.ts(480,44): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicEngine.ts(481,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(482,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(483,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(490,44): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicEngine.ts(491,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(492,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(499,43): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicEngine.ts(500,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(501,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(502,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(512,45): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicEngine.ts(513,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(514,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(515,28): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(542,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(542,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicEngine.ts(567,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(567,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(582,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(582,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(600,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(600,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(614,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(614,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicEngine.ts(721,16): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/holographicEngine.ts(732,29): error TS7006: Parameter 'm' implicitly has an 'any' type.
+frontend/lib/holographicEngine.ts(733,26): error TS7006: Parameter 'm' implicitly has an 'any' type.
+frontend/lib/holographicEngine.ts(771,16): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicEngine.ts(831,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/holographicEngine.ts(836,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/holographicEngine.ts(845,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/holographicEngine.ts(854,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/holographicEngine.ts(869,47): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/holographicEngine.ts(877,18): error TS2304: Cannot find name 'GPUBindGroupEntry'.
+frontend/lib/holographicEngine.ts(878,19): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/holographicEngine.ts(878,40): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicEngine.ts(1074,50): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/holographicEngine.ts(1079,61): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/holographicEngine.ts(1093,25): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/holographicEngine.ts(1115,54): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/holographicEngine.ts(1120,54): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/holographicEngine.ts(1125,51): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/holographicEngine.ts(1128,37): error TS2304: Cannot find name 'GPURenderPassDescriptor'.
+frontend/lib/holographicEngine.ts(1138,62): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicRenderer.ts(9,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/holographicRenderer.ts(10,20): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/holographicRenderer.ts(11,19): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/holographicRenderer.ts(14,31): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicRenderer.ts(15,29): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicRenderer.ts(16,30): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/holographicRenderer.ts(20,26): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicRenderer.ts(21,28): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicRenderer.ts(22,25): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/holographicRenderer.ts(25,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicRenderer.ts(26,29): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicRenderer.ts(27,27): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicRenderer.ts(28,27): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/holographicRenderer.ts(378,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(378,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(384,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(384,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(390,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(390,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(404,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicRenderer.ts(404,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicRenderer.ts(411,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/holographicRenderer.ts(450,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(450,38): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/holographicRenderer.ts(470,33): error TS2304: Cannot find name 'GPURenderPassDescriptor'.
+frontend/lib/holographicRenderer.ts(561,41): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/holographicRenderer.ts(590,40): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(95,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(96,19): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(101,18): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(102,23): error TS2304: Cannot find name 'GPUTextureView'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(103,26): error TS2304: Cannot find name 'GPUSampler'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(105,32): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(106,32): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(107,28): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(108,22): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(113,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(113,85): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(143,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(143,50): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(171,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(171,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(214,27): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(214,47): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(225,25): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(235,22): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(239,38): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/pipeline/quilt/QuiltRenderer.ts(239,62): error TS2304: Cannot find name 'GPUTextureView'.
+frontend/lib/render_select_complete.ts(4,10): error TS2305: Module '"./webgpu/capabilities"' has no exported member 'getHolographicCapability'.
+frontend/lib/render_select_complete.ts(5,31): error TS2307: Cannot find module './webgpu/validateDeviceLimits' or its corresponding type declarations.
+frontend/lib/render_select_complete.ts(6,10): error TS2305: Module '"./webgpu/engine"' has no exported member 'buildWebGPU'.
+frontend/lib/render_select_complete.ts(7,35): error TS2307: Cannot find module '../hybrid/cpu_projector' or its corresponding type declarations.
+frontend/lib/render_select_complete.ts(8,36): error TS2307: Cannot find module './webgpu/pipelines/ios26_compositor' or its corresponding type declarations.
+frontend/lib/render_select_complete.ts(10,42): error TS2304: Cannot find name 'InitOpts'.
+frontend/lib/render_select_complete.ts(10,61): error TS2304: Cannot find name 'RendererHandle'.
+frontend/lib/render_select_complete.ts(50,39): error TS2304: Cannot find name 'InitOpts'.
+frontend/lib/render_select_complete.ts(80,37): error TS2304: Cannot find name 'InitOpts'.
+frontend/lib/render_select_complete.ts(125,35): error TS2304: Cannot find name 'InitOpts'.
+frontend/lib/render_select_complete.ts(151,44): error TS2304: Cannot find name 'InitOpts'.
+frontend/lib/webgpu/capabilities.ts(1,36): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/lib/webgpu/capabilities.ts(54,5): error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+frontend/lib/webgpu/caps.ts(21,15): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/caps.ts(49,21): error TS7006: Parameter 'info' implicitly has an 'any' type.
+frontend/lib/webgpu/effects/chromaticAberration.ts(2,40): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/effects/chromaticAberration.ts(7,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/chromaticAberration.ts(8,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/chromaticAberration.ts(9,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/chromaticAberration.ts(10,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/dofLight.ts(2,41): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/effects/dofLight.ts(7,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/dofLight.ts(8,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/dofLight.ts(9,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/dofLight.ts(10,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/dofLight.ts(11,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/motionBlend.ts(2,49): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/effects/motionBlend.ts(7,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/motionBlend.ts(8,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/motionBlend.ts(9,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/motionBlend.ts(10,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/effects/motionBlend.ts(11,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/engine.ts(13,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/engine.ts(15,12): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/engine.ts(20,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/engine.ts(21,20): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/webgpu/engine.ts(23,19): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/engine.ts(95,28): error TS2304: Cannot find name 'GPULoadOp'.
+frontend/lib/webgpu/engine.ts(96,29): error TS2304: Cannot find name 'GPUStoreOp'.
+frontend/lib/webgpu/enginePerf.ts(22,21): error TS2304: Cannot find name 'GPUAdapter'.
+frontend/lib/webgpu/enginePerf.ts(81,44): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(86,44): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(92,59): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(97,59): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(102,46): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(117,33): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(126,26): error TS2339: Property 'canvas' does not exist on type 'WebGPUPerfEngine'.
+frontend/lib/webgpu/enginePerf.ts(127,27): error TS2339: Property 'canvas' does not exist on type 'WebGPUPerfEngine'.
+frontend/lib/webgpu/enginePerf.ts(131,29): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(133,16): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/enginePerf.ts(133,41): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/enginePerf.ts(140,27): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(142,16): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/enginePerf.ts(142,41): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/enginePerf.ts(164,12): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(195,17): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/webgpu/enginePerf.ts(202,49): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/fallbackSystem.ts(6,24): error TS2307: Cannot find module '../../utils/logger' or its corresponding type declarations.
+frontend/lib/webgpu/fallbackSystem.ts(30,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fallbackSystem.ts(31,20): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/webgpu/fftCompute.test.ts(5,61): error TS2307: Cannot find module '@jest/globals' or its corresponding type declarations.
+frontend/lib/webgpu/fftCompute.test.ts(92,17): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftCompute.test.ts(483,17): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftCompute.ts(20,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(21,13): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(22,12): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(22,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(26,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftCompute.ts(28,41): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/fftCompute.ts(29,30): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/webgpu/fftCompute.ts(30,29): error TS2304: Cannot find name 'GPUPipelineLayout'.
+frontend/lib/webgpu/fftCompute.ts(33,28): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(34,28): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(35,32): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(36,34): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(41,24): error TS2304: Cannot find name 'GPUQuerySet'.
+frontend/lib/webgpu/fftCompute.ts(42,27): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(45,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftCompute.ts(104,43): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/fftCompute.ts(105,43): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/fftCompute.ts(106,43): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/fftCompute.ts(107,43): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/fftCompute.ts(142,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(142,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(166,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(179,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(193,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(230,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(255,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(266,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(317,31): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/fftCompute.ts(335,44): error TS7006: Parameter 'msg' implicitly has an 'any' type.
+frontend/lib/webgpu/fftCompute.ts(394,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(394,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(399,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(399,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(405,28): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(410,28): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(424,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(424,51): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(424,77): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(428,41): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(428,76): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(504,31): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(542,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(542,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(546,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(546,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(546,75): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(551,28): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(555,28): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(562,18): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/fftCompute.ts(564,22): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(565,23): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(573,24): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(663,39): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/fftCompute.ts(664,31): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/fftCompute.ts(681,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(681,46): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/fftCompute.ts(688,38): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/fftDispatchValidator.ts(19,18): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftDispatchValidator.ts(80,14): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/fftOptimizations.ts(97,43): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/headPoseUniform.ts(4,20): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/headPoseUniform.ts(5,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/headPoseUniform.ts(7,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/headPoseUniform.ts(11,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/headPoseUniform.ts(11,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/hologramPropagation.ts(30,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/hologramPropagation.ts(31,24): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/hologramPropagation.ts(32,31): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/webgpu/hologramPropagation.ts(33,29): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/hologramPropagation.ts(39,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/hologramPropagation.ts(102,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/hologramPropagation.ts(109,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/hologramPropagation.ts(117,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/hologramPropagation.ts(126,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/hologramPropagation.ts(152,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/hologramPropagation.ts(152,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/hologramPropagation.ts(160,25): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/hologramPropagation.ts(161,23): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/hologramPropagation.ts(162,24): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/hologramPropagation.ts(300,65): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/hologramPropagation.ts(326,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/hologramPropagation.ts(326,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/indirect.ts(4,44): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/indirect.ts(7,12): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/indirect.ts(7,38): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/indirect.ts(14,42): error TS2304: Cannot find name 'GPURenderPassEncoder'.
+frontend/lib/webgpu/indirect.ts(14,81): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/index.ts(32,10): error TS2459: Module '"./splitStepOrchestrator"' declares 'SplitStepConfig' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(33,10): error TS2459: Module '"./splitStepOrchestrator"' declares 'PerformanceTelemetry' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(34,5): error TS2459: Module '"./splitStepOrchestrator"' declares 'BoundaryType' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(42,10): error TS2459: Module '"./onnxWaveOpRunner"' declares 'OnnxConfig' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(43,10): error TS2459: Module '"./onnxWaveOpRunner"' declares 'PerformanceMetrics' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(119,49): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/index.ts(123,43): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/index.ts(134,9): error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+frontend/lib/webgpu/kernels/index.ts(144,14): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/index.ts(146,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/index.ts(147,16): error TS2304: Cannot find name 'SchrodingerEvolution'.
+frontend/lib/webgpu/kernels/index.ts(189,33): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/index.ts(193,14): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/index.ts(212,29): error TS2304: Cannot find name 'createSchrodingerEvolution'.
+frontend/lib/webgpu/kernels/index.ts(234,5): error TS18004: No value exists in scope for the shorthand property 'createSchrodingerEvolution'. Either declare one or provide an initializer.
+frontend/lib/webgpu/kernels/index.ts(235,5): error TS18004: No value exists in scope for the shorthand property 'SchrodingerRegistry'. Either declare one or provide an initializer.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(32,21): error TS2694: Namespace '"onnxruntime-web"' has no exported member 'IOBinding'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(167,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(170,28): error TS2694: Namespace '"onnxruntime-web"' has no exported member 'IOBinding'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(175,29): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(176,30): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(187,46): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(218,21): error TS2322: Type 'string[] | { name: "webgpu"; deviceType: string; powerPreference: string; }[]' is not assignable to type 'readonly ExecutionProviderConfig[] | undefined'.
+  Type '{ name: "webgpu"; deviceType: string; powerPreference: string; }[]' is not assignable to type 'readonly ExecutionProviderConfig[]'.
+    Object literal may only specify known properties, and 'deviceType' does not exist in type 'ExecutionProviderOption | WebGpuExecutionProviderOption'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(259,21): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'Uint8Array<ArrayBufferLike>'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(293,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(293,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(293,71): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(299,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(299,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(299,71): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(323,59): error TS2349: This expression is not callable.
+  Type 'readonly string[]' has no call signatures.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(324,60): error TS2349: This expression is not callable.
+  Type 'readonly string[]' has no call signatures.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(376,42): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(387,58): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(397,45): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(421,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(421,46): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(434,37): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(448,35): error TS2339: Property 'set' does not exist on type 'string[] | Float32Array<ArrayBufferLike> | Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | ... 6 more ... | BigUint64Array<...>'.
+  Property 'set' does not exist on type 'string[]'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(564,14): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(93,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(98,34): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(107,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,31): error TS2448: Block-scoped variable 'performance' used before its declaration.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,31): error TS2454: Variable 'performance' is used before being assigned.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,43): error TS2339: Property 'now' does not exist on type 'PerformanceMetrics'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,29): error TS2448: Block-scoped variable 'performance' used before its declaration.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,29): error TS2454: Variable 'performance' is used before being assigned.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,41): error TS2339: Property 'now' does not exist on type 'PerformanceMetrics'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(392,57): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(396,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(396,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(613,17): error TS2783: 'method' is specified more than once, so this usage will be overwritten.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(653,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(23,19): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(46,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(51,26): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(52,31): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(53,30): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(60,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(187,34): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(192,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(192,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(192,71): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(240,39): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(250,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(250,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(413,37): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(413,49): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(418,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(418,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(432,44): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(475,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(475,46): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(488,35): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(584,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerEvolution.ts(595,42): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(31,26): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(32,31): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(47,16): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(48,17): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(68,19): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(69,23): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(81,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(99,30): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(138,40): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(158,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(160,39): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(161,27): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(167,46): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(198,40): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(200,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(202,39): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(203,27): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(205,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(212,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(237,40): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(239,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(241,39): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(246,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(291,29): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(526,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(529,55): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(542,29): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/spectralFiltering.ts(326,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/spectralFiltering.ts(330,4): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/spectralFiltering.ts(354,16): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/spectralFiltering.ts(354,50): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(64,20): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(80,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(85,24): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(86,30): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(87,26): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(88,27): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(89,30): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(90,29): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(93,26): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(94,32): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(95,28): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(96,29): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(97,32): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(98,27): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(99,28): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(102,22): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(103,22): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(104,28): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(105,29): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(108,37): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(112,24): error TS2304: Cannot find name 'GPUQuerySet'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(113,27): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(120,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(168,59): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(171,68): error TS2304: Cannot find name 'GPUFeatureName'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(227,51): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(239,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(239,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(419,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(419,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(419,71): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(425,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(425,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(425,71): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(433,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(433,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(441,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(441,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(475,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(475,55): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(495,25): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(496,23): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(497,27): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(587,35): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(613,15): error TS2304: Cannot find name 'GPUComputePassEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(628,36): error TS2304: Cannot find name 'GPUComputePassEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(640,18): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(641,27): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(658,45): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(673,43): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(688,37): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(705,38): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(738,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(738,46): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(751,35): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(777,13): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'KernelSpec'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(802,44): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(803,45): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(847,13): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/minimalGPUTest.ts(4,28): error TS2307: Cannot find module './frontend/lib/webgpu/fftCompute' or its corresponding type declarations.
+frontend/lib/webgpu/minimalGPUTest.ts(5,38): error TS2307: Cannot find module './frontend/lib/webgpu/fftDispatchValidator' or its corresponding type declarations.
+frontend/lib/webgpu/minimalGPUTest.ts(72,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/minimalGPUTest.ts(141,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/minimalGPUTest.ts(155,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(155,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(155,75): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(166,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(166,50): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(175,42): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/minimalGPUTest.ts(210,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/minimalGPUTest.ts(249,24): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(249,49): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/minimalGPUTest.ts(249,75): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(3,11): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(4,13): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(5,8): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(8,41): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(13,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(14,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(15,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(16,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/jointBilateralUpsample.ts(17,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(5,11): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(6,13): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(7,20): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(10,55): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(19,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(20,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(21,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/parallaxComposite.ts(22,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(3,11): error TS2304: Cannot find name 'GPUShaderModule'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(4,13): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(5,8): error TS2304: Cannot find name 'GPUBindGroupLayout'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(8,56): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(13,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(14,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(15,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/pipelines/viewBlendOcclusion.ts(16,33): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/profiler.ts(5,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/profiler.ts(7,16): error TS2304: Cannot find name 'GPUQuerySet'.
+frontend/lib/webgpu/profiler.ts(8,24): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/profiler.ts(12,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/profiler.ts(19,16): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/profiler.ts(19,42): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/profiler.ts(24,29): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/profiler.ts(38,28): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/profiler.ts(38,53): error TS2304: Cannot find name 'GPURenderPassDescriptor'.
+frontend/lib/webgpu/profiler.ts(41,16): error TS2304: Cannot find name 'GPURenderPassDescriptor'.
+frontend/lib/webgpu/profiler.ts(54,26): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/profiler.ts(63,36): error TS2304: Cannot find name 'GPUMapMode'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(146,21): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(147,22): error TS2304: Cannot find name 'GPUCanvasContext'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(148,23): error TS2304: Cannot find name 'GPURenderPipeline'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(153,27): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(154,26): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(155,28): error TS2552: Cannot find name 'GPUBuffer'. Did you mean 'Buffer'?
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(156,24): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(159,27): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(160,26): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(224,40): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(245,41): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(250,41): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(255,41): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(260,41): error TS2304: Cannot find name 'GPUShaderStage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(325,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(325,44): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(333,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(333,43): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(342,20): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(342,45): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(358,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(359,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(360,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(368,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(368,54): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(509,34): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(574,35): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quilt/WebGPUQuiltGenerator.ts(582,20): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/quiltDiagnostics.ts(28,24): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quiltDiagnostics.ts(29,18): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/quiltDiagnostics.ts(136,14): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quiltDiagnostics.ts(137,20): error TS2304: Cannot find name 'GPUTextureUsageFlags'.
+frontend/lib/webgpu/quiltDiagnostics.ts(151,41): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/quiltDiagnostics.ts(151,53): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/quiltDiagnostics.ts(153,35): error TS2304: Cannot find name 'GPUBuffer'.
+frontend/lib/webgpu/quiltDiagnostics.ts(153,47): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/shaderConstantManager.ts(20,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(25,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(31,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(32,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(33,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(38,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(41,9): error TS2322: Type 'string' is not assignable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(75,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(78,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(81,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(84,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(87,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantManager.ts(90,18): error TS2678: Type 'string' is not comparable to type 'number'.
+frontend/lib/webgpu/shaderConstantValidator.ts(127,52): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/shaderConstantValidator.ts(171,51): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/types.ts(7,29): error TS2304: Cannot find name 'GPUCommandEncoder'.
+frontend/lib/webgpu/types.ts(8,25): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/texturePool.ts(9,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/texturePool.ts(10,34): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(17,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/texturePool.ts(28,16): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/lib/webgpu/utils/texturePool.ts(28,39): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(66,20): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(75,38): error TS2304: Cannot find name 'GPUTextureDescriptor'.
+frontend/lib/webgpu/utils/texturePool.ts(96,36): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/utils/texturePool.ts(147,21): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/texturePool.ts(189,41): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(12,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(13,29): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(16,23): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(34,14): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(61,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(61,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(75,49): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(92,23): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(93,50): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(141,11): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(142,13): error TS2304: Cannot find name 'GPUComputePipeline'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(143,8): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(144,12): error TS2304: Cannot find name 'GPUSampler'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(146,4): error TS2304: Cannot find name 'GPUBindGroup'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(149,12): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/utils/transferLUT1D.ts(149,37): error TS2304: Cannot find name 'GPUBufferUsage'.
+frontend/lib/webgpu/wave/FftWaveBackend.ts(14,19): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/wave/FftWaveBackend.ts(16,19): error TS2304: Cannot find name 'GPUTextureFormat'.
+frontend/lib/webgpu/wave/WaveBackend.ts(34,12): error TS2304: Cannot find name 'GPUTexture'.
+frontend/lib/webgpu/wave/WaveBackend.ts(39,12): error TS2304: Cannot find name 'GPUDevice'.
+frontend/lib/webgpu/wave/WaveBackend.ts(40,12): error TS2304: Cannot find name 'GPUTextureFormat'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(2,42): error TS2307: Cannot find module './holographicEngine' or its corresponding type declarations.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(5,19): error TS2304: Cannot find name 'GPUDevice'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(6,32): error TS2304: Cannot find name 'GPUComputePipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(7,34): error TS2304: Cannot find name 'GPUComputePipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(8,30): error TS2304: Cannot find name 'GPURenderPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(9,31): error TS2304: Cannot find name 'GPURenderPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(12,30): error TS2304: Cannot find name 'GPUShaderModule'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(13,27): error TS2304: Cannot find name 'GPUShaderModule'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(14,28): error TS2304: Cannot find name 'GPUShaderModule'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(15,29): error TS2304: Cannot find name 'GPUShaderModule'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(17,23): error TS2304: Cannot find name 'GPUDevice'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(67,80): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(72,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(72,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(83,14): error TS2339: Property 'applyExplosiveConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(88,14): error TS2339: Property 'applyFlowingConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(93,14): error TS2339: Property 'applyStructuredConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(98,14): error TS2339: Property 'applyCrystallineConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(103,14): error TS2339: Property 'applyOrganicConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(114,12): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(116,14): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(121,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(121,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(139,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(139,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(168,16): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(170,14): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(174,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(174,48): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(229,16): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(230,20): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(231,14): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(237,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(237,50): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(243,18): error TS2339: Property 'renderView' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(249,49): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(249,70): error TS2304: Cannot find name 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(254,14): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(254,50): error TS2304: Cannot find name 'GPUTextureUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(273,38): error TS2339: Property 'createLenticularParams' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(296,12): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ explosive: number; flowing: number; structured: number; crystalline: number; organic: number; }'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(308,12): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ explosive: string; flowing: string; structured: string; crystalline: string; organic: string; }'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(324,45): error TS2304: Cannot find name 'GPUBuffer'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(327,14): error TS2304: Cannot find name 'GPUBufferUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(327,39): error TS2304: Cannot find name 'GPUBufferUsage'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(341,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ angular: number; fresnel: number; fraunhofer: number; auto: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ angular: number; fresnel: number; fraunhofer: number; auto: number; }'.

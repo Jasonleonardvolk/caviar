@@ -1,0 +1,50 @@
+
+// Test file with circular references
+system RobotSystem {
+    continuous_state {
+        x; y; theta;
+        v; omega;
+    }
+    
+    input {
+        a; alpha;
+    }
+    
+    params {
+        m: 1.0;
+        J: 0.1;
+        L: 0.5;
+    }
+    
+    flow_dynamics {
+        // State evolution
+        x_dot = v * cos(theta);
+        y_dot = v * sin(theta);
+        theta_dot = omega;
+        
+        // Circular reference in velocity
+        v_dot = v_dot + a / m;  // ERROR: Circular reference
+        
+        // Multiple derivatives for the same base variable
+        omega_dot = alpha / J;
+        dtheta = 2.0 * omega;   // WARNING: Another derivative for theta
+    }
+}
+
+mode PD_Control {
+    params {
+        kp: 5.0;
+        kd: 1.0;
+    }
+    
+    controller {
+        // Alias example - these have identical expressions
+        control1 = kp * (0 - theta) + kd * (0 - omega);
+        control2 = kp * (0 - theta) + kd * (0 - omega);
+        
+        // Indirect circular reference
+        temp1 = temp2 + 1.0;  // ERROR: Indirect circular reference
+        temp2 = temp3 * 2.0;
+        temp3 = temp1 / 2.0;
+    }
+}

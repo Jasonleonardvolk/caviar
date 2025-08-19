@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-07-31T17:25:05.500218",
+  "session_id": "20250731_172415",
+  "api_port": 8002,
+  "frontend_port": null,
+  "mcp_port": 8100,
+  "processes": {
+    "mcp_server": 29532
+  }
+}

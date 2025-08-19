@@ -1,0 +1,67 @@
+## Add this method to the EnhancedUnifiedToriLauncher class:
+
+    def wait_for_api_health(self, port, max_retries=30):
+        """Wait for API health check to succeed before proceeding"""
+        self.logger.info(f"⏳ Waiting for API to be healthy on port {port}...")
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(f'http://localhost:{port}/api/health', timeout=2)
+                if response.status_code == 200:
+                    health_data = response.json()
+                    self.logger.info(f"✅ API is healthy: {health_data.get('status', 'unknown')}")
+                    return True
+            except requests.exceptions.RequestException:
+                if attempt % 5 == 0 and attempt > 0:
+                    self.logger.info(f"⏳ Still waiting for API... ({attempt}/{max_retries})")
+            
+            time.sleep(1)
+        
+        self.logger.error(f"❌ API failed to become healthy after {max_retries} seconds")
+        return False
+
+## Then in the launch() method, find this section:
+
+            # Step 7: Start API server (blocks here)
+            self.start_api_server(self.api_port)
+
+## And REPLACE it with:
+
+            # Step 6.7: Start API server in background thread
+            self.logger.info("\n" + "=" * 50)
+            self.logger.info("🌐 STARTING API SERVER...")
+            self.logger.info("=" * 50)
+            
+            def run_api_server():
+                """Run API server in thread"""
+                self.start_api_server(self.api_port)
+            
+            api_thread = threading.Thread(
+                target=run_api_server,
+                daemon=False,  # Don't daemon - we want it to keep running
+                name="APIServer"
+            )
+            api_thread.start()
+            
+            # Step 6.8: Wait for API to be healthy
+            if self.wait_for_api_health(self.api_port):
+                self.logger.info("✅ API server is ready!")
+                
+                # Step 7: NOW start frontend (API is ready)
+                self.logger.info("\n" + "=" * 50)
+                self.logger.info("🎨 STARTING FRONTEND - API IS READY...")
+                self.logger.info("=" * 50)
+                frontend_started = self.start_frontend_services_enhanced()
+                
+                if frontend_started:
+                    self.logger.info("✅ Frontend started successfully!")
+                else:
+                    self.logger.warning("⚠️ Frontend startup failed - continuing with API only")
+            else:
+                self.logger.error("❌ API server failed to start")
+                return 1
+            
+            # Wait for API thread (blocks here)
+            api_thread.join()
+
+## Also MOVE the frontend startup from earlier in the sequence to AFTER the API is confirmed healthy.

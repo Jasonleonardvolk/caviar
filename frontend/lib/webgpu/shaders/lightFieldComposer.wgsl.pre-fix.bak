@@ -1,0 +1,96 @@
+/* 
+ LightFieldComposer.wgsl
+
+ This WebGPU shader composes multiple view images into various output formats for light field displays.
+ It assembles outputs from multiDepthWaveSynth (base images at multiple depths/views) and phaseOcclusion (occlusion masks)
+ into either a quilt (tiled multi-view image), stacked depth layers, or a stereo pair.
+
+ Modes:
+    0 = Quilt (tile images in a grid),
+    1 = Depth Layers (all views in one row or column),
+    2 = Stereo (two views side-by-side).
+
+ Inputs (bound to group(0)):
+    binding(0) : baseTex (texture_2d_array<f32>) - Base color/intensity textures for each view (array layer = view index).
+    binding(1) : occTex (texture_2d_array<f32>) - Occlusion mask textures for each view (same layering as baseTex).
+    binding(2) : outputTex (texture_storage_2d<rgba8unorm, write>) - Output texture to write the composed image into.
+    binding(3) : Uniforms (Params) - see struct Params below.
+
+ The shader expects each view image to be of size (width x height) given in Params.
+ For quilt mode, tileCountX and tileCountY specify the grid dimensions.
+ For depth layers mode, tileCountX or tileCountY can be set such that all views line up in one row or column.
+ Stereo mode uses the first and last view as left and right images (assuming views are sorted left-to-right).
+
+ Workgroup: 8x8 threads. The compute shader will cover the entire output image by appropriately sized dispatch.
+ */
+
+struct Params {
+    width: u32,         // Width of each single view image
+    height: u32,        // Height of each single view image
+    viewCount: u32,     // Total number of views (layers in the input textures)
+    tileCountX: u32,    // Number of tiles horizontally (for quilt or layer arrangement)
+    tileCountY: u32,    // Number of tiles vertically
+    mode: u32,          // Output mode (0=quilt, 1=depth layers, 2=stereo)
+}
+
+@group(0) @binding(0) var baseTex: texture_2d_array<f32>;
+@group(0) @binding(1) var occTex: texture_2d_array<f32>;
+@group(0) @binding(2) var outputTex: texture_storage_2d<rgba8unorm, write>;
+@group(0) @binding(3) var<uniform> params: Params;
+
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) GlobalId: vec3<u32>) {
+    let out_x: u32 = GlobalId.x;
+    let out_y: u32 = GlobalId.y;
+    // Calculate total output dimensions from tile counts
+    let totalWidth: u32 = params.width * params.tileCountX;
+    let totalHeight: u32 = params.height * params.tileCountY;
+    // Ensure we don't write outside the intended output (in case dispatch is larger)
+    if (out_x >= totalWidth || out_y >= totalHeight) {
+        return;
+    }
+    var outColor: vec4<f32>;
+    if (params.mode == 2u) {
+        // Stereo mode: left view on left half, right view on right half of output
+        var viewIndex: u32;
+        var local_x: u32;
+        if (out_x < params.width) {
+            // Left half of output -> left-eye view (use first view, index 0)
+            viewIndex = 0u;
+            local_x = out_x;
+        } else {
+            // Right half -> right-eye view (use last view, index = viewCount-1)
+            viewIndex = max(params.viewCount, 1u) - 1u;
+            local_x = out_x - params.width;
+        }
+        let local_y: u32 = out_y;
+        if (viewIndex < params.viewCount) {
+            // Sample base color and occlusion
+            let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+            let occVal: vec4<f32> = textureLoad(occTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+            let occ: f32 = occVal.r; // assume occlusion is stored in red channel (grayscale mask)
+            outColor = vec4<f32>(baseColor.rgb * occ, 1.0);
+        } else {
+            // In case viewIndex is out of range (should not happen here)
+            outColor = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+        }
+    } else {
+        // Quilt or Depth-layers mode: arrange views in a grid defined by tileCountX x tileCountY
+        let tile_x: u32 = out_x / params.width;
+        let tile_y: u32 = out_y / params.height;
+        let viewIndex: u32 = tile_y * params.tileCountX + tile_x;
+        let local_x: u32 = out_x - tile_x * params.width;
+        let local_y: u32 = out_y - tile_y * params.height;
+        if (viewIndex < params.viewCount) {
+            let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+            let occVal: vec4<f32> = textureLoad(occTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+            let occ: f32 = occVal.r;
+            outColor = vec4<f32>(baseColor.rgb * occ, 1.0);
+        } else {
+            // If there are more tile slots than actual views, output black for extra slots
+            outColor = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+        }
+    }
+    // Write the composed color to the output texture
+    textureStore(outputTex, vec2<i32>(out_x, out_y), outColor);
+}

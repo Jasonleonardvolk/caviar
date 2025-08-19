@@ -1,0 +1,16 @@
+
+// Test file with indirect circular reference
+system Robot {
+    flow_dynamics {
+        x_dot = v * cos(theta);
+        v_dot = a;
+    }
+}
+
+mode Control {
+    controller {
+        a = b;
+        b = c;
+        c = a;  // INDIRECT circular reference: a -> b -> c -> a
+    }
+}

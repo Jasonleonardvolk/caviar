@@ -1,0 +1,75 @@
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     TORI SELF-TRANSFORMATION ARCHITECTURE                     │
+│                          Phase-Coherent Cognition System                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┐         ┌─────────────────────┐
+│   MUTATION REQUEST  │         │  KNOWLEDGE DOMAINS  │
+│   (Code/Strategy)   │         │  (Math/Phys/Bio)    │
+└──────────┬──────────┘         └──────────┬──────────┘
+           │                               │
+           ▼                               ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│  CRITIC CONSENSUS   │         │ ANALOGICAL TRANSFER │
+│  ┌─────────────┐   │         │  • Graph Manifold   │
+│  │Safety: 0.9  │   │         │  • Geodesic Dist    │
+│  │Perf: 0.6    │◄──┼─────────┤  • Transfer Kernels │
+│  │Coherence:0.8│   │         │  • Strategy Adapt   │
+│  │Novelty: 0.4 │   │         └─────────────────────┘
+│  └─────────────┘   │
+│  Weighted Aggregate │
+└──────────┬──────────┘
+           │
+     Accept/Reject
+           │
+           ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│  CONSTITUTIONAL     │         │   ENERGY BUDGET     │
+│     SAFETY          │◄────────┤  E = E + ΔQ - ΔW   │
+│  • Identity Hash    │         │  • Compute Heat     │
+│  • Resource Limits  │         │  • Work Utility     │
+│  • Forbidden Calls  │         │  • Throttling       │
+│  • Rollback Rules   │         └──────────┬──────────┘
+└──────────┬──────────┘                    │
+           │                               │
+           ▼                               ▼
+┌─────────────────────────────────────────────────────┐
+│                  SANDBOX RUNNER                      │
+│  • Git Worktree Isolation                           │
+│  • POSIX Resource Limits (rlimit)                   │
+│  • CPU/RAM/Time Boundaries                          │
+│  • Automatic Rollback on Failure                    │
+└──────────┬──────────────────────────────┬───────────┘
+           │                              │
+      Pass/Fail                      Resource Usage
+           │                              │
+           ▼                              ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│   AUDIT LOGGER      │         │  METRICS EXPORT     │
+│  • Event Tracking   │         │  • Prometheus       │
+│  • JSON Format      │         │  • WebSocket Feed   │
+│  • Rollback History │         │  • Dashboard        │
+└─────────────────────┘         └─────────────────────┘
+
+                    ▼
+         ┌─────────────────────┐
+         │  APPLY MUTATION     │
+         │  (If All Checks OK) │
+         └─────────────────────┘
+
+INFORMATION FLOW:
+─────────────────
+1. Mutation proposed → Critics evaluate → Consensus decision
+2. If accepted → Constitutional check → Energy budget check
+3. If allowed → Sandbox test → Resource monitoring
+4. If successful → Audit log → Apply to production
+5. Knowledge transfer → Improve future mutations
+
+GEOMETRIC PRINCIPLES:
+────────────────────
+• State Space: High-dimensional manifold M
+• Constitution: Closed sub-manifold C ⊂ M  
+• Critics: Beta-Bernoulli field sampling
+• Transfer: Spectral graph decomposition
+• Energy: Hamiltonian phase-space dynamics

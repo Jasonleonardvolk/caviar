@@ -1,0 +1,684 @@
+{
+    "ShaderBundle":  "PASSED",
+    "TotalErrors":  108,
+    "Timestamp":  "2025-08-14_13-25-02",
+    "TypeScript":  "FAILED",
+    "ErrorDetails":  {
+                         "frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts":  [
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "158"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "27",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "161"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "46",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "167"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "200"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "27",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "203"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "205"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "212"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "239"
+                                                                                          },
+                                                                                          {
+                                                                                              "Column":  "22",
+                                                                                              "Code":  "TS2339",
+                                                                                              "Message":  "Property \u0027implementation\u0027 does not exist on type \u0027SchrodingerKernelRegistry\u0027.",
+                                                                                              "Line":  "246"
+                                                                                          }
+                                                                                      ],
+                         "frontend/lib/webgpu/validateDeviceLimits.ts":  [
+                                                                             {
+                                                                                 "Column":  "76",
+                                                                                 "Code":  "TS2304",
+                                                                                 "Message":  "Cannot find name \u0027GPULimits\u0027.",
+                                                                                 "Line":  "56"
+                                                                             },
+                                                                             {
+                                                                                 "Column":  "23",
+                                                                                 "Code":  "TS18046",
+                                                                                 "Message":  "\u0027value\u0027 is of type \u0027unknown\u0027.",
+                                                                                 "Line":  "63"
+                                                                             }
+                                                                         ],
+                         "frontend/lib/webgpu/kernels/schrodingerBenchmark.ts":  [
+                                                                                     {
+                                                                                         "Column":  "31",
+                                                                                         "Code":  "TS2448",
+                                                                                         "Message":  "Block-scoped variable \u0027performance\u0027 used before its declaration.",
+                                                                                         "Line":  "316"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "31",
+                                                                                         "Code":  "TS2454",
+                                                                                         "Message":  "Variable \u0027performance\u0027 is used before being assigned.",
+                                                                                         "Line":  "316"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "43",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027now\u0027 does not exist on type \u0027PerformanceMetrics\u0027.",
+                                                                                         "Line":  "316"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "29",
+                                                                                         "Code":  "TS2448",
+                                                                                         "Message":  "Block-scoped variable \u0027performance\u0027 used before its declaration.",
+                                                                                         "Line":  "326"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "29",
+                                                                                         "Code":  "TS2454",
+                                                                                         "Message":  "Variable \u0027performance\u0027 is used before being assigned.",
+                                                                                         "Line":  "326"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "41",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027now\u0027 does not exist on type \u0027PerformanceMetrics\u0027.",
+                                                                                         "Line":  "326"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "17",
+                                                                                         "Code":  "TS2783",
+                                                                                         "Message":  "\u0027method\u0027 is specified more than once, so this usage will be overwritten.",
+                                                                                         "Line":  "613"
+                                                                                     }
+                                                                                 ],
+                         "frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts":  [
+                                                                                 {
+                                                                                     "Column":  "21",
+                                                                                     "Code":  "TS2694",
+                                                                                     "Message":  "Namespace \u0027\"onnxruntime-web\"\u0027 has no exported member \u0027IOBinding\u0027.",
+                                                                                     "Line":  "32"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "28",
+                                                                                     "Code":  "TS2694",
+                                                                                     "Message":  "Namespace \u0027\"onnxruntime-web\"\u0027 has no exported member \u0027IOBinding\u0027.",
+                                                                                     "Line":  "170"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "21",
+                                                                                     "Code":  "TS2322",
+                                                                                     "Message":  "Type \u0027string[] | { name: \"webgpu\"; deviceType: string; powerPreference: string; }[]\u0027 is not assignable to type \u0027readonly ExecutionProviderConfig[] | undefined\u0027.",
+                                                                                     "Line":  "218"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "21",
+                                                                                     "Code":  "TS2769",
+                                                                                     "Message":  "No overload matches this call.",
+                                                                                     "Line":  "259"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "59",
+                                                                                     "Code":  "TS2349",
+                                                                                     "Message":  "This expression is not callable.",
+                                                                                     "Line":  "323"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "60",
+                                                                                     "Code":  "TS2349",
+                                                                                     "Message":  "This expression is not callable.",
+                                                                                     "Line":  "324"
+                                                                                 },
+                                                                                 {
+                                                                                     "Column":  "35",
+                                                                                     "Code":  "TS2339",
+                                                                                     "Message":  "Property \u0027set\u0027 does not exist on type \u0027string[] | Float32Array\u003cArrayBufferLike\u003e | Uint16Array\u003cArrayBufferLike\u003e | Uint32Array\u003cArrayBufferLike\u003e | ... 6 more ... | BigUint64Array\u003c...\u003e\u0027.",
+                                                                                     "Line":  "448"
+                                                                                 }
+                                                                             ],
+                         "tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts":  [
+                                                                                     {
+                                                                                         "Column":  "42",
+                                                                                         "Code":  "TS2307",
+                                                                                         "Message":  "Cannot find module \u0027./holographicEngine\u0027 or its corresponding type declarations.",
+                                                                                         "Line":  "2"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027propagationPipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "6"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027velocityFieldPipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "7"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027multiViewPipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "8"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027lenticularPipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "9"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027propagationShader\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "12"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027velocityShader\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "13"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027multiViewShader\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "14"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "11",
+                                                                                         "Code":  "TS2564",
+                                                                                         "Message":  "Property \u0027lenticularShader\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                         "Line":  "15"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "14",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027applyExplosiveConversion\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "83"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "14",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027applyFlowingConversion\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "88"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "14",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027applyStructuredConversion\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "93"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "14",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027applyCrystallineConversion\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "98"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "14",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027applyOrganicConversion\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "103"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "19",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "119"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "41",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "157"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "41",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "158"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "23",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "172"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "45",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "218"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "45",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "219"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "24",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "235"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "43",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "235"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "18",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027renderView\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "243"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "25",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "252"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "45",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027size\u0027 does not exist on type \u0027GPUTexture\u0027.",
+                                                                                         "Line":  "252"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "38",
+                                                                                         "Code":  "TS2339",
+                                                                                         "Message":  "Property \u0027createLenticularParams\u0027 does not exist on type \u0027PhotoMorphPipeline\u0027.",
+                                                                                         "Line":  "273"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "12",
+                                                                                         "Code":  "TS7053",
+                                                                                         "Message":  "Element implicitly has an \u0027any\u0027 type because expression of type \u0027any\u0027 can\u0027t be used to index type \u0027{ explosive: number; flowing: number; structured: number; crystalline: number; organic: number; }\u0027.",
+                                                                                         "Line":  "296"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "12",
+                                                                                         "Code":  "TS7053",
+                                                                                         "Message":  "Element implicitly has an \u0027any\u0027 type because expression of type \u0027any\u0027 can\u0027t be used to index type \u0027{ explosive: string; flowing: string; structured: string; crystalline: string; organic: string; }\u0027.",
+                                                                                         "Line":  "308"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "12",
+                                                                                         "Code":  "TS7053",
+                                                                                         "Message":  "Element implicitly has an \u0027any\u0027 type because expression of type \u0027string\u0027 can\u0027t be used to index type \u0027{ angular: number; fresnel: number; fraunhofer: number; auto: number; }\u0027.",
+                                                                                         "Line":  "341"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "7",
+                                                                                         "Code":  "TS2741",
+                                                                                         "Message":  "Property \u0027targets\u0027 is missing in type \u0027{ module: GPUShaderModule; entryPoint: string; }\u0027 but required in type \u0027GPUFragmentState\u0027.",
+                                                                                         "Line":  "371"
+                                                                                     },
+                                                                                     {
+                                                                                         "Column":  "7",
+                                                                                         "Code":  "TS2741",
+                                                                                         "Message":  "Property \u0027targets\u0027 is missing in type \u0027{ module: GPUShaderModule; entryPoint: string; }\u0027 but required in type \u0027GPUFragmentState\u0027.",
+                                                                                         "Line":  "387"
+                                                                                     }
+                                                                                 ],
+                         "frontend/lib/webgpu/kernels/splitStepOrchestrator.ts":  [
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027fftModule\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "85"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027transposeModule\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "86"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027phaseModule\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "87"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027kspaceModule\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "88"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027normalizeModule\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "89"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027fftPipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "93"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027transposePipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "94"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027phasePipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "95"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027kspacePipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "96"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027normalizePipeline\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "97"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027bufferA\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "102"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027bufferB\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "103"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2564",
+                                                                                          "Message":  "Property \u0027uniformBuffer\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                                          "Line":  "104"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "506"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "518"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "525"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "532"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "539"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "28",
+                                                                                          "Code":  "TS2339",
+                                                                                          "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUCommandEncoder\u0027.",
+                                                                                          "Line":  "549"
+                                                                                      },
+                                                                                      {
+                                                                                          "Column":  "13",
+                                                                                          "Code":  "TS2353",
+                                                                                          "Message":  "Object literal may only specify known properties, and \u0027id\u0027 does not exist in type \u0027KernelSpec\u0027.",
+                                                                                          "Line":  "777"
+                                                                                      }
+                                                                                  ],
+                         "frontend/lib/webgpu/utils/texturePool.ts":  [
+                                                                          {
+                                                                              "Column":  "29",
+                                                                              "Code":  "TS2339",
+                                                                              "Message":  "Property \u0027width\u0027 does not exist on type \u0027GPUExtent3DStrict\u0027.",
+                                                                              "Line":  "76"
+                                                                          },
+                                                                          {
+                                                                              "Column":  "30",
+                                                                              "Code":  "TS2339",
+                                                                              "Message":  "Property \u0027height\u0027 does not exist on type \u0027GPUExtent3DStrict\u0027.",
+                                                                              "Line":  "77"
+                                                                          },
+                                                                          {
+                                                                              "Column":  "29",
+                                                                              "Code":  "TS2339",
+                                                                              "Message":  "Property \u0027depthOrArrayLayers\u0027 does not exist on type \u0027GPUExtent3DStrict\u0027.",
+                                                                              "Line":  "78"
+                                                                          }
+                                                                      ],
+                         "frontend/lib/webgpu/caps.ts":  [
+                                                             {
+                                                                 "Column":  "15",
+                                                                 "Code":  "TS2345",
+                                                                 "Message":  "Argument of type \u0027\"subgroups-f16\"\u0027 is not assignable to parameter of type \u0027GPUFeatureName\u0027.",
+                                                                 "Line":  "36"
+                                                             }
+                                                         ],
+                         "frontend/lib/webgpu/utils/gpuHelpers.ts":  [
+                                                                         {
+                                                                             "Column":  "90",
+                                                                             "Code":  "TS2339",
+                                                                             "Message":  "Property \u0027depthOrArrayLayers\u0027 does not exist on type \u0027Partial\u003cGPUTextureDescriptor\u003e\u0027.",
+                                                                             "Line":  "32"
+                                                                         }
+                                                                     ],
+                         "frontend/lib/webgpu/engine.ts":  [
+                                                               {
+                                                                   "Column":  "36",
+                                                                   "Code":  "TS2339",
+                                                                   "Message":  "Property \u0027render\u0027 does not exist on type \u0027WebGPUEngine\u0027.",
+                                                                   "Line":  "154"
+                                                               }
+                                                           ],
+                         "frontend/lib/render_select_complete.ts":  [
+                                                                        {
+                                                                            "Column":  "47",
+                                                                            "Code":  "TS2307",
+                                                                            "Message":  "Cannot find module \u0027../types/renderer\u0027 or its corresponding type declarations.",
+                                                                            "Line":  "9"
+                                                                        }
+                                                                    ],
+                         "frontend/lib/webgpu/minimalGPUTest.ts":  [
+                                                                       {
+                                                                           "Column":  "28",
+                                                                           "Code":  "TS2307",
+                                                                           "Message":  "Cannot find module \u0027./frontend/lib/webgpu/fftCompute\u0027 or its corresponding type declarations.",
+                                                                           "Line":  "4"
+                                                                       },
+                                                                       {
+                                                                           "Column":  "38",
+                                                                           "Code":  "TS2307",
+                                                                           "Message":  "Cannot find module \u0027./frontend/lib/webgpu/fftDispatchValidator\u0027 or its corresponding type declarations.",
+                                                                           "Line":  "5"
+                                                                       }
+                                                                   ],
+                         "frontend/lib/webgpu/enginePerf.ts":  [
+                                                                   {
+                                                                       "Column":  "44",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "81"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "44",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "86"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "59",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "92"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "59",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "97"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "46",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "102"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "33",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "117"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "26",
+                                                                       "Code":  "TS2339",
+                                                                       "Message":  "Property \u0027canvas\u0027 does not exist on type \u0027WebGPUPerfEngine\u0027.",
+                                                                       "Line":  "126"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "27",
+                                                                       "Code":  "TS2339",
+                                                                       "Message":  "Property \u0027canvas\u0027 does not exist on type \u0027WebGPUPerfEngine\u0027.",
+                                                                       "Line":  "127"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "29",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "131"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "27",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "140"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "12",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "164"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "49",
+                                                                       "Code":  "TS2341",
+                                                                       "Message":  "Property \u0027device\u0027 is private and only accessible within class \u0027WebGPUEngine\u0027.",
+                                                                       "Line":  "202"
+                                                                   }
+                                                               ],
+                         "frontend/lib/webgpu/fftCompute.ts":  [
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027bindGroupLayout\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "29"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027pipelineLayout\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "30"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027uniformBuffer\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "33"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027twiddleBuffer\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "34"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027bitReversalBuffer\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "35"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "13",
+                                                                       "Code":  "TS2564",
+                                                                       "Message":  "Property \u0027twiddleOffsetBuffer\u0027 has no initializer and is not definitely assigned in the constructor.",
+                                                                       "Line":  "36"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "40",
+                                                                       "Code":  "TS18046",
+                                                                       "Message":  "\u0027shaderModule.compilationInfo\u0027 is of type \u0027unknown\u0027.",
+                                                                       "Line":  "326"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "44",
+                                                                       "Code":  "TS7006",
+                                                                       "Message":  "Parameter \u0027msg\u0027 implicitly has an \u0027any\u0027 type.",
+                                                                       "Line":  "335"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "67",
+                                                                       "Code":  "TS2339",
+                                                                       "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUComputePassEncoder\u0027.",
+                                                                       "Line":  "458"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "67",
+                                                                       "Code":  "TS2339",
+                                                                       "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUComputePassEncoder\u0027.",
+                                                                       "Line":  "490"
+                                                                   },
+                                                                   {
+                                                                       "Column":  "67",
+                                                                       "Code":  "TS2339",
+                                                                       "Message":  "Property \u0027writeTimestamp\u0027 does not exist on type \u0027GPUComputePassEncoder\u0027.",
+                                                                       "Line":  "512"
+                                                                   }
+                                                               ]
+                     }
+}

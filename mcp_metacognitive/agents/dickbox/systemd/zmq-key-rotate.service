@@ -1,0 +1,20 @@
+[Unit]
+Description=ZeroMQ Key Rotation Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/tori/bin/rotate_zmq_keys.py
+User=tori
+Group=tori
+
+# Security
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/etc/tori/zmq_keys /var/log/tori
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zmq-key-rotate

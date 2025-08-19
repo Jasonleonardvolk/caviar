@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Engine Test - WebGPU</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        #canvas {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            border: 2px solid #333;
+            display: block;
+            margin: 20px auto;
+            background: #000;
+        }
+        
+        .controls {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #0052a3;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .error {
+            color: #ff6b6b;
+        }
+        
+        .success {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <h1>Holographic Engine Test</h1>
+    
+    <div class="controls">
+        <button id="initBtn">Initialize WebGPU</button>
+        <button id="loadShadersBtn" disabled>Load Shaders</button>
+        <button id="startEngineBtn" disabled>Start Engine</button>
+        <button id="testPatternBtn" disabled>Test Pattern</button>
+        
+        <div class="status" id="status">
+            Ready to initialize...
+        </div>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+
+    <script type="module">
+        // Import the holographic engine components
+        const statusEl = document.getElementById('status');
+        const canvas = document.getElementById('canvas');
+        
+        let device = null;
+        let engine = null;
+        
+        function updateStatus(message, isError = false) {
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + (isError ? 'error' : 'success');
+            console.log(message);
+        }
+        
+        // Initialize WebGPU
+        document.getElementById('initBtn').addEventListener('click', async () => {
+            try {
+                updateStatus('Initializing WebGPU...');
+                
+                if (!navigator.gpu) {
+                    throw new Error('WebGPU is not supported in this browser');
+                }
+                
+                const adapter = await navigator.gpu.requestAdapter({
+                    powerPreference: 'high-performance'
+                });
+                
+                if (!adapter) {
+                    throw new Error('No WebGPU adapter found');
+                }
+                
+                device = await adapter.requestDevice();
+                
+                // Configure canvas
+                const context = canvas.getContext('webgpu');
+                const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+                
+                context.configure({
+                    device,
+                    format: presentationFormat,
+                    alphaMode: 'premultiplied',
+                });
+                
+                updateStatus('WebGPU initialized successfully!');
+                document.getElementById('loadShadersBtn').disabled = false;
+                
+                // Log device info
+                console.log('WebGPU Device:', device);
+                console.log('Presentation Format:', presentationFormat);
+                
+            } catch (error) {
+                updateStatus(`WebGPU initialization failed: ${error.message}`, true);
+            }
+        });
+        
+        // Load shaders
+        document.getElementById('loadShadersBtn').addEventListener('click', async () => {
+            try {
+                updateStatus('Loading shaders...');
+                
+                // Dynamically import the holographic engine
+                const { SpectralHologramEngine } = await import('./frontend/lib/holographicEngine.js');
+                
+                // Create engine instance
+                engine = new SpectralHologramEngine();
+                
+                // Get default calibration
+                const calibration = {
+                    pitch: 50.0,
+                    tilt: 0.0,
+                    center: 0.0,
+                    viewCone: 45,
+                    invView: 1,
+                    verticalAngle: 0,
+                    DPI: 96,
+                    screenW: canvas.width,
+                    screenH: canvas.height,
+                    flipImageX: 0,
+                    flipImageY: 0,
+                    flipSubp: 0,
+                    numViews: 25,
+                    quiltWidth: 2560,
+                    quiltHeight: 1600,
+                    tileWidth: 512,
+                    tileHeight: 320
+                };
+                
+                // Initialize engine
+                await engine.initialize(canvas, calibration);
+                
+                updateStatus('Shaders loaded and engine initialized!');
+                document.getElementById('startEngineBtn').disabled = false;
+                document.getElementById('testPatternBtn').disabled = false;
+                
+            } catch (error) {
+                updateStatus(`Shader loading failed: ${error.message}`, true);
+                console.error(error);
+            }
+        });
+        
+        // Start engine
+        document.getElementById('startEngineBtn').addEventListener('click', async () => {
+            try {
+                updateStatus('Starting holographic engine...');
+                
+                // Create test wavefield parameters
+                const wavefieldParams = {
+                    phase_modulation: 0.5,
+                    coherence: 0.8,
+                    oscillator_phases: new Array(32).fill(0).map((_, i) => i * 0.1),
+                    dominant_freq: 440,
+                    spatial_frequencies: new Array(32).fill(0).map((_, i) => [
+                        Math.cos(i * Math.PI / 16) * 0.1,
+                        Math.sin(i * Math.PI / 16) * 0.1
+                    ]),
+                    amplitudes: new Array(32).fill(0).map((_, i) => Math.exp(-i * 0.1))
+                };
+                
+                // Update engine with wavefield
+                engine.updateFromWavefieldParams(wavefieldParams);
+                
+                // Create test depth texture
+                const depthData = new Float32Array(1024 * 1024);
+                for (let y = 0; y < 1024; y++) {
+                    for (let x = 0; x < 1024; x++) {
+                        const idx = y * 1024 + x;
+                        // Create a simple depth pattern
+                        const cx = x - 512;
+                        const cy = y - 512;
+                        const r = Math.sqrt(cx * cx + cy * cy) / 512;
+                        depthData[idx] = 0.5 + 0.3 * Math.sin(r * 10);
+                    }
+                }
+                
+                engine.updateDepthTexture(depthData);
+                
+                // Render frame
+                await engine.render({
+                    propagationDistance: 0.3,
+                    quality: 'high'
+                });
+                
+                updateStatus('Holographic engine running!');
+                
+                // Start animation loop
+                let frame = 0;
+                const animate = async () => {
+                    frame++;
+                    
+                    // Update phase animation
+                    wavefieldParams.phase_modulation = 0.5 + 0.3 * Math.sin(frame * 0.01);
+                    engine.updateFromWavefieldParams(wavefieldParams);
+                    
+                    // Render
+                    await engine.render({
+                        propagationDistance: 0.3 + 0.1 * Math.sin(frame * 0.02)
+                    });
+                    
+                    requestAnimationFrame(animate);
+                };
+                
+                animate();
+                
+            } catch (error) {
+                updateStatus(`Engine start failed: ${error.message}`, true);
+                console.error(error);
+            }
+        });
+        
+        // Test pattern
+        document.getElementById('testPatternBtn').addEventListener('click', async () => {
+            try {
+                updateStatus('Generating test pattern...');
+                
+                // Simple test pattern
+                const testOscillator = {
+                    psi_phase: 0,
+                    phase_coherence: 1.0,
+                    oscillator_phases: new Array(32).fill(0),
+                    oscillator_frequencies: new Array(32).fill(440),
+                    coupling_strength: 0.5,
+                    dominant_frequency: 440
+                };
+                
+                engine.updateFromOscillator(testOscillator);
+                
+                // Render test pattern
+                await engine.render({
+                    propagationDistance: 0.5,
+                    quality: 'high'
+                });
+                
+                updateStatus('Test pattern generated!');
+                
+            } catch (error) {
+                updateStatus(`Test pattern failed: ${error.message}`, true);
+            }
+        });
+        
+        // Check WebGPU support on load
+        window.addEventListener('load', () => {
+            if (!navigator.gpu) {
+                updateStatus('WebGPU is not supported in this browser. Please use Chrome 113+ or Edge 113+.', true);
+                document.getElementById('initBtn').disabled = true;
+            } else {
+                updateStatus('WebGPU is supported! Click "Initialize WebGPU" to begin.');
+            }
+        });
+    </script>
+</body>
+</html>

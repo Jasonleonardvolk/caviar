@@ -1,0 +1,419 @@
+/**
+ * toristyle-light.css - Soft white theme foundation for TORI
+ * Calm, low-glare backdrop with spectral accent support
+ */
+
+:root {
+  /* === TORI LIGHT THEME VARIABLES === */
+  
+  /* Core Backgrounds */
+  --tori-bg-primary: #f9f9f9;        /* Soft white - main canvas */
+  --tori-bg-secondary: #f5f5f5;      /* Slightly darker for panels */
+  --tori-bg-tertiary: #eeeeee;       /* Cards, inputs */
+  --tori-bg-elevated: #ffffff;       /* Modals, dropdowns */
+  --tori-bg-overlay: rgba(249, 249, 249, 0.95); /* Overlay backgrounds */
+  
+  /* Text Colors */
+  --tori-text-primary: #1a1a1a;      /* Main text */
+  --tori-text-secondary: #4a4a4a;    /* Secondary text */
+  --tori-text-tertiary: #6a6a6a;     /* Muted text */
+  --tori-text-quaternary: #8a8a8a;   /* Placeholder text */
+  --tori-text-inverse: #ffffff;      /* Text on dark backgrounds */
+  
+  /* Borders */
+  --tori-border-light: #e0e0e0;      /* Light borders */
+  --tori-border-medium: #d0d0d0;     /* Medium borders */
+  --tori-border-strong: #b0b0b0;     /* Strong borders */
+  
+  /* Shadows */
+  --tori-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --tori-shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.10);
+  --tori-shadow-strong: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --tori-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+  
+  /* === SPECTRAL ACCENT COLORS === */
+  
+  /* Primary Accent - Neon Teal (deepened for light mode) */
+  --tori-accent-primary: #0891b2;    /* Cyan-600 equivalent */
+  --tori-accent-primary-hover: #0e7490; /* Cyan-700 */
+  --tori-accent-primary-light: rgba(8, 145, 178, 0.1);
+  --tori-accent-primary-glow: rgba(8, 145, 178, 0.3);
+  
+  /* Ghost Persona Colors */
+  --tori-ghost-mentor: #059669;      /* Green-600 - Sage wisdom */
+  --tori-ghost-mystic: #7c3aed;      /* Violet-600 - Deep mystery */
+  --tori-ghost-unsettled: #dc2626;   /* Red-600 - Anxious energy */
+  --tori-ghost-chaotic: #ea580c;     /* Orange-600 - Wild energy */
+  --tori-ghost-oracular: #4338ca;    /* Indigo-600 - Deep knowing */
+  --tori-ghost-dreaming: #9333ea;    /* Purple-600 - Ethereal */
+  
+  /* Agent Persona Colors */
+  --tori-agent-refactorer: #2563eb;  /* Blue-600 - Structural clarity */
+  --tori-agent-debugger: #dc2626;    /* Red-600 - Error detection */
+  --tori-agent-scholar: #059669;     /* Green-600 - Knowledge */
+  
+  /* Spectral Wavelength Mappings */
+  --tori-wavelength-380: #8b5cf6;    /* Deep violet */
+  --tori-wavelength-450: #7c3aed;    /* Violet */
+  --tori-wavelength-490: #0ea5e9;    /* Sky blue */
+  --tori-wavelength-520: #10b981;    /* Green */
+  --tori-wavelength-570: #f59e0b;    /* Yellow */
+  --tori-wavelength-620: #f97316;    /* Orange */
+  --tori-wavelength-680: #ef4444;    /* Red */
+  --tori-wavelength-750: #dc2626;    /* Deep red */
+  
+  /* === TYPOGRAPHY === */
+  
+  /* Font Sizes */
+  --tori-text-xs: 0.75rem;      /* 12px */
+  --tori-text-sm: 0.875rem;     /* 14px */
+  --tori-text-base: 1rem;       /* 16px */
+  --tori-text-lg: 1.125rem;     /* 18px */
+  --tori-text-xl: 1.25rem;      /* 20px */
+  --tori-text-2xl: 1.5rem;      /* 24px */
+  --tori-text-3xl: 1.875rem;    /* 30px */
+  --tori-text-4xl: 2.25rem;     /* 36px */
+  
+  /* Font Weights */
+  --tori-font-light: 300;
+  --tori-font-normal: 400;
+  --tori-font-medium: 500;
+  --tori-font-semibold: 600;
+  --tori-font-bold: 700;
+  
+  /* Line Heights */
+  --tori-leading-tight: 1.25;
+  --tori-leading-normal: 1.5;
+  --tori-leading-relaxed: 1.75;
+  
+  /* === SPACING === */
+  --tori-space-xs: 0.25rem;     /* 4px */
+  --tori-space-sm: 0.5rem;      /* 8px */
+  --tori-space-md: 1rem;        /* 16px */
+  --tori-space-lg: 1.5rem;      /* 24px */
+  --tori-space-xl: 2rem;        /* 32px */
+  --tori-space-2xl: 3rem;       /* 48px */
+  
+  /* === ANIMATION === */
+  --tori-transition-fast: 150ms ease;
+  --tori-transition-normal: 250ms ease;
+  --tori-transition-slow: 350ms ease;
+  
+  /* Hover & Focus States */
+  --tori-focus-ring: 0 0 0 3px var(--tori-accent-primary-light);
+  --tori-hover-bg: rgba(0, 0, 0, 0.04);
+  --tori-active-bg: rgba(0, 0, 0, 0.08);
+}
+
+/* === DARK THEME OVERRIDE === */
+.dark {
+  /* Core Backgrounds */
+  --tori-bg-primary: #0f1419;        /* Deep charcoal */
+  --tori-bg-secondary: #1a1f2e;      /* Slightly lighter */
+  --tori-bg-tertiary: #252a3a;       /* Cards, inputs */
+  --tori-bg-elevated: #2d3548;       /* Modals, dropdowns */
+  --tori-bg-overlay: rgba(15, 20, 25, 0.95); /* Overlay backgrounds */
+  
+  /* Text Colors */
+  --tori-text-primary: #e2e8f0;      /* Main text */
+  --tori-text-secondary: #cbd5e1;    /* Secondary text */
+  --tori-text-tertiary: #94a3b8;     /* Muted text */
+  --tori-text-quaternary: #64748b;   /* Placeholder text */
+  --tori-text-inverse: #1a1a1a;      /* Text on light backgrounds */
+  
+  /* Borders */
+  --tori-border-light: #374151;      /* Light borders */
+  --tori-border-medium: #4b5563;     /* Medium borders */
+  --tori-border-strong: #6b7280;     /* Strong borders */
+  
+  /* Shadows */
+  --tori-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --tori-shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --tori-shadow-strong: 0 10px 25px rgba(0, 0, 0, 0.4);
+  --tori-shadow-glow: 0 0 20px rgba(14, 165, 233, 0.3);
+  
+  /* Primary Accent - Brighter for dark mode */
+  --tori-accent-primary: #06b6d4;    /* Cyan-500 */
+  --tori-accent-primary-hover: #0891b2; /* Cyan-600 */
+  --tori-accent-primary-light: rgba(6, 182, 212, 0.15);
+  --tori-accent-primary-glow: rgba(6, 182, 212, 0.4);
+  
+  /* Hover & Focus States */
+  --tori-hover-bg: rgba(255, 255, 255, 0.06);
+  --tori-active-bg: rgba(255, 255, 255, 0.12);
+}
+
+/* === BASE STYLES === */
+
+/* Application container */
+.tori-app {
+  background-color: var(--tori-bg-primary);
+  color: var(--tori-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: var(--tori-leading-normal);
+  transition: background-color var(--tori-transition-normal);
+}
+
+/* Typography improvements */
+.tori-text-primary {
+  color: var(--tori-text-primary);
+  font-weight: var(--tori-font-medium);
+  font-size: var(--tori-text-base);
+  line-height: var(--tori-leading-normal);
+}
+
+.tori-text-secondary {
+  color: var(--tori-text-secondary);
+  font-weight: var(--tori-font-normal);
+}
+
+.tori-text-muted {
+  color: var(--tori-text-tertiary);
+  font-weight: var(--tori-font-normal);
+}
+
+/* Chat message styling */
+.tori-chat-message {
+  background-color: var(--tori-bg-elevated);
+  border: 1px solid var(--tori-border-light);
+  border-radius: 0.75rem;
+  padding: var(--tori-space-md);
+  margin-bottom: var(--tori-space-sm);
+  box-shadow: var(--tori-shadow-light);
+  line-height: var(--tori-leading-relaxed);
+  font-size: var(--tori-text-base);
+  transition: all var(--tori-transition-normal);
+}
+
+.tori-chat-message:hover {
+  background-color: var(--tori-hover-bg);
+  box-shadow: var(--tori-shadow-medium);
+}
+
+/* Ghost message bubble colors */
+.tori-ghost-message.mentor {
+  background: linear-gradient(135deg, 
+    rgba(5, 150, 105, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-mentor);
+}
+
+.tori-ghost-message.mystic {
+  background: linear-gradient(135deg, 
+    rgba(124, 58, 237, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-mystic);
+}
+
+.tori-ghost-message.unsettled {
+  background: linear-gradient(135deg, 
+    rgba(220, 38, 38, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-unsettled);
+}
+
+.tori-ghost-message.chaotic {
+  background: linear-gradient(135deg, 
+    rgba(234, 88, 12, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-chaotic);
+  animation: tori-chaotic-pulse 2s ease-in-out infinite;
+}
+
+.tori-ghost-message.oracular {
+  background: linear-gradient(135deg, 
+    rgba(67, 56, 202, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-oracular);
+}
+
+.tori-ghost-message.dreaming {
+  background: linear-gradient(135deg, 
+    rgba(147, 51, 234, 0.1) 0%, 
+    var(--tori-bg-elevated) 100%);
+  border-left: 3px solid var(--tori-ghost-dreaming);
+  opacity: 0.9;
+}
+
+/* Agent badges */
+.tori-agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tori-space-xs);
+  padding: var(--tori-space-xs) var(--tori-space-sm);
+  border-radius: 0.375rem;
+  font-size: var(--tori-text-xs);
+  font-weight: var(--tori-font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--tori-transition-fast);
+}
+
+.tori-agent-badge.refactorer {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--tori-agent-refactorer);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.tori-agent-badge.debugger {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--tori-agent-debugger);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.tori-agent-badge.scholar {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--tori-agent-scholar);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+/* Panel and card styles */
+.tori-panel {
+  background-color: var(--tori-bg-elevated);
+  border: 1px solid var(--tori-border-light);
+  border-radius: 0.5rem;
+  box-shadow: var(--tori-shadow-light);
+  transition: all var(--tori-transition-normal);
+}
+
+.tori-panel:hover {
+  box-shadow: var(--tori-shadow-medium);
+}
+
+.tori-card {
+  background-color: var(--tori-bg-elevated);
+  border: 1px solid var(--tori-border-light);
+  border-radius: 0.75rem;
+  padding: var(--tori-space-lg);
+  box-shadow: var(--tori-shadow-light);
+  transition: all var(--tori-transition-normal);
+}
+
+/* Form elements */
+.tori-input {
+  background-color: var(--tori-bg-tertiary);
+  border: 1px solid var(--tori-border-medium);
+  border-radius: 0.5rem;
+  padding: var(--tori-space-sm) var(--tori-space-md);
+  color: var(--tori-text-primary);
+  font-size: var(--tori-text-base);
+  transition: all var(--tori-transition-fast);
+}
+
+.tori-input:focus {
+  outline: none;
+  border-color: var(--tori-accent-primary);
+  box-shadow: var(--tori-focus-ring);
+}
+
+.tori-button {
+  background-color: var(--tori-accent-primary);
+  color: var(--tori-text-inverse);
+  border: none;
+  border-radius: 0.5rem;
+  padding: var(--tori-space-sm) var(--tori-space-md);
+  font-weight: var(--tori-font-medium);
+  cursor: pointer;
+  transition: all var(--tori-transition-fast);
+}
+
+.tori-button:hover {
+  background-color: var(--tori-accent-primary-hover);
+  box-shadow: var(--tori-shadow-glow);
+}
+
+.tori-button:active {
+  transform: translateY(1px);
+}
+
+/* Code blocks */
+.tori-code-block {
+  background-color: var(--tori-bg-tertiary);
+  border: 1px solid var(--tori-border-light);
+  border-radius: 0.5rem;
+  padding: var(--tori-space-md);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--tori-text-sm);
+  line-height: var(--tori-leading-normal);
+  overflow-x: auto;
+}
+
+/* === ANIMATIONS === */
+
+@keyframes tori-chaotic-pulse {
+  0%, 100% { 
+    border-left-color: var(--tori-ghost-chaotic);
+    box-shadow: 0 0 0 rgba(234, 88, 12, 0);
+  }
+  50% { 
+    border-left-color: #fb923c;
+    box-shadow: 0 0 10px rgba(234, 88, 12, 0.3);
+  }
+}
+
+@keyframes tori-glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--tori-accent-primary-glow);
+  }
+  50% { 
+    box-shadow: 0 0 20px var(--tori-accent-primary-glow);
+  }
+}
+
+.tori-glow {
+  animation: tori-glow-pulse 2s ease-in-out infinite;
+}
+
+/* === RESPONSIVE BREAKPOINTS === */
+
+@media (max-width: 640px) {
+  .tori-chat-message {
+    padding: var(--tori-space-sm);
+    font-size: var(--tori-text-sm);
+  }
+  
+  .tori-panel, .tori-card {
+    padding: var(--tori-space-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  .tori-text-primary {
+    font-size: var(--tori-text-lg);
+  }
+}
+
+/* === UTILITY CLASSES === */
+
+.tori-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tori-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --tori-border-light: #666;
+    --tori-border-medium: #888;
+    --tori-text-tertiary: #333;
+  }
+  
+  .dark {
+    --tori-border-light: #999;
+    --tori-border-medium: #bbb;
+    --tori-text-tertiary: #ccc;
+  }
+}

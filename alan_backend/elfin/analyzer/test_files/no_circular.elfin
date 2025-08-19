@@ -1,0 +1,16 @@
+
+// Test file with no circular references
+system Robot {
+    flow_dynamics {
+        x_dot = v * cos(theta);
+        v_dot = a;
+    }
+}
+
+mode Control {
+    controller {
+        a = v * cos(theta);
+        b = a + sin(theta);
+        c = b * 2.0;
+    }
+}

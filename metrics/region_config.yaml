@@ -1,0 +1,22 @@
+# Example region configuration for phase sampling
+# Defines the coordinate ranges and resolution
+
+r:
+  min: 2.0      # Start just outside event horizon
+  max: 20.0     # Extend to 20 Schwarzschild radii
+  points: 100   # Number of sampling points
+
+theta:
+  min: 0.0      # From north pole
+  max: 3.14159  # To south pole (pi)
+  points: 50
+
+phi:
+  min: 0.0      # Azimuthal start
+  max: 6.28318  # Full rotation (2*pi)
+  points: 50
+
+# Alternative: Direct value lists
+# r: [2.0, 2.5, 3.0, 4.0, 5.0, 7.5, 10.0, 15.0, 20.0]
+# theta: [0.0, 0.785, 1.571, 2.356, 3.142]
+# phi: [0.0, 1.571, 3.142, 4.712, 6.283]

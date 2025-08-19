@@ -1,0 +1,21 @@
+
+// Simple test file with circular reference for debugging
+system TestSystem {
+    continuous_state {
+        x; y; // Two state variables
+    }
+    
+    input {
+        u; // One input variable
+    }
+    
+    params {
+        m: 1.0; // Mass parameter
+    }
+    
+    flow_dynamics {
+        // Simple dynamics with circular reference
+        x_dot = y;
+        y_dot = y_dot + u / m; // Circular reference here
+    }
+}

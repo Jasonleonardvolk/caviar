@@ -1,0 +1,8 @@
+{
+  "[elfin]": {
+    "editor.formatOnSave": false
+  },
+  "rust-analyzer.runnableEnv": {
+    "ELFIN_DEV": "1"
+  }
+}

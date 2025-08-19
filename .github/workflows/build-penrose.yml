@@ -1,0 +1,50 @@
+name: Build Penrose Wheels 🦀➡️🐍
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    # ── build a wheel for each CPython we officially support ────────────────
+    strategy:
+      matrix:
+        os: [ubuntu-latest]          # add windows-latest / macos-latest later
+        py: ['3.9', '3.10', '3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      # ---- (optional) speed up Rust with a shared cargo cache -------------
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: cargo-git-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      # ---- Build wheels with maturin-action -------------------------------
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          # maturin will autodetect Cargo.toml and compile penrose_rs
+          maturin-version: latest
+          command: build
+          args: >
+            --release
+            -m concept_mesh/penrose_rs/Cargo.toml
+            -i ${{ matrix.py }}
+      # ---- Smoke-test the freshly built wheel -----------------------------
+      - name: Test import
+        shell: bash
+        run: |
+          python -m pip install target/wheels/*.whl
+          python - <<'PY'
+          import penrose_engine_rs as p
+          print("✅  Rust wheel imported OK – version:", p.__name__)
+          PY
+      # ---- Upload wheels so devs can download from CI ---------------------
+      - uses: actions/upload-artifact@v4
+        with:
+          name: penrose_wheels_${{ matrix.py }}_${{ matrix.os }}
+          path: target/wheels/*.whl

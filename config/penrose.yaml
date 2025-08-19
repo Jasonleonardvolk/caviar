@@ -1,0 +1,56 @@
+# Penrose-Enhanced TORI Configuration
+# Place in config/penrose.yaml or set via environment
+
+penrose:
+  # Enable Penrose similarity computation
+  enabled: true
+  
+  # Projection rank (32 gives excellent quality/speed tradeoff)
+  rank: 32
+  
+  # Similarity threshold (0.7 = 70% similarity)
+  threshold: 0.7
+  
+  # Maximum allowed density before auto-adjustment
+  max_density: 0.01  # 1%
+  
+  # Cache directory for projector matrices
+  cache_dir: "data/.penrose_cache"
+  
+  # Performance alerting thresholds
+  alerts:
+    # Alert if projection takes > 5s per 1k concepts
+    max_time_per_1k: 5.0
+    
+    # Alert if density exceeds this percentage
+    max_density_alert: 2.0
+    
+    # Alert if speedup drops below this factor
+    min_speedup: 10.0
+
+# Archive configuration
+psi_archive:
+  # Enable Loki logging
+  loki_enabled: false
+  
+  # SSE event streaming
+  sse:
+    max_queue_size: 1000
+    heartbeat_interval: 30
+  
+  # Snapshot rotation
+  snapshots:
+    retention_days: 45
+    full_snapshot_retention: 90
+    emergency_cleanup_threshold: 85  # disk usage %
+    emergency_retention_days: 14
+
+# Environment variable mappings
+env_vars:
+  ENABLE_PENROSE: "${ENABLE_PENROSE:-true}"
+  PENROSE_RANK: "${PENROSE_RANK:-32}"
+  PENROSE_THRESHOLD: "${PENROSE_THRESHOLD:-0.7}"
+  PENROSE_CACHE: "${PENROSE_CACHE:-data/.penrose_cache}"
+  PENROSE_MAX_DENSITY: "${PENROSE_MAX_DENSITY:-0.01}"
+  PSI_LOKI_ENABLED: "${PSI_LOKI_ENABLED:-false}"
+  NUMBA_CACHE_DIR: "${NUMBA_CACHE_DIR:-/tmp/numba}"

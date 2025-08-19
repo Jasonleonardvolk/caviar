@@ -1,0 +1,35 @@
+[Unit]
+Description=Tori Vector Index Builder Service
+Documentation=https://github.com/tori/maintenance
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/tori/maintenance/build_vector_index.py
+User=tori
+Group=tori
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tori-vector-index
+
+# Environment
+Environment="TRANSFORMERS_CACHE=/opt/tori/.cache/huggingface"
+
+# Resource limits
+MemoryLimit=8G
+CPUQuota=80%
+TimeoutStartSec=1h
+
+# Security hardening
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/tori/mesh /var/log /opt/tori/.cache
+NoNewPrivileges=true
+
+# Restart on failure
+Restart=on-failure
+RestartSec=300
+
+[Install]
+WantedBy=multi-user.target

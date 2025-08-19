@@ -1,0 +1,172 @@
+/**
+ * Robot Example
+ * 
+ * This file demonstrates the use of the ELFIN module system to build
+ * a modular robot control system. It imports various components and
+ * composes them to create a complete robot.
+ */
+
+// Import math components
+import { Vector3D } from "math/vector.elfin";
+import { Matrix3D } from "math/matrix.elfin";
+
+// Import controllers
+import { PIDController, PositionController, VelocityController } from "controllers/pid.elfin";
+
+// Robot concept that integrates various components
+concept Robot {
+    // Robot state
+    property position = Vector3D();
+    property orientation = Matrix3D.identity();
+    property velocity = Vector3D();
+    property angular_velocity = Vector3D();
+    
+    // Controllers for position and velocity
+    property position_controller = PositionController(5.0, 0.1, 1.0);
+    property velocity_controller = VelocityController(3.0, 0.05, 0.5);
+    
+    // Initialize the robot
+    function initialize() {
+        // Set initial position
+        position.x = 0.0;
+        position.y = 0.0;
+        position.z = 0.0;
+        
+        // Set identity orientation
+        orientation = Matrix3D.identity();
+        
+        // Configure controllers
+        position_controller.set_limits(-10.0, 10.0);
+        velocity_controller.set_limits(-5.0, 5.0);
+    }
+    
+    // Move to a target position
+    function move_to(target_x, target_y, target_z) {
+        // Create target position vector
+        target_position = Vector3D();
+        target_position.x = target_x;
+        target_position.y = target_y;
+        target_position.z = target_z;
+        
+        // Set the position controller setpoint
+        position_controller.set_position(target_position);
+        
+        // The compute method would be called in a control loop
+        // with the current position as input
+    }
+    
+    // Set target velocity
+    function set_velocity(target_vx, target_vy, target_vz) {
+        // Create target velocity vector
+        target_velocity = Vector3D();
+        target_velocity.x = target_vx;
+        target_velocity.y = target_vy;
+        target_velocity.z = target_vz;
+        
+        // Set the velocity controller setpoint
+        velocity_controller.set_velocity(target_velocity);
+        
+        // The compute method would be called in a control loop
+        // with the current velocity as input
+    }
+    
+    // Rotate to a target orientation
+    function rotate_to(roll, pitch, yaw) {
+        // Create rotation matrices for each axis
+        rotation_x = Matrix3D.rotation_x(roll);
+        rotation_y = Matrix3D.rotation_y(pitch);
+        rotation_z = Matrix3D.rotation_z(yaw);
+        
+        // Compose the rotations
+        orientation = rotation_z.multiply(rotation_y).multiply(rotation_x);
+    }
+    
+    // Update the robot state (would be called in a control loop)
+    function update(dt) {
+        // Compute position control output
+        position_error = Vector3D();
+        position_error.x = position_controller.controller.setpoint.x - position.x;
+        position_error.y = position_controller.controller.setpoint.y - position.y;
+        position_error.z = position_controller.controller.setpoint.z - position.z;
+        
+        // Update velocity based on position control
+        target_velocity = Vector3D();
+        target_velocity.x = position_controller.compute(position.x, dt);
+        target_velocity.y = position_controller.compute(position.y, dt);
+        target_velocity.z = position_controller.compute(position.z, dt);
+        
+        // Set velocity controller setpoint
+        velocity_controller.set_velocity(target_velocity);
+        
+        // Compute velocity control output
+        velocity_command = Vector3D();
+        velocity_command.x = velocity_controller.compute(velocity.x, dt);
+        velocity_command.y = velocity_controller.compute(velocity.y, dt);
+        velocity_command.z = velocity_controller.compute(velocity.z, dt);
+        
+        // Update position based on velocity
+        position.x += velocity.x * dt;
+        position.y += velocity.y * dt;
+        position.z += velocity.z * dt;
+        
+        // Update velocity based on command
+        velocity.x += velocity_command.x * dt;
+        velocity.y += velocity_command.y * dt;
+        velocity.z += velocity_command.z * dt;
+        
+        // Apply damping
+        damping = 0.95;
+        velocity.x *= damping;
+        velocity.y *= damping;
+        velocity.z *= damping;
+    }
+    
+    // Get the current state as a dictionary
+    property state {
+        return {
+            "position": {
+                "x": position.x,
+                "y": position.y,
+                "z": position.z
+            },
+            "velocity": {
+                "x": velocity.x,
+                "y": velocity.y,
+                "z": velocity.z
+            }
+        };
+    }
+}
+
+// Example of using the robot
+function main() {
+    // Create a robot instance
+    robot = Robot();
+    
+    // Initialize the robot
+    robot.initialize();
+    
+    // Move to a target position
+    robot.move_to(10.0, 5.0, 2.0);
+    
+    // Simulate the robot for 10 seconds with 0.1 second timestep
+    for (t = 0; t < 10.0; t += 0.1) {
+        robot.update(0.1);
+        print("Time: " + t + ", Position: (" + robot.position.x + ", " + robot.position.y + ", " + robot.position.z + ")");
+    }
+    
+    // Set a target velocity
+    robot.set_velocity(1.0, 0.5, 0.0);
+    
+    // Simulate the robot for another 5 seconds
+    for (t = 10.0; t < 15.0; t += 0.1) {
+        robot.update(0.1);
+        print("Time: " + t + ", Position: (" + robot.position.x + ", " + robot.position.y + ", " + robot.position.z + ")");
+    }
+    
+    // Rotate the robot
+    robot.rotate_to(0.1, 0.2, 0.3);
+    
+    // Print final state
+    print("Final state: " + robot.state);
+}

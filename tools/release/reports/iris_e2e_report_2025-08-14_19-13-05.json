@@ -1,0 +1,71 @@
+﻿{
+    "timestamp":  "2025-08-14_19-13-05",
+    "context":  {
+                    "repoRoot":  "D:\\Dev\\kha",
+                    "commit":  "",
+                    "branch":  "",
+                    "dirty":  false,
+                    "node":  "v20.11.1",
+                    "npm":  "10.2.4",
+                    "pnpm":  "10.11.0"
+                },
+    "result":  "NO-GO",
+    "steps":  [
+                  {
+                      "step":  "01_Preflight",
+                      "status":  "PASS",
+                      "exit":  0,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\01_Preflight_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "02_TypeScript",
+                      "status":  "FAIL",
+                      "exit":  2,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\02_TypeScript_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "03_ShaderGate_AllProfiles_Strict",
+                      "status":  "PASS",
+                      "exit":  0,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\03_ShaderGate_AllProfiles_Strict_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "04_API_Smoke",
+                      "status":  "PASS",
+                      "exit":  0,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\04_API_Smoke_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "05_DesktopLow_ShaderGate",
+                      "status":  "PASS",
+                      "exit":  0,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\05_DesktopLow_ShaderGate_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "05_Desktop_ShaderGate",
+                      "status":  "PASS",
+                      "exit":  0,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\05_Desktop_ShaderGate_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "06_Build_and_Package",
+                      "status":  "FAIL",
+                      "exit":  1,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\06_Build_and_Package_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  },
+                  {
+                      "step":  "07_Artifact_Verification",
+                      "status":  "FAIL",
+                      "exit":  1,
+                      "log":  "D:\\Dev\\kha\\tools\\release\\reports\\07_Artifact_Verification_2025-08-14_19-13-05.log",
+                      "note":  ""
+                  }
+              ]
+}

@@ -1,0 +1,25 @@
+# Memory Vault V2 Requirements
+# Production-ready async memory system
+
+# Core dependencies
+numpy>=1.21.0
+aiofiles>=23.0.0
+msgpack>=1.0.5
+psutil>=5.9.0
+
+# Testing
+pytest>=7.3.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Benchmarking and visualization
+matplotlib>=3.6.0
+
+# Optional performance enhancements
+# uvloop>=0.17.0  # For better async performance on Unix
+# orjson>=3.9.0   # Faster JSON parsing (optional)
+
+# Development tools
+black>=23.0.0
+mypy>=1.4.0
+flake8>=6.0.0

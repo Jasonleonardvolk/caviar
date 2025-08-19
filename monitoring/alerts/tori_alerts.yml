@@ -1,0 +1,147 @@
+# TORI/Saigon Alert Rules
+# ========================
+
+groups:
+  - name: tori_inference
+    interval: 30s
+    rules:
+      # High inference latency
+      - alert: HighInferenceLatency
+        expr: histogram_quantile(0.95, rate(tori_inference_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "High inference latency detected"
+          description: "95th percentile inference latency is {{ $value }}s (threshold: 0.5s)"
+
+      # Low cache hit rate
+      - alert: LowCacheHitRate
+        expr: rate(tori_cache_hits_total[5m]) / rate(tori_cache_requests_total[5m]) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Cache hit rate below 70%"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+      # Adapter validation failures
+      - alert: AdapterValidationFailures
+        expr: rate(tori_adapter_validation_failures_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: adapter
+        annotations:
+          summary: "Adapter validation failures detected"
+          description: "{{ $value }} validation failures per second"
+
+  - name: tori_resources
+    interval: 30s
+    rules:
+      # High GPU utilization
+      - alert: HighGPUUtilization
+        expr: nvidia_gpu_utilization > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "GPU utilization above 90%"
+          description: "GPU {{ $labels.gpu }} utilization is {{ $value }}%"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Memory usage above 90%"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # Disk space low
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Less than 10% disk space remaining"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+
+  - name: tori_availability
+    interval: 30s
+    rules:
+      # API down
+      - alert: APIDown
+        expr: up{job="tori-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "TORI API is down"
+          description: "TORI API has been down for more than 1 minute"
+
+      # Frontend down
+      - alert: FrontendDown
+        expr: up{job="tori-frontend"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          component: frontend
+        annotations:
+          summary: "TORI Frontend is down"
+          description: "Frontend has been down for more than 1 minute"
+
+      # Database connection issues
+      - alert: DatabaseConnectionFailure
+        expr: rate(tori_database_connection_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection errors"
+          description: "{{ $value }} database connection errors per second"
+
+  - name: tori_business
+    interval: 30s
+    rules:
+      # High intent gap rate
+      - alert: HighIntentGapRate
+        expr: rate(tori_intent_gaps_total[1h]) > 10
+        for: 5m
+        labels:
+          severity: info
+          component: learning
+        annotations:
+          summary: "High intent gap detection rate"
+          description: "{{ $value }} intent gaps per hour - consider retraining"
+
+      # User session anomalies
+      - alert: UserSessionAnomalies
+        expr: rate(tori_session_violations_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "User session security violations detected"
+          description: "{{ $value }} session violations per second"
+
+      # Adapter hot-swap frequency
+      - alert: FrequentAdapterSwaps
+        expr: rate(tori_adapter_swaps_total[1h]) > 5
+        for: 5m
+        labels:
+          severity: info
+          component: adapter
+        annotations:
+          summary: "Frequent adapter hot-swaps detected"
+          description: "{{ $value }} adapter swaps per hour"

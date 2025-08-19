@@ -1,0 +1,296 @@
+{
+  "evolution_mode": "suggest_only",
+  "pending_proposals": {},
+  "proposal_stats": {
+    "total_proposals": 0,
+    "approved_proposals": 0,
+    "rejected_proposals": 0,
+    "successful_implementations": 0,
+    "reverted_implementations": 0
+  },
+  "checkpoints": {
+    "checkpoint_1749250707": {
+      "checkpoint_id": "checkpoint_1749250707",
+      "timestamp": "2025-06-06T17:58:27.471405",
+      "trigger_engine_state": {
+        "engine_info": {
+          "phase": "Phase 2 Alpha",
+          "version": "2.0",
+          "active_triggers": true,
+          "total_trigger_events": 0
+        },
+        "strategy_performance": {
+          "synthetic_concept_injection": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "concept_fusion": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "knowledge_refresh": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "parameter_adjustment": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "semantic_fission": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "hub_bridge_creation": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "emergent_abstraction": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "cross_domain_synthesis": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "lineage_reorganization": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "meta_strategy_evolution": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "consciousness_phase_shift": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          }
+        },
+        "thresholds": {
+          "reasoning_failures_count": 2,
+          "stale_concepts_ratio": 0.6,
+          "coherence_threshold": 0.4,
+          "knowledge_gap_threshold": 0.3,
+          "plateau_duration": 600,
+          "concept_overlap_entropy": 0.8,
+          "hub_saturation_threshold": 0.9,
+          "domain_shift_magnitude": 0.4,
+          "emergence_potential_threshold": 0.7,
+          "godel_incompleteness_threshold": 0.95,
+          "consciousness_stagnation_duration": 1800,
+          "lineage_fragmentation_ratio": 0.5
+        },
+        "cooldown_remaining": 0
+      },
+      "lineage_ledger_state": {
+        "ledger_info": {
+          "phase": "Phase 2 Alpha",
+          "version": "2.0",
+          "total_concepts": 16,
+          "total_relationships": 0,
+          "total_evolution_events": 16,
+          "network_nodes": 16,
+          "network_edges": 0
+        },
+        "phase_distribution": {
+          "nascent": 0,
+          "stabilizing": 0,
+          "mature": 16,
+          "specializing": 0,
+          "abstracting": 0,
+          "transcending": 0
+        },
+        "relationship_distribution": {
+          "parent_child": 0,
+          "sibling": 0,
+          "fusion": 0,
+          "fission": 0,
+          "bridge": 0,
+          "abstraction": 0,
+          "specialization": 0,
+          "analogy": 0,
+          "opposition": 0
+        },
+        "recent_activity": {
+          "recent_concepts": 16,
+          "recent_evolution_events": 16
+        }
+      },
+      "system_metrics": {
+        "answer_accuracy": 0.85,
+        "system_stability": 0.9,
+        "evolution_acceptance_rate": 0.0,
+        "revert_rate": 0.0,
+        "mesh_coherence": 0.75,
+        "concept_churn": 0.1,
+        "explainability_index": 0.85
+      },
+      "evolution_mode": "suggest_only",
+      "active_proposals": [],
+      "checkpoint_reason": "production_system_startup"
+    },
+    "checkpoint_1749251526": {
+      "checkpoint_id": "checkpoint_1749251526",
+      "timestamp": "2025-06-06T18:12:06.438275",
+      "trigger_engine_state": {
+        "engine_info": {
+          "phase": "Phase 2 Alpha",
+          "version": "2.0",
+          "active_triggers": true,
+          "total_trigger_events": 0
+        },
+        "strategy_performance": {
+          "synthetic_concept_injection": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "concept_fusion": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "knowledge_refresh": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "parameter_adjustment": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "semantic_fission": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "hub_bridge_creation": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "emergent_abstraction": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "cross_domain_synthesis": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "lineage_reorganization": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "meta_strategy_evolution": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          },
+          "consciousness_phase_shift": {
+            "attempts": 0,
+            "success_rate": 0.0,
+            "avg_score": 0.5,
+            "last_used": null
+          }
+        },
+        "thresholds": {
+          "reasoning_failures_count": 2,
+          "stale_concepts_ratio": 0.6,
+          "coherence_threshold": 0.4,
+          "knowledge_gap_threshold": 0.3,
+          "plateau_duration": 600,
+          "concept_overlap_entropy": 0.8,
+          "hub_saturation_threshold": 0.9,
+          "domain_shift_magnitude": 0.4,
+          "emergence_potential_threshold": 0.7,
+          "godel_incompleteness_threshold": 0.95,
+          "consciousness_stagnation_duration": 1800,
+          "lineage_fragmentation_ratio": 0.5
+        },
+        "cooldown_remaining": 0
+      },
+      "lineage_ledger_state": {
+        "ledger_info": {
+          "phase": "Phase 2 Alpha",
+          "version": "2.0",
+          "total_concepts": 16,
+          "total_relationships": 0,
+          "total_evolution_events": 16,
+          "network_nodes": 16,
+          "network_edges": 0
+        },
+        "phase_distribution": {
+          "nascent": 0,
+          "stabilizing": 0,
+          "mature": 16,
+          "specializing": 0,
+          "abstracting": 0,
+          "transcending": 0
+        },
+        "relationship_distribution": {
+          "parent_child": 0,
+          "sibling": 0,
+          "fusion": 0,
+          "fission": 0,
+          "bridge": 0,
+          "abstraction": 0,
+          "specialization": 0,
+          "analogy": 0,
+          "opposition": 0
+        },
+        "recent_activity": {
+          "recent_concepts": 16,
+          "recent_evolution_events": 16
+        }
+      },
+      "system_metrics": {
+        "answer_accuracy": 0.85,
+        "system_stability": 0.9,
+        "evolution_acceptance_rate": 0.0,
+        "revert_rate": 0.0,
+        "mesh_coherence": 0.75,
+        "concept_churn": 0.1,
+        "explainability_index": 0.85
+      },
+      "evolution_mode": "suggest_only",
+      "active_proposals": [],
+      "checkpoint_reason": "production_system_shutdown"
+    }
+  },
+  "last_updated": "2025-06-06T18:12:06.444307"
+}

@@ -1,0 +1,59 @@
+// phaseOcclusion.wgsl - Compute shader for phase-aware spectral occlusion
+@group(0) @binding(0) var<storage, read> inputWave: array<vec2<f32>>;    // Input complex wavefield (real, imag)
+@group(0) @binding(1) var<storage, read> occlusion: array<f32>;         // Occlusion map (0 = opaque, 1 = transparent)
+@group(0) @binding(2) var<storage, write> outputWave: array<vec2<f32>>; // Output wavefield after occlusion
+@group(0) @binding(3) var<uniform> params: struct {
+    width: u32,
+    height: u32,
+    cognitiveFactor: f32,   // Cognitive transparency override factor (0 = purely physical, 1 = fully see-through)
+    phaseShiftMax: f32      // Maximum phase delay (radians) through a fully opaque occluder
+};
+
+@compute @workgroup_size(16, 16)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let w = params.width;
+    let h = params.height;
+    let x = gid.x;
+    let y = gid.y;
+    if (x >= w || y >= h) {
+        return;
+    }
+    let idx = y * w + x;
+    // Fetch input wave at this pixel
+    let inRe = inputWave[idx].x;
+    let inIm = inputWave[idx].y;
+    // Fetch occlusion value (between 0 and 1)
+    let occ = occlusion[idx];
+    // Soft-blend occlusion edges by averaging with immediate neighbors (cross pattern)
+    var occSmooth = occ;
+    if (x + 1u < w)  { occSmooth += occlusion[idx + 1u]; }
+    if (x > 0u)      { occSmooth += occlusion[idx - 1u]; }
+    if (y + 1u < h)  { occSmooth += occlusion[idx + w]; }
+    if (y > 0u)      { occSmooth += occlusion[idx - w]; }
+    // Divide by the number of samples (itself + neighbors)
+    // Count neighbors included:
+    var count: f32 = 1.0;
+    if (x + 1u < w)  { count += 1.0; }
+    if (x > 0u)      { count += 1.0; }
+    if (y + 1u < h)  { count += 1.0; }
+    if (y > 0u)      { count += 1.0; }
+    occSmooth = occSmooth / count;
+    // Determine effective transparency with cognitive override:
+    // If cognitiveFactor > 0, reduce occlusion (increase transparency)
+    let cf = params.cognitiveFactor;
+    let effectiveT = occSmooth + cf * (1.0 - occSmooth);
+    if (effectiveT <= 0.0) {
+        // Completely opaque after cognitive adjustment: block wave entirely
+        outputWave[idx] = vec2<f32>(0.0, 0.0);
+    } else {
+        // Apply phase-aware attenuation
+        // Compute phase delay proportional to opacity (1 - effectiveT)
+        let phaseShift = (1.0 - effectiveT) * params.phaseShiftMax;
+        let cosP = cos(phaseShift);
+        let sinP = sin(phaseShift);
+        // Modulate the input wave amplitude by effective transparency and rotate by phaseShift
+        let outRe = effectiveT * (inRe * cosP - inIm * sinP);
+        let outIm = effectiveT * (inRe * sinP + inIm * cosP);
+        outputWave[idx] = vec2<f32>(outRe, outIm);
+    }
+}

@@ -1,0 +1,147 @@
+# Soliton Memory System Configuration
+# Consolidated configuration for all soliton memory features
+
+# System-wide settings
+system:
+  lattice_size: 10000
+  max_oscillators: 100000
+  
+# Soliton memory specific settings
+soliton_memory:
+  # Phase mechanics
+  phase_lattice_size: 10000
+  resonance_threshold: 0.7
+  phase_drift_rate: 0.001
+  
+  # Memory parameters
+  decay_rate: 0.01
+  heat_decay_rate: 0.95
+  heat_boost_on_access: 0.2
+  
+  # Dark soliton settings
+  dark_coupling_strength: 1.0  # Strong coupling for baseline-dip pair
+  suppression_threshold: 0.5
+  
+  # Crystallization parameters
+  crystallization:
+    hot_threshold: 0.7
+    cold_threshold: 0.1
+    migration_stability_boost: 0.1
+    fusion_threshold: 0.7
+    fission_amplitude_threshold: 1.5
+    fission_content_threshold: 1000
+    
+  # Vaulting configuration
+  vault_phases:
+    light: 0.785398  # π/4
+    medium: 1.570796  # π/2
+    deep: 3.141593  # π
+
+# Topology configuration
+topology:
+  # Available topologies and their parameters
+  topologies:
+    kagome:
+      intra_cell_coupling: 1.0
+      inter_cell_coupling: 0.1
+      
+    hexagonal:
+      coupling_strength: 0.5
+      
+    square:
+      coupling_strength: 0.3
+      
+    small_world:
+      base_coupling: 0.05
+      random_links: 4
+      rewire_probability: 0.1
+  
+  # Morphing parameters
+  morphing:
+    enabled: true
+    blend_rate: 0.02  # Progress per step (0.02 = 50 steps to complete)
+    energy_harvest_efficiency: 0.8
+    
+  # Topology switching policy
+  policy:
+    min_switch_interval: 60  # seconds
+    comfort_weight: 0.3
+    fallback_topology: "kagome"
+    
+    # System states and their preferred topologies
+    states:
+      idle:
+        preferred_topology: "kagome"
+        thresholds:
+          memory_density: 0.1
+          soliton_count: 100
+          activity_rate: 0.1
+          
+      active:
+        preferred_topology: "hexagonal"
+        thresholds:
+          memory_density: 0.7
+          soliton_count: 2000
+          activity_rate: 0.5
+          
+      intensive:
+        preferred_topology: "square"
+        thresholds:
+          memory_density: 0.9
+          soliton_count: 5000
+          activity_rate: 0.8
+          
+      consolidating:
+        preferred_topology: "small_world"
+        # No thresholds - manually triggered during nightly maintenance
+
+# Nightly growth engine settings
+nightly_growth:
+  enabled: true
+  hour: 3  # 3 AM local time
+  
+  # Tasks to run during nightly maintenance
+  tasks:
+    - name: "switch_to_consolidating"
+      priority: 1
+      description: "Switch to small-world topology for maximum interaction"
+      
+    - name: "crystallize_memories"
+      priority: 2
+      description: "Run memory crystallization (heat decay, fusion, fission)"
+      
+    - name: "optimize_topology"
+      priority: 3
+      description: "Analyze comfort metrics and adjust topology"
+      
+    - name: "prune_weak_couplings"
+      priority: 4
+      description: "Remove very weak couplings to save memory"
+      
+    - name: "return_to_stable"
+      priority: 5
+      description: "Return to kagome topology for stability"
+      
+  # Resource limits
+  max_duration_hours: 2
+  cpu_limit_percent: 50
+  memory_limit_gb: 8
+
+# Monitoring and logging
+monitoring:
+  log_level: "INFO"
+  log_file: "soliton_memory.log"
+  metrics_interval: 1.0  # seconds
+  
+  # What to track
+  track_memory_operations: true
+  track_topology_changes: true
+  track_crystallization: true
+  track_comfort_metrics: true
+  
+# Performance tuning
+performance:
+  batch_size: 100
+  update_interval: 0.1  # seconds
+  use_gpu: false  # Set to true if GPU available
+  gpu_batch_size: 1024

@@ -1,0 +1,31 @@
+// Add this method to ConceptMeshStore class after getCurrentMesh():
+
+/**
+ * Hard-reset the in-memory mesh and associated diffs/events.
+ * Fires 'mesh:cleared' on the internal bus and a
+ * 'tori-concept-mesh-cleared' DOM event for UI listeners.
+ */
+public clearConceptMesh(): void {
+  // zero the writable stores
+  this.concepts.set([]);
+  this.conceptNodes.set(new Map());
+  this.conceptEdges.set(new Map());
+  this.diffs.set([]);
+  this.diffEvents.set([]);
+  
+  // reset diff engine state
+  this.lastSnapshot = null;
+  this.lastCalculatedDiff = [];
+  
+  // notify subscribers
+  this.eventBus.emit('mesh:cleared');
+  
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('tori-concept-mesh-cleared'));
+  }
+  
+  console.log('🧹 Concept mesh fully cleared');
+}
+
+// Add this export at the bottom with the other convenience functions:
+export const clearConceptMesh = () => conceptMeshStore.clearConceptMesh();

@@ -1,0 +1,1 @@
+# Test Dependencies for TORI E2E Testing Suite\npytest>=7.4.0\npytest-asyncio>=0.21.0\nhttpx>=0.24.0\naiofiles>=23.0.0\nsseclient-py>=1.7.2\nfaker>=19.0.0\nPyPDF2>=3.0.0\nreportlab>=4.0.0  # For generating test PDFs\n

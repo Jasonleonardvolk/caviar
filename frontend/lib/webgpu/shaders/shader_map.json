@@ -1,0 +1,75 @@
+{
+  "generated": "2025-08-08T16:22:07.502Z",
+  "canonical": "frontend/lib/webgpu/shaders",
+  "runtime": "frontend/public/hybrid/wgsl",
+  "shaders": {
+    "avatarShader": {
+      "canonical": "@/lib/webgpu/shaders/avatarShader.wgsl",
+      "runtime": "/hybrid/wgsl/avatarShader.wgsl"
+    },
+    "bitReversal": {
+      "canonical": "@/lib/webgpu/shaders/bitReversal.wgsl",
+      "runtime": "/hybrid/wgsl/bitReversal.wgsl"
+    },
+    "butterflyStage": {
+      "canonical": "@/lib/webgpu/shaders/butterflyStage.wgsl",
+      "runtime": "/hybrid/wgsl/butterflyStage.wgsl"
+    },
+    "fftShift": {
+      "canonical": "@/lib/webgpu/shaders/fftShift.wgsl",
+      "runtime": "/hybrid/wgsl/fftShift.wgsl"
+    },
+    "hybridWavefieldBlend": {
+      "canonical": "@/lib/webgpu/shaders/hybridWavefieldBlend.wgsl",
+      "runtime": "/hybrid/wgsl/hybridWavefieldBlend.wgsl"
+    },
+    "lenticularInterlace": {
+      "canonical": "@/lib/webgpu/shaders/lenticularInterlace.wgsl",
+      "runtime": "/hybrid/wgsl/lenticularInterlace.wgsl"
+    },
+    "lightFieldComposer": {
+      "canonical": "@/lib/webgpu/shaders/lightFieldComposer.wgsl",
+      "runtime": "/hybrid/wgsl/lightFieldComposer.wgsl"
+    },
+    "multiDepthWaveSynth": {
+      "canonical": "@/lib/webgpu/shaders/multiDepthWaveSynth.wgsl",
+      "runtime": "/hybrid/wgsl/multiDepthWaveSynth.wgsl"
+    },
+    "multiViewSynthesis": {
+      "canonical": "@/lib/webgpu/shaders/multiViewSynthesis.wgsl",
+      "runtime": "/hybrid/wgsl/multiViewSynthesis.wgsl"
+    },
+    "normalize": {
+      "canonical": "@/lib/webgpu/shaders/normalize.wgsl",
+      "runtime": "/hybrid/wgsl/normalize.wgsl"
+    },
+    "phaseOcclusion": {
+      "canonical": "@/lib/webgpu/shaders/phaseOcclusion.wgsl",
+      "runtime": "/hybrid/wgsl/phaseOcclusion.wgsl"
+    },
+    "propagation": {
+      "canonical": "@/lib/webgpu/shaders/propagation.wgsl",
+      "runtime": "/hybrid/wgsl/propagation.wgsl"
+    },
+    "topologicalOverlay": {
+      "canonical": "@/lib/webgpu/shaders/topologicalOverlay.wgsl",
+      "runtime": "/hybrid/wgsl/topologicalOverlay.wgsl"
+    },
+    "transpose": {
+      "canonical": "@/lib/webgpu/shaders/transpose.wgsl",
+      "runtime": "/hybrid/wgsl/transpose.wgsl"
+    },
+    "velocityField": {
+      "canonical": "@/lib/webgpu/shaders/velocityField.wgsl",
+      "runtime": "/hybrid/wgsl/velocityField.wgsl"
+    },
+    "wavefieldEncoder": {
+      "canonical": "@/lib/webgpu/shaders/wavefieldEncoder.wgsl",
+      "runtime": "/hybrid/wgsl/wavefieldEncoder.wgsl"
+    },
+    "wavefieldEncoder_optimized": {
+      "canonical": "@/lib/webgpu/shaders/wavefieldEncoder_optimized.wgsl",
+      "runtime": "/hybrid/wgsl/wavefieldEncoder_optimized.wgsl"
+    }
+  }
+}

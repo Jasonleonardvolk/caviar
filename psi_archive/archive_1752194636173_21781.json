@@ -1,0 +1,48 @@
+{
+  "id": "archive_1752194636173_21781",
+  "timestamp": 1752194636.173353,
+  "source_path": "temp_chunk_0_10.txt",
+  "concepts_count": 74,
+  "mesh_delta": {
+    "nodes_added": 74,
+    "edges_added": 6,
+    "delta_summary": {
+      "nodes_added": 74,
+      "nodes_removed": 0,
+      "edges_added": 6,
+      "edges_removed": 0,
+      "timestamp": 1752194636.160251
+    },
+    "timestamp": 1752194636.173353,
+    "similarity_threshold": 0.75
+  },
+  "penrose_stats": {
+    "status": "VERIFIED",
+    "geometric_score": 0.8631923963201303,
+    "phase_coherence": 0.9851445856509485,
+    "semantic_stability": 0.9461275711655617,
+    "vector_quality": {
+      "norm_check": true,
+      "entropy_check": true,
+      "geometric_check": true,
+      "phase_check": true,
+      "stability_check": true
+    },
+    "tessera_digest": "be3e53fc73876b00f3adebbe5e9474cbd57293758e58a5d0b977d6a0d9934024",
+    "metadata": {
+      "vector_count": 74,
+      "vector_dim": 4096,
+      "mean_norm": 1.0001771450042725,
+      "mean_entropy": 6.618658570405085,
+      "pass_rate": 1.0,
+      "slo_met": true,
+      "source": "temp_chunk_0_10.txt",
+      "extraction_method": "production_scispacy",
+      "embedding_model": "qwen3-8b"
+    }
+  },
+  "metadata": {
+    "ingestion_version": "production_qwen3_fixed",
+    "quality_verified": true
+  }
+}

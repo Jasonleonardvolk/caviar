@@ -1,0 +1,36 @@
+"""
+Updated simulation_api.py to include Soliton memory routes
+Add this to the imports and app setup in simulation_api.py
+"""
+
+# Add these lines after the existing imports in simulation_api.py:
+
+# Import the soliton router
+from alan_backend.routes.soliton import router as soliton_router
+
+# Then after creating the FastAPI app, add:
+# Include the soliton memory routes
+app.include_router(soliton_router)
+
+# The full section should look like:
+"""
+# Create FastAPI app
+app = FastAPI(
+    title="ALAN Simulation API",
+    description="API for running and monitoring ALAN simulations with Soliton Memory",
+    version="0.9.1",
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Import and include the soliton router
+from alan_backend.routes.soliton import router as soliton_router
+app.include_router(soliton_router)
+"""

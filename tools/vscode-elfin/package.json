@@ -1,0 +1,84 @@
+{
+  "name": "elfin-language-support",
+  "displayName": "ELFIN Language Support",
+  "description": "Language support for the ELFIN control system description language",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "publisher": "elfin-team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elfin-team/elfin-vscode"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:elfin"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "elfin",
+        "aliases": [
+          "ELFIN",
+          "elfin"
+        ],
+        "extensions": [
+          ".elfin"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "elfin",
+        "scopeName": "source.elfin",
+        "path": "./syntaxes/elfin.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "elfin.restartServer",
+        "title": "ELFIN: Restart Language Server"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "ELFIN",
+      "properties": {
+        "elfin.languageServer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the ELFIN Language Server"
+        },
+        "elfin.languageServer.path": {
+          "type": "string",
+          "default": "elfin-lsp",
+          "description": "Path to the ELFIN Language Server executable"
+        },
+        "elfin.formatting.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable formatting on save"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "preinstall": "npm install -g vsce",
+    "vscode:prepublish": "npm run lint",
+    "lint": "eslint .",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "install-extension": "node install.js"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "vscode-test": "^1.6.1"
+  }
+}

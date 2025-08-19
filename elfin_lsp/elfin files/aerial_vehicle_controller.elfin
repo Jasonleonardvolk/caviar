@@ -1,0 +1,222 @@
+# ────────────────────────────────────────────────────────────
+# Aerial Vehicle Controller — ELFIN v2 (multirotor / fixed‑wing / VTOL)
+# ────────────────────────────────────────────────────────────
+
+# Import helper functions from standard library
+import StdHelpers from "std/helpers.elfin";
+
+# ── Multirotor plant (quad‑style) ───────────────────────────
+system Multirotor {
+  continuous_state [x,y,z, phi,theta,psi, vx,vy,vz, p,q,r];
+  input  [thrust, tau_x, tau_y, tau_z];
+
+  params { m:1.5; g:9.81; Ixx:0.0211; Iyy:0.0219; Izz:0.0366; Cd:0.1;
+           wind_x:0; wind_y:0; wind_z:0; }
+
+  flow_dynamics {
+    # Position & attitude kinematics
+    x_dot = vx;  y_dot = vy;  z_dot = vz;
+    phi_dot   = p + (q*sin(phi)+r*cos(phi))*tan(theta);
+    theta_dot = q*cos(phi) - r*sin(phi);
+    psi_dot   = (q*sin(phi)+r*cos(phi))/cos(theta);
+
+    # Rotation body→world (only rows needed)
+    R31 =  cos(phi)*sin(theta)*cos(psi) + sin(phi)*sin(psi);
+    R32 =  cos(phi)*sin(theta)*sin(psi) - sin(phi)*cos(psi);
+    R33 =  cos(phi)*cos(theta);
+    R21 =  sin(phi)*sin(theta)*cos(psi) - cos(phi)*sin(psi);
+    R22 =  sin(phi)*sin(theta)*sin(psi) + cos(phi)*cos(psi);
+    R23 =  sin(phi)*cos(theta);
+
+    # Body thrust (‑Z)
+    Fbz = -thrust;
+    # Drag
+    Fdx = -Cd*(vx-wind_x)*hAbs(vx-wind_x);
+    Fdy = -Cd*(vy-wind_y)*hAbs(vy-wind_y);
+    Fdz = -Cd*(vz-wind_z)*hAbs(vz-wind_z);
+
+    ax = (R31*0 + R32*0 + R33*Fbz)/m + Fdx/m;
+    ay = (R21*0 + R22*0 + R23*Fbz)/m + Fdy/m;
+    az = (R31*0 + R32*0 + R33*Fbz)/m + Fdz/m - g;
+
+    vx_dot = ax;  vy_dot = ay;  vz_dot = az;
+
+    p_dot = (tau_x + (Iyy-Izz)*q*r)/Ixx;
+    q_dot = (tau_y + (Izz-Ixx)*p*r)/Iyy;
+    r_dot = (tau_z + (Ixx-Iyy)*p*q)/Izz;
+  }
+}
+
+# ── Fixed‑wing plant (3‑DoF flight dyn) ─────────────────────
+system FixedWing {
+  continuous_state [x,y,z, phi,theta,psi, V,beta,alpha, p,q,r];
+  input [thrust, delta_a, delta_e, delta_r];
+
+  params { m:10; g:9.81; rho:1.225; S:0.5; b:2; c:0.25;
+           Ixx:0.8; Iyy:1.1; Izz:1.5; Ixz:0.1;
+           CL0:0.3; CLa:5; CD0:0.03; K:0.05; CYb:-0.6;
+           Clb:-0.05; Clp:-0.4; Clr:0.15; Clda:0.2;
+           Cm0:0; Cma:-1; Cmq:-10; Cmde:-1;
+           Cnb:0.1; Cnp:-0.05; Cnr:-0.2; Cndr:-0.15;
+           wind_x:0; wind_y:0; wind_z:0; }
+
+  flow_dynamics {
+    ur = V*cos(alpha)*cos(beta);
+    vr = V*sin(beta);
+    wr = V*sin(alpha)*cos(beta);
+
+    qbar = 0.5*rho*V**2;
+    CL = CL0 + CLa*alpha;
+    CD = CD0 + K*CL**2;
+    CY = CYb*beta;
+
+    Fbx = qbar*S*(-CD*cos(alpha)*cos(beta)+CL*sin(alpha)) + thrust;
+    Fby = qbar*S*CY;
+    Fbz = qbar*S*(-CD*cos(alpha)*sin(beta)-CL*cos(alpha));
+
+    Cl = qbar*S*b*(Clb*beta + Clp*(p*b)/(2*V) + Clr*(r*b)/(2*V) + Clda*delta_a);
+    Cm = qbar*S*c*(Cm0 + Cma*alpha + Cmq*(q*c)/(2*V) + Cmde*delta_e);
+    Cn = qbar*S*b*(Cnb*beta + Cnp*(p*b)/(2*V) + Cnr*(r*b)/(2*V) + Cndr*delta_r);
+
+    # Body→world rotation (row 3 only for accel)
+    R31 = cos(phi)*sin(theta)*cos(psi)+sin(phi)*sin(psi);
+    R32 = cos(phi)*sin(theta)*sin(psi)-sin(phi)*cos(psi);
+    R33 = cos(phi)*cos(theta);
+    R21 = sin(phi)*sin(theta)*cos(psi)-cos(phi)*sin(psi);
+    R22 = sin(phi)*sin(theta)*sin(psi)+cos(phi)*cos(psi);
+    R23 = sin(phi)*cos(theta);
+    R11 = cos(theta)*cos(psi);
+    R12 = cos(theta)*sin(psi);
+    R13 = -sin(theta);
+
+    vx = R11*ur + R12*vr + R13*wr + wind_x;
+    vy = R21*ur + R22*vr + R23*wr + wind_y;
+    vz = R31*ur + R32*vr + R33*wr + wind_z;
+
+    x_dot = vx; y_dot = vy; z_dot = vz;
+
+    phi_dot   = p + tan(theta)*(q*sin(phi)+r*cos(phi));
+    theta_dot = q*cos(phi) - r*sin(phi);
+    psi_dot   = (q*sin(phi)+r*cos(phi))/cos(theta);
+
+    udot = Fbx/m - (q*wr - r*vr) + g*sin(theta);
+    vdot = Fby/m - (r*ur - p*wr) - g*cos(theta)*sin(phi);
+    wdot = Fbz/m - (p*vr - q*ur) - g*cos(theta)*cos(phi);
+
+    V_dot     = (ur*udot + vr*vdot + wr*wdot)/V;
+    beta_dot  = (vdot*cos(beta) - ur*(vr*udot - ur*vdot)/(ur**2+vr**2))/V;
+    alpha_dot = (wdot*cos(alpha) - udot*sin(alpha))/(V*cos(beta));
+
+    Gamma = Ixx*Izz - Ixz**2;
+    p_dot = (Izz*Cl + Ixz*Cn + (Ixz*(Ixx-Iyy+Izz)*p*q) + (Izz*(Iyy-Izz)-Ixz**2)*q*r)/Gamma;
+    q_dot = (Cm + (Ixx-Izz)*p*r - Ixz*(p**2 - r**2))/Iyy;
+    r_dot = (Ixx*Cn + Ixz*Cl + (Ixz*(Iyy-Izz-Ixx)*q*r) + (Ixx*(Ixx-Iyy)+Ixz**2)*p*q)/Gamma;
+  }
+}
+
+# ── VTOL plant (blended) ───────────────────────────────────
+system VTOL {
+  continuous_state [x,y,z, phi,theta,psi, vx,vy,vz, p,q,r, flight_mode];
+  input [thrust_v, thrust_h, tau_x, tau_y, tau_z, mode_rate];
+
+  params { m:5; g:9.81; Ixx:0.3; Iyy:0.4; Izz:0.5; rho:1.225; S:0.5;
+           CL_fw:1; CD_fw:0.1; k_trans:1; }
+
+  flow_dynamics {
+    x_dot = vx; y_dot = vy; z_dot = vz;
+    phi_dot   = p + (q*sin(phi)+r*cos(phi))*tan(theta);
+    theta_dot = q*cos(phi) - r*sin(phi);
+    psi_dot   = (q*sin(phi)+r*cos(phi))/cos(theta);
+
+    flight_mode_dot = mode_rate;
+    k_vtol = 1 - flight_mode;  k_fw = flight_mode;
+
+    V = sqrt(vx**2 + vy**2 + vz**2);
+    alpha = atan2(vz, vx);
+    q_dyn = 0.5*rho*V**2;
+    L_fw = q_dyn*S*CL_fw;  D_fw = q_dyn*S*CD_fw;
+
+    Fx = k_fw*(thrust_h - D_fw*cos(alpha)) - k_vtol*thrust_v*sin(theta);
+    Fz = k_fw*(-L_fw - D_fw*sin(alpha)) - k_vtol*thrust_v*cos(theta)*cos(phi);
+
+    ax = Fx/m; ay = 0; az = Fz/m - g;
+    vx_dot = ax; vy_dot = ay; vz_dot = az;
+
+    p_dot = (tau_x - k_fw*0.5*p)/Ixx;
+    q_dot = (tau_y - k_fw*0.5*q)/Iyy;
+    r_dot = (tau_z - k_fw*0.5*r)/Izz;
+  }
+}
+
+# ── Lyapunovs ───────────────────────────────────────────────
+lyapunov MR_Att {
+  system Multirotor;
+  params { phi_d:0; theta_d:0; psi_d:0; k_phi:5; k_theta:5; k_psi:2; }
+  V = 0.5*(Ixx*p**2 + Iyy*q**2 + Izz*r**2)
+      + k_phi*(1-cos(phi-phi_d))
+      + k_theta*(1-cos(theta-theta_d))
+      + k_psi*(1-cos(psi-psi_d));
+}
+
+lyapunov FW_Energy {
+  system FixedWing;
+  params { alpha_trim:0.05; k_alpha:10; k_beta:10; k_bank:2; }
+  V = 0.5*m*V**2 + m*g*z + k_alpha*(alpha-alpha_trim)**2 + k_beta*beta**2 + k_bank*phi**2;
+}
+
+# ── Barriers (altitude / fence / attitude) ─────────────────
+barrier AltitudeMin { system Multirotor; params { z_min:1; alpha:1; }  B=z-z_min;    alphaFun=alpha*B; }
+barrier AltitudeMax { system Multirotor; params { z_max:120; alpha:1; } B=z_max-z;   alphaFun=alpha*B; }
+barrier Geofence    { system Multirotor; params { xc:0; yc:0; r_max:100; alpha:1; }
+                      B=r_max**2-(x-xc)**2-(y-yc)**2; alphaFun=alpha*B; }
+barrier AttSafe     { system Multirotor; params { phi_max:0.7; theta_max:0.7; alpha:1; }
+                      B=(phi_max**2-phi**2)*(theta_max**2-theta**2); alphaFun=alpha*B; }
+
+# ── Modes ----------------------------------------------------------------------
+mode MR_Pos {
+  system Multirotor;  lyapunov MR_Att;  barriers [AltitudeMin, AltitudeMax, Geofence, AttSafe];
+  params { x_d:0; y_d:0; z_d:5; vx_d:0; vy_d:0; vz_d:0; psi_d:0;
+           kp_x:2; kp_y:2; kp_z:2; kd_x:1; kd_y:1; kd_z:1;
+           kp_phi:10; kp_theta:10; kp_psi:5; kd_phi:2; kd_theta:2; kd_psi:1; }
+
+  controller {
+    ex=x_d-x; ey=y_d-y; ez=z_d-z;
+    evx=vx_d-vx; evy=vy_d-vy; evz=vz_d-vz;
+    ax_cmd=kp_x*ex+kd_x*evx; ay_cmd=kp_y*ey+kd_y*evy; az_cmd=kp_z*ez+kd_z*evz+g;
+    phi_d  =(ax_cmd*sin(psi_d)-ay_cmd*cos(psi_d))/g;
+    theta_d=(ax_cmd*cos(psi_d)+ay_cmd*sin(psi_d))/g;
+    ephi=wrapAngle(phi_d-phi); etheta=wrapAngle(theta_d-theta); epsi=wrapAngle(psi_d-psi);
+    tau_x=kp_phi*ephi-kd_phi*p; tau_y=kp_theta*etheta-kd_theta*q; tau_z=kp_psi*epsi-kd_psi*r;
+    thrust=m*az_cmd;
+  }
+}
+
+mode FW_Reg {
+  system FixedWing; lyapunov FW_Energy; barriers [AltitudeMin, Geofence];
+  params { V_d:15; z_d:100; psi_d:0; alpha_trim:0.05; thrust_trim:10;
+           k_thrust:5; k_alt:0.1; k_gamma:1; k_turn:0.2;
+           k_e:0.5; k_q:0.5; k_a:0.5; k_p:0.2; k_r:0.5; }
+
+  controller {
+    eV=V_d-V; eAlt=z_d-z; ePsi=wrapAngle(psi_d-psi);
+    thrust=k_thrust*eV+thrust_trim;
+    gamma_d=k_alt*eAlt; gamma=asin(-vz/V); eGamma=gamma_d-gamma;
+    alpha_d=alpha_trim+k_gamma*eGamma; eAlpha=alpha_d-alpha;
+    delta_e=k_e*eAlpha-k_q*q;
+    phi_d=atan(V*ePsi*k_turn);
+    ePhi=wrapAngle(phi_d-phi);
+    delta_a=k_a*ePhi-k_p*p;
+    delta_r=-k_r*r;
+  }
+}
+
+mode VTOL_Trans {
+  system VTOL;  barriers [AltitudeMin, Geofence, AttSafe];
+  params { z_d:30; mode_rate_set:0.1; }
+  controller {
+    mode_rate=mode_rate_set;  # constant ramp for demo
+    thrust_v = hMax(0, (1-flight_mode)*9.81*m );
+    thrust_h = hMax(0, flight_mode*30);
+    tau_x=0; tau_y=0; tau_z=0;
+  }
+}

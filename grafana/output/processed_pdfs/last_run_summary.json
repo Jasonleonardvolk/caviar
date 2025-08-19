@@ -1,0 +1,16 @@
+{
+  "total_documents": 17,
+  "processed_documents": 17,
+  "error_count": 0,
+  "insufficient_data_count": 1,
+  "successful_count": 16,
+  "average_exponent": 5.7830436226018124e-05,
+  "min_exponent": -0.0065530476471214886,
+  "max_exponent": 0.004503316599517368,
+  "std_exponent": 0.002712437410466711,
+  "total_time_seconds": 3.182,
+  "parallelism": 2,
+  "chunk_count": 1,
+  "chunk_size": null,
+  "max_file_size": 52428800
+}

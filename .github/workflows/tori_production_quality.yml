@@ -1,0 +1,80 @@
+# .github/workflows/tori_production_quality.yml
+name: TORI Production Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  TORI_EMBED_MODE: local
+  TORI_COSINE_THRESHOLD: 0.65
+  CUDA_VISIBLE_DEVICES: 0
+
+jobs:
+  embedding_service_test:
+    runs-on: self-hosted  # Requires GPU
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+        pip install sentence-transformers[all] fastapi uvicorn httpx diskcache
+        pip install pytest pytest-benchmark pytest-asyncio
+    
+    - name: Start embedding service
+      run: |
+        python serve_embeddings.py &
+        sleep 30  # Wait for service to initialize
+        
+    - name: Test embedding quality
+      run: |
+        pytest tests/test_embedding_quality.py -v --benchmark-json=embedding_benchmark.json
+        
+    - name: Test Penrose verification
+      run: |
+        pytest tests/test_penrose_production.py -v
+        
+    - name: Quality gate enforcement
+      run: |
+        python scripts/enforce_quality_gates.py \
+          --precision-threshold 0.85 \
+          --recall-threshold 0.80 \
+          --embedding-stability 0.92 \
+          --penrose-threshold 0.7
+
+  integration_test:
+    needs: embedding_service_test
+    runs-on: self-hosted
+    steps:
+    - name: End-to-end ingestion test
+      run: |
+        python tests/test_production_ingestion.py \
+          --test-corpus tests/fixtures/sample_pdfs/ \
+          --quality-report quality_report.json
+          
+    - name: Upload quality metrics
+      uses: actions/upload-artifact@v3
+      with:
+        name: quality-reports
+        path: |
+          embedding_benchmark.json
+          quality_report.json
+
+  deployment_gate:
+    needs: [embedding_service_test, integration_test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Deploy to production
+      run: |
+        echo "All quality gates passed - deploying to production"
+        # Add your deployment steps here

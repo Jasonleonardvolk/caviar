@@ -1,0 +1,48 @@
+{
+  "id": "archive_1752187496761_599899",
+  "timestamp": 1752187496.7618637,
+  "source_path": "D:\Dev\kha\anewapproach.pdf",
+  "concepts_count": 9,
+  "mesh_delta": {
+    "nodes_added": 9,
+    "edges_added": 1,
+    "delta_summary": {
+      "nodes_added": 9,
+      "nodes_removed": 0,
+      "edges_added": 1,
+      "edges_removed": 0,
+      "timestamp": 1752187496.7608647
+    },
+    "timestamp": 1752187496.7618637,
+    "similarity_threshold": 0.75
+  },
+  "penrose_stats": {
+    "status": "WARNING",
+    "geometric_score": 0.867028956569459,
+    "phase_coherence": 0.9660792887052189,
+    "semantic_stability": 0.87793979793787,
+    "vector_quality": {
+      "norm_check": true,
+      "entropy_check": true,
+      "geometric_check": true,
+      "phase_check": true,
+      "stability_check": false
+    },
+    "tessera_digest": "5b321468d52bae751c5e014ab92a074beef4dea7c8710185118b77d27cb0655f",
+    "metadata": {
+      "vector_count": 9,
+      "vector_dim": 4096,
+      "mean_norm": 1.0,
+      "mean_entropy": 6.6095410080935775,
+      "pass_rate": 0.8,
+      "slo_met": false,
+      "source": "D:\Dev\kha\anewapproach.pdf",
+      "extraction_method": "production_scispacy",
+      "embedding_model": "qwen3-8b"
+    }
+  },
+  "metadata": {
+    "ingestion_version": "production_qwen3_fixed",
+    "quality_verified": true
+  }
+}

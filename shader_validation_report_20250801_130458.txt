@@ -1,0 +1,25 @@
+﻿SHADER VALIDATION REPORT
+========================
+Generated: 2025-08-01 13:04:58
+
+SUMMARY
+-------
+Total Expected: 11
+Valid:         11
+Invalid:       0  
+Missing:       0
+
+VALID SHADERS
+-------------
+avatarShader.wgsl
+bitReversal.wgsl
+butterflyStage.wgsl
+fftShift.wgsl
+lenticularInterlace.wgsl
+multiViewSynthesis.wgsl
+normalize.wgsl
+propagation.wgsl
+transpose.wgsl
+velocityField.wgsl
+wavefieldEncoder_optimized.wgsl
+

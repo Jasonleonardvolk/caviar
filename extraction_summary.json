@@ -1,0 +1,148 @@
+{
+  "pipeline_run": {
+    "timestamp": "2025-07-28T17:06:52.917830",
+    "pdf_file": "PROJECT_ROOT/"docs\\LivingSolitonMemorySystemsCopy.pdf",
+    "pdf_chars": 15558,
+    "pipeline_version": "2.0"
+  },
+  "extraction_results": {
+    "raw_concepts": 240,
+    "concepts_with_relationships": 143,
+    "total_relationships": 306,
+    "extraction_methods": [
+      "svo_subject",
+      "spacy_entity+spacy_entity+spacy_entity+spacy_entity",
+      "svo_object",
+      "spacy_entity+spacy_entity",
+      "spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity",
+      "spacy_entity+spacy_entity+spacy_entity+spacy_entity+spacy_entity",
+      "yake+spacy_entity+spacy_entity",
+      "spacy_entity",
+      "yake+spacy_entity",
+      "spacy_entity+spacy_entity+spacy_entity",
+      "yake"
+    ]
+  },
+  "deduplication_results": {
+    "input_concepts": 240,
+    "output_concepts": 195,
+    "reduction_percentage": 18.75
+  },
+  "vault_storage": {
+    "concepts_stored": 50,
+    "concepts_failed": 0,
+    "storage_path": "data/memory_vault"
+  },
+  "top_concepts": [
+    {
+      "label": "memory",
+      "score": 0.9925891140097092,
+      "method": "yake",
+      "relationships": 3,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "Living soliton memory",
+      "score": 0.9921071927263373,
+      "method": "yake",
+      "relationships": 0,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "soliton memory",
+      "score": 0.9890049338167799,
+      "method": "yake",
+      "relationships": 0,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "soliton",
+      "score": 0.9829224253716147,
+      "method": "yake+spacy_entity+svo_object",
+      "relationships": 1,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "market",
+      "score": 0.9816720562412199,
+      "method": "yake+svo_subject",
+      "relationships": 1,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "Living memory",
+      "score": 0.9813207448177291,
+      "method": "yake",
+      "relationships": 0,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "systems",
+      "score": 0.979794294920646,
+      "method": "yake",
+      "relationships": 7,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "Living soliton",
+      "score": 0.9790899818514314,
+      "method": "yake",
+      "relationships": 0,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "Living",
+      "score": 0.978673005788707,
+      "method": "yake",
+      "relationships": 1,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    },
+    {
+      "label": "living soliton-based memory",
+      "score": 0.9759082665468954,
+      "method": "yake",
+      "relationships": 0,
+      "tags": [
+        "LivingSolitonMemorySystemsCopy.pdf",
+        "soliton",
+        "physics"
+      ]
+    }
+  ]
+}

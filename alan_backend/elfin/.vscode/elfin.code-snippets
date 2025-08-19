@@ -1,0 +1,27 @@
+{
+  "wrapAngle": {
+    "prefix": "wrapAngle",
+    "body": "wrapAngle(${1:theta})",
+    "description": "Wrap angle to (-π, π]"
+  },
+  "hAbs": {
+    "prefix": "hAbs",
+    "body": "hAbs(${1:x})",
+    "description": "Absolute value function"
+  },
+  "hMin": {
+    "prefix": "hMin",
+    "body": "hMin(${1:a}, ${2:b})",
+    "description": "Minimum of two values"
+  },
+  "hMax": {
+    "prefix": "hMax",
+    "body": "hMax(${1:a}, ${2:b})",
+    "description": "Maximum of two values"
+  },
+  "import Helpers": {
+    "prefix": "import-helpers",
+    "body": "import StdHelpers from \"std/helpers.elfin\";",
+    "description": "Import standard helper functions"
+  }
+}

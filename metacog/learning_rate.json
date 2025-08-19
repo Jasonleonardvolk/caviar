@@ -1,0 +1,6 @@
+{
+  "id": "meta.learning_rate",
+  "value": 0.65,
+  "description": "Adaptive learning speed coefficient",
+  "last_updated": "2025-07-05T00:30:00-05:00"
+}

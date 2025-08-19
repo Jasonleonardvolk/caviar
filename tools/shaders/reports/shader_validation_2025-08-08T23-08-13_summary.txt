@@ -1,0 +1,12 @@
+=== SHADER VALIDATION SUMMARY ===
+Timestamp: 2025-08-08T23-08-13
+Total Files: 0
+Status: 0 PASSED | 0 FAILED | 0 WARNING
+
+FAILED (0):
+
+WARNING (0):
+
+PASSED (0):
+
+=== TOP ISSUES TO FIX ===

@@ -1,0 +1,4 @@
+﻿Fix-WGSL-Phase3 Report  2025-08-08T12-28-53
+Repo: ${IRIS_ROOT}
+Roots: frontend\lib\webgpu\shaders, frontend\public\hybrid\wgsl
+

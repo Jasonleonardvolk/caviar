@@ -1,0 +1,180 @@
+// lib/elfin/scripts/onGhostStateChange.ts - Ghost State Change Script
+import { updateSystemEntropy, setLastTriggeredGhost } from '$lib/stores/conceptMesh';
+import { ghostPersona } from '$lib/stores/ghostPersona';
+
+interface GhostStateChangeContext {
+  ghostName: string;
+  event: 'activate' | 'deactivate' | 'mood_change' | 'stability_change' | 'processing_start' | 'processing_end';
+  data?: Record<string, any>;
+}
+
+/**
+ * ELFIN++ Script: onGhostStateChange
+ * Responds to ghost persona state changes and updates system accordingly
+ */
+export async function onGhostStateChange(context: GhostStateChangeContext): Promise<void> {
+  const { ghostName, event, data = {} } = context;
+  
+  console.log('👻 ELFIN++ onGhostStateChange: Processing ghost state update', {
+    ghostName,
+    event,
+    data
+  });
+
+  try {
+    switch (event) {
+      case 'activate':
+        // Ghost becomes active
+        setLastTriggeredGhost(ghostName);
+        
+        // Update ghost persona state
+        ghostPersona.update(state => ({
+          ...state,
+          activePersona: ghostName,
+          lastActiveTime: new Date(),
+          auraIntensity: Math.min(1.0, state.auraIntensity + 0.2)
+        }));
+        
+        // Activation brings some order (reduces entropy)
+        updateSystemEntropy(-2);
+        
+        console.log(`✅ ELFIN++ Ghost ${ghostName} activated`);
+        break;
+        
+      case 'deactivate':
+        // Ghost becomes inactive
+        ghostPersona.update(state => ({
+          ...state,
+          activePersona: state.activePersona === ghostName ? null : state.activePersona,
+          auraIntensity: Math.max(0, state.auraIntensity - 0.1)
+        }));
+        
+        console.log(`💤 ELFIN++ Ghost ${ghostName} deactivated`);
+        break;
+        
+      case 'mood_change':
+        // Ghost mood changes
+        if (data.newMood) {
+          ghostPersona.update(state => ({
+            ...state,
+            mood: data.newMood,
+            moodHistory: [...(state.moodHistory || []), {
+              mood: data.newMood,
+              timestamp: new Date(),
+              ghost: ghostName
+            }].slice(-10) // Keep last 10 mood changes
+          }));
+          
+          // Some moods affect system entropy
+          const entropyChange = getMoodEntropyEffect(data.newMood);
+          if (entropyChange !== 0) {
+            updateSystemEntropy(entropyChange);
+          }
+          
+          console.log(`🎭 ELFIN++ Ghost ${ghostName} mood changed to: ${data.newMood}`);
+        }
+        break;
+        
+      case 'stability_change':
+        // Ghost stability changes
+        if (typeof data.newStability === 'number') {
+          ghostPersona.update(state => ({
+            ...state,
+            stability: data.newStability,
+            stabilityHistory: [...(state.stabilityHistory || []), {
+              stability: data.newStability,
+              timestamp: new Date(),
+              ghost: ghostName
+            }].slice(-20) // Keep last 20 stability readings
+          }));
+          
+          // Stability affects system entropy inversely
+          const entropyChange = (0.5 - data.newStability) * 5; // Unstable ghosts increase entropy
+          updateSystemEntropy(entropyChange);
+          
+          console.log(`⚖️ ELFIN++ Ghost ${ghostName} stability changed to: ${data.newStability}`);
+        }
+        break;
+        
+      case 'processing_start':
+        // Ghost starts processing something
+        ghostPersona.update(state => ({
+          ...state,
+          isProcessing: true,
+          processingGhost: ghostName,
+          processingStartTime: new Date()
+        }));
+        
+        console.log(`⚙️ ELFIN++ Ghost ${ghostName} started processing`);
+        break;
+        
+      case 'processing_end':
+        // Ghost finishes processing
+        ghostPersona.update(state => ({
+          ...state,
+          isProcessing: false,
+          processingGhost: null,
+          lastProcessingDuration: state.processingStartTime 
+            ? Date.now() - state.processingStartTime.getTime()
+            : null
+        }));
+        
+        console.log(`✅ ELFIN++ Ghost ${ghostName} finished processing`);
+        break;
+        
+      default:
+        console.warn(`⚠️ ELFIN++ Unknown ghost event: ${event}`);
+    }
+
+    // Trigger any cascade effects
+    await handleGhostCascadeEffects(ghostName, event, data);
+
+  } catch (error) {
+    console.error('❌ ELFIN++ onGhostStateChange execution failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get entropy effect of mood changes
+ */
+function getMoodEntropyEffect(mood: string): number {
+  const moodEffects: Record<string, number> = {
+    'calm': -3,
+    'focused': -5,
+    'analytical': -4,
+    'creative': -2,
+    'chaotic': +8,
+    'confused': +6,
+    'unstable': +10,
+    'excited': +1,
+    'contemplative': -3,
+    'agitated': +4
+  };
+  
+  return moodEffects[mood] || 0;
+}
+
+/**
+ * Handle cascade effects when ghost states change
+ */
+async function handleGhostCascadeEffects(ghostName: string, event: string, data: any): Promise<void> {
+  // Example: When Scholar activates, it might influence Mentor's stability
+  if (ghostName === 'Scholar' && event === 'activate') {
+    // Scholar activation might increase Mentor's knowledge confidence
+    ghostPersona.update(state => ({
+      ...state,
+      mentorKnowledgeBoost: (state.mentorKnowledgeBoost || 0) + 0.1
+    }));
+  }
+  
+  // Example: When any ghost becomes unstable, it might affect others
+  if (event === 'stability_change' && data.newStability < 0.3) {
+    console.log(`⚠️ ELFIN++ Ghost ${ghostName} instability detected, checking cascade effects`);
+    
+    // High instability in one ghost can create ripple effects
+    updateSystemEntropy(+3);
+  }
+}
+
+console.log('👻 ELFIN++ onGhostStateChange script loaded');

@@ -1,0 +1,348 @@
+Faster and Hardware-Independent Holographic Rendering with WebGPU and ψ Oscillators
+
+Advanced Holographic Rendering Pipeline (Looking Glass Replacement)
+Limitations of the Current WebXR Polyfill (Looking Glass)
+Looking Glass’s WebXR polyfill works by rendering multiple “quilt” views of the scene and interlacing them for the display. In practice, this means rendering perhaps 45 distinct camera perspectives and assembling them into a tiled quilt texture every frame. This approach is convenient (it treats the Looking Glass as a VR/XR device), but it has performance drawbacks and hardware ties:
+Multi-Pass Rendering Overhead: The polyfill loops through many views and renders the scene repeatedly (e.g. 45 times) which is computationally expensive. Each frame’s cost scales linearly with the number of views, leading to low framerates for complex scenes.
+Bridge and Hardware Dependency: The official pipeline requires the proprietary Looking Glass Bridge service to apply device-specific calibration and actually show the image
+github.com
+github.com
+. This ties the app to Looking Glass hardware/SDK. If Bridge isn’t running, you only see a “swizzled” (un-converted) quilt in a popup
+kitware.github.io
+.
+Fixed Quilt Parameters: The default polyfill settings (e.g. 512px tile height, 45 views, etc.) may not be optimal for all use cases
+github.com
+. Tweaking them is possible but not dynamic without diving into the polyfill’s internals.
+Limited Customization: Because the polyfill abstracts the rendering, developers have less control over novel rendering techniques or optimizations. It assumes a standard multi-view rasterization approach.
+Goal: Replace this with a faster, fully open pipeline that we can tune and that doesn’t rely on proprietary components. Below we explore strategies to achieve each requirement.
+Single-Pass Multi-View Rendering for Higher Performance
+A key to faster performance is reducing or eliminating the per-view render loop. Single-pass multi-view rendering techniques allow generating all required views in one GPU pass, instead of sequentially. Research and practice have shown huge gains from this approach:
+The “Combiner” algorithm (for a VR parallax-barrier display) achieved a 4× speedup by using the GPU to interleave multiple views in one pass
+web.cels.anl.gov
+. Instead of drawing each view to the screen one by one, Combiner renders off-screen and then combines results in a single shader pass, touching each pixel only once
+web.cels.anl.gov
+web.cels.anl.gov
+. This yielded 4× the frame rate of traditional multi-view rendering
+web.cels.anl.gov
+.
+A 2010 study generalizing multi-view rendering to large tiled displays similarly found that a one-pass method (HRMVRA) was 5× faster than multi-pass rendering
+link.springer.com
+. In that system, all 24 views were generated in parallel within a single rendering traversal
+link.springer.com
+.
+How to implement single-pass multi-view? Modern graphics APIs (WebGPU, Vulkan, etc.) support rendering to texture arrays or multiple viewports in one go. Two possible approaches in a WebGPU or native pipeline:
+Layered Rendering (Multiview): Render the scene to an array texture with one layer per view. With the right shader semantics (e.g. using a view index or layer variable), the GPU can apply different view matrices for each layer without multiple draw calls. Vulkan/WebGPU’s multiview extensions allow a single draw call to emit geometry to multiple layers. This is how VR does stereo in one pass. Extending to N views is conceptually similar. (As of 2025, WebGPU’s support for multiview is evolving
+github.com
+sotrh.github.io
+, but this is an area to utilize if available.)
+Geometry or Compute Shader Multiplexing: Alternatively, draw the scene once but within the shader compute outputs for each view. For example, a geometry shader can duplicate each primitive across all view projections (assigning each to a layer or tiled viewport). Or a compute shader can iterate over each pixel of the final quilt and ray-cast into the scene from the corresponding view. The idea is to amortize scene traversal/shading across views. One paper on volume rendering took this approach: in the fragment shader they determined which view’s sub-pixel was being calculated and sampled the volume accordingly, producing multiple views in one pass
+ifi.uzh.ch
+ifi.uzh.ch
+.
+Tiled Viewports Method: A simpler, practical route (already used in three.js communities) is to manually render into a single large render target partitioned into a grid of viewports. For example, you can create an off-screen framebuffer (the “quilt texture”) sized for a grid, and loop over camera views setting the viewport to each tile and rendering the scene. This still involves a loop, but it stays on the GPU and avoids costly CPU-WebGL context switches per view. Three.js’s ArrayCamera and manual viewports have been used to do this for Looking Glass
+discourse.threejs.org
+. In code, it looks like:
+js
+Copy
+// Pseudocode: render scene into a quilt render target
+renderer.setRenderTarget(quiltTarget);
+for (let v = 0; v < numViews; v++) {
+  camera.position = computeViewPosition(v);    // or use ArrayCamera with sub-cameras
+  camera.lookAt(target);
+  const [vx, vy] = tileViewportCoords(v);      // compute tile position in quilt
+  renderer.setViewport(vx, vy, tileWidth, tileHeight);
+  renderer.render(scene, camera);
+}
+renderer.setRenderTarget(null);
+This produces a quilt texture containing all sub-views (similar to 
+discourse.threejs.org
+). The performance can be further improved by simplifying the scene for each small view or using instancing, but it’s already better than opening 45 separate XR sessions. After rendering the quilt, the final composition step is done in a fragment shader: sampling the quilt and outputting the “lenticular interleaved” image. In the open-source HoloPlay Core SDK, this is exactly how it works: “the developer should render views to a quilt texture, bind the quilt texture, and render a full-screen quad using the lenticular shader”
+docs.lookingglassfactory.com
+. The lenticular shader uses the device’s calibration to map each screen pixel to the appropriate view pixel in the quilt
+github.com
+. This approach yields a performance boost because the costly part (scene rendering) happens at lower resolution per view, and the combination is a simple pixel shader.
+Example: The “Combiner” method mentioned above did exactly this for a parallax-barrier: render stereo views to off-screen buffers, then one full-screen pass that interleaves at the sub-pixel level, touching each pixel only once
+web.cels.anl.gov
+. This alone gave ~4× speedup
+web.cels.anl.gov
+. We can apply the same idea to multi-view quilts: do a single quad pass that interleaves all 45 views at once on the GPU. The polyfill/Bridge currently does this internally; by implementing it ourselves with WebGPU or GL shaders, we can optimize it and remove the Bridge dependency.
+Side-by-Side vs Single-Pass: In summary, to maximize speed: (1) Minimize redundant draw calls (use instancing or multiview to avoid 45 separate render loops if possible), and (2) move the interleaving compositing to the GPU. With WebGPU, you can harness compute shaders for even more advanced culling or parallelism, and take advantage of GPU command encoding (recording multiple passes ahead of time). This will ensure significantly faster performance than the current WebXR polyfill’s multi-pass approach.
+Efficient Quilt Generation via Spectral Phase-Field Methods (ψ Oscillator Framework)
+Instead of treating each view as a completely separate image, we can exploit the underlying light field’s continuity. The idea of a “ψ oscillator spectral phase-field” approach is to represent the entire 3D scene or light field as a wave phenomena, then generate views by sampling this wavefield. In simpler terms: use holographic or wave-optics math to encode all viewpoints into one complex representation, from which we can derive any particular 2D view efficiently. This is analogous to how a physical hologram works: it encodes the light wavefront of a scene, and different viewing angles are obtained by looking at the hologram from different positions. Key advantages of a wave/phase-field representation:
+All views encoded in one representation: A digital hologram stores the amplitude and phase of light for the scene as seen through a window. By propagating or sampling this hologram, one can reconstruct images for arbitrary viewpoints 
+research-collection.ethz.ch
+. In a pipeline, this means you could compute one “holographic image” and then slice it to get 45 sub-views, rather than rendering 45 times.
+Phase synchronization = consistent depth cues: Unlike rendering discrete images, a phase-field ensures that the relative phase of light from scene points is maintained between views. This yields correct interference and focus. In practice, this means better depth reproduction and continuity – objects don’t exhibit tearing or inconsistent disparities between adjacent views. As one paper notes, holographic wavefronts implicitly handle anti-aliasing and reproduce object depth through phase
+research-collection.ethz.ch
+ (something traditional multi-view images struggle with).
+Potential Bandwidth Reduction: A spectral representation can be more compact. If the scene has structure, its holographic fringe pattern may be sparse or compressible (e.g. via Fourier sparsity). Research by Blinder et al. (2018) showed that by using sparse spectral bases (STFT domain) for CGH, one can accelerate hologram generation significantly
+mdpi.com
+. This implies fewer coefficients (basis oscillators) are needed to encode the light field, reducing computation and data. In essence, each basis function (like a ψ oscillator) encodes a range of view angles via its phase, so we leverage the spectral structure of the light field.
+How to leverage this in implementation:
+Fourier Light Field Rendering: Use the angular spectrum method or Fourier transforms to propagate light. For example, one can render a complex-valued depth image of the scene (simulating a hologram recording) and then use a Fourier transform to propagate that wavefront to the desired viewpoint or image plane
+research-collection.ethz.ch
+. This two-step (record, then propagate) could replace brute-force multi-view rendering. Modern GPUs can perform 2D FFTs extremely fast (WebGPU compute shaders or FFT libraries in C++/Rust could be used).
+Phase-Field Quilts: We could compute a “phase-synchronized quilt” by ensuring each tile is not an independent pinhole image, but derived from one continuous wave simulation. For instance, generate a large virtual hologram of the scene, then sample that hologram at directions corresponding to each quilt view. This guarantees the views are all in lock-step phase. Mathematically, if $H(x,y)$ is the hologram (complex field), then each sub-view is essentially the intensity of $H$ when seen from a slight angle. There are efficient ways to extract angled views from a hologram using Fourier shifts (a shift in viewpoint corresponds to a linear phase ramp in the hologram’s spectrum).
+Ψ Oscillator Framework: Conceptually, imagine each scene point or voxel acting as an oscillator (ψ) emitting a wave. The superposition of all these oscillators forms an interference pattern (the hologram). By controlling the phase of each oscillator, we encode depth (phase = distance). If we operate in the spectral domain (e.g. via Fourier basis functions), we can represent this interference pattern with potentially fewer components. Essentially, we solve for a spectral representation of the light field – many oscillators working in unison – rather than storing dozens of images. This is cutting-edge, but it aligns with research where phase-space representations are used for light field compression and rendering
+mdpi.com
+mdpi.com
+. For example, Birnbaum et al. 2020 demonstrate how Wigner distributions (phase space methods) can visualize and optimize digital holograms, and even note applications in compression [27] and faster computation [31] of holograms
+mdpi.com
+.
+Implementation Guidance: To implement a spectral holographic pipeline, one could proceed as follows:
+Compute a digital hologram of the 3D scene: Use a compute shader or GPU kernel to sum wave contributions from all scene points. Each 3D point contributes a complex amplitude at each pixel of a hologram plane (according to the distance and angle). This is essentially a summation of $\exp(i\phi)$ terms (hence the “oscillator” analogy). This step can be heavy if done naïvely (O(N_points * N_pixels)). Techniques to speed it up include using FFT-based convolutions for propagating layers, or using the above-mentioned sparse basis approach
+mdpi.com
+ to skip negligible contributions.
+Propagate or sample to obtain views: Once you have the hologram (a complex 2D array), generate each sub-view image by simulating a camera at the corresponding angle. In practice, you can take the hologram and multiply it by a linear phase gradient (to simulate the camera offset), then take the intensity. The angular spectrum method uses a Fourier transform to propagate the hologram to a new plane or angle efficiently
+research-collection.ethz.ch
+. This yields the same result as if you had rendered the scene from that angle, but you didn’t have to re-shade the scene – you reused the interference pattern.
+Output to display: If targeting a Looking Glass-like display, you might even skip generating explicit quilt views and directly compute the interleaved native image. Since the native lenticular display’s image is effectively a set of angled views encoded per pixel row/column
+github.com
+, you could design a shader that for each screen pixel, computes the light from the hologram arriving at that pixel’s view angle. This would combine steps (1) and (2) into one: directly sum contributions of scene points to each screen subpixel taking into account its angle. This is advanced but would be the ultimate pipeline (it’s basically what a true holographic display would do with an SLM).
+In summary, a spectral phase-field strategy treats the problem as computing a 4D light field all at once (with waves), rather than 45 separate 2D images. It leverages the coherence in the data to eliminate redundancy. While more complex to implement (requiring knowledge of Fourier optics), it promises much more efficient quilt generation and perfectly synchronized views. As one 2006 framework from ETH Zurich demonstrated, a holographic pipeline can seamlessly integrate with conventional rendering, yielding high-quality images with correct focus cues and anti-aliasing, by reconstructing views from a wavefront instead of discrete projections
+research-collection.ethz.ch
+research-collection.ethz.ch
+.
+Bandwidth Reduction Strategies for Holographic Content
+Generating the images efficiently is one side of the coin; transmitting or handling the data is another. A 45-view quilt at say 4K resolution can be huge if uncompressed. The new pipeline should substantially reduce bandwidth requirements without perceptual quality loss. Several strategies can be combined:
+Light Field Compression (Quilt Video): The quilt format itself can be efficiently compressed using standard video codecs. Looking Glass’s documentation notes that quilts (images or video) can be saved as MP4/WebM and “they’re also compact” – for example a high-res quilt image can compress to under 1 MB
+docs.lookingglassfactory.com
+. The redundancy between views (they’re all of the same scene from nearby angles) means codecs can exploit similarities. In an open pipeline, we can adopt this: e.g., stream quilt videos using H.265 with multi-view extension or AV1. There are even multi-view specific codecs (MV-HEVC, etc.) but even off-the-shelf codecs perform well on quilt content.
+Depth Image Based Rendering (DIBR): Rather than sending all 45 views from a server to client, send a sparse set of views plus depth, and synthesize the rest on the client. Depth-image-based rendering is well-established for multiview displays
+spiedigitallibrary.org
+. For example, send just a center view and a few side views, each with a per-pixel depth map. The client can then extrapolate intermediate views by warping the center image according to depth (a small shift per pixel yields a new viewpoint). Any holes or disocclusions can be filled using the side views. This can drastically cut bandwidth (perhaps down to 2–3 images worth of data instead of 45) with minimal quality loss if done carefully
+spiedigitallibrary.org
+. Modern GPUs can perform such reprojection in real-time (via compute shaders or fragment shaders that sample a depth texture and neighboring color).
+Neural Representation (NeRF or Radiance Fields): A more advanced solution is to leverage neural rendering to compress the scene. Neural Radiance Fields encode a scene in a neural network that can generate arbitrary views. Instead of transmitting 45 images, you’d transmit a neural network (or its weights) that the client runs to produce the views. This dramatically reduces bandwidth (the model is the heavy part, but it’s scene-dependent, often much smaller than a video sequence) and can produce high-quality novel views. In 2023, researchers and companies have been actively working on real-time NeRF inference. For instance, Looking Glass’s blog highlighted NVIDIA’s SIGGRAPH 2023 demo where a single conventional camera stream was converted via AI into a live light field video for a Looking Glass display
+lookingglassfactory.com
+. This implies the network on the receiver side outputs the multiple view images from just one input view, essentially filling in the light field. That kind of generative approach can slash bandwidth (you send one view or a compact latent code, and the client expands it to the full holographic content). Within our open framework, we could integrate a lightweight NeRF or other AI model (perhaps running in WebGPU compute or via TensorFlow.js) to generate the quilt frames on the fly. The key is that the heavy lifting (multi-view synthesis) is done client-side; the transmission only carries the essentials (like a sparse viewpoint or compressed scene).
+Adaptive Resolution / Foveation: If the holographic display or application has regions that are more important (e.g. center vs edges), we could allocate bandwidth non-uniformly. For example, render higher resolution for central views and lower for peripheral, or use fewer views for relatively flat scene sections (since beyond a certain angle, views look similar for distant objects). This is more on the experimental side for autostereo displays, but it’s a concept borrowed from foveated rendering in VR.
+Efficient Update Strategies: If the holographic content is dynamic, not all views change equally every frame (for instance, if an object moves slightly, nearby view images will be very similar from the last frame). We can send just deltas or update a base light field representation. Think of it like video compression but in 3D – key frames could be a full light field, and intermediate frames only contain changes. An open pipeline could implement a buffering scheme where only a subset of views or a lower-res quilt is updated per frame if motion is limited, trading a bit of perfect fidelity for big bandwidth savings.
+Crucially, all these should preserve perceptual quality. The human eye is forgiving to certain approximations (e.g. slightly lower resolution in peripheral views, or minor interpolation artifacts) especially in a multiview context where the brain merges information. By using depth-guided interpolation or AI-based synthesis, we ensure that the reconstructed views look natural and consistent, without blocky compression artifacts or misaligned features. For example, a DIBR system can smooth out and blend any holes using information from neighboring views, so the viewer never perceives a missing patch – it appears as a continuous 3D scene. In summary, by compressing the representation (whether via standard video codecs, clever reuse of data like depth images, or neural networks), we minimize the bandwidth needed for holographic content. The new pipeline can then stream or handle high-quality holographic video on consumer hardware, something that would be infeasible if we naively tried to send dozens of raw HD images per frame.
+Hardware Independence and Modern Framework Integration
+To operate without proprietary hardware dependencies, our solution eschews closed drivers and SDKs in favor of open methods. In practice, a Looking Glass display is essentially a second monitor with a lenticular overlay and known calibration. We can leverage that fact:
+Use Calibration Data Directly: The Looking Glass Factory provides per-device calibration values (pitch, center offset, view cone, etc.). These can be obtained via their SDK or even extracted from the device’s EEPROM
+github.com
+ using a script. Once you have the calibration JSON, you no longer need the “Bridge” service. You can feed those values into your own shader. For example, the open-source tool quilt2native.py takes a quilt and outputs the interleaved native image given calibration, matching the official tool’s output
+github.com
+. We would incorporate that same transformation in our pipeline’s final pass. By handling calibration ourselves, we support any light-field display: just plug in the numbers for a different device, and the shader will adapt.
+OpenGL/WebGPU Implementation: We avoid any API that requires the vendor’s runtime (no proprietary DLLs or drivers beyond the standard GPU APIs). You can create a borderless full-screen window on the holographic display and treat it like a canvas. Then use WebGL or WebGPU to render the quilt and apply the lenticular shader. Since everything is done via standard graphics calls, no vendor lock-in is present. This also means our pipeline could work on other autostereo displays (with different quilt arrangements) or even future DIY devices – it’s just a matter of adjusting the mapping shader.
+Svelte/Three.js Integration: We can integrate the new pipeline into the existing Svelte app by treating the holographic display as another rendering target. For example, a Svelte component might host a <canvas> for the Looking Glass. Three.js can still be used to manage the scene, materials, etc., but instead of XRSession, we manually drive multiple cameras as discussed. Three.js actually has examples of multiple views rendering – using ArrayCamera or manual viewport looping – which can be repurposed for quilts. The three.js forum example we saw does exactly this for Looking Glass: render to a grid texture, then postprocess with a shader
+discourse.threejs.org
+. We can wrap that logic in a Svelte store or lifecycle function, so that whenever the main scene updates, we update the quilt canvas as well. Because Three.js is engine-agnostic about render targets, this is entirely feasible. Alternatively, one could bypass Three’s renderer and use raw WebGPU for maximal control, especially if integrating compute shaders for FFT or raytracing. This might be warranted for the phase-field methods. Luckily, WebGPU (via frameworks like wgpu (Rust) or Dawn) allows writing sophisticated GPU kernels in WGSL or SPIR-V and running them in the browser. This means we can do things like a 2D Fourier transform or custom wave simulations in the same app, using the GPU, all with open web standards
+developer.mozilla.org
+.
+Native Pipelines (C++/Rust): For ultimate performance or use in native apps, the same principles apply. We could implement the pipeline in C++ or Rust using a graphics API like Vulkan, DirectX12, or Metal (or a wrapper like bgfx). The Rust wgpu library is particularly interesting because it’s a cross-platform abstraction of WebGPU, meaning our code could run on web (via WASM) and native with minimal changes
+wgpu.rs
+web.stanford.edu
+. In a native context, one could also leverage multi-threading or VR API features – for instance, OpenXR might eventually support multiview displays, but until then we’d treat the device as a special monitor. The bottom line is that by building on open standards (WebGPU, Vulkan), we ensure the solution is not tied to Looking Glass Factory’s ecosystem. It could be used with any monitor plus lenticular sheet, any future holographic display, or even just for software preview of holograms.
+No External Hardware Constraints: The pipeline does not require any specific hardware beyond a GPU and a display. If Looking Glass went away, our system would still run – it could even be used for other purposes like multi-view rendering for head-tracked 3D on a regular screen, etc. We’ve effectively abstracted the concept of “quilt to lenticular output” so that it’s just a shader step. This adheres to open principles and makes the solution maintainable long-term (no broken dependencies if drivers change).
+Development and Debugging: Since everything is in our control, we can build debugging views easily. For instance, show the quilt as it’s being rendered, or toggle to display a single view, etc., without relying on undocumented behavior. The Looking Glass WebXR polyfill had an option inlineView that could show the quilt or one view on the main screen for debugging
+github.com
+ – we can replicate that by simply drawing the quilt to the main browser window for development. This flexibility will speed up development and tuning of the pipeline.
+Comparative Overview of Rendering Pipelines
+To put it all together, here’s a comparison of the original approach vs. the proposed strategies:
+Looking Glass WebXR Polyfill (Original): Relies on Three.js/XR to render ~45 views sequentially, then uses Bridge (closed source) to interlace and send to display
+kitware.github.io
+. Performance: Functional for simple scenes, but drops with high view count. Pros: Easy integration with any WebXR framework. Cons: Not optimized (multi-pass), requires device & Bridge, not easily extensible.
+Multi-View Tiled Rendering (OpenGL/WebGPU): Renders all views in a single off-screen render target (either via looping on GPU or true multiview). Uses a custom full-screen shader with calibration to produce the final image
+docs.lookingglassfactory.com
+docs.lookingglassfactory.com
+. Performance: Much faster – touching each pixel only once in final pass, and minimizing CPU overhead. Scales to high view counts better (as evidenced by 4–5× improvements in research)
+web.cels.anl.gov
+link.springer.com
+. Pros: Fully under developer control, hardware-agnostic. Cons: Slightly more complex to implement than using XR API; still ultimately rendering each view (though in one pass). This can be implemented within Three.js (as demonstrated in community projects) or in native code.
+Phase-Field Holographic Rendering: Computes a unified representation (like a complex light field) and derives views from it. Performance: Potentially best for large numbers of views – the heavy computation is done once for the hologram, then extracting any number of views is relatively cheap. Could even exceed the quality of discrete rendering by providing correct focus and anti-aliasing
+research-collection.ethz.ch
+. Pros: Drastically reduces redundant calculations (shared features between views are computed once), inherently smooth view transitions. Can reduce required resolution (since phase can encode details more compactly than pixels). Cons: Requires advanced math (Fourier optics) and careful GPU programming. Debugging is harder because you’re dealing with complex numbers and perhaps high-frequency fringes. However, as libraries and GPU power improve, this is becoming more practical (there are already optics SDKs and research code that could be adapted).
+Neural/AI-Based Pipeline: Uses a neural network to generate images on the fly. Performance: If using something like an optimized NeRF with GPU acceleration (and perhaps temporal coherence), it can run in real-time on modern GPUs for moderate resolutions. Startup cost is training or loading the model, but then inference can be fast (some NeRFs achieve >30fps at 800×800 resolution on RTX GPUs, for example). Pros: Lowest bandwidth – you’re not sending images, just either a small network or even just one viewpoint. Can potentially achieve super-resolution – generating details for novel views that weren’t even in the original image. Cons: Integration is more complex (would likely involve a WebGPU compute shader implementing the neural network, or calling out to WASM). Also, quality can vary if the model isn’t perfect – you might get neural rendering artifacts if not done carefully. This approach is bleeding-edge but promising, given NVIDIA’s demo of a AI-driven light field stream
+lookingglassfactory.com
+.
+In an ideal architecture, one could combine these: e.g., use a neural network to predict the phase-field hologram from one view! That would combine AI with physical accuracy: low bandwidth in, and a high-quality hologram out that yields consistent multi-view images.
+Implementation Example: WebGPU Quilt Pipeline
+To give a concrete feel, here’s a pseudo-code outline combining several ideas in a modern WebGPU style (could be translated to C++ easily):
+typescript
+Copy
+// Assume we have calibration data for the display:
+let calib = { pitch, tilt, center, subp, numViews, quiltWidth, quiltHeight, tileWidth, tileHeight };
+
+// 1. Prepare GPU resources
+const device = await navigator.gpu.requestDevice();
+const canvasCtx = canvas.getContext('webgpu');
+canvasCtx.configure({ device, format: preferredFormat, size: [screenWidth, screenHeight] });
+
+// Create a quilt texture and a depth buffer for it
+const quiltTexture = device.createTexture({
+  size: [calib.quiltWidth, calib.quiltHeight],
+  format: 'rgba16float',  // high precision for HDR/phase if needed
+  usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+});
+const quiltView = quiltTexture.createView();
+const depthTex = device.createTexture({ /* ... depth for quilt rendering ... */ });
+
+// 2. Create pipeline for scene rendering (to quilt)
+const scenePipeline = device.createRenderPipeline({
+  // vertex, fragment shaders that render the scene; 
+  // we will supply a view matrix array or per-draw uniform for camera.
+  // Could use instancing: instance index = view index, to choose projection.
+  // For simplicity, use one draw per view in a loop below.
+});
+
+// 3. Create pipeline for lenticular shader (fullscreen quad)
+const lenticularPipeline = device.createRenderPipeline({
+  vertex: fullscreenQuadVertexShader(),
+  fragment: lenticularFragmentShader()  // implements mapping using calib uniforms
+});
+
+// Uniform buffer for calibration
+const calibBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+device.queue.writeBuffer(calibBuffer, 0, new Float32Array([
+  calib.pitch, calib.tilt, calib.center, calib.subp,
+  calib.quiltWidth, calib.quiltHeight, calib.tileWidth, calib.tileHeight,
+  calib.numViews
+]));
+
+// 4. Frame rendering function
+function renderFrame(viewMatrices: Matrix4x4[]) {
+  // Encode commands
+  const commandEncoder = device.createCommandEncoder();
+
+  // Render scene into quilt texture
+  const renderPass = commandEncoder.beginRenderPass({
+    colorAttachments: [{ view: quiltView, clearValue: [0,0,0,1], loadOp: 'clear', storeOp: 'store' }],
+    depthStencilAttachment: { view: depthTex.createView(), /* ... */ }
+  });
+  renderPass.setPipeline(scenePipeline);
+  for (let v = 0; v < calib.numViews; ++v) {
+    renderPass.setViewport(                       // set viewport to tile v
+      (v % calib.cols) * calib.tileWidth,
+      Math.floor(v / calib.cols) * calib.tileHeight,
+      calib.tileWidth, calib.tileHeight,
+      0, 1
+    );
+    renderPass.setScissorRect(... same as viewport ...);
+    renderPass.setBindGroup(0, sceneUniformsForView[v]);  // per-view camera matrix
+    renderPass.drawIndexed(indexCount);
+    // Alternatively, if using one big instanced draw:
+    // setViewport for entire quilt, and in shader use instance ID to compute pixel offset.
+  }
+  renderPass.end();
+
+  // Full-screen pass on output canvas
+  const swapChainTex = canvasCtx.getCurrentTexture().createView();
+  const finalPass = commandEncoder.beginRenderPass({
+    colorAttachments: [{ view: swapChainTex, loadOp: 'clear', storeOp: 'store' }]
+  });
+  finalPass.setPipeline(lenticularPipeline);
+  finalPass.setBindGroup(0, device.createBindGroup({
+    layout: lenticularPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: quiltTexture.createView() },
+      { binding: 1, resource: { buffer: calibBuffer } }
+    ]
+  }));
+  finalPass.draw(6, 1, 0, 0);  // draw full-screen quad
+  finalPass.end();
+
+  // Submit commands
+  device.queue.submit([commandEncoder.finish()]);
+}
+In the above pseudo-code, the lenticularFragmentShader would implement the conversion from quilt UV to the display’s output. It would use the calibration uniforms (pitch, tilt, center etc.) to figure out, for each pixel, which quilt sub-image and pixel to sample. This is essentially what HoloPlay’s shader does. In our own shader code we could do something like (WGSL for example):
+glsl
+Copy
+// Pseudo-WGSL for lenticular fragment shader
+struct Calib { pitch: f32; tilt: f32; center: f32; subp: f32;
+               quiltWidth: f32; quiltHeight: f32;
+               tileWidth: f32; tileHeight: f32; numViews: f32; /* etc */ };
+@group(0) @binding(0) var quiltTex: texture_2d<f32>;
+@group(0) @binding(1) var<uniform> calib: Calib;
+
+@fragment
+fn main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
+    let screenX = coord.x; 
+    let screenY = coord.y;
+    // Normalize coords 0..1
+    let u = screenX / calibOutputWidth;
+    let v = screenY / calibOutputHeight;
+    // The following math is conceptual; actual formula involves calibration.
+    // Determine view index based on pixel and calibration:
+    let viewIndex = floor((screenX - calib.center) / calib.pitch - screenY * calib.tilt + 0.5);
+    let view = clamp(viewIndex, 0.0, calib.numViews - 1.0);
+    // Now figure out which tile that view corresponds to:
+    let tileX = view % calib.numColumns;
+    let tileY = floor(view / calib.numColumns);
+    // Compute UV within that tile:
+    let localU = fract(u * calib.outputCols);  // position within the tile
+    let localV = fract(v * calib.outputRows);
+    // Compose final UV into quilt texture space:
+    let quiltU = (tileX + localU) * calib.tileWidth / calib.quiltWidth;
+    let quiltV = 1.0 - ((tileY + localV) * calib.tileHeight / calib.quiltHeight);  // note V flip possibly
+    let color = textureSample(quiltTex, quiltSampler, vec2(quiltU, quiltV));
+    return color;
+}
+The above is a rough idea; the exact formula uses calibration.pitch, center, tilt properly (Looking Glass’s own shader uses something similar – essentially indexing the view based on a combination of x coordinate and y coordinate (since the lenticular lenses slant, one pixel row might show a mix of two views)). The key point is that this shader uses no proprietary calls – it’s just sampling a texture. It will work on any GPU. By adjusting the uniforms, it can target any quilt layout or lens configuration. Thus, we have a fully self-contained pipeline: from scene to quilt (via WebGPU rendering) and quilt to display (via our shader). All pieces use open standards and can be customized or extended. For example, if we later decide to incorporate the spectral hologram step, we could insert a compute shader after rendering depth that converts the depth image into a complex hologram, then replace the quilt-sampling logic with a Fresnel diffraction computation. All within the same framework.
+Conclusion
+Replacing the Looking Glass WebXR polyfill with a faster, more efficient pipeline is achievable by combining multi-view GPU rendering techniques with advanced light-field representations and open standards:
+We accelerate rendering by reducing 45 passes to effectively one, using single-pass multi-view rendering and GPU-based quilt compositing
+web.cels.anl.gov
+link.springer.com
+. This directly tackles the performance bottleneck and easily outperforms the existing WebXR library.
+We generate quilt views more intelligently, leveraging the ψ oscillator concept – treating the scene as a continuous wave/phase field. This yields phase-synchronized views that are consistent and can be generated with fewer computations by exploiting spectral structure
+research-collection.ethz.ch
+research-collection.ethz.ch
+. Such an approach moves us toward true holographic rendering, where bandwidth isn’t wasted on repeating similar images.
+We minimize bandwidth by compressing and computing only what’s necessary. Whether through standard quilt video compression (taking advantage of inter-view redundancy)
+docs.lookingglassfactory.com
+, depth-based view synthesis, or neural light field models
+lookingglassfactory.com
+, we ensure that the data transmitted or stored is far smaller than sending raw multi-view frames – all while preserving visual quality through smart reconstruction.
+We remove proprietary hardware dependencies entirely. The pipeline uses open-source tools and standards at every stage (Svelte, Three.js, WebGPU, Vulkan/Metal, etc.), and we handle calibration and output with our own shader (inspired by the open HoloPlay Core approach
+docs.lookingglassfactory.com
+docs.lookingglassfactory.com
+). This makes the solution portable and extensible: it can run on any platform and could target any future light-field display with a known calibration (or even be adapted to head-tracked 3D displays or VR with minimal changes).
+We ensure compatibility with modern frameworks. The approach can be integrated into a Three.js scene graph or a Rust graphics engine alike. By using WebGPU and/or native pipelines, we align with the future of graphics APIs, gaining low-level control and performance. Developers can still work in high-level constructs (like using Three.js to manage objects), but under the hood we swap out the rendering backend to our custom pipeline when targeting the holographic display. This means easier adoption – you don’t have to rewrite your entire app, just the rendering portion for hologram mode.
+Throughout, we prioritize open-source or open-standard solutions. We’ve drawn on open literature and tools (e.g., algorithm ideas from published papers, open calibration data, GitHub examples). The resulting pipeline can be released as an open library itself, inviting customization. For instance, one could imagine an NPM package “holo-renderer” that anyone can use with a few lines to enable holographic output on any light-field panel, without installing special drivers – that’s the kind of end result we aim for.
+In evaluating the new pipeline, we expect to see:
+Significantly higher frame rates and capacity for more complex scenes, thanks to GPU parallelism and reduced duplication of work.
+Efficient utilization of bandwidth and memory, as redundant information across views is not computed or transmitted multiple times.
+Enhanced visual quality, with smoothly interpolated views and correct 3D focal cues (especially if the phase-field method is employed, which can provide true focal depth by encoding wavefront phase).
+Flexibility to run on various hardware setups and to integrate emerging technologies (like if a new WebGPU feature for multiview or a new AI upscaler becomes available, we can plug it in).
+Overall, this advanced pipeline will transform the holographic rendering process from a brute-force, device-specific procedure into a streamlined, spectrally-informed, and device-agnostic one. By standing on open technologies and clever rendering strategies, we meet all the specified goals: faster performance, more efficient quilt generation (with a spectral twist), lower bandwidth, no proprietary ties, and easy integration with modern GPU frameworks. The holographic web/graphics will move one step closer to being as accessible and high-performance as traditional 3D rendering – fulfilling the promise of “internet holograms” without the handcuffs of any one vendor’s platform. Sources:
+Looking Glass WebXR documentation and code, for understanding the current polyfill and its usage
+github.com
+github.com
+.
+Open source tools and discussions on multi-view rendering and interleaving:
+Three.js forum example of rendering a quilt and applying a postprocess shader
+discourse.threejs.org
+.
+HoloPlay Core SDK notes on quilt and lenticular shader usage
+docs.lookingglassfactory.com
+docs.lookingglassfactory.com
+.
+Surf-visualization tools for Looking Glass (calibration extraction, quilt conversion)
+github.com
+github.com
+.
+Research on multi-view rendering performance:
+Kooima et al. 2007, “A GPU Sub-pixel Algorithm for Autostereoscopic VR”, reporting 4× speed gain with single-pass interleaving
+web.cels.anl.gov
+.
+Luo et al. 2010, “High-resolution multiview rendering approach”, 5× performance via one-pass GPU rendering
+link.springer.com
+.
+Research on holographic and phase-field methods:
+Ziegler et al. 2006, “Holographic representation and image synthesis framework”, which introduced a pipeline for digital holography integrated with conventional rendering
+research-collection.ethz.ch
+research-collection.ethz.ch
+.
+Birnbaum et al. 2020, “Phase space representations for holography”, discussing phase-space (spectral) analysis for digital holograms and mentioning faster CGH using sparse spectral bases
+mdpi.com
+mdpi.com
+.
+Looking Glass documentation on quilt format and compression, highlighting practical aspects of storing/transmitting quilts
+docs.lookingglassfactory.com
+.
+Looking Glass Factory blog (Dimensional Dispatch) noting the NVIDIA AI light field demo, an example of bandwidth-light generative holography
+lookingglassfactory.com
+.

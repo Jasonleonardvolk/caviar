@@ -1,0 +1,207 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/pw-browsers
+
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ffmpeg \
+            libglu1-mesa-dev \
+            libxi-dev \
+            libxcursor-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libgl1-mesa-dev \
+            libxxf86vm-dev
+          
+          # Install KTX tools for texture compression
+          # Note: ktx-tools package may not be available in all distros
+          # Alternative: Download from https://github.com/KhronosGroup/KTX-Software/releases
+          # sudo apt-get install -y ktx-tools || echo "ktx-tools not found, download manually"
+      
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+      
+      - name: Validate WGSL shaders
+        working-directory: frontend
+        run: |
+          npm run validate:wgsl
+        # PRODUCTION POLICY: Remove continue-on-error for main branch
+        # This ensures shader errors block deployment
+        continue-on-error: false
+      
+      - name: Run Python tests
+        run: |
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+        # PRODUCTION POLICY: Must pass all tests on main branch
+        continue-on-error: false
+      
+      - name: Start frontend dev server
+        working-directory: frontend
+        run: |
+          npm run dev &
+          sleep 10
+          curl http://localhost:5173 || exit 1
+        env:
+          CI: true
+      
+      - name: Run Playwright E2E tests
+        working-directory: frontend
+        run: |
+          npx playwright test --project=chromium
+        env:
+          CI: true
+          BASE_URL: http://localhost:5173
+        # PRODUCTION POLICY: E2E tests must pass
+        continue-on-error: false
+      
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm run build
+          ls -la dist/
+          # Verify critical files exist
+          test -f dist/index.html || exit 1
+          test -f dist/service-worker.js || exit 1
+          test -f dist/precache.manifest.json || exit 1
+      
+      - name: Build Python wheel
+        run: |
+          pip install build
+          python -m build
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: |
+            coverage.xml
+            htmlcov/
+            frontend/playwright-report/
+            frontend/test-results/
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            frontend/dist/
+            dist/*.whl
+            dist/*.tar.gz
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: |
+            logs/
+            *.log
+            /tmp/vite.log
+  
+  docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    # Only build Docker images for main branch pushes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: github.event_name != 'pull_request'
+      
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/tori-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/tori-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/tori-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/tori-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, docker]
+    # Only deploy from main branch after all tests pass
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://tori-holographic.com
+    
+    steps:
+      - name: Deploy to server
+        run: |
+          echo "Deployment would happen here"
+          # Add actual deployment commands
+          # Example: 
+          # ssh deploy@server "docker pull $IMAGE && docker-compose up -d"

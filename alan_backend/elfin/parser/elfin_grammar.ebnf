@@ -1,0 +1,115 @@
+/* ELFIN Grammar with Advanced Stability & ψ-Sync Extensions */
+
+// Top-level declarations
+declaration = concept_decl | relation_decl | lyapunov_decl | verification_directive | koopman_decl 
+            | stability_directive | phase_monitor | adaptive_trigger ;
+
+// Concept declaration with ψ-mode support
+concept_decl = "concept" string_literal psi_mode_decorator? "{" concept_body "}" ;
+concept_body = (property | constraint | relation_ref | stability_constraint)* ;
+
+psi_mode_decorator = "ψ-mode" ":" "ϕ" integer   // Direct phase binding 
+                   | "ψ-mode" ":" identifier ;   // Named phase binding
+
+// Relation declaration (existing grammar)
+relation_decl = "relation" identifier "{" relation_body "}" ;
+relation_body = (property | constraint)* ;
+
+// Lyapunov function declaration
+lyapunov_decl = "lyapunov" identifier "{" lyapunov_body "}" ;
+lyapunov_body = lyapunov_type
+                domain_spec?
+                (symbolic_form | learn_directive)?
+                verification_hint? ;
+
+lyapunov_type = "polynomial" "(" degree=integer ")" |
+                "neural" "(" layers=layer_spec ")" |
+                "clf" "(" variables=identifier_list ")" |
+                "composite" "(" components=identifier_list ")" ;
+
+layer_spec = integer ("," integer)* ;
+identifier_list = identifier ("," identifier)* ;
+
+domain_spec = "domain" "(" concept_list ")" ;
+concept_list = identifier ("," identifier)* ;
+
+symbolic_form = "form" string_literal ;
+
+learn_directive = "learn" "from" "(" 
+                     ("data" string_literal | "dynamics" identifier)
+                     ("," learner_option)*
+                  ")" ;
+
+learner_option = identifier "=" (number | string_literal) ;
+
+verification_hint = "verify" "(" 
+                       ("sos" | "milp" | "smt") 
+                       ("," verifier_option)*
+                    ")" ;
+
+verifier_option = identifier "=" (number | string_literal | boolean) ;
+
+// Verification directive
+verification_directive = "verify" identifier_list "using" verification_method ("with" option_list)? ";" ;
+verification_method = "sos" | "sampling" | "milp" | "smt" ;
+option_list = option ("," option)* ;
+option = identifier "=" (number | string_literal | boolean) ;
+
+// Symbolic Lyapunov Reasoning
+stability_directive = "stability" lyapunov_predicate ";" ;
+stability_constraint = "require" lyapunov_predicate ";" ;
+
+lyapunov_predicate = lyapunov_expr comparison_op lyapunov_expr  // Compare two Lyapunov values
+                    | lyapunov_expr comparison_op number ;       // Compare Lyapunov to constant
+
+lyapunov_expr = "Lyapunov" "(" psi_target ")" 
+              | "LyapunovDerivative" "(" psi_target ")" ;
+
+psi_target = "ψ_" identifier 
+           | "ϕ" integer
+           | identifier ;
+
+comparison_op = "<" | ">" | "<=" | ">=" | "==" | "≈" ;  // ≈ for approximate equality
+
+// Phase Drift Monitoring
+phase_monitor = "monitor" "PhaseDrift" "(" psi_target ")" threshold_spec ("with" option_list)? ";" ;
+threshold_spec = comparison_op (number | "π" | "π/2" | "π/4" | "π/8") ;
+
+// Runtime Adaptation to Phase Drift
+adaptive_trigger = "if" drift_condition ":" action_block ;
+
+drift_condition = "PhaseDrift" "(" psi_target ")" comparison_op threshold_value 
+                | lyapunov_predicate ;
+
+threshold_value = number | "π" | "π/2" | "π/4" | "π/8" ;
+
+action_block = "adapt" "plan" "via" identifier
+             | "notify" identifier
+             | "execute" identifier
+             | "{" action+ "}" ;
+
+action = identifier "(" argument_list? ")" ";" ;
+argument_list = argument ("," argument)* ;
+argument = identifier | string_literal | number | boolean ;
+
+// Koopman operator integration
+koopman_decl = "koopman" identifier "{" koopman_body "}" ;
+koopman_body = eigenfunction_spec
+               mode_mapping?
+               phase_binding? ;
+
+eigenfunction_spec = "eigenfunctions" "(" identifier_list ")" ;
+mode_mapping = "modes" "(" mode_spec_list ")" ;
+mode_spec_list = mode_spec ("," mode_spec)* ;
+mode_spec = identifier ":" number ;
+
+phase_binding = "bind" "to" "phase" "(" binding_list ")" ;
+binding_list = binding ("," binding)* ;
+binding = identifier "->" identifier ;
+
+// Basic token types
+identifier = /[a-zA-Z_][a-zA-Z0-9_]*/ ;
+string_literal = /"[^"]*"/ | /'[^']*'/ ;
+integer = /[0-9]+/ ;
+number = /[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/ ;
+boolean = "true" | "false" ;

@@ -1,0 +1,414 @@
+# This file demonstrates ELFIN syntax for a mobile robot control system
+
+# Import helper functions from standard library
+helpers {
+# Absolute value function (prefixed to avoid clash with future intrinsics)
+  hAbs(x) = if x >= 0 then x else -x;
+  
+  # Minimum of two values (prefixed to avoid clash with future intrinsics)
+  hMin(a, b) = if a <= b then a else b;
+  
+  # Maximum of two values (prefixed to avoid clash with future intrinsics)
+  hMax(a, b) = if a >= b then a else b;
+  
+  # Angle wrapping function to normalize angles to [-π, π]
+  # Using lowercase mod() for strict lexer compatibility
+  # NOTE: This could delegate to a built-in once math stdlib is imported
+  wrapAngle(theta) = mod(theta + pi, 2*pi) - pi;
+};
+
+# Define system dynamics for a differential drive robot
+system DifferentialDrive {
+  # State: position (x, y), orientation (theta), and velocities (v, omega)
+  continuous_state: [x, y, theta, v, omega];
+  
+  # Input: left and right wheel velocities
+  input: [v_l, v_r];
+  
+  # System parameters
+  params {
+    wheel_radius: 0.05;   # Wheel radius (m)
+    wheel_base: 0.3;      # Distance between wheels (m)
+    max_speed: 1.0;       # Maximum linear speed (m/s)
+    max_omega: 3.0;       # Maximum angular speed (rad/s)
+    friction: 0.1;        # Friction coefficient
+    # Note: mass and inertia removed as they're unused in the current model
+  }
+  
+  # Continuous dynamics
+  flow_dynamics {
+    # Kinematics - renamed derivatives to avoid shadowing state variables
+    x_dot = v * cos(theta);
+    y_dot = v * sin(theta);
+    theta_dot = omega;
+    
+    # Dynamics (including simple friction model)
+    v_dot = (wheel_radius/2) * (v_r + v_l) - friction * v;
+    omega_dot = (wheel_radius/wheel_base) * (v_r - v_l) - friction * omega;
+  };
+}
+
+# Define Lyapunov function for path following
+lyapunov PathFollowingLyap {
+  system DifferentialDrive;
+  
+  # Lyapunov function for convergence to a point
+  V = 0.5*((x - x_goal)**2 + (y - y_goal)**2) + 
+     alpha * (1 - cos(theta - atan2(y_goal - y, x_goal - x)));
+  
+  # Parameters for Lyapunov function
+  params {
+    x_goal: 5.0;          # Goal x-coordinate
+    y_goal: 5.0;          # Goal y-coordinate
+    alpha: 1.0;           # Weighting parameter for orientation
+  };
+}
+
+# Define Lyapunov function for trajectory tracking
+lyapunov TrajectoryTrackingLyap {
+  system DifferentialDrive;
+  
+  # Lyapunov function for tracking a trajectory (x_d(t), y_d(t), theta_d(t))
+  V = 0.5*((x - x_d)**2 + (y - y_d)**2 + beta*(theta - theta_d)**2 + 
+          gamma*((v - v_d)**2 + (omega - omega_d)**2));
+  
+  # Parameters for Lyapunov function
+  params {
+    x_d: 0.0;             # Desired x-coordinate (time-varying)
+    y_d: 0.0;             # Desired y-coordinate (time-varying)
+    theta_d: 0.0;         # Desired orientation (time-varying)
+    v_d: 0.0;             # Desired linear velocity (time-varying)
+    omega_d: 0.0;         # Desired angular velocity (time-varying)
+    beta: 0.5;            # Weighting parameter for orientation
+    gamma: 0.2;           # Weighting parameter for velocities
+  };
+}
+
+# Define barrier function for static obstacle avoidance
+barrier StaticObstacleBarrier {
+  system DifferentialDrive;
+  
+  # Safety constraint: keep safe distance from obstacles
+  # B > 0 means safe (outside obstacle), B = 0 at boundary, B < 0 means unsafe
+  # We use a circular obstacle model for simplicity
+  B = (x - x_obs)**2 + (y - y_obs)**2 - (r_robot + r_obs + safety_margin)**2;
+  alpha_fun = alpha * B;  # Class-K function for barrier certificate
+  
+  params {
+    x_obs: 3.0;           # Obstacle x-coordinate
+    y_obs: 2.0;           # Obstacle y-coordinate
+    r_obs: 0.5;           # Obstacle radius
+    r_robot: 0.2;         # Robot radius
+    safety_margin: 0.1;   # Additional safety margin
+    alpha: 1.0;           # Class-K function parameter
+  };
+}
+
+# Define barrier function for multiple static obstacles
+barrier MultiObstacleBarrier {
+  system DifferentialDrive;
+  
+  # Safety constraint: product of individual obstacle barriers
+  # B > 0 means safe (outside all obstacles), B = 0 at boundary, B < 0 means unsafe
+  # In practice, might use min() or log-sum-exp for smoother approximation
+  B = ((x - x_obs1)**2 + (y - y_obs1)**2 - r_safe**2) * 
+     ((x - x_obs2)**2 + (y - y_obs2)**2 - r_safe**2) * 
+     ((x - x_obs3)**2 + (y - y_obs3)**2 - r_safe**2);
+  alpha_fun = alpha * B;  # Class-K function for barrier certificate
+  
+  params {
+    # Obstacle 1
+    x_obs1: 3.0;
+    y_obs1: 2.0;
+    
+    # Obstacle 2
+    x_obs2: 1.5;
+    y_obs2: 4.0;
+    
+    # Obstacle 3
+    x_obs3: 4.0;
+    y_obs3: 3.5;
+    
+    # Safety parameters
+    r_safe: 0.8;          # Safe distance (robot radius + obstacle radius + margin)
+    alpha: 1.0;           # Class-K function parameter
+  };
+}
+
+# Define barrier function for dynamic obstacle avoidance
+barrier DynamicObstacleBarrier {
+  system DifferentialDrive;
+  
+  # Safety constraint: maintain minimum time-to-collision
+  # B > 0 means safe (enough time to avoid collision), B = 0 at boundary, B < 0 means unsafe
+  B = ttc - ttc_min;
+  alpha_fun = alpha * B;  # Class-K function for barrier certificate
+  
+  # Compute predicted time to collision (ttc)
+  ttc = if(closing_speed > 0.01, 
+           relative_distance / closing_speed, 
+           100.0);  # Large value if not closing
+  
+  # Compute relative distance and closing speed
+  relative_distance = sqrt((x - x_obs)**2 + (y - y_obs)**2) - r_safe;
+  closing_speed = -((v * cos(theta) - v_obs_x) * (x - x_obs) + 
+                  (v * sin(theta) - v_obs_y) * (y - y_obs)) / 
+                 sqrt((x - x_obs)**2 + (y - y_obs)**2);
+  
+  params {
+    x_obs: 2.0;           # Dynamic obstacle x-coordinate
+    y_obs: 3.0;           # Dynamic obstacle y-coordinate
+    v_obs_x: 0.2;         # Dynamic obstacle x-velocity
+    v_obs_y: -0.3;        # Dynamic obstacle y-velocity
+    r_safe: 0.8;          # Safe distance (robot radius + obstacle radius + margin)
+    ttc_min: 2.0;         # Minimum time-to-collision threshold (seconds)
+    alpha: 1.0;           # Class-K function parameter
+  };
+}
+
+# Define barrier function for velocity constraints
+barrier VelocityBarrier {
+  system DifferentialDrive;
+  
+  # Safety constraint: stay within velocity limits
+  # B > 0 means safe (within limits), B = 0 at boundary, B < 0 means unsafe
+  B = (max_speed**2 - v**2) * (max_omega**2 - omega**2);
+  alpha_fun = alpha * B;  # Class-K function for barrier certificate
+  
+  params {
+    max_speed: 1.0;       # Maximum linear speed (m/s)
+    max_omega: 3.0;       # Maximum angular speed (rad/s)
+    alpha: 1.0;           # Class-K function parameter
+  };
+}
+
+# Define barrier function for workspace limits
+barrier WorkspaceBarrier {
+  system DifferentialDrive;
+  
+  # Safety constraint: stay within workspace boundaries
+  # B > 0 means safe (within workspace), B = 0 at boundary, B < 0 means unsafe
+  B = (x_max - x) * (x - x_min) * (y_max - y) * (y - y_min);
+  alpha_fun = alpha * B;  # Class-K function for barrier certificate
+  
+  params {
+    x_min: -10.0;         # Minimum x-coordinate boundary
+    x_max: 10.0;          # Maximum x-coordinate boundary
+    y_min: -10.0;         # Minimum y-coordinate boundary
+    y_max: 10.0;          # Maximum y-coordinate boundary
+    alpha: 1.0;           # Class-K function parameter
+  };
+}
+
+# Define control mode for waypoint navigation
+mode WaypointNavigation {
+  system DifferentialDrive;
+  lyapunov PathFollowingLyap;
+  barriers [VelocityBarrier, WorkspaceBarrier, MultiObstacleBarrier];
+  
+  # Controller definition: Go-to-Goal with obstacle avoidance
+  controller {
+    # Compute goal-directed reference velocities
+    distance_to_goal = sqrt((x - x_goal)**2 + (y - y_goal)**2);
+    angle_to_goal = atan2(y_goal - y, x_goal - x);
+    angle_error = angle_to_goal - theta;
+    
+    # Normalize to [-pi, pi] using wrapAngle helper
+    angle_error = wrapAngle(angle_error);
+    
+    # Basic motion control
+    v_ref = hMin(k_d * distance_to_goal, max_speed);
+    omega_ref = k_h * angle_error;
+    
+    # Convert to wheel velocities
+    v_l_ref = (2 * v_ref - omega_ref * wheel_base) / (2 * wheel_radius);
+    v_r_ref = (2 * v_ref + omega_ref * wheel_base) / (2 * wheel_radius);
+    
+    # Output commands to actuators
+    v_l = v_l_ref;
+    v_r = v_r_ref;
+  };
+  
+  # Controller parameters
+  params {
+    k_d: 0.5;             # Distance gain
+    k_h: 2.0;             # Heading gain
+  };
+}
+
+# Define control mode for trajectory tracking
+mode TrajectoryTracking {
+  system DifferentialDrive;
+  lyapunov TrajectoryTrackingLyap;
+  barriers [VelocityBarrier, WorkspaceBarrier, MultiObstacleBarrier];
+  
+  # Controller definition: Trajectory tracking
+  controller {
+    # Compute tracking errors
+    x_error = x_d - x;
+    y_error = y_d - y;
+    theta_error = theta_d - theta;
+    
+    # Normalize to [-pi, pi] using wrapAngle helper
+    theta_error = wrapAngle(theta_error);
+    
+    # Error in robot frame
+    error_parallel = x_error * cos(theta) + y_error * sin(theta);
+    error_perpendicular = -x_error * sin(theta) + y_error * cos(theta);
+    
+    # Compute control inputs
+    v_cmd = v_d + k_p * error_parallel;
+    omega_cmd = omega_d + k_h * theta_error + k_perp * error_perpendicular;
+    
+    # Convert to wheel velocities
+    v_l = (2 * v_cmd - omega_cmd * wheel_base) / (2 * wheel_radius);
+    v_r = (2 * v_cmd + omega_cmd * wheel_base) / (2 * wheel_radius);
+  };
+  
+  # Controller parameters
+  params {
+    k_p: 0.8;             # Proportional gain for longitudinal error
+    k_h: 2.5;             # Heading gain
+    k_perp: 0.5;          # Perpendicular error gain
+  };
+}
+
+# Define control mode for obstacle avoidance
+mode ObstacleAvoidance {
+  system DifferentialDrive;
+  barriers [VelocityBarrier, WorkspaceBarrier, DynamicObstacleBarrier];
+  
+  # Controller definition: Dynamic obstacle avoidance using potential fields
+  controller {
+    # Compute vector to goal
+    goal_vector_x = x_goal - x;
+    goal_vector_y = y_goal - y;
+    goal_distance = sqrt(goal_vector_x**2 + goal_vector_y**2);
+    
+    # Normalize goal vector
+    goal_vector_x = goal_vector_x / hMax(goal_distance, 0.1);
+    goal_vector_y = goal_vector_y / hMax(goal_distance, 0.1);
+    
+    # Compute obstacle repulsion vectors
+    # From obstacle 1
+    obs1_vector_x = x - x_obs1;
+    obs1_vector_y = y - y_obs1;
+    obs1_distance = sqrt(obs1_vector_x**2 + obs1_vector_y**2);
+    obs1_vector_x = obs1_vector_x / hMax(obs1_distance, 0.1);
+    obs1_vector_y = obs1_vector_y / hMax(obs1_distance, 0.1);
+    obs1_magnitude = if(obs1_distance < influence_distance, 
+                       repulsion_gain * (1/obs1_distance - 1/influence_distance)**2,
+                       0);
+    
+    # From obstacle 2
+    obs2_vector_x = x - x_obs2;
+    obs2_vector_y = y - y_obs2;
+    obs2_distance = sqrt(obs2_vector_x**2 + obs2_vector_y**2);
+    obs2_vector_x = obs2_vector_x / hMax(obs2_distance, 0.1);
+    obs2_vector_y = obs2_vector_y / hMax(obs2_distance, 0.1);
+    obs2_magnitude = if(obs2_distance < influence_distance, 
+                       repulsion_gain * (1/obs2_distance - 1/influence_distance)**2,
+                       0);
+    
+    # Combine vectors
+    resultant_x = attraction_gain * goal_vector_x + 
+                 obs1_magnitude * obs1_vector_x + 
+                 obs2_magnitude * obs2_vector_x;
+    resultant_y = attraction_gain * goal_vector_y + 
+                 obs1_magnitude * obs1_vector_y + 
+                 obs2_magnitude * obs2_vector_y;
+    
+    # Compute desired heading and speed
+    desired_heading = atan2(resultant_y, resultant_x);
+    heading_error = desired_heading - theta;
+    
+    # Normalize to [-pi, pi] using wrapAngle helper
+    heading_error = wrapAngle(heading_error);
+    
+    # Compute desired speed based on clearance
+    min_obs_distance = hMin(obs1_distance, obs2_distance);
+    desired_speed = max_speed * hMin(1.0, min_obs_distance / safe_distance);
+    
+    # Convert to wheel velocities
+    omega_cmd = k_h * heading_error;
+    v_l = (2 * desired_speed - omega_cmd * wheel_base) / (2 * wheel_radius);
+    v_r = (2 * desired_speed + omega_cmd * wheel_base) / (2 * wheel_radius);
+  };
+  
+  # Controller parameters
+  params {
+    x_goal: 5.0;          # Goal x-coordinate
+    y_goal: 5.0;          # Goal y-coordinate
+    x_obs1: 3.0;          # Obstacle 1 x-coordinate
+    y_obs1: 2.0;          # Obstacle 1 y-coordinate
+    x_obs2: 1.5;          # Obstacle 2 x-coordinate
+    y_obs2: 4.0;          # Obstacle 2 y-coordinate
+    
+    attraction_gain: 1.0; # Attractive force gain
+    repulsion_gain: 0.5;  # Repulsive force gain
+    influence_distance: 3.0; # Distance of obstacle influence
+    safe_distance: 1.0;   # Safe distance for speed scaling
+    k_h: 2.0;             # Heading gain
+  };
+}
+
+# Define a planning node to integrate with path planning algorithms
+planner RRTStarPlanner {
+  system DifferentialDrive;
+  
+  # Planning configuration
+  config {
+    world_bounds: [x_min, x_max, y_min, y_max];
+    goal_bias: 0.1;       # Probability of sampling the goal directly
+    max_iterations: 1000; # Maximum number of iterations
+    step_size: 0.5;       # Maximum step size for extending the tree
+    neighbor_radius: 2.0; # Radius for neighbor finding in RRT*
+    obstacle_clearance: 0.5; # Minimum clearance from obstacles
+  };
+  
+  # Obstacle definitions (for collision checking)
+  obstacles [
+    {type: "circle", x: x_obs1, y: y_obs1, radius: r_obs},
+    {type: "circle", x: x_obs2, y: y_obs2, radius: r_obs},
+    {type: "circle", x: x_obs3, y: y_obs3, radius: r_obs},
+    {type: "rectangle", x: rect_x, y: rect_y, width: rect_width, height: rect_height, angle: rect_angle}
+  ];
+  
+  # Planner parameters
+  params {
+    x_min: -10.0;         # Minimum x-coordinate boundary
+    x_max: 10.0;          # Maximum x-coordinate boundary
+    y_min: -10.0;         # Minimum y-coordinate boundary
+    y_max: 10.0;          # Maximum y-coordinate boundary
+    
+    # Obstacle parameters
+    x_obs1: 3.0;          # Obstacle 1 x-coordinate
+    y_obs1: 2.0;          # Obstacle 1 y-coordinate
+    x_obs2: 1.5;          # Obstacle 2 x-coordinate
+    y_obs2: 4.0;          # Obstacle 2 y-coordinate
+    x_obs3: 4.0;          # Obstacle 3 x-coordinate
+    y_obs3: 3.5;          # Obstacle 3 y-coordinate
+    r_obs: 0.5;           # Circular obstacle radius
+    
+    # Rectangular obstacle
+    rect_x: 5.0;          # Rectangle center x-coordinate
+    rect_y: 6.0;          # Rectangle center y-coordinate
+    rect_width: 2.0;      # Rectangle width
+    rect_height: 1.0;     # Rectangle height
+    rect_angle: 0.0;      # Rectangle rotation angle
+  };
+}
+
+# Integration of planner with trajectory tracking controller
+integration PlannerControllerIntegration {
+  planner RRTStarPlanner;
+  controller TrajectoryTracking;
+  
+  # Integration configuration
+  config {
+    update_rate: 10.0;    # Rate at which planner updates path (Hz)
+    lookahead_distance: 0.5; # Distance ahead of robot to track on path
+    replan_threshold: 1.0; # Distance threshold for replanning
+    path_smoothing: true; # Apply path smoothing
+  };
+}

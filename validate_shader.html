@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WGSL Shader Validator</title>
+</head>
+<body>
+    <h1>WGSL Shader Validator</h1>
+    <div id="result">Checking WebGPU support...</div>
+    <pre id="errors" style="color: red;"></pre>
+    <pre id="info" style="color: green;"></pre>
+
+    <script>
+    async function validateShader() {
+        const resultDiv = document.getElementById('result');
+        const errorsDiv = document.getElementById('errors');
+        const infoDiv = document.getElementById('info');
+
+        if (!navigator.gpu) {
+            resultDiv.textContent = 'WebGPU not supported in this browser!';
+            return;
+        }
+
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) {
+            resultDiv.textContent = 'No GPU adapter found!';
+            return;
+        }
+
+        const device = await adapter.requestDevice();
+        
+        // Read the shader file content here
+        const shaderCode = `${await fetch('file:///C:/Users/jason/Desktop/tori/kha/frontend/shaders/propagation.wgsl').then(r => r.text()).catch(() => 'Copy shader content here')}`;
+
+        try {
+            device.pushErrorScope('validation');
+            
+            const shaderModule = device.createShaderModule({
+                label: 'propagation.wgsl',
+                code: shaderCode
+            });
+
+            const error = await device.popErrorScope();
+            
+            if (error) {
+                resultDiv.textContent = '❌ Shader has errors!';
+                errorsDiv.textContent = error.message;
+            } else {
+                const info = await shaderModule.getCompilationInfo();
+                
+                if (info.messages.length > 0) {
+                    resultDiv.textContent = '⚠️ Shader compiled with warnings:';
+                    errorsDiv.textContent = info.messages.map(msg => 
+                        `Line ${msg.lineNum}, Col ${msg.linePos}: ${msg.message}`
+                    ).join('\n');
+                } else {
+                    resultDiv.textContent = '✅ Shader is valid!';
+                    infoDiv.textContent = 'No errors or warnings found.';
+                }
+            }
+        } catch (e) {
+            resultDiv.textContent = '❌ Validation failed!';
+            errorsDiv.textContent = e.toString();
+        }
+    }
+
+    validateShader();
+    </script>
+</body>
+</html>

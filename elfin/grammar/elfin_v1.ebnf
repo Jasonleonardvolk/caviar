@@ -1,0 +1,316 @@
+/* ELFIN Grammar v1.0 - Canonical Specification */
+/* This is the official grammar specification for ELFIN v1.0, including
+   support for spin vectors and reversible computation directives */
+
+@version 1.0
+
+// ===========================================================================
+// TOP-LEVEL STRUCTURE
+// ===========================================================================
+
+// A program consists of multiple declarations
+program = (import_decl | declaration)* ;
+
+// Import statements
+import_decl = "import" (identifier | import_list) "from" string_literal ";" ;
+import_list = "{" identifier ("," identifier)* "}" ;
+
+// Top-level declarations
+declaration = concept_decl 
+            | system_decl
+            | relation_decl 
+            | lyapunov_decl 
+            | verification_directive 
+            | koopman_decl 
+            | stability_directive 
+            | phase_monitor 
+            | adaptive_trigger 
+            | reversible_block ;
+
+// ===========================================================================
+// CONCEPT DECLARATIONS
+// ===========================================================================
+
+// Concept declaration with ψ-mode and spin vector support
+concept_decl = "concept" string_literal psi_mode_decorator? "{" concept_body "}" ;
+concept_body = (property | constraint | relation_ref | stability_constraint | reversible_directive)* ;
+
+psi_mode_decorator = "ψ-mode" ":" ("ϕ" integer | identifier) ;   // Phase binding
+
+// Properties define the state variables of a concept
+property = type identifier unit_decorator? constraint_decorator? ";" ;
+type = basic_type | array_type | spinvec_type ;
+basic_type = "float" | "int" | "bool" | "string" | identifier ;
+array_type = basic_type "[" integer? "]" ;
+spinvec_type = "spinvec" ; // 3D spin vector for altermagnetic models
+
+unit_decorator = "[" unit_expr "]" ;
+unit_expr = unit_term (("·" | "*") unit_term)* | unit_term ("/" unit_term)* ;
+unit_term = unit_base unit_power? ;
+unit_base = identifier ;
+unit_power = "^" integer | "²" | "³" ;
+
+constraint_decorator = "where" constraint_expr ;
+
+// Constraints on properties
+constraint = "constraint" constraint_expr ";" ;
+constraint_expr = comparison 
+                | logical_expr 
+                | function_call
+                | "(" constraint_expr ")" ;
+
+comparison = expr comparison_op expr ;
+comparison_op = "<" | ">" | "<=" | ">=" | "==" | "≈" | "!=" ;  // ≈ for approximate equality
+
+logical_expr = constraint_expr logical_op constraint_expr 
+              | unary_logical_op constraint_expr ;
+logical_op = "&&" | "||" | "and" | "or" ;
+unary_logical_op = "!" | "not" ;
+
+// Reference to a relation
+relation_ref = "has" identifier ("with" binding_list)? ";" ;
+binding_list = binding ("," binding)* ;
+binding = identifier "=" expr ;
+
+// ===========================================================================
+// SYSTEM DECLARATIONS
+// ===========================================================================
+
+// System section defining dynamics
+system_decl = "system" identifier "{" system_body "}" ;
+system_body = (system_component)* ;
+system_component = continuous_state_decl
+                 | discrete_state_decl
+                 | input_decl
+                 | param_decl
+                 | dynamics_decl
+                 | output_decl
+                 | reversible_directive ;
+
+continuous_state_decl = "continuous_state" ":" "[" identifier_list? "]" ";" ;
+discrete_state_decl = "discrete_state" ":" "[" identifier_list? "]" ";" ;
+input_decl = "input" ":" "[" identifier_list? "]" ";" ;
+param_decl = "params" "{" (param_def)* "}" ;
+param_def = identifier ":" expr unit_decorator? ";" ;
+
+dynamics_decl = "dynamics" "{" (dynamics_def)* "}" ;
+dynamics_def = identifier "'" "=" expr ";" ;
+
+output_decl = "output" "{" (output_def)* "}" ;
+output_def = identifier "=" expr ";" ;
+
+// ===========================================================================
+// RELATION DECLARATIONS
+// ===========================================================================
+
+// Relation declaration
+relation_decl = "relation" identifier "{" relation_body "}" ;
+relation_body = (property | constraint)* ;
+
+// ===========================================================================
+// LYAPUNOV FUNCTIONS
+// ===========================================================================
+
+// Lyapunov function declaration
+lyapunov_decl = "lyapunov" identifier "{" lyapunov_body "}" ;
+lyapunov_body = lyapunov_type
+                domain_spec?
+                (symbolic_form | learn_directive)?
+                verification_hint? ;
+
+lyapunov_type = "polynomial" "(" "degree" "=" integer ")" 
+              | "neural" "(" "layers" "=" layer_spec ")" 
+              | "clf" "(" "variables" "=" identifier_list ")" 
+              | "composite" "(" "components" "=" identifier_list ")" ;
+
+layer_spec = integer ("," integer)* ;
+identifier_list = identifier ("," identifier)* ;
+
+domain_spec = "domain" "(" concept_list ")" ;
+concept_list = identifier ("," identifier)* ;
+
+symbolic_form = "form" string_literal ;
+
+learn_directive = "learn" "from" "(" 
+                     ("data" string_literal | "dynamics" identifier)
+                     ("," learner_option)*
+                  ")" ;
+
+learner_option = identifier "=" (number | string_literal) ;
+
+verification_hint = "verify" "(" 
+                       ("sos" | "milp" | "smt") 
+                       ("," verifier_option)*
+                    ")" ;
+
+verifier_option = identifier "=" (number | string_literal | boolean) ;
+
+// ===========================================================================
+// VERIFICATION DIRECTIVES
+// ===========================================================================
+
+// Verification directive
+verification_directive = "verify" identifier_list "using" verification_method ("with" option_list)? ";" ;
+verification_method = "sos" | "sampling" | "milp" | "smt" ;
+option_list = option ("," option)* ;
+option = identifier "=" (number | string_literal | boolean) ;
+
+// ===========================================================================
+// STABILITY DIRECTIVES
+// ===========================================================================
+
+// Symbolic Lyapunov Reasoning
+stability_directive = "stability" lyapunov_predicate ";" ;
+stability_constraint = "require" lyapunov_predicate ";" ;
+
+lyapunov_predicate = lyapunov_expr comparison_op lyapunov_expr  // Compare two Lyapunov values
+                    | lyapunov_expr comparison_op number ;       // Compare Lyapunov to constant
+
+lyapunov_expr = "Lyapunov" "(" psi_target ")" 
+              | "LyapunovDerivative" "(" psi_target ")" ;
+
+psi_target = "ψ_" identifier 
+           | "ϕ" integer
+           | identifier ;
+
+// ===========================================================================
+// PHASE DRIFT MONITORING
+// ===========================================================================
+
+// Phase Drift Monitoring
+phase_monitor = "monitor" "PhaseDrift" "(" psi_target ")" threshold_spec ("with" option_list)? ";" ;
+threshold_spec = comparison_op (number | "π" | "π/2" | "π/4" | "π/8") ;
+
+// ===========================================================================
+// RUNTIME ADAPTATION
+// ===========================================================================
+
+// Runtime Adaptation to Phase Drift
+adaptive_trigger = "if" drift_condition ":" action_block ;
+
+drift_condition = "PhaseDrift" "(" psi_target ")" comparison_op threshold_value 
+                | lyapunov_predicate ;
+
+threshold_value = number | "π" | "π/2" | "π/4" | "π/8" ;
+
+action_block = "adapt" "plan" "via" identifier
+             | "notify" identifier
+             | "execute" identifier
+             | "{" action+ "}" ;
+
+action = identifier "(" argument_list? ")" ";" ;
+argument_list = argument ("," argument)* ;
+argument = identifier | string_literal | number | boolean | expr ;
+
+// ===========================================================================
+// KOOPMAN OPERATORS
+// ===========================================================================
+
+// Koopman operator integration
+koopman_decl = "koopman" identifier "{" koopman_body "}" ;
+koopman_body = eigenfunction_spec
+               mode_mapping?
+               phase_binding? ;
+
+eigenfunction_spec = "eigenfunctions" "(" identifier_list ")" ;
+mode_mapping = "modes" "(" mode_spec_list ")" ;
+mode_spec_list = mode_spec ("," mode_spec)* ;
+mode_spec = identifier ":" number ;
+
+phase_binding = "bind" "to" "phase" "(" binding_list ")" ;
+
+// ===========================================================================
+// REVERSIBLE COMPUTATION
+// ===========================================================================
+
+// New: Reversible computation directives
+reversible_block = "reversible" identifier "{" reversible_body "}" ;
+reversible_body = (forward_pass | backward_pass | checkpoint_directive)* ;
+
+forward_pass = "forward" "{" statement* "}" ;
+backward_pass = "backward" "{" statement* "}" ;
+
+checkpoint_directive = "checkpoint" ("every" integer)? ";" ;
+
+reversible_directive = "reversible" boolean ";" 
+                     | "reversible" "(" property_list ")" ";" ;
+property_list = identifier ("," identifier)* ;
+
+// ===========================================================================
+// SPIN VECTOR OPERATIONS
+// ===========================================================================
+
+// New: Spin vector operations
+spinvec_expr = spinvec_literal 
+             | spinvec_function 
+             | identifier ; // Reference to a spinvec variable
+
+spinvec_literal = "spinvec" "(" expr "," expr "," expr ")" ;
+
+spinvec_function = "normalize" "(" spinvec_expr ")"
+                 | "dot" "(" spinvec_expr "," spinvec_expr ")"
+                 | "cross" "(" spinvec_expr "," spinvec_expr ")"
+                 | "spin_rotate" "(" spinvec_expr "," expr ")"
+                 | "align_with" "(" spinvec_expr "," spinvec_expr ")" ;
+                 
+// ===========================================================================
+// EXPRESSIONS
+// ===========================================================================
+
+// General expressions
+expr = term (add_op term)* ;
+term = factor (mul_op factor)* ;
+factor = power (pow_op power)* ;
+power = unary | unary (pow_op unary)* ;
+unary = unary_op? primary ;
+
+add_op = "+" | "-" ;
+mul_op = "*" | "/" ;
+pow_op = "^" | "**" ;
+unary_op = "+" | "-" | "!" ;
+
+primary = number
+        | string_literal
+        | boolean
+        | identifier
+        | function_call
+        | array_access
+        | spinvec_expr  // Include spin vector expressions
+        | "(" expr ")" ;
+
+function_call = identifier "(" argument_list? ")" ;
+array_access = identifier "[" expr "]" ;
+
+// ===========================================================================
+// STATEMENTS
+// ===========================================================================
+
+statement = assignment
+          | if_statement
+          | for_loop
+          | while_loop
+          | return_statement
+          | function_call ";" ;
+
+assignment = identifier "=" expr ";" ;
+if_statement = "if" "(" expr ")" statement_block ("else" statement_block)? ;
+statement_block = "{" statement* "}" | statement ;
+for_loop = "for" "(" identifier "in" expr ".." expr ")" statement_block ;
+while_loop = "while" "(" expr ")" statement_block ;
+return_statement = "return" expr? ";" ;
+
+// ===========================================================================
+// LEXICAL ELEMENTS
+// ===========================================================================
+
+// Basic token types
+identifier = /[a-zA-Z_][a-zA-Z0-9_]*/ ;
+string_literal = /"[^"]*"/ | /'[^']*'/ ;
+integer = /[0-9]+/ ;
+number = /[+-]?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/ ;
+boolean = "true" | "false" ;
+
+// Comments are ignored by parser
+comment = single_line_comment | multi_line_comment ;
+single_line_comment = "//" /[^\n]*/ ;
+multi_line_comment = "/*" /.*?/ "*/" ;

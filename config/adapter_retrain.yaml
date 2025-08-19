@@ -1,0 +1,75 @@
+# Adapter Retraining Pipeline Configuration
+# ==========================================
+# Controls automated adapter training, validation, and rollback
+
+# Schedule Options: nightly | on-demand | threshold | continuous
+schedule: on-demand
+
+# Minimum events needed to trigger retraining
+min_gap_events: 10
+min_intent_traces: 5
+min_feedback_events: 3
+
+# Validation Requirements
+audit_required: true
+promote_if_score: 0.91
+validation_samples: 100
+regression_threshold: 0.05  # Max allowed performance drop
+
+# Adapter Settings
+default_adapter: global_adapter_v1.pt
+adapter_dir: models/adapters/
+data_dir: data/adapter_training/
+checkpoint_dir: models/adapters/checkpoints/
+
+# Feature Flags
+user_adapters_enabled: true
+global_adapters_enabled: true
+auto_rollback_enabled: true
+notify_on_fail: true
+notify_on_success: false
+
+# Versioning
+max_adapter_versions: 10
+keep_best_n: 3
+archive_old_adapters: true
+
+# Training Parameters
+batch_size: 8
+learning_rate: 0.0001
+num_epochs: 10
+warmup_steps: 100
+gradient_clip: 1.0
+lora_rank: 8
+lora_alpha: 16.0
+lora_dropout: 0.1
+
+# Data Generation
+synthetic_data_enabled: true
+use_intent_traces: true
+use_mesh_context: true
+use_feedback: true
+augmentation_factor: 2  # How many synthetic samples per real sample
+
+# Monitoring
+log_level: INFO
+log_file: data/adapter_training/adapter_training.log
+metrics_file: data/adapter_training/adapter_metrics.json
+
+# Trigger Conditions
+triggers:
+  - type: intent_gap
+    threshold: 10  # Number of unclosed intents
+  - type: accuracy_drop
+    threshold: 0.1  # Drop in accuracy
+  - type: user_request
+    enabled: true
+  - type: scheduled
+    cron: "0 2 * * *"  # 2 AM daily
+
+# Rollback Policy
+rollback:
+  auto_rollback_on_fail: true
+  keep_previous: 3
+  test_duration_minutes: 30
+  min_test_queries: 50

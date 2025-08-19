@@ -1,0 +1,5 @@
+# Additional directories you want excluded (one per line)
+# Example:
+# data
+# experiments
+# logs

@@ -1,0 +1,29 @@
+[package]
+name        = "{{name}}"
+version     = "0.1.0"
+authors     = ["{{author}}"]
+edition     = "{{edition}}"
+description = "Aerial vehicle control and navigation package using ELFIN"
+
+[dependencies]
+elfin-core  = "^1.0.0"
+cvxpy       = "^1.4.0"
+numpy       = "^1.20.0"
+scipy       = "^1.7.0"
+matplotlib  = "^3.5.0"
+control     = "^0.9.0"   # Python Control Systems Library
+pyfly       = "^0.3.0"   # Aerial vehicle dynamics simulation
+
+[solver]
+mosek.enabled = true
+mosek.msk_license_file = "${HOME}/mosek.lic"
+
+[validation]
+attitude_stability.enabled = true
+geofencing.enabled = true
+wind_disturbance.enabled = true
+
+[vehicle]
+type = "multirotor"  # Options: "multirotor", "fixed_wing", "vtol", "helicopter"
+dof = 6              # Degrees of freedom
+actuators = 6        # Number of actuators

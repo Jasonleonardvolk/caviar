@@ -1,0 +1,8 @@
+{
+  "id": "error_1752195007557_181622",
+  "timestamp": 1752195007.5578284,
+  "error_type": "ingestion_failure",
+  "source": "temp_chunk_5_10.txt",
+  "error": "Penrose verification FAILED. Failed checks: ['geometric_check']",
+  "metadata": {}
+}

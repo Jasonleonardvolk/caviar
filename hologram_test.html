@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORI Holographic System - Integration Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #hologram-canvas {
+            width: 80%;
+            height: 60%;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(102, 126, 234, 0.5);
+        }
+        
+        #status {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: #666;
+        }
+        
+        .indicator.active {
+            background: #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        button:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #667eea;
+            font-size: 12px;
+            text-align: left;
+        }
+        
+        #log-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>🌟 TORI Holographic System Integration Test</h1>
+        
+        <canvas id="hologram-canvas"></canvas>
+        
+        <div id="status">
+            <p>
+                <span class="indicator" id="webgpu-indicator"></span>WebGPU
+                <span class="indicator" id="audio-indicator"></span>Audio Backend
+                <span class="indicator" id="hologram-indicator"></span>Hologram Engine
+            </p>
+            <p id="fps-counter">FPS: 0</p>
+            <p id="psi-state">ψ-phase: 0.000 | Coherence: 0%</p>
+        </div>
+        
+        <div id="controls">
+            <button id="init-btn" onclick="initializeSystem()">Initialize System</button>
+            <button id="audio-btn" onclick="startAudioStream()" disabled>Start Audio Stream</button>
+            <button id="test-btn" onclick="runTestPattern()" disabled>Test Pattern</button>
+            <button id="capture-btn" onclick="captureHologram()" disabled>Capture Hologram</button>
+        </div>
+        
+        <div id="log-container"></div>
+    </div>
+
+    <script type="module">
+        // Import the REAL Ghost Engine
+        import { RealGhostEngine } from './src/lib/realGhostEngine.js';
+        
+        let ghostEngine = null;
+        let audioContext = null;
+        let wsConnection = null;
+        let isInitialized = false;
+        
+        // Make functions global for onclick handlers
+        window.initializeSystem = initializeSystem;
+        window.startAudioStream = startAudioStream;
+        window.runTestPattern = runTestPattern;
+        window.captureHologram = captureHologram;
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.borderColor = type === 'error' ? '#ff6b6b' : 
+                                     type === 'success' ? '#51cf66' : '#667eea';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        async function initializeSystem() {
+            try {
+                log('Initializing TORI Holographic System...');
+                document.getElementById('init-btn').disabled = true;
+                
+                // Check WebGPU support
+                if (!navigator.gpu) {
+                    throw new Error('WebGPU not supported in this browser');
+                }
+                
+                // Initialize the Real Ghost Engine
+                const canvas = document.getElementById('hologram-canvas');
+                ghostEngine = new RealGhostEngine();
+                
+                const result = await ghostEngine.initialize(canvas, {
+                    displayType: 'webgpu_only',
+                    quality: 'high',
+                    enableAudio: true,
+                    enableHoTT: true
+                });
+                
+                if (result.success) {
+                    log('✅ Ghost Engine initialized successfully!', 'success');
+                    document.getElementById('webgpu-indicator').classList.add('active');
+                    document.getElementById('hologram-indicator').classList.add('active');
+                    
+                    // Enable other buttons
+                    document.getElementById('audio-btn').disabled = false;
+                    document.getElementById('test-btn').disabled = false;
+                    document.getElementById('capture-btn').disabled = false;
+                    
+                    isInitialized = true;
+                    
+                    // Start FPS counter
+                    startFPSCounter();
+                    
+                    log(`Capabilities: ${JSON.stringify(result.capabilities)}`);
+                }
+                
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        async function startAudioStream() {
+            try {
+                log('Connecting to audio backend...');
+                
+                // Initialize Web Audio API
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Get microphone access
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                // Process audio chunks
+                processor.onaudioprocess = (e) => {
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    
+                    // Send to Ghost Engine (which forwards to Python backend)
+                    if (ghostEngine && wsConnection) {
+                        ghostEngine.sendMessage({
+                            type: 'audio_data',
+                            samples: Array.from(inputData)
+                        });
+                    }
+                };
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                document.getElementById('audio-indicator').classList.add('active');
+                log('🎤 Audio stream started!', 'success');
+                
+            } catch (error) {
+                log(`Audio error: ${error.message}`, 'error');
+            }
+        }
+        
+        function runTestPattern() {
+            if (!ghostEngine) return;
+            
+            log('Running holographic test pattern...');
+            
+            // Create a test object
+            const testObject = {
+                id: 'test_sphere',
+                type: 'sphere',
+                resonance: 0.9,
+                position: [0, 0, 0],
+                radius: 0.5
+            };
+            
+            const result = ghostEngine.addHolographicObject(testObject);
+            log(`Test object added: ${result.id}`, 'success');
+            
+            // Animate resonance
+            let phase = 0;
+            const animate = () => {
+                phase += 0.05;
+                ghostEngine.psiState.psi_phase = phase;
+                ghostEngine.psiState.phase_coherence = 0.5 + 0.5 * Math.sin(phase);
+                
+                // Update oscillators with test pattern
+                for (let i = 0; i < 32; i++) {
+                    ghostEngine.psiState.oscillator_phases[i] = phase + i * 0.1;
+                    ghostEngine.psiState.oscillator_frequencies[i] = 440 * Math.pow(1.5, i/8);
+                }
+                
+                ghostEngine.updateHologram();
+                
+                if (phase < Math.PI * 4) {
+                    requestAnimationFrame(animate);
+                } else {
+                    log('Test pattern complete', 'success');
+                }
+            };
+            
+            animate();
+        }
+        
+        function captureHologram() {
+            if (!ghostEngine) return;
+            
+            const dataUrl = ghostEngine.captureHologram();
+            if (dataUrl) {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `hologram_${Date.now()}.png`;
+                link.href = dataUrl;
+                link.click();
+                
+                log('📸 Hologram captured!', 'success');
+            }
+        }
+        
+        function startFPSCounter() {
+            setInterval(() => {
+                if (ghostEngine) {
+                    const stats = ghostEngine.render();
+                    document.getElementById('fps-counter').textContent = `FPS: ${stats.fps}`;
+                    
+                    if (stats.psiState) {
+                        const psi = stats.psiState;
+                        document.getElementById('psi-state').textContent = 
+                            `ψ-phase: ${psi.psi_phase.toFixed(3)} | ` +
+                            `Coherence: ${(psi.phase_coherence * 100).toFixed(0)}%`;
+                    }
+                }
+            }, 100);
+        }
+        
+        // Auto-initialize if WebGPU is available
+        if (navigator.gpu) {
+            log('WebGPU detected! Click "Initialize System" to begin.');
+        } else {
+            log('WebGPU not supported. Please use Chrome or Edge with WebGPU enabled.', 'error');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+--- a/python/core/adapter_loader.py
++++ b/python/core/adapter_loader.py
+@@ -11,6 +11,9 @@ import time
+ import logging
+ from pathlib import Path
+ 
++# Thread-safe lock for adapter operations
++_ADAPTER_SWAP_LOCK = threading.Lock()
++
+ class AdapterLoader:
+     def __init__(self):
+         self.cache = {}
+@@ -25,71 +28,74 @@ class AdapterLoader:
+         Returns:
+             dict: Adapter configuration and data
+         """
+-        # Generate new symlink name
+-        adapter_dir = os.environ.get('TORI_ADAPTER_DIR', 'adapters')
+-        adapter_path = Path(adapter_dir) / adapter_name
+-        
+-        if not adapter_path.exists():
+-            error_msg = f"Adapter not found: {adapter_path}"
+-            self._log_to_file(f"LOAD_ERROR | {error_msg}", "ERROR")
+-            raise FileNotFoundError(error_msg)
+-        
+-        # Compute SHA256 for integrity
+-        sha256_hash = self._compute_sha256(adapter_path)
+-        
+-        # Check cache
+-        if adapter_name in self.cache:
+-            cached = self.cache[adapter_name]
+-            if cached['sha256'] == sha256_hash:
+-                self._log_to_file(f"CACHE_HIT | adapter={adapter_name}")
+-                return cached['data']
+-        
+-        # Prepare new symlink with timestamp
+-        timestamp = int(time.time() * 1000000)  # microseconds
+-        temp_link = Path(adapter_dir) / f".adapter_active_{timestamp}"
+-        active_link = Path(adapter_dir) / "adapter_active"
+-        
+-        # Store old link for rollback
+-        old_target = None
+-        if active_link.exists() or active_link.is_symlink():
+-            try:
+-                old_target = active_link.readlink()
+-            except:
+-                pass
+-        
+-        try:
+-            # Create new symlink pointing to adapter
+-            temp_link.symlink_to(adapter_path.name)
++        # Wrap entire operation in lock for thread safety
++        with _ADAPTER_SWAP_LOCK:
++            # Generate new symlink name
++            adapter_dir = os.environ.get('TORI_ADAPTER_DIR', 'adapters')
++            adapter_path = Path(adapter_dir) / adapter_name
+             
+-            # Atomic rename (on POSIX systems)
+-            temp_link.replace(active_link)
++            if not adapter_path.exists():
++                error_msg = f"Adapter not found: {adapter_path}"
++                self._log_to_file(f"LOAD_ERROR | {error_msg}", "ERROR")
++                raise FileNotFoundError(error_msg)
+             
+-            # Load adapter data
+-            with open(adapter_path, 'rb') as f:
+-                data = f.read()
++            # Compute SHA256 for integrity
++            sha256_hash = self._compute_sha256(adapter_path)
+             
+-            # Update cache
+-            self.cache[adapter_name] = {
+-                'sha256': sha256_hash,
+-                'data': data,
+-                'loaded_at': time.time()
+-            }
++            # Check cache
++            if adapter_name in self.cache:
++                cached = self.cache[adapter_name]
++                if cached['sha256'] == sha256_hash:
++                    self._log_to_file(f"CACHE_HIT | adapter={adapter_name}")
++                    return cached['data']
+             
+-            # Log success
+-            self._log_to_file(
+-                f"SWAP_SUCCESS | adapter={adapter_name} | "
+-                f"sha256={sha256_hash[:8]}... | size={len(data)} bytes"
+-            )
++            # Prepare new symlink with timestamp
++            timestamp = int(time.time() * 1000000)  # microseconds
++            temp_link = Path(adapter_dir) / f".adapter_active_{timestamp}"
++            active_link = Path(adapter_dir) / "adapter_active"
+             
+-            return data
+-            
+-        except Exception as e:
+-            # Rollback on error
+-            if old_target and active_link.exists():
+-                try:
+-                    active_link.unlink()
+-                    active_link.symlink_to(old_target)
+-                except:
++            # Store old link for rollback
++            old_target = None
++            if active_link.exists() or active_link.is_symlink():
++                try:
++                    old_target = active_link.readlink()
++                except:
+                     pass
+             
+-            self._log_to_file(f"SWAP_FAILED | adapter={adapter_name} | error={e}", "ERROR")
+-            raise
++            try:
++                # Create new symlink pointing to adapter
++                temp_link.symlink_to(adapter_path.name)
++                
++                # Atomic rename (on POSIX systems)
++                temp_link.replace(active_link)
++                
++                # Load adapter data
++                with open(adapter_path, 'rb') as f:
++                    data = f.read()
++                
++                # Update cache
++                self.cache[adapter_name] = {
++                    'sha256': sha256_hash,
++                    'data': data,
++                    'loaded_at': time.time()
++                }
++                
++                # Log success
++                self._log_to_file(
++                    f"SWAP_SUCCESS | adapter={adapter_name} | "
++                    f"sha256={sha256_hash[:8]}... | size={len(data)} bytes"
++                )
++                
++                return data
++                
++            except Exception as e:
++                # Rollback on error
++                if old_target and active_link.exists():
++                    try:
++                        active_link.unlink()
++                        active_link.symlink_to(old_target)
++                    except:
++                        pass
++                
++                self._log_to_file(f"SWAP_FAILED | adapter={adapter_name} | error={e}", "ERROR")
++                raise

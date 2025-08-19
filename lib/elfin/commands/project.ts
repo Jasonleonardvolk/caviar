@@ -1,0 +1,373 @@
+// Enhanced Projection Commands with Thoughtspace Integration
+import type { ElfinContext, ProjectionCommand, ElfinResult } from '../types.js';
+
+export async function runProjectionCommand(line: string, ctx: ElfinContext): Promise<ElfinResult> {
+  const startTime = Date.now();
+  const command = parseProjectionCommand(line);
+  
+  if (!command) {
+    throw new Error('Invalid projection command syntax');
+  }
+
+  let result: any = null;
+  let sideEffects: any = {};
+
+  try {
+    result = await handleProjection(command, ctx);
+    sideEffects.thoughtspaceProjections = [command];
+
+    return {
+      success: true,
+      command: { type: 'project', raw: line, params: command, timestamp: new Date() },
+      result,
+      context: ctx,
+      executionTime: Date.now() - startTime,
+      sideEffects
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      command: { type: 'project', raw: line, params: command, timestamp: new Date() },
+      error: error instanceof Error ? error.message : 'Unknown error',
+      context: ctx,
+      executionTime: Date.now() - startTime
+    };
+  }
+}
+
+function parseProjectionCommand(line: string): ProjectionCommand | null {
+  // project("concept") -> Thoughtspace.display(at="position")
+  const fullMatch = line.match(/project\("([^"]+)"\)\s*->\s*Thoughtspace\.display\(at="([^"]+)"\)/);
+  if (fullMatch) {
+    const [, concept, position] = fullMatch;
+    return { 
+      concept, 
+      target: 'Thoughtspace', 
+      position,
+      duration: 5000, // Default 5 seconds
+      intensity: 0.8
+    };
+  }
+  
+  // project("concept") -> Thoughtspace.display(at=ψ[theta,lambda])
+  const psiMatch = line.match(/project\("([^"]+)"\)\s*->\s*Thoughtspace\.display\(at=ψ\[([^,]+),([^\]]+)\]\)/);
+  if (psiMatch) {
+    const [, concept, theta, lambda] = psiMatch;
+    return { 
+      concept, 
+      target: 'Thoughtspace', 
+      position: [parseFloat(theta), parseFloat(lambda)],
+      duration: 5000,
+      intensity: 0.8
+    };
+  }
+  
+  // project(holo("concept")) at ψ[θ,λ]
+  const holoMatch = line.match(/project\(holo\("([^"]+)"\)\)\s+at\s+ψ\[([^,]+),([^\]]+)\]/);
+  if (holoMatch) {
+    const [, concept, theta, lambda] = holoMatch;
+    return { 
+      concept, 
+      target: 'Thoughtspace', 
+      position: [parseFloat(theta), parseFloat(lambda)],
+      duration: 10000, // Holo projections last longer
+      intensity: 0.9
+    };
+  }
+  
+  // project("concept")
+  const simpleMatch = line.match(/project\("([^"]+)"\)/);
+  if (simpleMatch) {
+    const [, concept] = simpleMatch;
+    return { 
+      concept,
+      target: 'Thoughtspace',
+      position: 'currentNode',
+      duration: 3000,
+      intensity: 0.7
+    };
+  }
+  
+  // Ghost("persona").project("concept")
+  const ghostProjectMatch = line.match(/Ghost\("([^"]+)"\)\.project\("([^"]+)"\)/);
+  if (ghostProjectMatch) {
+    const [, persona, concept] = ghostProjectMatch;
+    return { 
+      concept, 
+      target: 'Thoughtspace',
+      position: 'ghostFocus',
+      duration: 7000,
+      intensity: 0.85
+    };
+  }
+  
+  return null;
+}
+
+async function handleProjection(command: ProjectionCommand, ctx: ElfinContext): Promise<any> {
+  console.log(`🌌 [ELFIN++] Projecting concept: ${command.concept}`);
+  
+  // Resolve concept from context variables if needed
+  let conceptToProject = command.concept;
+  if (command.concept.startsWith('$')) {
+    const varName = command.concept.slice(1);
+    conceptToProject = ctx.variables[varName] || ctx.variables[command.concept] || command.concept;
+  }
+  
+  // Determine wavelength based on concept or context
+  const wavelength = determineConceptWavelength(conceptToProject, ctx);
+  
+  // Calculate position for projection
+  const projectionPosition = calculateProjectionPosition(command.position, ctx);
+  
+  // Enhanced projection data
+  const projectionData = {
+    concept: conceptToProject,
+    position: projectionPosition,
+    target: command.target || 'Thoughtspace',
+    duration: command.duration || 5000,
+    intensity: command.intensity || 0.8,
+    wavelength,
+    timestamp: Date.now(),
+    sessionId: ctx.session?.id || 'default',
+    source: 'elfin_script'
+  };
+  
+  // Dispatch thoughtspace projection event
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('thoughtspace:project', {
+      detail: projectionData
+    }));
+  }
+  
+  // Also highlight in concept graph if available
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('thoughtspace:highlight', {
+      detail: { 
+        conceptId: conceptToProject,
+        duration: command.duration || 5000,
+        intensity: command.intensity || 0.8,
+        wavelength
+      }
+    }));
+  }
+  
+  // Update concept graph stores
+  try {
+    const { addConcept, activateConcept, focusConcept } = await import('$lib/stores');
+    
+    // Add concept if it doesn't exist
+    addConcept({
+      id: conceptToProject,
+      label: conceptToProject.replace(/-/g, ' '),
+      position: Array.isArray(projectionPosition) 
+        ? { x: projectionPosition[0], y: projectionPosition[1], z: 0 }
+        : { x: 0, y: 0, z: 0 },
+      wavelength,
+      intensity: command.intensity || 0.8,
+      connections: [],
+      entangled: false,
+      stability: 0.8,
+      conceptType: 'projection'
+    });
+    
+    // Activate and focus the concept
+    activateConcept(conceptToProject);
+    focusConcept(conceptToProject);
+    
+  } catch (error) {
+    console.warn('[ELFIN++] Could not update concept stores:', error);
+  }
+  
+  // Create thoughtspace visualization if target supports it
+  if (command.target === 'Thoughtspace') {
+    await createThoughtspaceVisualization(projectionData, ctx);
+  }
+  
+  // Store result in context
+  ctx.variables['$PROJECTION_RESULT'] = projectionData;
+  ctx.variables['$LAST_PROJECTED_CONCEPT'] = conceptToProject;
+  ctx.lastResult = projectionData;
+  
+  return projectionData;
+}
+
+function determineConceptWavelength(concept: string, ctx: ElfinContext): number {
+  // Determine wavelength based on concept type and context
+  const conceptLower = concept.toLowerCase();
+  
+  // Emotional concepts
+  if (conceptLower.includes('happy') || conceptLower.includes('joy')) return 580; // Yellow-green
+  if (conceptLower.includes('sad') || conceptLower.includes('grief')) return 470; // Blue
+  if (conceptLower.includes('angry') || conceptLower.includes('rage')) return 700; // Red
+  if (conceptLower.includes('calm') || conceptLower.includes('peace')) return 520; // Green
+  if (conceptLower.includes('fear') || conceptLower.includes('anxiety')) return 620; // Orange
+  
+  // Technical concepts
+  if (conceptLower.includes('quantum')) return 400; // Violet
+  if (conceptLower.includes('memory')) return 450; // Blue
+  if (conceptLower.includes('consciousness')) return 380; // UV edge
+  if (conceptLower.includes('ai') || conceptLower.includes('artificial')) return 480; // Blue-cyan
+  if (conceptLower.includes('ghost') || conceptLower.includes('persona')) return 550; // Yellow-green
+  
+  // Phase-based wavelengths
+  if (ctx.phaseMetrics) {
+    const { coherence, entropy } = ctx.phaseMetrics;
+    if (coherence > 0.8) return 520; // High coherence = green
+    if (entropy > 0.8) return 680; // High entropy = red
+    if (coherence < 0.3) return 620; // Low coherence = orange
+  }
+  
+  // Default wavelength based on concept hash
+  const hash = concept.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  return 400 + (hash % 300); // 400-700nm range
+}
+
+function calculateProjectionPosition(position: string | [number, number] | undefined, ctx: ElfinContext): [number, number] | string {
+  if (Array.isArray(position)) {
+    return position; // Already coordinates
+  }
+  
+  if (typeof position === 'string') {
+    switch (position) {
+      case 'currentNode':
+        return [0, 0]; // Center of thoughtspace
+      
+      case 'ghostFocus':
+        // Position near active ghost
+        const ghostState = ctx.ghostState;
+        if (ghostState?.focusConceptId) {
+          return [Math.PI / 4, 1.2]; // 45 degrees, radius 1.2
+        }
+        return [0, 0];
+      
+      case 'center':
+        return [0, 0];
+      
+      case 'edge':
+        return [Math.PI * 1.5, 2.0]; // 270 degrees, radius 2.0
+      
+      case 'random':
+        return [Math.random() * 2 * Math.PI, 0.5 + Math.random() * 1.5];
+      
+      default:
+        // Try to parse as coordinates
+        const coordMatch = position.match(/\[([^,]+),([^\]]+)\]/);
+        if (coordMatch) {
+          return [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])];
+        }
+        return position; // Return as string for named positions
+    }
+  }
+  
+  return [0, 0]; // Default to center
+}
+
+async function createThoughtspaceVisualization(projectionData: any, ctx: ElfinContext): Promise<void> {
+  // Enhanced visualization creation with animation hints
+  
+  // Dispatch detailed visualization event
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('thoughtspace:visualize', {
+      detail: {
+        ...projectionData,
+        animationType: determineAnimationType(projectionData.concept),
+        particleCount: calculateParticleCount(projectionData.intensity),
+        colorGradient: generateColorGradient(projectionData.wavelength),
+        pulseFrequency: calculatePulseFrequency(projectionData.intensity)
+      }
+    }));
+  }
+  
+  console.log(`🌌 [ELFIN++] Thoughtspace visualization created for: ${projectionData.concept}`);
+}
+
+function determineAnimationType(concept: string): string {
+  const conceptLower = concept.toLowerCase();
+  
+  if (conceptLower.includes('energy') || conceptLower.includes('power')) return 'pulse';
+  if (conceptLower.includes('flow') || conceptLower.includes('stream')) return 'wave';
+  if (conceptLower.includes('spiral') || conceptLower.includes('vortex')) return 'spiral';
+  if (conceptLower.includes('growth') || conceptLower.includes('expand')) return 'bloom';
+  if (conceptLower.includes('connect') || conceptLower.includes('link')) return 'bridge';
+  
+  return 'fade'; // Default animation
+}
+
+function calculateParticleCount(intensity: number): number {
+  return Math.floor(intensity * 100) + 20; // 20-120 particles
+}
+
+function generateColorGradient(wavelength: number): string[] {
+  // Convert wavelength to RGB and create gradient
+  const rgb = wavelengthToRgb(wavelength);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  
+  // Create gradient with variations
+  return [
+    hex,
+    adjustBrightness(hex, 0.7),
+    adjustBrightness(hex, 1.3),
+    adjustBrightness(hex, 0.5)
+  ];
+}
+
+function calculatePulseFrequency(intensity: number): number {
+  return 0.5 + (intensity * 2); // 0.5-2.5 Hz
+}
+
+// Utility functions
+function wavelengthToRgb(wavelength: number): { r: number; g: number; b: number } {
+  let r = 0, g = 0, b = 0;
+  
+  if (wavelength >= 380 && wavelength < 440) {
+    r = -(wavelength - 440) / (440 - 380);
+    g = 0;
+    b = 1;
+  } else if (wavelength >= 440 && wavelength < 490) {
+    r = 0;
+    g = (wavelength - 440) / (490 - 440);
+    b = 1;
+  } else if (wavelength >= 490 && wavelength < 510) {
+    r = 0;
+    g = 1;
+    b = -(wavelength - 510) / (510 - 490);
+  } else if (wavelength >= 510 && wavelength < 580) {
+    r = (wavelength - 510) / (580 - 510);
+    g = 1;
+    b = 0;
+  } else if (wavelength >= 580 && wavelength < 645) {
+    r = 1;
+    g = -(wavelength - 645) / (645 - 580);
+    b = 0;
+  } else if (wavelength >= 645 && wavelength < 781) {
+    r = 1;
+    g = 0;
+    b = 0;
+  }
+  
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255)
+  };
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function adjustBrightness(hex: string, factor: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  
+  const newR = Math.min(255, Math.round(r * factor));
+  const newG = Math.min(255, Math.round(g * factor));
+  const newB = Math.min(255, Math.round(b * factor));
+  
+  return rgbToHex(newR, newG, newB);
+}
+
+export { runProjectionCommand };

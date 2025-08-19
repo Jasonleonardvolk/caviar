@@ -1,0 +1,341 @@
+CONCEPT FILE USAGE FIXES
+============================================================
+
+File: backups\20250719_165542\prajna_api.py
+----------------------------------------
+Line 1363: SOLITON_MEMORY_PATH = Path(__file__).parent.parent.parent / "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: backups\20250719_172935\prajna_api.py
+----------------------------------------
+Line 1363: SOLITON_MEMORY_PATH = Path(__file__).parent.parent.parent / "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: backups\20250719_173150\prajna_api.py
+----------------------------------------
+Line 1363: SOLITON_MEMORY_PATH = Path(__file__).parent.parent.parent / "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: backups\20250719_173522\prajna_api.py
+----------------------------------------
+Line 1363: SOLITON_MEMORY_PATH = Path(__file__).parent.parent.parent / "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: backups\20250721_062252\prajna_api.py
+----------------------------------------
+Line 1363: SOLITON_MEMORY_PATH = Path(__file__).parent.parent.parent / "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: check_concept_counts.py
+----------------------------------------
+Line 36: soliton_file = Path("soliton_concept_memory.json")
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: concept_mesh_detective.py
+----------------------------------------
+Line 57: 'concept_mesh_data.json',
+
+Line 251: 'concept_mesh_data.json',
+
+
+File: diagnose_concept_mesh.py
+----------------------------------------
+Line 18: Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh\concept_mesh_data.json"),
+
+Line 22: Path(r"C:\Users\jason\Desktop\tori\kha\concept-mesh\concept_mesh_data.json"),
+
+Line 26: Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh_data.json"),
+
+Line 70: print("   - C:\\Users\\jason\\Desktop\\tori\\kha\\concept_mesh\\concept_mesh_data.json")
+
+
+File: final_concept_fix.py
+----------------------------------------
+Line 31: for fname in ['concept_mesh_data.json', 'concepts.json']:
+
+
+File: fix_all_concept_mesh_issues.py
+----------------------------------------
+Line 47: Path(__file__).parent.parent / "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 50: Path(__file__).parent.parent / "concept_mesh_data.json",
+
+Line 126: diffs_file = base_path / "concept_mesh_diffs.json"
+  FIX: Use data/concept_db.json for concepts
+
+Line 165: "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 166: "concept_mesh_data.json",
+
+
+File: fix_concept_db_critical.py
+----------------------------------------
+Line 27: (Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh_data.json"), concept_file),
+
+Line 30: (Path(r"C:\Users\jason\Desktop\tori\kha\concept-mesh\concept_mesh_data.json"), concept_file),
+
+Line 69: for fname in ['concept_mesh_data.json', 'concepts.json']:
+
+
+File: fix_concept_filenames.py
+----------------------------------------
+Line 49: - Files: concept_mesh_data.json and concepts.json
+
+
+File: fix_concept_files.py
+----------------------------------------
+Line 45: mesh_data_file = concept_mesh_dir / "concept_mesh_data.json"
+
+Line 50: Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh_data.json"),
+
+Line 64: print(f"✓ Created empty concept_mesh_data.json")
+
+
+File: fix_concept_mesh_import.py
+----------------------------------------
+Line 33: self.data_file = Path(__file__).parent / "concept_mesh_data.json"
+
+
+File: fix_concept_mesh_loader.py
+----------------------------------------
+Line 30: Path(__file__).parent.parent / "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 33: Path(__file__).parent.parent / "concept_mesh_data.json",
+
+Line 99: print("   1. concept_mesh_diffs.json")
+  FIX: Use data/concept_db.json for concepts
+
+Line 102: print("   4. concept_mesh_data.json")
+
+
+File: fix_critical_concept_files.py
+----------------------------------------
+Line 109: print("  • soliton_concept_memory.json → data/concept_db.json")
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 110: print("  • concept_mesh_data.json → data/concept_db.json")
+
+Line 111: print("  • concept_mesh_diffs.json → data/concept_db.json")
+  FIX: Use data/concept_db.json for concepts
+
+Line 112: print("  • data/concept_mesh/concepts.json → data/concept_db.json")
+
+
+File: fix_empty_lattice.py
+----------------------------------------
+Line 70: """Fix the concept_mesh_data.json file"""
+
+Line 72: concept_mesh_file = Path("concept_mesh_data.json")
+
+Line 104: print(f"\n✅ Updated concept_mesh_data.json with {len(data['concepts'])} concepts")
+
+
+File: fix_encoding_issues.py
+----------------------------------------
+Line 92: Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh_data.json"),
+
+
+File: fix_immediate_issues.py
+----------------------------------------
+Line 44: Path(__file__).parent.parent / "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 45: Path(__file__).parent.parent / "concept_mesh_data.json",
+
+Line 124: diffs_file = base_path / "concept_mesh_diffs.json"
+  FIX: Use data/concept_db.json for concepts
+
+
+File: fix_system_components.py
+----------------------------------------
+Line 1: #!/usr/bin/env python3\n\"\"\"\n🔧 TORI System Component Fixes\nFixes all critical loading issues ide
+
+
+File: init_concept_mesh_data.py
+----------------------------------------
+Line 70: "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 71: "concept_mesh_data.json",
+
+Line 72: "soliton_concept_memory.json",
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 73: "data/concept_mesh/concepts.json"
+
+
+File: init_concept_mesh_data_canonical.py
+----------------------------------------
+Line 41: Path("concept_mesh_data.json"),
+
+Line 43: Path("concept_mesh_diffs.json"),
+  FIX: Use data/concept_db.json for concepts
+
+Line 44: Path("data/concept_mesh/concepts.json"),
+
+
+File: init_concept_mesh_data_simple.py
+----------------------------------------
+Line 36: # Also create concept_mesh_diffs.json
+  FIX: Use data/concept_db.json for concepts
+
+Line 37: diffs_file = Path("concept_mesh_diffs.json")
+  FIX: Use data/concept_db.json for concepts
+
+Line 42: print("[OK] Created concept_mesh_diffs.json")
+  FIX: Use data/concept_db.json for concepts
+
+Line 44: # Create concept_mesh_data.json as well
+
+Line 45: mesh_data_file = Path("concept_mesh_data.json")
+
+Line 50: print("[OK] Created concept_mesh_data.json")
+
+Line 55: print("  - data/concept_mesh/concepts.json")
+
+Line 56: print("  - concept_mesh_diffs.json")
+  FIX: Use data/concept_db.json for concepts
+
+Line 57: print("  - concept_mesh_data.json")
+
+
+File: prioritize_concept_fixes.py
+----------------------------------------
+Line 93: print("   1. Replace 'soliton_concept_memory.json' → 'data/concept_db.json'")
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 94: print("   2. Replace 'concept_mesh_data.json' → 'data/concept_db.json'")
+
+Line 133: print("# Replace soliton_concept_memory.json references:")
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 136: print("# Replace concept_mesh_data.json references:")
+
+
+File: restore_concept_database.py
+----------------------------------------
+Line 16: concept_mesh_data_path = ROOT_DIR / "concept_mesh_data.json"
+
+Line 18: print(f"✅ Found concept_mesh_data.json with concept data")
+
+Line 39: print("❌ concept_mesh_data.json not found in root directory")
+
+
+File: seed_concept_mesh.py
+----------------------------------------
+Line 17: CONCEPT_MESH_DATA_PATH = Path(__file__).parent / "concept_mesh_data.json"
+
+Line 80: """Seed the concept_mesh_data.json file with initial concepts."""
+
+Line 81: print(f"Seeding concept_mesh_data.json...")
+
+Line 106: print(f"Added {len(SEED_CONCEPTS)} seed concepts to concept_mesh_data.json")
+
+
+File: smart_mirror.py
+----------------------------------------
+Line 41: "concept_mesh_data.json",
+
+
+File: test_concept_mesh_3_fixed.py
+----------------------------------------
+Line 419: "concept_mesh_data.json",
+
+Line 420: "soliton_concept_memory.json",
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 422: "data/soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+Line 942: "concept_mesh_data.json",
+
+Line 943: "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: test_concept_mesh_e2e.py
+----------------------------------------
+Line 227: "concept_mesh_data.json",
+
+Line 228: "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: test_concept_mesh_e2e_old.py
+----------------------------------------
+Line 534: "concept_mesh_data.json",
+
+Line 535: "soliton_concept_memory.json"
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: test_unified_mesh_parameterization.py
+----------------------------------------
+Line 173: legacy_file = Path("concept_mesh_data.json")
+
+Line 205: print("   - NO concept_mesh_data.json (legacy file)")
+
+
+File: tori_comprehensive_diagnostic.py
+----------------------------------------
+Line 150: tori_root / "soliton_concept_memory.json",
+  FIX: Remove this file reference - use data/concept_db.json
+
+
+File: update_concept_mesh_references.py
+----------------------------------------
+Line 15: "concept_mesh_data.json",
+
+Line 18: "data/concept_mesh/concepts.json",
+
+Line 19: "concept_mesh_diffs.json",
+  FIX: Use data/concept_db.json for concepts
+
+Line 131: print("  1. Delete old concept files (concept_mesh_data.json, concepts.json)")
+
+
+File: verify_canonical_concept_mesh.py
+----------------------------------------
+Line 45: Path("concept_mesh_data.json"),
+
+Line 47: Path("concept_mesh_diffs.json"),
+  FIX: Use data/concept_db.json for concepts
+
+Line 48: Path("prajna/concept_mesh_data.json"),
+
+
+File: verify_mesh_separation.py
+----------------------------------------
+Line 18: "concept_mesh_data.json",  # Legacy default
+
+Line 131: print("❌ CONCEPT_MESH_PATH not set (will use default: concept_mesh_data.json)")
+
+
+File: verify_phase3_memory.py
+----------------------------------------
+Line 89: Path("concept_mesh_data.json"),
+
+Line 91: Path("prajna/concept_mesh_data.json")
+
+
+File: verify_phase5_runtime.py
+----------------------------------------
+Line 29: Path("concept_mesh_data.json"),
+
+Line 32: Path("prajna/concept_mesh_data.json")
+
+
+File: verify_tori_ready.py
+----------------------------------------
+Line 18: (Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh\concept_mesh_data.json"), "Mesh data"),
+
+

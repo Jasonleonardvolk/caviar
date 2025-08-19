@@ -1,0 +1,67 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Bundle Shaders",
+      "type": "npm",
+      "script": "bundle-shaders",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "detail": "Bundle all WGSL shaders into shaderSources.ts"
+    },
+    {
+      "label": "Watch Shaders",
+      "type": "npm",
+      "script": "watch-shaders",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Shader Auto-Bundler.*$",
+          "endsPattern": "^.*Bundle complete.*$"
+        }
+      },
+      "detail": "Watch shader files and auto-bundle on changes"
+    },
+    {
+      "label": "Validate Shaders",
+      "type": "npm",
+      "script": "validate-shaders",
+      "group": "test",
+      "problemMatcher": {
+        "owner": "wgsl",
+        "pattern": {
+          "regexp": "^❌\\s+(.+\\.wgsl)\\s+-\\s+(.*)$",
+          "file": 1,
+          "message": 2
+        }
+      },
+      "detail": "Validate all shaders with strict checking"
+    },
+    {
+      "label": "Setup Shaders",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "Setup-WebGPU-Shaders.ps1"
+      ],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Complete shader setup and consolidation"
+    }
+  ]
+}

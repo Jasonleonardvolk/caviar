@@ -1,0 +1,948 @@
+﻿≡ƒô▒ Loaded device limits from ${IRIS_ROOT}\tools\shaders\device_limits\iphone15.json
+≡ƒÜÇ Shader Quality Gate v2.0
+================================
+
+Γ£à Naga found (version: 26.0.0)
+  Using syntax: naga <file>
+node.exe : ΓÜá∩╕Å Tint not found. Some transpilation checks will be skipped.
+At ${IRIS_ROOT}\Run-IrisReleaseGate.ps1:336 char:25
++ ... derOutput = & node $validatorScript --dir=frontend --limits=$limits - ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá∩╕Å Tint not...ill be skipped.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+≡ƒöì Found 75 WGSL files in ${IRIS_ROOT}\frontend
+
+
+≡ƒôä frontend\hybrid\wgsl\lightFieldComposerEnhanced.wgsl
+  ΓÜá∩╕Å  Line 161: Consider using 'const' instead of 'let' for 'foveationStrength'
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\effects\chromaticAberration.wgsl
+  ΓÜá∩╕Å  Line 24: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Entry point main at Compute is invalid[0m
+ [0m[36m=[0m Uses operations forbidden at this stage
+
+
+
+≡ƒôä frontend\lib\webgpu\effects\dofLight.wgsl
+  ΓÜá∩╕Å  Line 30: Dynamic array access 'taps[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 31: Dynamic array access 'weights[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 35: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Entry point main at Compute is invalid[0m
+ [0m[36m=[0m Uses operations forbidden at this stage
+
+
+
+≡ƒôä frontend\lib\webgpu\effects\motionBlend.wgsl
+  ΓÜá∩╕Å  Line 23: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Entry point main at Compute is invalid[0m
+ [0m[36m=[0m Uses operations forbidden at this stage
+
+
+
+≡ƒôä frontend\lib\webgpu\pipelines\jointBilateralUpsample.wgsl
+  ΓÜá∩╕Å  Line 54: Dynamic array access 'outHi[idx(gid.x, gid.y, params.hiW)]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `;`, found "?"
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\pipelines\.temp_jointBilateralUpsample.wgsl:53:27
+   Γöé
+53 Γöé   let out = (wsum > 1e-6) ? acc / wsum : textureSample(depthLo, samp, uvLo).r;
+   Γöé                           ^ expected `;`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\pipelines\parallaxComposite.basic.wgsl
+  ΓÜá∩╕Å  Line 22: Consider using 'const' instead of 'let' for 'w'
+  ΓÜá∩╕Å  Line 26: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `;`, found "?"
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\pipelines\.temp_parallaxComposite.basic.wgsl:25:28
+   Γöé
+25 Γöé   let color = (wsum > 0.0) ? vec4f(acc / wsum, 1.0) : vec4f(0.0,0.0,0.0,1.0);
+   Γöé                            ^ expected `;`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\pipelines\parallaxComposite.subgroup.wgsl
+  ΓÜá∩╕Å  Line 35: Consider using 'const' instead of 'let' for 'w'
+  ΓÜá∩╕Å  Line 51: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: the `subgroups` enable-extension is not yet supported
+  ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\pipelines\.temp_parallaxComposite.subgroup.wgsl:2:8
+  Γöé
+2 Γöé enable subgroups;
+  Γöé        ^^^^^^^^^ this enable-extension specifies standard functionality which is not yet implemented in Naga
+  Γöé
+  = note: Let Naga maintainers know that you ran into this at <https://github.com/gfx-rs/wgpu/issues/5555>, so they can prioritize it!
+
+
+
+
+≡ƒôä frontend\lib\webgpu\pipelines\viewBlendOcclusion.wgsl
+  ΓÜá∩╕Å  Line 50: Dynamic array access 'outImg[idx(gid.x, gid.y, params.width)]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Entry point main at Compute is invalid[0m
+ [0m[36m=[0m Uses operations forbidden at this stage
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\adaptive_optics_correction.wgsl
+  ΓÜá∩╕Å  Line 90: Dynamic array access 'field[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 90: Dynamic array access 'field[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\avatarShader.wgsl
+  ΓÜá∩╕Å  Line 18: vec3 in storage buffer should be followed by padding or another vec3
+  ΓÜá∩╕Å  Line 25: vec3 in storage buffer should be followed by padding or another vec3
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\bitReversal.wgsl
+  ΓÜá∩╕Å  Line 60: Dynamic array access 'bit_reversal[clamp_index_dyn(i, arrayLength(&bit_reversal))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'output[clamp_index_dyn(offset + j, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'input[clamp_index_dyn(offset + i, arrayLength(&input))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\butterflyStage.wgsl
+  ΓÜá∩╕Å  Line 76: Dynamic array access 'twiddles[clamp_index_dyn(twiddle_idx, arrayLength(&twiddles))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 79: Dynamic array access 'input[clamp_index_dyn(idx_a, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 80: Dynamic array access 'input[clamp_index_dyn(idx_b, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'output[clamp_index_dyn(idx_a, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'output[clamp_index_dyn(idx_b, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_data[shared_idx_a]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'input[clamp_index_dyn(idx_a, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_data[shared_idx_b]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'input[clamp_index_dyn(idx_b, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 140: Dynamic array access 'shared_data[shared_idx_a]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 143: Dynamic array access 'shared_data[shared_idx_b]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 147: Dynamic array access 'twiddles[clamp_index_dyn(twiddle_idx, arrayLength(&twiddles))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 151: Dynamic array access 'output[clamp_index_dyn(idx_a, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 152: Dynamic array access 'output[clamp_index_dyn(idx_b, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\common\reproject_kspace_fresnel.wgsl
+  ΓÜá∩╕Å  Line 55: Consider using 'const' instead of 'let' for 'pixel_size'
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'field_in[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 59: Dynamic array access 'field_out[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\common\transfer_lut1d.wgsl
+  ΓÜá∩╕Å  Line 91: Dynamic array access 'field_out[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 91: Dynamic array access 'field_in[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\display\lenticular_interleave.wgsl
+  ΓÜá∩╕Å  Line 36: Dynamic array access 'p[vid]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\display\phase_field_to_views.wgsl
+  ΓÜá∩╕Å  Line 56: Dynamic array access 'fieldReal[fieldIdx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 57: Dynamic array access 'fieldImag[fieldIdx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\experimental\hybridWavefieldBlend_v2.wgsl
+  ΓÜá∩╕Å  Line 168: Dynamic array access 'phase_diversity_masks[mask_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 353: Dynamic array access 'shared_stats[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 360: Dynamic array access 'shared_stats[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 360: Dynamic array access 'shared_stats[local_idx + stride]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: name `coherent` is a reserved keyword
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\experimental\.temp_hybridWavefieldBlend_v2.wgsl:100:9
+    Γöé
+100 Γöé     let coherent = a * alpha + b * (1.0 - alpha);
+    Γöé         ^^^^^^^^ definition of `coherent`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\experimental\propagation_v2.wgsl
+  Γ¥î Line 374: Total invocations (1024) exceeds device limit (256)
+  ΓÜá∩╕Å  Line 224: Dynamic array access 'hidden1[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 224: Dynamic array access 'input_vec[j]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 224: Dynamic array access 'neural_weights[clamp_index_dyn(weight_idx, arrayLength(&neural_weights))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 226: Dynamic array access 'hidden1[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 226: Dynamic array access 'hidden1[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 226: Dynamic array access 'neural_bias[clamp_index_dyn(i, arrayLength(&neural_bias))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 234: Dynamic array access 'output[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 234: Dynamic array access 'hidden1[j]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 234: Dynamic array access 'neural_weights[clamp_index_dyn(weight_idx, arrayLength(&neural_weights))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 236: Dynamic array access 'output[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 236: Dynamic array access 'output[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 392: Dynamic array access 'shared_field[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 402: Dynamic array access 'shared_field[shared_idx]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: no definition in scope for identifier: `simdgroupShuffleDown`
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\experimental\.temp_propagation_v2.wgsl:332:25
+    Γöé
+332 Γöé             simd_sum += simdgroupShuffleDown(simd_sum, offset);
+    Γöé                         ^^^^^^^^^^^^^^^^^^^^ unknown identifier
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\experimental\roi_interest_map_enhanced.wgsl
+  ΓÜá∩╕Å  Line 33: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 33: Dynamic array access 'currField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 34: Dynamic array access 'tile_prev[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 34: Dynamic array access 'prevField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 77: Dynamic array access 'tile_curr[ly * 10u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 78: Dynamic array access 'tile_prev[ly * 10u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 90: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 113: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 138: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 159: Dynamic array access 'interest[id]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `{`, found "loadTile"
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\experimental\.temp_roi_interest_map_enhanced.wgsl:69:37
+   Γöé
+69 Γöé     if (lid.x == 0u && lid.y == 0u) loadTile(0u, 0u, gx - 1, gy - 1);
+   Γöé                                     ^^^^^^^^ expected `{`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\experimental\schrodinger_biharmonic_enhanced.wgsl
+  ΓÜá∩╕Å  Line 30: Dynamic array access 'tile[ly * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 30: Dynamic array access 'inField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 69: Dynamic array access 'tile[ly * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 72: Dynamic array access 'tile[ly * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 73: Dynamic array access 'tile[ly * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 74: Dynamic array access 'tile[(ly - 1u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 75: Dynamic array access 'tile[(ly + 1u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'tile[ly * 12u + (lx - 2u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'tile[ly * 12u + (lx + 2u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 88: Dynamic array access 'tile[(ly - 2u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 89: Dynamic array access 'tile[(ly + 2u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 91: Dynamic array access 'tile[(ly - 1u) * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 92: Dynamic array access 'tile[(ly - 1u) * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 93: Dynamic array access 'tile[(ly + 1u) * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'tile[(ly + 1u) * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 115: Dynamic array access 'outField[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\experimental\ultimateHolographicPipeline.wgsl
+  ΓÜá∩╕Å  Line 38: Dynamic array access 'spectral_fields[lambda]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 92: Dynamic array access 'volume_cache[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 108: Dynamic array access 'hilbert[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'giant_buffer[base + i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'data[i]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: name `meta` is a reserved keyword
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\experimental\.temp_ultimateHolographicPipeline.wgsl:69:9
+   Γöé
+69 Γöé     let meta = apply_metamaterial_cloaking(conscious);
+   Γöé         ^^^^ definition of `meta`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\crop_copy.wgsl
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\fft\.temp_crop_copy.wgsl:12:15
+   Γöé
+12 Γöé   srcW   : u32;
+   Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\fft_stockham_1d.wgsl
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'src[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'src[i1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 96: Dynamic array access 'twiddle[twiddle_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 100: Dynamic array access 'dst[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 101: Dynamic array access 'dst[i1]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\fft_stockham_subgroup.wgsl
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'shared_data[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 108: Dynamic array access 'shared_data[partner_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 173: Dynamic array access 'src[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 174: Dynamic array access 'src[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 178: Dynamic array access 'twiddle[twiddle_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 185: Dynamic array access 'dst[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 186: Dynamic array access 'dst[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 190: Dynamic array access 'dst[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 191: Dynamic array access 'dst[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 218: Dynamic array access 'src[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 219: Dynamic array access 'src[i1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 224: Dynamic array access 'twiddle[twiddle_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 228: Dynamic array access 'dst[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 229: Dynamic array access 'dst[i1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 253: Dynamic array access 'src[base]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 254: Dynamic array access 'src[base + m]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 255: Dynamic array access 'src[base + m * 2u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 256: Dynamic array access 'src[base + m * 3u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 260: Dynamic array access 'twiddle[k * step]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 261: Dynamic array access 'twiddle[k * step * 2u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 262: Dynamic array access 'twiddle[k * step * 3u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 268: Dynamic array access 'dst[base]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 269: Dynamic array access 'dst[base + m]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 270: Dynamic array access 'dst[base + m * 2u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 271: Dynamic array access 'dst[base + m * 3u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 334: Dynamic array access 'src[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 335: Dynamic array access 'src[i1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 339: Dynamic array access 'twiddle[twiddle_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 343: Dynamic array access 'dst[i0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 344: Dynamic array access 'dst[i1]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: unknown scalar type: `vec2<f32>`
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\fft\.temp_fft_stockham_subgroup.wgsl:54:67
+   Γöé
+54 Γöé fn butterfly_r2(a: vec2<f32>, b: vec2<f32>, w: vec2<f32>) -> vec2<vec2<f32>> {
+   Γöé                                                                   ^^^^^^^^^ unknown scalar type
+   Γöé
+   = note: Valid scalar types are f32, f64, i32, u32, bool
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\normalize_scale.wgsl
+  ΓÜá∩╕Å  Line 50: Dynamic array access 'field[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 51: Dynamic array access 'field[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 55: Dynamic array access 'shared_energy[lid.x]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'shared_energy[lid.x]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 68: Dynamic array access 'shared_energy[lid.x]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 68: Dynamic array access 'shared_energy[lid.x + stride]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 75: Dynamic array access 'energy[gid.x / 256u]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 95: Dynamic array access 'field[gid.x]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+  ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\fft\.temp_normalize_scale.wgsl:8:15
+  Γöé
+8 Γöé     width: u32;
+  Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\pad_copy.wgsl
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+   ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\fft\.temp_pad_copy.wgsl:12:15
+   Γöé
+12 Γöé   srcW   : u32;
+   Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fft\transpose_tiled.wgsl
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'tile[tile_index(lid.x, lid.y)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'src[src_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 50: Dynamic array access 'tile[tile_index(lid.x, lid.y)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'tile[tile_index(lid.y, lid.x)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 67: Dynamic array access 'dst[dst_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'tile[tile_index(lid.x, lid.y)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'src[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'dst[trans_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'tile[tile_index(lid.y, lid.x)]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+  ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\fft\.temp_transpose_tiled.wgsl:8:15
+  Γöé
+8 Γöé     width: u32;   // Input width
+  Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\fftShift.wgsl
+  ΓÜá∩╕Å  Line 39: Dynamic array access 'output[clamp_index_dyn(batch * N2 + j, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 39: Dynamic array access 'input[clamp_index_dyn(batch * N2 + i, arrayLength(&input))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\learned_wave_operator.wgsl
+  ΓÜá∩╕Å  Line 85: Dynamic array access 'kernel[k_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'bias[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 117: Dynamic array access 'kernel2[k_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 128: Dynamic array access 'outField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'outField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'inField[idx]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Function [0] 'at' is invalid[0m
+   [0m[36mΓöîΓöÇ[0m .temp_learned_wave_operator.wgsl:22:1
+   [0m[36mΓöé[0m  
+[0m[36m22[0m [0m[36mΓöé[0m [0m[31mΓò¡[0m [0m[31mfn at(buf: ptr<storage, array<vec2<f32>>, read>, x: i32, y: i32) -> vec2<f32> {[0m
+[0m[36m23[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let xi = clamp(x, 0, i32(p.width) - 1);[0m
+[0m[36m24[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let yi = clamp(y, 0, i32(p.height) - 1);[0m
+[0m[36m25[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let idx = u32(yi) * p.width + u32(xi);[0m
+   [0m[36m┬╖[0m [0m[31mΓöé[0m
+[0m[36m28[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    }[0m
+[0m[36m29[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    return vec2<f32>(0.0, 0.0);[0m
+   [0m[36mΓöé[0m [0m[31mΓò░[0m[0m[31mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ^ naga::ir::Function [0][0m
+   [0m[36mΓöé[0m  
+   [0m[36m=[0m Argument 'buf' at index 0 is a pointer of space Storage { access: StorageAccess(LOAD) }, which can't be passed into functions.
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\lenticularInterlace.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\lightFieldComposer.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 49: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 65: Dynamic array access 'depths[depth_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 85: Dynamic array access 'outputWave[clamp_index_dyn(idx, arrayLength(&outputWave))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl
+  ΓÜá∩╕Å  Line 158: Dynamic array access 'shared_field_r[clamped_shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 159: Dynamic array access 'shared_field_g[clamped_shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 160: Dynamic array access 'shared_field_b[clamped_shared_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\neuralHolography.wgsl
+  ΓÜá∩╕Å  Line 347: Consider using 'const' instead of 'let' for 'neural_weight'
+  ΓÜá∩╕Å  Line 42: vec3 in storage buffer should be followed by padding or another vec3
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 131: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 132: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 140: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 141: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 142: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 143: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 144: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 145: Dynamic array access 'encoded[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 169: Dynamic array access 'hash_table[clamp_index_dyn(table_idx, arrayLength(&hash_table))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 188: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 196: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 196: Dynamic array access 'activations[j]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 196: Dynamic array access 'nn_weights[clamp_index_dyn(weight_idx, arrayLength(&nn_weights))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 203: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 203: Dynamic array access 'nn_biases[clamp_index_dyn(bias_idx, arrayLength(&nn_biases))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 208: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 208: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 215: Dynamic array access 'next_activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 215: Dynamic array access 'activations[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 245: Dynamic array access 'basis_real[clamp_index_dyn(basis_idx, arrayLength(&basis_real))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 246: Dynamic array access 'basis_imag[clamp_index_dyn(basis_idx, arrayLength(&basis_imag))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 248: Dynamic array access 'basis_coeffs[clamp_index_dyn(i, arrayLength(&basis_coeffs))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 395: Dynamic array access 'shared_activations[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 401: Dynamic array access 'shared_activations[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 405: Dynamic array access 'shared_activations[i]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\neural_radiance_holography_v2.wgsl
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'prevField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 129: Dynamic array access 'prevField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'prevField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 133: Dynamic array access 'outField[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\normalize.wgsl
+  ΓÜá∩╕Å  Line 41: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 42: Dynamic array access 'output[clamp_index_dyn(idx, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\phaseOcclusion.wgsl
+  ΓÜá∩╕Å  Line 32: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 33: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 36: Dynamic array access 'occlusion[clamp_index_dyn(idx, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 41: Dynamic array access 'occlusion[clamp_index_dyn(idx + 1u, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 44: Dynamic array access 'occlusion[clamp_index_dyn(idx - 1u, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'occlusion[clamp_index_dyn(idx + w, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 50: Dynamic array access 'occlusion[clamp_index_dyn(idx - w, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 70: Dynamic array access 'outputWave[output_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 80: Dynamic array access 'outputWave[output_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\post\applyPhaseLUT.wgsl
+  Γ¥î Line 26: Duplicate binding: @group(0) @binding(0)
+  Γ¥î Line 27: Duplicate binding: @group(0) @binding(1)
+  Γ¥î Line 28: Duplicate binding: @group(0) @binding(2)
+  Γ¥î Line 29: Duplicate binding: @group(0) @binding(3)
+  ΓÜá∩╕Å  Line 4: Dynamic array access 'f32[W*H]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 5: Dynamic array access 'f32[W*H]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 6: Dynamic array access 'f32[lutW*lutH]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 54: Dynamic array access 'dphiBuf[i00]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 55: Dynamic array access 'dphiBuf[i10]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 56: Dynamic array access 'dphiBuf[i01]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 57: Dynamic array access 'dphiBuf[i11]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 69: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 70: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 85: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\post\phasePolisher.wgsl
+  ΓÜá∩╕Å  Line 28: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 29: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 45: Dynamic array access 'imBuf[iL]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 45: Dynamic array access 'reBuf[iL]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 46: Dynamic array access 'imBuf[iR]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 46: Dynamic array access 'reBuf[iR]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'imBuf[iU]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'reBuf[iU]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'imBuf[iD]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'reBuf[iD]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 56: Dynamic array access 'maskBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 73: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 74: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\post\zernikeApply.wgsl
+  ΓÜá∩╕Å  Line 62: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 126: Dynamic array access 'reBuf[i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'imBuf[i]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\propagation.wgsl
+  ΓÜá∩╕Å  Line 352: Dynamic array access 'shared_transfer[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 452: Dynamic array access 'wavelengths[clamp_index_dyn(i, arrayLength(&wavelengths))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 453: Dynamic array access 'spectral_weights[clamp_index_dyn(i, arrayLength(&spectral_weights))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 492: Dynamic array access 'wavelengths[clamp_index_dyn(i, arrayLength(&wavelengths))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 493: Dynamic array access 'spectral_weights[clamp_index_dyn(i, arrayLength(&spectral_weights))]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'prop_params' is invalid[0m
+   [0m[36mΓöîΓöÇ[0m .temp_propagation.wgsl:58:23
+   [0m[36mΓöé[0m
+[0m[36m58[0m [0m[36mΓöé[0m @group(0) @binding(0) [0m[31mvar<uniform> prop_params: PropagationParams;[0m
+   [0m[36mΓöé[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36mΓöé[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [2]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\quantum_superposition.wgsl
+  ΓÜá∩╕Å  Line 59: Dynamic array access 'weights[s]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 70: Dynamic array access 'inStates[state_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 81: Dynamic array access 'inStates[prev_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 96: Dynamic array access 'outField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 113: Dynamic array access 'inStates[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 119: Dynamic array access 'inStates[last_state_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 125: Dynamic array access 'outField[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\roi_interest_map.wgsl
+  ΓÜá∩╕Å  Line 35: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 35: Dynamic array access 'currField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 36: Dynamic array access 'tile_prev[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 36: Dynamic array access 'prevField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 79: Dynamic array access 'tile_curr[ly * 10u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 80: Dynamic array access 'tile_prev[ly * 10u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 92: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 115: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 140: Dynamic array access 'tile_curr[tile_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 161: Dynamic array access 'interest[id]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\roi_map.wgsl
+  ΓÜá∩╕Å  Line 44: Dynamic array access 'SOBEL_X[kernel_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 45: Dynamic array access 'SOBEL_Y[kernel_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 57: Dynamic array access 'currentField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'previousField[idx]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected expression, found ""
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\.temp_roi_map.wgsl:131:7
+    Γöé
+131 Γöé     //
+    Γöé       ^ expected expression
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\schrodinger_biharmonic.wgsl
+  ΓÜá∩╕Å  Line 30: Dynamic array access 'tile[ly * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 30: Dynamic array access 'inField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 69: Dynamic array access 'tile[ly * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 72: Dynamic array access 'tile[ly * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 73: Dynamic array access 'tile[ly * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 74: Dynamic array access 'tile[(ly - 1u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 75: Dynamic array access 'tile[(ly + 1u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'tile[ly * 12u + (lx - 2u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'tile[ly * 12u + (lx + 2u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 88: Dynamic array access 'tile[(ly - 2u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 89: Dynamic array access 'tile[(ly + 2u) * 12u + lx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 91: Dynamic array access 'tile[(ly - 1u) * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 92: Dynamic array access 'tile[(ly - 1u) * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 93: Dynamic array access 'tile[(ly + 1u) * 12u + (lx - 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'tile[(ly + 1u) * 12u + (lx + 1u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 115: Dynamic array access 'outField[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\schrodinger_cranknicolson.wgsl
+  ΓÜá∩╕Å  Line 56: Dynamic array access 'inField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 61: Dynamic array access 'tempField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 74: Dynamic array access 'inField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 79: Dynamic array access 'tempField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'outField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 93: Dynamic array access 'tempField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 93: Dynamic array access 'outField[id]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Function [1] 'applyH' is invalid[0m
+   [0m[36mΓöîΓöÇ[0m .temp_schrodinger_cranknicolson.wgsl:27:1
+   [0m[36mΓöé[0m  
+[0m[36m27[0m [0m[36mΓöé[0m [0m[31mΓò¡[0m [0m[31mfn applyH(field: ptr<storage, array<vec2<f32>>, read_write>, x: i32, y: i32) -> vec2<f32> {[0m
+[0m[36m28[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let c = (*field)[idx(x, y)];[0m
+[0m[36m29[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    [0m
+[0m[36m30[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    // 5-point Laplacian[0m
+   [0m[36m┬╖[0m [0m[31mΓöé[0m
+[0m[36m44[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    // H*psi = -alpha*lap + beta*bih (ignoring potential for stability)[0m
+[0m[36m45[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    return -P.alpha * lap + P.beta * bih;[0m
+   [0m[36mΓöé[0m [0m[31mΓò░[0m[0m[31mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ^ naga::ir::Function [1][0m
+   [0m[36mΓöé[0m  
+   [0m[36m=[0m Argument 'field' at index 0 is a pointer of space Storage { access: StorageAccess(LOAD | STORE) }, which can't be passed into functions.
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\schrodinger_kspace_multiply.wgsl
+  ΓÜá∩╕Å  Line 143: Dynamic array access 'density[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 152: Dynamic array access 'fieldK[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 162: Dynamic array access 'fieldK[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 191: Dynamic array access 'fieldK[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 192: Dynamic array access 'fieldK[id]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+  ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\.temp_schrodinger_kspace_multiply.wgsl:8:15
+  Γöé
+8 Γöé     width: u32;
+  Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\schrodinger_phase_multiply.wgsl
+  ΓÜá∩╕Å  Line 84: Dynamic array access 'field[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'field[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'field[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 161: Dynamic array access 'field[id]' without apparent bounds checking
+  Γ¥î Naga: Could not parse WGSL:
+error: expected `,`, found ";"
+  ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\.temp_schrodinger_phase_multiply.wgsl:8:15
+  Γöé
+8 Γöé     width: u32;
+  Γöé               ^ expected `,`
+
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\schrodinger_splitstep.wgsl
+  ΓÜá∩╕Å  Line 104: Consider using 'const' instead of 'let' for 'margin'
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'outField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'inField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 78: Dynamic array access 'outField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 78: Dynamic array access 'inField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'outField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'inField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 112: Dynamic array access 'outField[id]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 112: Dynamic array access 'inField[id]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\temporal\phasor_accumulate.wgsl
+  ΓÜá∩╕Å  Line 66: Consider using 'const' instead of 'let' for 'pixel_size'
+  ΓÜá∩╕Å  Line 124: Consider using 'const' instead of 'let' for 'pixel_size'
+  ΓÜá∩╕Å  Line 71: Dynamic array access 'field_current[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 76: Dynamic array access 'field_prev1[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'field_prev2[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 94: Dynamic array access 'field_out[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 120: Dynamic array access 'field_current[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'field_prev1[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 138: Dynamic array access 'field_prev2[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 144: Dynamic array access 'field_out[idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\temporal_neural_propagation.wgsl
+  ΓÜá∩╕Å  Line 102: Dynamic array access 'neuralCorrection[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 114: Dynamic array access 'nextField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'currField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 133: Dynamic array access 'prevField[idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 151: Dynamic array access 'nextField[idx]' without apparent bounds checking
+  Γ¥î Naga: [0m[1m[38;5;9merror[0m[1m: Function [0] 'at' is invalid[0m
+   [0m[36mΓöîΓöÇ[0m .temp_temporal_neural_propagation.wgsl:33:1
+   [0m[36mΓöé[0m  
+[0m[36m33[0m [0m[36mΓöé[0m [0m[31mΓò¡[0m [0m[31mfn at(buf: ptr<storage, array<vec2<f32>>, read>, x: i32, y: i32) -> vec2<f32> {[0m
+[0m[36m34[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let xi = clamp(x, 0, i32(p.width) - 1);[0m
+[0m[36m35[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let yi = clamp(y, 0, i32(p.height) - 1);[0m
+[0m[36m36[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let idx = u32(yi) * p.width + u32(xi);[0m
+   [0m[36m┬╖[0m [0m[31mΓöé[0m
+[0m[36m39[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    }[0m
+[0m[36m40[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    return vec2<f32>(0.0, 0.0);[0m
+   [0m[36mΓöé[0m [0m[31mΓò░[0m[0m[31mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ^ naga::ir::Function [0][0m
+   [0m[36mΓöé[0m  
+   [0m[36m=[0m Argument 'buf' at index 0 is a pointer of space Storage { access: StorageAccess(LOAD) }, which can't be passed into functions.
+
+
+
+≡ƒôä frontend\lib\webgpu\shaders\topologicalOverlay.wgsl
+  ΓÜá∩╕Å  Line 67: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 90: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 114: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 278: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 301: Dynamic array access 'charges[other_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 320: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\transpose.wgsl
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'tile[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 61: Dynamic array access 'tile[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 77: Dynamic array access 'output[clamp_index_dyn(transposed_idx, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 77: Dynamic array access 'tile[transposed_local]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 106: Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 106: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 122: Dynamic array access 'output[clamp_index_dyn(transposed_idx, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 122: Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 148: Dynamic array access 'input[clamped_idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 149: Dynamic array access 'output[clamp_index_dyn(idx1, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 149: Dynamic array access 'input[clamped_idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'output[clamp_index_dyn(idx2, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\velocityField.wgsl
+  ΓÜá∩╕Å  Line 88: Dynamic array access 'shared_wavefield[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 114: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 115: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_left, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 116: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_right, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 117: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_down, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 118: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_up, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 145: Dynamic array access 'spatial_freqs[packed_idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 146: Dynamic array access 'spatial_freqs[packed_idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 215: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 256: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx - 1u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 257: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 258: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx + 1u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 262: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx - 10u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 263: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 264: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx + 10u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 329: Dynamic array access 'particles[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 397: Dynamic array access 'particles[clamped_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'shared_spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'shared_phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'shared_amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 124: Dynamic array access 'shared_spatial_freqs[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 125: Dynamic array access 'shared_spatial_freqs[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 126: Dynamic array access 'shared_spatial_freqs[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_spatial_freqs[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 129: Dynamic array access 'shared_phases[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_phases[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 131: Dynamic array access 'shared_phases[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 132: Dynamic array access 'shared_phases[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 134: Dynamic array access 'shared_amplitudes[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'shared_amplitudes[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 136: Dynamic array access 'shared_amplitudes[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 137: Dynamic array access 'shared_amplitudes[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 186: Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 188: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'shared_spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'shared_phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'shared_amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 124: Dynamic array access 'shared_spatial_freqs[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 125: Dynamic array access 'shared_spatial_freqs[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 126: Dynamic array access 'shared_spatial_freqs[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_spatial_freqs[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 129: Dynamic array access 'shared_phases[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_phases[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 131: Dynamic array access 'shared_phases[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 132: Dynamic array access 'shared_phases[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 134: Dynamic array access 'shared_amplitudes[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'shared_amplitudes[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 136: Dynamic array access 'shared_amplitudes[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 137: Dynamic array access 'shared_amplitudes[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 186: Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 188: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\avatarShader.wgsl
+  ΓÜá∩╕Å  Line 18: vec3 in storage buffer should be followed by padding or another vec3
+  ΓÜá∩╕Å  Line 25: vec3 in storage buffer should be followed by padding or another vec3
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\bitReversal.wgsl
+  ΓÜá∩╕Å  Line 60: Dynamic array access 'bit_reversal[clamp_index_dyn(i, arrayLength(&bit_reversal))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'output[clamp_index_dyn(offset + j, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 63: Dynamic array access 'input[clamp_index_dyn(offset + i, arrayLength(&input))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\butterflyStage.wgsl
+  ΓÜá∩╕Å  Line 76: Dynamic array access 'twiddles[clamp_index_dyn(twiddle_idx, arrayLength(&twiddles))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 79: Dynamic array access 'input[clamp_index_dyn(idx_a, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 80: Dynamic array access 'input[clamp_index_dyn(idx_b, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 86: Dynamic array access 'output[clamp_index_dyn(idx_a, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 87: Dynamic array access 'output[clamp_index_dyn(idx_b, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_data[shared_idx_a]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'input[clamp_index_dyn(idx_a, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_data[shared_idx_b]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'input[clamp_index_dyn(idx_b, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 140: Dynamic array access 'shared_data[shared_idx_a]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 143: Dynamic array access 'shared_data[shared_idx_b]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 147: Dynamic array access 'twiddles[clamp_index_dyn(twiddle_idx, arrayLength(&twiddles))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 151: Dynamic array access 'output[clamp_index_dyn(idx_a, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 152: Dynamic array access 'output[clamp_index_dyn(idx_b, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\fftShift.wgsl
+  ΓÜá∩╕Å  Line 39: Dynamic array access 'output[clamp_index_dyn(batch * N2 + j, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 39: Dynamic array access 'input[clamp_index_dyn(batch * N2 + i, arrayLength(&input))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\hybridWavefieldBlend.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\lenticularInterlace.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\lightFieldComposer.wgsl
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\lightFieldComposerEnhanced.wgsl
+  ΓÜá∩╕Å  Line 161: Consider using 'const' instead of 'let' for 'foveationStrength'
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\multiDepthWaveSynth.wgsl
+  ΓÜá∩╕Å  Line 48: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 49: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 65: Dynamic array access 'depths[depth_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 85: Dynamic array access 'outputWave[clamp_index_dyn(idx, arrayLength(&outputWave))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\multiViewSynthesis.wgsl
+  ΓÜá∩╕Å  Line 158: Dynamic array access 'shared_field_r[clamped_shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 159: Dynamic array access 'shared_field_g[clamped_shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 160: Dynamic array access 'shared_field_b[clamped_shared_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\normalize.wgsl
+  ΓÜá∩╕Å  Line 41: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 42: Dynamic array access 'output[clamp_index_dyn(idx, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\phaseOcclusion.wgsl
+  ΓÜá∩╕Å  Line 32: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 33: Dynamic array access 'inputWave[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 36: Dynamic array access 'occlusion[clamp_index_dyn(idx, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 41: Dynamic array access 'occlusion[clamp_index_dyn(idx + 1u, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 44: Dynamic array access 'occlusion[clamp_index_dyn(idx - 1u, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 47: Dynamic array access 'occlusion[clamp_index_dyn(idx + w, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 50: Dynamic array access 'occlusion[clamp_index_dyn(idx - w, arrayLength(&occlusion))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 70: Dynamic array access 'outputWave[output_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 80: Dynamic array access 'outputWave[output_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\propagation.wgsl
+  ΓÜá∩╕Å  Line 289: Dynamic array access 'shared_transfer[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 389: Dynamic array access 'wavelengths[clamp_index_dyn(i, arrayLength(&wavelengths))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 390: Dynamic array access 'spectral_weights[clamp_index_dyn(i, arrayLength(&spectral_weights))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 429: Dynamic array access 'wavelengths[clamp_index_dyn(i, arrayLength(&wavelengths))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 430: Dynamic array access 'spectral_weights[clamp_index_dyn(i, arrayLength(&spectral_weights))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\topologicalOverlay.wgsl
+  ΓÜá∩╕Å  Line 67: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 90: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 114: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 278: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 301: Dynamic array access 'charges[other_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 320: Dynamic array access 'charges[charge_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\transpose.wgsl
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'tile[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 58: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 61: Dynamic array access 'tile[local_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 77: Dynamic array access 'output[clamp_index_dyn(transposed_idx, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 77: Dynamic array access 'tile[transposed_local]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 106: Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 106: Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 122: Dynamic array access 'output[clamp_index_dyn(transposed_idx, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 122: Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 148: Dynamic array access 'input[clamped_idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 149: Dynamic array access 'output[clamp_index_dyn(idx1, arrayLength(&output))]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 149: Dynamic array access 'input[clamped_idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 150: Dynamic array access 'output[clamp_index_dyn(idx2, arrayLength(&output))]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\velocityField.wgsl
+  ΓÜá∩╕Å  Line 88: Dynamic array access 'shared_wavefield[shared_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 114: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 115: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_left, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 116: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_right, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 117: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_down, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 118: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx_up, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 145: Dynamic array access 'spatial_freqs[packed_idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 146: Dynamic array access 'spatial_freqs[packed_idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 215: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 256: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx - 1u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 257: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 258: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx + 1u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 262: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx - 10u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 263: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 264: Dynamic array access 'shared_wavefield[clamp_index_dyn(idx + 10u, SHARED_SIZE)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 329: Dynamic array access 'particles[clamped_idx]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 397: Dynamic array access 'particles[clamped_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\wavefieldEncoder.wgsl
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'shared_spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'shared_phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'shared_amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 124: Dynamic array access 'shared_spatial_freqs[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 125: Dynamic array access 'shared_spatial_freqs[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 126: Dynamic array access 'shared_spatial_freqs[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_spatial_freqs[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 129: Dynamic array access 'shared_phases[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_phases[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 131: Dynamic array access 'shared_phases[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 132: Dynamic array access 'shared_phases[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 134: Dynamic array access 'shared_amplitudes[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'shared_amplitudes[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 136: Dynamic array access 'shared_amplitudes[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 137: Dynamic array access 'shared_amplitudes[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 186: Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 188: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+≡ƒôä frontend\public\hybrid\wgsl\wavefieldEncoder_optimized.wgsl
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'shared_spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 103: Dynamic array access 'spatial_freqs[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'shared_phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 104: Dynamic array access 'phases[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'shared_amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 105: Dynamic array access 'amplitudes[clamped_i]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 124: Dynamic array access 'shared_spatial_freqs[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 125: Dynamic array access 'shared_spatial_freqs[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 126: Dynamic array access 'shared_spatial_freqs[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 127: Dynamic array access 'shared_spatial_freqs[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 129: Dynamic array access 'shared_phases[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 130: Dynamic array access 'shared_phases[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 131: Dynamic array access 'shared_phases[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 132: Dynamic array access 'shared_phases[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 134: Dynamic array access 'shared_amplitudes[idx0]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 135: Dynamic array access 'shared_amplitudes[idx1]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 136: Dynamic array access 'shared_amplitudes[idx2]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 137: Dynamic array access 'shared_amplitudes[idx3]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 186: Dynamic array access 'dispersion_factors[clamp_index_dyn(channel % 3u, 3u)]' without apparent bounds checking
+  ΓÜá∩╕Å  Line 188: Dynamic array access 'phases[phase_idx]' without apparent bounds checking
+  Γ£à Naga: Valid
+
+================================
+≡ƒôè Summary
+  Total: 75
+  Γ£à Passed: 51
+  Γ¥î Failed: 24
+  ΓÜá∩╕Å  Warnings: 508

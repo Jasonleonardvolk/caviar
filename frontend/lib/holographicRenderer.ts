@@ -1,0 +1,688 @@
+// ToriHolographicRenderer - WebGPU-based holographic rendering engine
+// Bridges the Ghost Engine with advanced wave propagation and volumetric rendering
+
+import { PhotoMorphPipeline } from '../../tori_ui_svelte/src/lib/webgpu/photoMorphPipeline';
+import type { WavefieldParameters, OscillatorState } from './holographicEngine';
+
+export class ToriHolographicRenderer {
+  private canvas: HTMLCanvasElement;
+  private device: GPUDevice | null = null;
+  private context: GPUCanvasContext | null = null;
+  private format: GPUTextureFormat = 'bgra8unorm';
+  
+  // Rendering pipelines
+  private volumetricPipeline: GPURenderPipeline | null = null;
+  private particlePipeline: GPURenderPipeline | null = null;
+  private compositePipeline: GPURenderPipeline | null = null;
+  private photoMorphPipeline: PhotoMorphPipeline | null = null;
+  
+  // Render targets
+  private volumeTexture: GPUTexture | null = null;
+  private particleTexture: GPUTexture | null = null;
+  private depthTexture: GPUTexture | null = null;
+  
+  // Uniforms and buffers
+  private timeBuffer: GPUBuffer | null = null;
+  private viewMatrixBuffer: GPUBuffer | null = null;
+  private psiStateBuffer: GPUBuffer | null = null;
+  private particleBuffer: GPUBuffer | null = null;
+  
+  // Animation state
+  private time: number = 0;
+  private renderMode: 'preview' | 'holographic' | 'debug' = 'holographic';
+  private intensity: number = 1.0;
+  private morphProgress: number = 0;
+  private isMorphing: boolean = false;
+  
+  // Volumetric data
+  private volumetricData: Float32Array | null = null;
+  private volumeSize: [number, number, number] = [64, 64, 64];
+  
+  // Particle system
+  private particles: {
+    positions: Float32Array;
+    velocities: Float32Array;
+    colors: Float32Array;
+    life: Float32Array;
+  } | null = null;
+  private maxParticles: number = 10000;
+  
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+  }
+  
+  async initialize(): Promise<void> {
+    // Check WebGPU support
+    if (!navigator.gpu) {
+      throw new Error('WebGPU not supported');
+    }
+    
+    // Request adapter and device
+    const adapter = await navigator.gpu.requestAdapter({
+      powerPreference: 'high-performance'
+    });
+    
+    if (!adapter) {
+      throw new Error('No appropriate GPUAdapter found');
+    }
+    
+    this.device = await adapter.requestDevice({
+      requiredFeatures: ['texture-compression-bc'] // For advanced textures
+    });
+    
+    // Setup canvas context
+    this.context = this.canvas.getContext('webgpu');
+    if (!this.context) {
+      throw new Error('Failed to get WebGPU context');
+    }
+    
+    this.format = navigator.gpu.getPreferredCanvasFormat();
+    this.context.configure({
+      device: this.device,
+      format: this.format,
+      alphaMode: 'premultiplied'
+    });
+    
+    // Initialize pipelines
+    await this.createPipelines();
+    
+    // Initialize buffers
+    this.createBuffers();
+    
+    // Initialize textures
+    this.createTextures();
+    
+    // Initialize photo morph pipeline
+    this.photoMorphPipeline = new PhotoMorphPipeline(this.device);
+    await this.photoMorphPipeline.initialize();
+    
+    console.log('✨ ToriHolographicRenderer initialized with WebGPU');
+  }
+  
+  private async createPipelines() {
+    if (!this.device) return;
+    
+    // Shader code for volumetric rendering
+    const volumetricShaderCode = `
+      struct Uniforms {
+        viewMatrix: mat4x4<f32>,
+        projMatrix: mat4x4<f32>,
+        time: f32,
+        intensity: f32,
+        morphProgress: f32,
+        _padding: f32
+      }
+      
+      struct PsiState {
+        phase: f32,
+        coherence: f32,
+        phases: array<f32, 16>
+      }
+      
+      @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+      @group(0) @binding(1) var<uniform> psiState: PsiState;
+      @group(1) @binding(0) var volumeTexture: texture_3d<f32>;
+      @group(1) @binding(1) var volumeSampler: sampler;
+      
+      struct VertexOutput {
+        @builtin(position) position: vec4<f32>,
+        @location(0) worldPos: vec3<f32>,
+        @location(1) uv: vec3<f32>
+      }
+      
+      @vertex
+      fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+        // Generate cube vertices
+        let x = f32((vertexIndex >> 0u) & 1u);
+        let y = f32((vertexIndex >> 1u) & 1u);
+        let z = f32((vertexIndex >> 2u) & 1u);
+        
+        let pos = vec3<f32>(x - 0.5, y - 0.5, z - 0.5) * 2.0;
+        
+        var output: VertexOutput;
+        output.worldPos = pos;
+        output.uv = vec3<f32>(x, y, z);
+        output.position = uniforms.projMatrix * uniforms.viewMatrix * vec4<f32>(pos, 1.0);
+        
+        return output;
+      }
+      
+      @fragment
+      fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+        // Ray marching for volumetric rendering
+        let rayOrigin = input.worldPos;
+        let rayDir = normalize(input.worldPos - vec3<f32>(0.0, 0.0, -3.0));
+        
+        var color = vec3<f32>(0.0);
+        var alpha = 0.0;
+        
+        // Phase-based color mapping
+        let hue = psiState.phase / 6.28318 * 360.0;
+        let baseColor = hslToRgb(vec3<f32>(hue / 360.0, 0.8, 0.5));
+        
+        // Ray march through volume
+        for (var i = 0; i < 64; i++) {
+          let t = f32(i) / 64.0;
+          let samplePos = rayOrigin + rayDir * t * 2.0;
+          let uvw = (samplePos + 1.0) * 0.5;
+          
+          if (all(uvw >= vec3<f32>(0.0)) && all(uvw <= vec3<f32>(1.0))) {
+            let density = textureSample(volumeTexture, volumeSampler, uvw).r;
+            
+            // Apply psi modulation
+            density *= (1.0 + sin(uniforms.time + psiState.phase) * 0.2);
+            density *= uniforms.intensity;
+            
+            // Morph progress affects density
+            density *= mix(0.3, 1.0, uniforms.morphProgress);
+            
+            // Accumulate color
+            color += baseColor * density * (1.0 - alpha) * 0.1;
+            alpha += density * (1.0 - alpha) * 0.1;
+            
+            if (alpha > 0.95) {
+              break;
+            }
+          }
+        }
+        
+        return vec4<f32>(color, alpha);
+      }
+      
+      fn hslToRgb(hsl: vec3<f32>) -> vec3<f32> {
+        let h = hsl.x;
+        let s = hsl.y;
+        let l = hsl.z;
+        
+        let c = (1.0 - abs(2.0 * l - 1.0)) * s;
+        let x = c * (1.0 - abs((h * 6.0) % 2.0 - 1.0));
+        let m = l - c * 0.5;
+        
+        var rgb: vec3<f32>;
+        if (h < 1.0/6.0) {
+          rgb = vec3<f32>(c, x, 0.0);
+        } else if (h < 2.0/6.0) {
+          rgb = vec3<f32>(x, c, 0.0);
+        } else if (h < 3.0/6.0) {
+          rgb = vec3<f32>(0.0, c, x);
+        } else if (h < 4.0/6.0) {
+          rgb = vec3<f32>(0.0, x, c);
+        } else if (h < 5.0/6.0) {
+          rgb = vec3<f32>(x, 0.0, c);
+        } else {
+          rgb = vec3<f32>(c, 0.0, x);
+        }
+        
+        return rgb + m;
+      }
+    `;
+    
+    // Particle shader code
+    const particleShaderCode = `
+      struct Uniforms {
+        viewMatrix: mat4x4<f32>,
+        projMatrix: mat4x4<f32>,
+        time: f32,
+        intensity: f32,
+        morphProgress: f32,
+        _padding: f32
+      }
+      
+      struct Particle {
+        @location(0) position: vec3<f32>,
+        @location(1) velocity: vec3<f32>,
+        @location(2) color: vec3<f32>,
+        @location(3) life: f32
+      }
+      
+      @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+      
+      struct VertexOutput {
+        @builtin(position) position: vec4<f32>,
+        @location(0) color: vec4<f32>,
+        @location(1) pointSize: f32
+      }
+      
+      @vertex
+      fn vs_main(particle: Particle) -> VertexOutput {
+        var output: VertexOutput;
+        
+        // Animate particle position
+        var pos = particle.position;
+        pos += particle.velocity * uniforms.time * 0.1;
+        
+        // Apply morph influence
+        pos *= mix(0.5, 1.0, uniforms.morphProgress);
+        
+        output.position = uniforms.projMatrix * uniforms.viewMatrix * vec4<f32>(pos, 1.0);
+        output.color = vec4<f32>(particle.color, particle.life * uniforms.intensity);
+        output.pointSize = mix(2.0, 5.0, particle.life);
+        
+        return output;
+      }
+      
+      @fragment
+      fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+        // Circular particle shape
+        let coord = (gl_PointCoord - 0.5) * 2.0;
+        let dist = length(coord);
+        
+        if (dist > 1.0) {
+          discard;
+        }
+        
+        let alpha = 1.0 - dist;
+        return vec4<f32>(input.color.rgb, input.color.a * alpha);
+      }
+    `;
+    
+    // Create shader modules
+    const volumetricShaderModule = this.device.createShaderModule({
+      code: volumetricShaderCode
+    });
+    
+    const particleShaderModule = this.device.createShaderModule({
+      code: particleShaderCode
+    });
+    
+    // Create volumetric pipeline
+    this.volumetricPipeline = this.device.createRenderPipeline({
+      layout: 'auto',
+      vertex: {
+        module: volumetricShaderModule,
+        entryPoint: 'vs_main'
+      },
+      fragment: {
+        module: volumetricShaderModule,
+        entryPoint: 'fs_main',
+        targets: [{
+          format: this.format,
+          blend: {
+            color: {
+              srcFactor: 'src-alpha',
+              dstFactor: 'one-minus-src-alpha',
+              operation: 'add'
+            },
+            alpha: {
+              srcFactor: 'one',
+              dstFactor: 'one-minus-src-alpha',
+              operation: 'add'
+            }
+          }
+        }]
+      },
+      primitive: {
+        topology: 'triangle-list',
+        cullMode: 'back'
+      },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: 'less',
+        format: 'depth24plus'
+      }
+    });
+    
+    // Create particle pipeline
+    this.particlePipeline = this.device.createRenderPipeline({
+      layout: 'auto',
+      vertex: {
+        module: particleShaderModule,
+        entryPoint: 'vs_main',
+        buffers: [{
+          arrayStride: 10 * 4, // 3 pos + 3 vel + 3 color + 1 life
+          stepMode: 'instance',
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x3' },
+            { shaderLocation: 2, offset: 24, format: 'float32x3' },
+            { shaderLocation: 3, offset: 36, format: 'float32' }
+          ]
+        }]
+      },
+      fragment: {
+        module: particleShaderModule,
+        entryPoint: 'fs_main',
+        targets: [{
+          format: this.format,
+          blend: {
+            color: {
+              srcFactor: 'src-alpha',
+              dstFactor: 'one',
+              operation: 'add'
+            },
+            alpha: {
+              srcFactor: 'one',
+              dstFactor: 'one',
+              operation: 'add'
+            }
+          }
+        }]
+      },
+      primitive: {
+        topology: 'point-list'
+      },
+      depthStencil: {
+        depthWriteEnabled: false,
+        depthCompare: 'less',
+        format: 'depth24plus'
+      }
+    });
+  }
+  
+  private createBuffers() {
+    if (!this.device) return;
+    
+    // Time uniform buffer
+    this.timeBuffer = this.device.createBuffer({
+      size: 64, // mat4x4 + vec4
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+    
+    // View matrix buffer
+    this.viewMatrixBuffer = this.device.createBuffer({
+      size: 128, // 2 * mat4x4
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+    
+    // Psi state buffer
+    this.psiStateBuffer = this.device.createBuffer({
+      size: 256, // Enough for phases and metadata
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+    
+    // Initialize particle buffer
+    this.initializeParticles();
+  }
+  
+  private createTextures() {
+    if (!this.device) return;
+    
+    // Volume texture for volumetric rendering
+    this.volumeTexture = this.device.createTexture({
+      size: this.volumeSize,
+      format: 'r8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    
+    // Depth texture
+    this.depthTexture = this.device.createTexture({
+      size: [this.canvas.width, this.canvas.height],
+      format: 'depth24plus',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });
+  }
+  
+  private initializeParticles() {
+    if (!this.device) return;
+    
+    // Create particle data
+    const particleData = new Float32Array(this.maxParticles * 10);
+    
+    for (let i = 0; i < this.maxParticles; i++) {
+      const offset = i * 10;
+      
+      // Position (spherical distribution)
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const radius = Math.random() * 2;
+      
+      particleData[offset + 0] = radius * Math.sin(phi) * Math.cos(theta);
+      particleData[offset + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      particleData[offset + 2] = radius * Math.cos(phi);
+      
+      // Velocity (outward from center)
+      particleData[offset + 3] = particleData[offset + 0] * 0.1;
+      particleData[offset + 4] = particleData[offset + 1] * 0.1;
+      particleData[offset + 5] = particleData[offset + 2] * 0.1;
+      
+      // Color (HSL to RGB)
+      const hue = Math.random();
+      particleData[offset + 6] = hue;
+      particleData[offset + 7] = 0.8;
+      particleData[offset + 8] = 0.5;
+      
+      // Life
+      particleData[offset + 9] = Math.random();
+    }
+    
+    this.particleBuffer = this.device.createBuffer({
+      size: particleData.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+    });
+    
+    this.device.queue.writeBuffer(this.particleBuffer, 0, particleData.buffer);
+  }
+  
+  renderFrame(scene: any, psiState: any) {
+    if (!this.device || !this.context) return;
+    
+    // Update time
+    this.time += 0.016;
+    
+    // Get current texture
+    const commandEncoder = this.device.createCommandEncoder();
+    const textureView = this.context.getCurrentTexture().createView();
+    
+    // Update uniform buffers
+    this.updateUniforms(psiState);
+    
+    // Clear pass
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [{
+        view: textureView,
+        clearValue: { r: 0, g: 0, b: 0, a: 1 },
+        loadOp: 'clear',
+        storeOp: 'store'
+      }],
+      depthStencilAttachment: {
+        view: this.depthTexture!.createView(),
+        depthClearValue: 1.0,
+        depthLoadOp: 'clear',
+        depthStoreOp: 'store'
+      }
+    };
+    
+    const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+    
+    // Render based on mode
+    if (this.renderMode === 'holographic' || this.renderMode === 'debug') {
+      // Render volumetric data
+      if (this.volumetricPipeline && this.volumetricData) {
+        this.renderVolumetric(passEncoder);
+      }
+      
+      // Render particles
+      if (this.particlePipeline && this.particleBuffer) {
+        this.renderParticles(passEncoder);
+      }
+    }
+    
+    // Execute scene render callback
+    if (scene && scene.render) {
+      scene.render(passEncoder);
+    }
+    
+    passEncoder.end();
+    this.device.queue.submit([commandEncoder.finish()]);
+  }
+  
+  private updateUniforms(psiState: any) {
+    if (!this.device) return;
+    
+    // Update time and render uniforms
+    const uniforms = new Float32Array([
+      // View matrix (identity for now)
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, -3, 1,
+      
+      // Projection matrix (perspective)
+      ...this.createProjectionMatrix(),
+      
+      // Time, intensity, morphProgress, padding
+      this.time,
+      this.intensity,
+      this.morphProgress,
+      0
+    ]);
+    
+    this.device.queue.writeBuffer(this.timeBuffer!, 0, uniforms);
+    
+    // Update psi state
+    if (psiState) {
+      const psiData = new Float32Array([
+        psiState.psi_phase || 0,
+        psiState.phase_coherence || 0.8,
+        ...(psiState.oscillator_phases || []).slice(0, 16).concat(new Array(16).fill(0)).slice(0, 16)
+      ]);
+      
+      this.device.queue.writeBuffer(this.psiStateBuffer!, 0, psiData.buffer);
+    }
+  }
+  
+  private createProjectionMatrix(): number[] {
+    const aspect = this.canvas.width / this.canvas.height;
+    const fov = Math.PI / 4;
+    const near = 0.1;
+    const far = 100;
+    
+    const f = 1 / Math.tan(fov / 2);
+    const rangeInv = 1 / (near - far);
+    
+    return [
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (near + far) * rangeInv, -1,
+      0, 0, near * far * rangeInv * 2, 0
+    ];
+  }
+  
+  private renderVolumetric(passEncoder: GPURenderPassEncoder) {
+    if (!this.volumetricPipeline || !this.device) return;
+    
+    passEncoder.setPipeline(this.volumetricPipeline);
+    
+    // Create bind groups
+    const uniformBindGroup = this.device.createBindGroup({
+      layout: this.volumetricPipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: this.timeBuffer! } },
+        { binding: 1, resource: { buffer: this.psiStateBuffer! } }
+      ]
+    });
+    
+    const textureBindGroup = this.device.createBindGroup({
+      layout: this.volumetricPipeline.getBindGroupLayout(1),
+      entries: [
+        { binding: 0, resource: this.volumeTexture!.createView() },
+        { binding: 1, resource: this.device.createSampler({ minFilter: 'linear', magFilter: 'linear' }) }
+      ]
+    });
+    
+    passEncoder.setBindGroup(0, uniformBindGroup);
+    passEncoder.setBindGroup(1, textureBindGroup);
+    
+    // Draw cube (8 vertices for volume bounds)
+    passEncoder.draw(8);
+  }
+  
+  private renderParticles(passEncoder: GPURenderPassEncoder) {
+    if (!this.particlePipeline || !this.device) return;
+    
+    passEncoder.setPipeline(this.particlePipeline);
+    
+    // Create bind group
+    const bindGroup = this.device.createBindGroup({
+      layout: this.particlePipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: this.timeBuffer! } }
+      ]
+    });
+    
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.setVertexBuffer(0, this.particleBuffer!);
+    
+    // Draw particles
+    passEncoder.draw(this.maxParticles);
+  }
+  
+  // Public methods for external control
+  
+  setRenderMode(mode: 'preview' | 'holographic' | 'debug') {
+    this.renderMode = mode;
+  }
+  
+  setIntensity(intensity: number) {
+    this.intensity = Math.max(0, Math.min(2, intensity));
+  }
+  
+  setMorphProgress(progress: number) {
+    this.morphProgress = Math.max(0, Math.min(1, progress));
+  }
+  
+  async loadVolumetricData(data: Float32Array) {
+    if (!this.device || !this.volumeTexture) return;
+    
+    // Convert float array to uint8
+    const uint8Data = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+      uint8Data[i] = Math.floor(data[i] * 255);
+    }
+    
+    // Upload to texture
+    this.device.queue.writeTexture(
+      { texture: this.volumeTexture },
+      uint8Data,
+      { bytesPerRow: this.volumeSize[0], rowsPerImage: this.volumeSize[1] },
+      this.volumeSize
+    );
+    
+    this.volumetricData = data;
+  }
+  
+  async startMorphTransition(duration: number) {
+    this.isMorphing = true;
+    this.morphProgress = 0;
+    
+    const startTime = performance.now();
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      
+      // Apply easing
+      this.morphProgress = this.easeInOutCubic(progress);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        this.isMorphing = false;
+      }
+    };
+    
+    animate();
+  }
+  
+  private easeInOutCubic(t: number): number {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+  
+  dispose() {
+    // Clean up WebGPU resources
+    this.volumeTexture?.destroy();
+    this.depthTexture?.destroy();
+    this.timeBuffer?.destroy();
+    this.viewMatrixBuffer?.destroy();
+    this.psiStateBuffer?.destroy();
+    this.particleBuffer?.destroy();
+    
+    if (this.context) {
+      this.context.unconfigure();
+    }
+    
+    console.log('🧹 ToriHolographicRenderer disposed');
+  }
+}
+
+// Export for compatibility with different import styles
+export default ToriHolographicRenderer;

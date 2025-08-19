@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Format ELFIN files
+cargo run -p elfin_cli -- fmt
+
+# Check units in ELFIN files
+cargo run -p elfin_cli -- check-units templates/
+
+# Run unit tests
+pytest -q

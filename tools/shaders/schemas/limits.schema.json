@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WebGPU Device Limits",
+  "type": "object",
+  "required": [
+    "maxComputeInvocationsPerWorkgroup",
+    "maxComputeWorkgroupSizeX",
+    "maxComputeWorkgroupSizeY",
+    "maxComputeWorkgroupSizeZ"
+  ],
+  "properties": {
+    "label": { 
+      "type": "string",
+      "description": "Human-readable label for this device profile"
+    },
+    "capturedAt": { 
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when captured"
+    },
+    "userAgent": { 
+      "type": "string",
+      "description": "Browser user agent string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["ios", "android", "windows", "mac", "linux", "unknown"],
+      "description": "Platform identifier"
+    },
+    "adapterInfo": { 
+      "type": "object",
+      "properties": {
+        "vendor": { "type": "string" },
+        "architecture": { "type": "string" },
+        "device": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "description": "GPU adapter information"
+    },
+    "features": { 
+      "type": "array", 
+      "items": { "type": "string" },
+      "description": "List of supported WebGPU features"
+    },
+    "maxComputeInvocationsPerWorkgroup": { 
+      "type": "number", 
+      "minimum": 1,
+      "description": "Maximum total invocations in a workgroup"
+    },
+    "maxComputeWorkgroupSizeX": { 
+      "type": "number", 
+      "minimum": 1,
+      "description": "Maximum workgroup size in X dimension"
+    },
+    "maxComputeWorkgroupSizeY": { 
+      "type": "number", 
+      "minimum": 1,
+      "description": "Maximum workgroup size in Y dimension"
+    },
+    "maxComputeWorkgroupSizeZ": { 
+      "type": "number", 
+      "minimum": 1,
+      "description": "Maximum workgroup size in Z dimension"
+    },
+    "maxComputeWorkgroupStorageSize": { 
+      "type": "number", 
+      "minimum": 0,
+      "description": "Maximum workgroup storage size in bytes"
+    },
+    "maxSampledTexturesPerShaderStage": { 
+      "type": "number", 
+      "minimum": 0,
+      "description": "Maximum sampled textures per shader stage"
+    },
+    "maxSamplersPerShaderStage": { 
+      "type": "number", 
+      "minimum": 0,
+      "description": "Maximum samplers per shader stage"
+    },
+    "maxStorageBuffersPerShaderStage": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Maximum storage buffers per shader stage"
+    },
+    "maxUniformBuffersPerShaderStage": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Maximum uniform buffers per shader stage"
+    },
+    "version": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Schema version"
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8,64}$",
+      "description": "SHA checksum of normalized limits"
+    }
+  },
+  "additionalProperties": true
+}

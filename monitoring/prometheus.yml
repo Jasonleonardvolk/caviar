@@ -1,0 +1,85 @@
+# TORI/Saigon Prometheus Configuration
+# =====================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'tori-monitor'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # TORI API metrics
+  - job_name: 'tori-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['tori-api:8001']
+        labels:
+          service: 'tori-api'
+          component: 'inference'
+    
+    # Custom metrics for inference
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'tori_inference_.*'
+        target_label: subsystem
+        replacement: 'inference'
+      
+      - source_labels: [__name__]
+        regex: 'tori_adapter_.*'
+        target_label: subsystem
+        replacement: 'adapter'
+      
+      - source_labels: [__name__]
+        regex: 'tori_mesh_.*'
+        target_label: subsystem
+        replacement: 'mesh'
+
+  # Node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+
+  # GPU metrics (if using nvidia_gpu_exporter)
+  - job_name: 'gpu'
+    static_configs:
+      - targets: ['gpu-exporter:9835']
+        labels:
+          service: 'gpu-exporter'
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+
+  # PostgreSQL metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+
+# Custom recording rules for TORI metrics
+# These will be loaded from separate files

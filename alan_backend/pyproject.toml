@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alan-backend"
+version = "0.9.0"  # Beta version as per the implementation plan
+description = "ALAN neuromorphic reasoning core with Banksy-spin oscillators and TRS controller"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "ALAN Team"}
+]
+dependencies = [
+    "numpy>=1.20.0,<2.0.0",
+    "scipy>=1.7.0,<2.0.0",
+    "matplotlib>=3.4.0,<4.0.0",
+    "pytest>=6.0.0,<8.0.0",
+    "pytest-cov>=2.12.0,<3.0.0",
+    "hypothesis>=6.0.0,<7.0.0",
+    "mypy>=0.910,<1.0.0",
+    "flake8>=3.9.0,<6.0.0",
+    "black>=21.5b2,<24.0.0",
+    "pydantic>=1.9.0,<2.0.0",
+    "flatbuffers>=23.5.26,<24.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "tox>=3.24.0",
+    "pre-commit>=2.13.0",
+    "sphinx>=4.0.0",
+    "sphinx-rtd-theme>=0.5.2",
+    "numpydoc>=1.1.0",
+]
+hardware = [
+    "pyserial>=3.5",
+    "pyusb>=1.2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["alan_backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["core/tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "hardware: marks tests that require hardware (deselect with '-m \"not hardware\"')",
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = ["numpy.*", "scipy.*", "matplotlib.*"]
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.coverage.run]
+source = ["alan_backend"]
+omit = ["*/__init__.py", "*/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]

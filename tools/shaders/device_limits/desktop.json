@@ -1,0 +1,10 @@
+{
+  "maxComputeInvocationsPerWorkgroup": 1024,
+  "maxComputeWorkgroupSizeX": 1024,
+  "maxComputeWorkgroupSizeY": 1024,
+  "maxComputeWorkgroupSizeZ": 64,
+  "maxComputeWorkgroupStorageSize": 32768,
+  "maxSampledTexturesPerShaderStage": 32,
+  "maxSamplersPerShaderStage": 32,
+  "label": "desktop_profile_example"
+}

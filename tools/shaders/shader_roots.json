@@ -1,0 +1,32 @@
+{
+  "canonical": "frontend/lib/webgpu/shaders",
+  "legacy_preferred_order": [
+    "frontend/shaders",
+    "frontend/hybrid",
+    "frontend/public/hybrid/wgsl"
+  ],
+  "exclude_patterns": [
+    "_TRASH_2025/",
+    ".venv/",
+    "venv/",
+    "tori_ui_svelte/src/shaders/",
+    "tori_ui_svelte/",
+    "frontend/shaders.bak/",
+    "conversations/",
+    "AuditPatchPack",
+    "AuditPatchPack_CI",
+    "node_modules/",
+    "dist/",
+    "build/",
+    ".svelte-kit/",
+    ".git/",
+    "venv_tori_prod/",
+    "__pycache__/",
+    ".tmp.drivedownload/",
+    ".tmp.driveupload/",
+    "backups/",
+    "backups_*/"
+  ],
+  "build_output": "frontend/public/hybrid/wgsl",
+  "backup_root": "frontend/shaders.bak/duplicates"
+}

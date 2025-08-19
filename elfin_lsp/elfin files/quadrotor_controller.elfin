@@ -1,0 +1,133 @@
+# ────────────────────────────────────────────────────────────
+# Quadrotor Controller — ELFIN v2 (lint‑clean, no alias shadow)
+# ────────────────────────────────────────────────────────────
+
+# Import helper functions from standard library
+import StdHelpers from "std/helpers.elfin";
+
+# ── Plant ───────────────────────────────────────────────────
+system Quadrotor {
+  continuous_state:
+    [x,y,z,           # position (m)
+     vx,vy,vz,        # linear velocity (m/s)
+     phi,theta,psi,   # attitude  (rad)
+     p,q,r];          # body rates (rad/s)
+
+  input: [u1,u2,u3,u4];   # thrust (N), roll‑, pitch‑, yaw‑moments
+
+  params {
+    m:1;  g:9.81; l:0.2;
+    Ixx:0.01; Iyy:0.01; Izz:0.02;
+  }
+
+  flow_dynamics {
+    # Position kinematics
+    x_dot = vx;  y_dot = vy;  z_dot = vz;
+
+    # Rotation matrix body→inertial first row entries (reuse later)
+    cph = cos(phi);  sph = sin(phi);
+    cth = cos(theta); sth = sin(theta);
+    cps = cos(psi);  sps = sin(psi);
+
+    R11 = cth*cps;            R12 = cth*sps;           R13 = -sth;
+    R21 = sph*sth*cps - cph*sps;
+    R22 = sph*sth*sps + cph*cps;
+    R23 = sph*cth;
+    R31 = cph*sth*cps + sph*sps;
+    R32 = cph*sth*sps - sph*cps;
+    R33 = cph*cth;
+
+    # Force in body frame
+    Fb_x = 0; Fb_y = 0; Fb_z = -u1;
+
+    # Acceleration (inertial)
+    ax = (R11*Fb_x + R12*Fb_y + R13*Fb_z)/m;
+    ay = (R21*Fb_x + R22*Fb_y + R23*Fb_z)/m;
+    az = (R31*Fb_x + R32*Fb_y + R33*Fb_z)/m - g;
+
+    vx_dot = ax;  vy_dot = ay;  vz_dot = az;
+
+    # Euler‑rate kinematics
+    phi_dot   = p + (q*sph + r*cph)*tan(theta);
+    theta_dot = q*cph - r*sph;
+    psi_dot   = (q*sph + r*cph)/cth;
+
+    # Angular dynamics (rigid‑body)
+    p_dot = (u2*l + (Iyy - Izz)*q*r) / Ixx;
+    q_dot = (u3*l + (Izz - Ixx)*p*r) / Iyy;
+    r_dot = (u4   + (Ixx - Iyy)*p*q) / Izz;
+  }
+}
+
+# ── Lyapunov candidate ─────────────────────────────────────
+lyapunov QuadLyap {
+  system Quadrotor;
+  params { k_p:2; k_r:1;
+           x_d:0; y_d:0; z_d:1;
+           phi_d:0; theta_d:0; psi_d:0; }
+
+  V = 0.5*m*(vx**2 + vy**2 + vz**2)
+      + 0.5*Ixx*p**2 + 0.5*Iyy*q**2 + 0.5*Izz*r**2
+      + 0.5*k_p*((x-x_d)**2 + (y-y_d)**2 + (z-z_d)**2)
+      + 0.5*k_r*((phi-phi_d)**2 + (theta-theta_d)**2 + (psi-psi_d)**2);
+}
+
+# ── Barriers ────────────────────────────────────────────────
+barrier HeightSafe {
+  system Quadrotor;
+  params { z_min:0.1; alpha:1; }
+  B = z - z_min;
+  alphaFun = alpha*B;
+}
+
+barrier Obstacle {
+  system Quadrotor;
+  params { x_o:1; y_o:1; z_o:1; r_min:0.5; alpha:1; }
+  B = (x-x_o)**2 + (y-y_o)**2 + (z-z_o)**2 - r_min**2;
+  alphaFun = alpha*B;
+}
+
+# ── Mode: baseline position + attitude hold ────────────────
+mode BaselineCtrl {
+  system Quadrotor;
+  lyapunov QuadLyap;
+  barriers [HeightSafe, Obstacle];
+
+  params {
+    k_px:0.5; k_py:0.5; k_pz:5;
+    k_dx:2;   k_dy:2;   k_dz:2;
+    k_att:5;  k_datt:1;
+  }
+
+  controller {
+    # Position errors
+    ex = x_d - x;   ey = y_d - y;   ez = z_d - z;
+    evx = -vx;      evy = -vy;      evz = -vz;
+
+    # Desired accelerations (PD)
+    ax_c = k_px*ex + k_dx*evx;
+    ay_c = k_py*ey + k_dy*evy;
+    az_c = k_pz*ez + k_dz*evz + g;
+
+    # Convert to desired attitudes
+    phi_c   = (ax_c*sps - ay_c*cps)/g;
+    theta_c = (ax_c*cps + ay_c*sps)/g;
+    psi_c   = psi_d;
+
+    # Attitude control
+    u2 = k_att*(phi_c - phi)   - k_datt*p;
+    u3 = k_att*(theta_c - theta) - k_datt*q;
+    u4 = k_att*(wrapAngle(psi_c - psi)) - k_datt*r;
+
+    # Thrust
+    u1 = m*az_c / (cph*cth);
+  }
+}
+
+# ── Psi‑sync illustration (Kuramoto) ───────────────────────
+psi SyncYaw {
+  system Quadrotor;
+  oscillator { frequency:0.5; coupling:0.2; }
+  sync_variable psi;
+  controller psi(BaselineCtrl);
+}

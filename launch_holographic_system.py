@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""COMPLETE HOLOGRAPHIC SYSTEM LAUNCH SEQUENCE"""
+
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+import subprocess
+import json
+import time
+
+def execute_launch_sequence():
+    print("🚀 TORI HOLOGRAPHIC SYSTEM - LAUNCH SEQUENCE")
+    print("=" * 70)
+    print()
+    
+    # Step 1: Run the Vite fixes
+    print("📍 STEP 1: Applying Vite import fixes...")
+    try:
+        subprocess.run(["python", "apply_vite_fixes.py"], check=True)
+        print("✅ Vite fixes applied")
+    except:
+        print("❌ Failed to apply Vite fixes - continue anyway")
+    
+    time.sleep(1)
+    
+    # Step 2: Check HolographicDisplay.svelte
+    print("\n📍 STEP 2: Verifying HolographicDisplay component...")
+    holo_display = Path(r"{PROJECT_ROOT}\tori_ui_svelte\src\lib\components\HolographicDisplay.svelte")
+    
+    if holo_display.exists():
+        content = holo_display.read_text(encoding='utf-8')
+        
+        # Check for the video initialization issue
+        if "Initializing video..." in content and 'videoSource === "webcam"' not in content:
+            print("⚠️  Fixing 'Initializing video' issue...")
+            # Run the fix
+            subprocess.run(["python", "fix_holographic_enhanced.py"], check=True)
+            print("✅ HolographicDisplay fixed")
+        else:
+            print("✅ HolographicDisplay already fixed")
+    
+    # Step 3: Check +page.svelte for auto-start
+    print("\n📍 STEP 3: Checking hologram auto-start...")
+    page_svelte = Path(r"{PROJECT_ROOT}\tori_ui_svelte\src\routes\+page.svelte")
+    
+    if page_svelte.exists():
+        content = page_svelte.read_text(encoding='utf-8')
+        if "AUTO-START HOLOGRAM WITH ENOLA" not in content:
+            print("⚠️  Adding hologram auto-start...")
+            subprocess.run(["python", "fix_hologram_autostart.py"], check=True)
+            print("✅ Auto-start added")
+        else:
+            print("✅ Auto-start already configured")
+    
+    # Step 4: Verify all dependencies exist
+    print("\n📍 STEP 4: Verifying all dependencies...")
+    deps_ok = verify_dependencies()
+    
+    if not deps_ok:
+        print("❌ Some dependencies missing - system may not work properly")
+    else:
+        print("✅ All dependencies verified")
+    
+    # Step 5: Check WebSocket bridges
+    print("\n📍 STEP 5: Checking WebSocket bridges...")
+    check_websocket_config()
+    
+    # Step 6: Launch the system
+    print("\n📍 STEP 6: LAUNCHING HOLOGRAPHIC SYSTEM...")
+    print("-" * 50)
+    
+    print("\n🎯 EXECUTE THESE COMMANDS:")
+    print("\n1. Open Terminal 1 (Audio Bridge):")
+    print("   cd C:\\Users\\jason\\Desktop\\tori\\kha")
+    print("   python ingest_bus\\audio\\audio_bridge_hott.py")
+    
+    print("\n2. Open Terminal 2 (Concept Bridge):")
+    print("   cd C:\\Users\\jason\\Desktop\\tori\\kha")
+    print("   python core\\bridges\\concept_bridge.py")
+    
+    print("\n3. Open Terminal 3 (Main App):")
+    print("   cd str(PROJECT_ROOT / "tori_ui_svelte")
+    print("   npm run dev")
+    
+    print("\n4. Or use the enhanced launcher (ALL IN ONE):")
+    print("   cd C:\\Users\\jason\\Desktop\\tori\\kha")
+    print("   poetry run python enhanced_launcher.py")
+    
+    print("\n\n🔥 SYSTEM READY TO LAUNCH!")
+    print("\nWhat you'll see:")
+    print("✨ Quantum field visualization")
+    print("🧠 Concept mesh with glowing nodes")
+    print("🎵 Audio-reactive oscillations")
+    print("🔮 WebGPU-accelerated holographic rendering")
+    print("👻 Enola persona auto-starting")
+
+def verify_dependencies():
+    """Check that all critical files exist"""
+    
+    base_path = Path(r"{PROJECT_ROOT}")
+    
+    critical_files = [
+        "tori_ui_svelte/src/lib/realGhostEngine.js",
+        "tori_ui_svelte/src/lib/conceptHologramRenderer.js",
+        "tori_ui_svelte/src/lib/components/HolographicDisplay.svelte",
+        "frontend/lib/holographicEngine.ts",
+        "frontend/lib/holographicRenderer.ts",
+        "frontend/lib/webgpu/fftCompute.ts",
+        "frontend/lib/webgpu/hologramPropagation.ts",
+        "frontend/lib/webgpu/quiltGenerator.ts",
+    ]
+    
+    all_exist = True
+    for file_path in critical_files:
+        full_path = base_path / file_path
+        if full_path.exists():
+            print(f"  ✅ {file_path}")
+        else:
+            print(f"  ❌ MISSING: {file_path}")
+            all_exist = False
+    
+    return all_exist
+
+def check_websocket_config():
+    """Check WebSocket configuration"""
+    
+    config_file = Path(r"{PROJECT_ROOT}\tori_ui_svelte\src\lib\config.ts")
+    
+    if config_file.exists():
+        content = config_file.read_text(encoding='utf-8')
+        
+        # Check for WebSocket URLs
+        if "ws://localhost:8765" in content:
+            print("  ✅ Audio WebSocket configured (port 8765)")
+        if "ws://localhost:8766" in content:
+            print("  ✅ Concept WebSocket configured (port 8766)")
+        
+        # Check if we need to add hologram WebSocket
+        if "ws://localhost:8767" not in content:
+            print("  ⚠️  Hologram WebSocket not configured - adding...")
+            add_hologram_websocket(config_file)
+
+def add_hologram_websocket(config_file):
+    """Add hologram WebSocket configuration"""
+    
+    content = config_file.read_text(encoding='utf-8')
+    
+    # Find where to add it
+    if "wsEndpoints:" in content:
+        # Add hologram endpoint
+        ws_section = content.find("wsEndpoints:")
+        if ws_section > 0:
+            # Find the end of wsEndpoints
+            end_brace = content.find("}", ws_section)
+            if end_brace > 0:
+                new_line = ',\n    hologram: "ws://localhost:8767/hologram"'
+                content = content[:end_brace] + new_line + content[end_brace:]
+                
+                config_file.write_text(content, encoding='utf-8')
+                print("  ✅ Added hologram WebSocket endpoint")
+
+if __name__ == "__main__":
+    execute_launch_sequence()
+    
+    print("\n\n💀 YOUR MOVE, CAPTAIN!")
+    print("Execute the launch commands above to bring TORI to life!")

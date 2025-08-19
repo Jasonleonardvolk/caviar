@@ -1,0 +1,362 @@
+// Type augmentation for iOS DeviceOrientationEvent
+declare global {
+    interface DeviceOrientationEvent {
+        // Instance property (not used but for completeness)
+    }
+    interface DeviceOrientationEventConstructor {
+        requestPermission?: () => Promise<PermissionState>;
+    }
+    interface Window {
+        DeviceOrientationEvent: DeviceOrientationEventConstructor;
+    }
+}
+
+/**
+ * lightFieldComposerPipeline.ts
+ * 
+ * TypeScript integration for the enhanced light field composer shader
+ * Bridges tensor/phase backend with WebGPU rendering pipeline
+ */
+
+import { ALBERT } from './albert/tensorSystem';
+import { SolitonComputer } from './soliton/dynamics';
+import { PhaseEncoder } from './phase/encoder';
+
+interface LightFieldComposerConfig {
+    width: number;
+    height: number;
+    viewCount: number;
+    tileCountX: number;
+    tileCountY: number;
+    mode: ComposerMode;
+    device: GPUDevice;
+}
+
+enum ComposerMode {
+    QUILT_PHASE_BLEND = 0,
+    DEPTH_LAYERS_TENSOR = 1,
+    STEREO_SOLITON = 2,
+    TENSOR_FIELD_VIZ = 3,
+    PHASE_COHERENT_HOLOGRAM = 4
+}
+
+export class LightFieldComposerPipeline {
+    private buffers: GPUBuffer[] = [];
+
+    private device: GPUDevice;
+    private pipeline: GPUComputePipeline;
+    private bindGroup: GPUBindGroup;
+    private config: LightFieldComposerConfig;
+    
+    // Backend systems
+    private albert: typeof ALBERT;
+    private soliton: SolitonComputer;
+    private phaseEncoder: PhaseEncoder;
+    
+    // Timing for animations
+    private startTime: number;
+    
+    constructor(config: LightFieldComposerConfig) {
+        this.device = config.device;
+        this.config = config;
+        this.startTime = performance.now();
+        
+        // Initialize physics backends
+        this.albert = ALBERT;
+        
+        this.soliton = new SolitonComputer(this.device);
+        
+        this.phaseEncoder = new PhaseEncoder(this.device);
+    }
+    
+    async initialize(): Promise<void> {
+        // Load enhanced shader
+        const shaderCode = await fetch('/wgsl/lightFieldComposerEnhanced.wgsl')
+            .then(r => r.text());
+        
+        const shaderModule = this.device.createShaderModule({
+            label: 'Light Field Composer Enhanced',
+            code: shaderCode
+        });
+        
+        // Create pipeline
+        this.pipeline = this.device.createComputePipeline({
+            label: 'Light Field Composer Pipeline',
+            layout: 'auto',
+            compute: {
+                module: shaderModule,
+                entryPoint: 'main'
+            }
+        });
+        
+        // Initialize textures and buffers
+        await this.createResources();
+    }
+    
+    private async createResources(): Promise<void> {
+        const { width, height, viewCount, tileCountX, tileCountY } = this.config;
+        
+        // Create texture arrays for multi-view content
+        const textureDesc: GPUTextureDescriptor = {
+            size: { width, height, depthOrArrayLayers: viewCount },
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+        };
+        
+        const baseTex = this.device.createTexture({ ...textureDesc, label: 'Base Views' });
+        const occTex = this.device.createTexture({ ...textureDesc, label: 'Occlusion' });
+        const phaseTex = this.device.createTexture({ ...textureDesc, label: 'Phase' });
+        
+        // Output texture (full quilt size)
+        const outputTex = this.device.createTexture({
+            size: { width: width * tileCountX, height: height * tileCountY },
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC,
+            label: 'Light Field Output'
+        });
+        
+        // Create uniform buffers
+        const paramsBuffer = this.createParamsBuffer();
+        const tensorBuffer = this.createTensorBuffer();
+        const solitonBuffer = this.createSolitonBuffer();
+        
+        // Create bind group
+        this.bindGroup = this.device.createBindGroup({
+            label: 'Light Field Composer Bind Group',
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: baseTex.createView() },
+                { binding: 1, resource: occTex.createView() },
+                { binding: 2, resource: outputTex.createView() },
+                { binding: 3, resource: { buffer: paramsBuffer } },
+                { binding: 4, resource: phaseTex.createView() },
+                { binding: 5, resource: { buffer: tensorBuffer } },
+                { binding: 6, resource: { buffer: solitonBuffer } }
+            ]
+        });
+    }
+    
+    private createParamsBuffer(): GPUBuffer {
+        const params = new Float32Array([
+            this.config.width,
+            this.config.height,
+            this.config.viewCount,
+            this.config.tileCountX,
+            this.config.tileCountY,
+            this.config.mode,
+            0, // time (updated each frame)
+            0, // phaseShift (updated each frame)
+            1.0, // tensorStrength
+            0.5  // coherenceRadius
+        ]);
+        
+        const buffer = this.device.createBuffer({
+            size: params.byteLength,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            label: 'Composer Params'
+        });
+        
+        this.device.queue.writeBuffer(buffer, 0, params.slice());
+        return buffer;
+    }
+    
+    private createTensorBuffer(): GPUBuffer {
+        // Get tensor field from ALBERT system
+        const tensorData = this.albert.computeKerrMetric();
+        
+        const buffer = this.device.createBuffer({
+            size: tensorData.byteLength,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            label: 'Tensor Field'
+        });
+        
+        this.device.queue.writeBuffer(buffer, 0, tensorData.slice(.buffer));
+        return buffer;
+    }
+    
+    private createSolitonBuffer(): GPUBuffer {
+        // Get soliton parameters
+        const solitonData = this.soliton.getParameters();
+        
+        const buffer = this.device.createBuffer({
+            size: solitonData.byteLength,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            label: 'Soliton Params'
+        });
+        
+        this.device.queue.writeBuffer(buffer, 0, solitonData.slice(.buffer));
+        return buffer;
+    }
+    
+    render(commandEncoder: GPUCommandEncoder): void {
+        // Update time-based parameters
+        const currentTime = (performance.now() - this.startTime) / 1000.0;
+        this.updateTimeParams(currentTime);
+        
+        // Update tensor field if needed
+        if (this.config.mode === ComposerMode.TENSOR_FIELD_VIZ) {
+            this.updateTensorField();
+        }
+        
+        // Dispatch compute shader
+        const computePass = commandEncoder.beginComputePass({
+            label: 'Light Field Composition Pass'
+        });
+        
+        computePass.setPipeline(this.pipeline);
+        computePass.setBindGroup(0, this.bindGroup);
+        
+        const workgroupsX = Math.ceil((this.config.width * this.config.tileCountX) / 8);
+        const workgroupsY = Math.ceil((this.config.height * this.config.tileCountY) / 8);
+        
+        computePass.dispatchWorkgroups(workgroupsX, workgroupsY);
+        computePass.end();
+    }
+    
+    private updateTimeParams(time: number): void {
+        // Update time and phase shift in params buffer
+        const timeData = new Float32Array([
+            time,
+            Math.sin(time * 0.5) * Math.PI // Oscillating phase shift
+        ]);
+        
+        // Write to params buffer at time offset (6 * 4 bytes)
+        this.device.queue.writeBuffer(
+            this.buffers[3],
+            6 * 4,
+            timeData
+        );
+    }
+    
+    private updateTensorField(): void {
+        // Dynamically update tensor field for animation
+        const rotationAngle = performance.now() * 0.001;
+        this.albert.setRotation(rotationAngle);
+        const tensorData = this.albert.computeKerrMetric();
+        
+        this.device.queue.writeBuffer(
+            this.buffers[5], 0, tensorData
+        .buffer);
+    }
+    
+    /**
+     * Integrate with gyroscope for mobile head tracking
+     */
+    enableHeadTracking(): void {
+        if ('DeviceOrientationEvent' in window) {
+            // Request permission on iOS
+            const DOE = window.DeviceOrientationEvent as any;
+            if (typeof DOE?.requestPermission === 'function') {
+                DOE.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            this.setupOrientationListener();
+                        }
+                    });
+            } else {
+                this.setupOrientationListener();
+            }
+        }
+    }
+    
+    private setupOrientationListener(): void {
+        window.addEventListener('deviceorientation', (event) => {
+            if (event.alpha === null || event.beta === null || event.gamma === null) return;
+            
+            // Convert device orientation to view angle
+            const viewAngle = this.orientationToViewAngle(
+                event.alpha,
+                event.beta,
+                event.gamma
+            );
+            
+            // Update shader parameters based on head position
+            this.updateViewAngle(viewAngle);
+        });
+    }
+    
+    private orientationToViewAngle(alpha: number, beta: number, gamma: number): number {
+        // Simple mapping - can be enhanced with sensor fusion
+        const normalizedAngle = gamma / 90.0; // -1 to 1
+        return (normalizedAngle + 1.0) * 0.5 * this.config.viewCount;
+    }
+    
+    private updateViewAngle(viewAngle: number): void {
+        // This would update the shader to interpolate between views
+        // based on the current head position
+        console.log(`View angle: ${viewAngle}`);
+    }
+    
+    /**
+     * Export composed light field for display
+     */
+    async exportLightField(): Promise<ImageData> {
+        const { width, height } = this.config;
+        const outputWidth = width * this.config.tileCountX;
+        const outputHeight = height * this.config.tileCountY;
+        
+        // Create staging buffer for readback
+        const bytesPerRow = Math.ceil(outputWidth * 4 / 256) * 256;
+        const bufferSize = bytesPerRow * outputHeight;
+        
+        const stagingBuffer = this.device.createBuffer({
+            size: bufferSize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+        });
+        
+        // Copy texture to buffer
+        // Note: You need to track your output texture separately
+        // as bindGroup doesn't have entries property at runtime
+        const commandEncoder = this.device.createCommandEncoder();
+        // TODO: Replace with actual output texture reference
+        // commandEncoder.copyTextureToBuffer(
+        //     { texture: this.outputTexture },
+        //     { buffer: stagingBuffer, bytesPerRow },
+        //     { width: outputWidth, height: outputHeight }
+        // );
+        
+        this.device.queue.submit([commandEncoder.finish()]);
+        
+        // Read back data
+        await stagingBuffer.mapAsync(GPUMapMode.READ);
+        const data = new Uint8ClampedArray(stagingBuffer.getMappedRange());
+        const imageData = new ImageData(data, outputWidth, outputHeight);
+        stagingBuffer.unmap();
+        
+        return imageData;
+    }
+}
+
+// Usage example
+export async function initializeLightFieldRenderer(): Promise<LightFieldComposerPipeline> {
+    // Check WebGPU support
+    if (!navigator.gpu) {
+        throw new Error('WebGPU not supported');
+    }
+    
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        throw new Error('No GPU adapter found');
+    }
+    
+    const device = await adapter.requestDevice();
+    
+    // Configure for Looking Glass-style 5x9 quilt
+    const config: LightFieldComposerConfig = {
+        width: 420,  // Each view width
+        height: 560, // Each view height
+        viewCount: 45, // 5x9 grid
+        tileCountX: 9,
+        tileCountY: 5,
+        mode: ComposerMode.PHASE_COHERENT_HOLOGRAM,
+        device
+    };
+    
+    const pipeline = new LightFieldComposerPipeline(config);
+    await pipeline.initialize();
+    
+    // Enable head tracking on mobile
+    pipeline.enableHeadTracking();
+    
+    return pipeline;
+}

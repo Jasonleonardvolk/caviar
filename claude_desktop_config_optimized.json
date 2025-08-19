@@ -1,0 +1,50 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "cmd",
+      "args": [
+        "/c", "npx", "-y", 
+        "@modelcontextprotocol/server-filesystem", 
+        "C:/Users/jason/AppData/Roaming/Claude",
+        "C:/Users/jason/Desktop/tori/kha"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "sequential-thinking": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "NODE_ENV": "production",
+        "MCP_DISABLE_RETRIES": "true"
+      }
+    },
+    "memory": {
+      "command": "cmd", 
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "NODE_ENV": "production",
+        "MCP_DISABLE_RETRIES": "true"
+      }
+    },
+    "brave-search": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "BSAlQlsDc3-gr1WqlNapTtR5nkOI8pb",
+        "NODE_ENV": "production",
+        "MCP_DISABLE_RETRIES": "true"
+      }
+    }
+  },
+  "globalShortcut": "Ctrl+Shift+Space",
+  "allowedOrigins": ["*"],
+  "mcpTimeout": 30000,
+  "connectionTimeout": 10000,
+  "requestTimeout": 30000,
+  "keepAliveTimeout": 60000,
+  "maxReconnectAttempts": 3,
+  "reconnectDelay": 2000,
+  "reconnectBackoff": 1.5
+}

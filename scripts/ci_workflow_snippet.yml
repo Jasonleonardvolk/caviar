@@ -1,0 +1,37 @@
+# Add this job to your .github/workflows/ci.yml file
+
+  one-command-dev-install:
+    name: One-Command Dev Install Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Run one-command dev install (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        chmod +x scripts/dev_install.sh
+        ./scripts/dev_install.sh --headless
+    
+    - name: Run one-command dev install (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        .\scripts\dev_install.ps1 -Headless
+    
+    - name: Verify installation
+      run: |
+        python -c "import concept_mesh; print('✅ concept_mesh imports')"
+        python -c "import prajna; print('✅ prajna imports')"
+        python -c "import ingest_pdf; print('✅ ingest_pdf imports')"

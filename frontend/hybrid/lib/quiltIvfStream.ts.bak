@@ -1,0 +1,507 @@
+/**
+ * WebCodecs AV1 stream consumer using IVF demuxer
+ * Decodes AV1 video frames and renders to canvas or WebGPU texture
+ */
+
+import { loadIVF, IVFReader, type IVFFrame } from './ivfDemux';
+
+/**
+ * Decoder configuration for AV1
+ */
+export interface AV1DecoderConfig {
+  codec: string;
+  codedWidth: number;
+  codedHeight: number;
+  hardwareAcceleration?: HardwareAcceleration;
+  optimizeForLatency?: boolean;
+}
+
+/**
+ * Stream playback options
+ */
+export interface StreamOptions {
+  loop?: boolean;
+  autoplay?: boolean;
+  frameRate?: number;
+  onFrame?: (frame: VideoFrame) => void;
+  onEnd?: () => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * AV1 stream player using WebCodecs
+ */
+export class AV1StreamPlayer {
+  private decoder: VideoDecoder | null = null;
+  private reader: IVFReader | null = null;
+  private canvas: HTMLCanvasElement | null = null;
+  private ctx: CanvasRenderingContext2D | null = null;
+  private isPlaying: boolean = false;
+  private frameTimer: number | null = null;
+  private currentFrame: number = 0;
+  private options: StreamOptions;
+  private frameQueue: VideoFrame[] = [];
+  private maxQueueSize: number = 3;
+  
+  constructor(options: StreamOptions = {}) {
+    this.options = {
+      loop: false,
+      autoplay: true,
+      frameRate: 24,
+      ...options
+    };
+  }
+  
+  /**
+   * Initialize decoder
+   */
+  private async initDecoder(width: number, height: number, codec: string): Promise<void> {
+    if (!('VideoDecoder' in window)) {
+      throw new Error('WebCodecs not supported in this browser');
+    }
+    
+    // Map IVF codec to WebCodecs codec string
+    const codecString = this.getCodecString(codec);
+    
+    // Create decoder
+    this.decoder = new VideoDecoder({
+      output: (frame) => this.handleDecodedFrame(frame),
+      error: (error) => this.handleDecoderError(error)
+    });
+    
+    // Configure decoder
+    const config: VideoDecoderConfig = {
+      codec: codecString,
+      codedWidth: width,
+      codedHeight: height,
+      hardwareAcceleration: 'prefer-hardware',
+      optimizeForLatency: false
+    };
+    
+    // Check if configuration is supported
+    const support = await VideoDecoder.isConfigSupported(config);
+    if (!support.supported) {
+      throw new Error(`Codec configuration not supported: ${codecString}`);
+    }
+    
+    this.decoder.configure(config);
+  }
+  
+  /**
+   * Get WebCodecs codec string from IVF FourCC
+   */
+  private getCodecString(fourcc: string): string {
+    switch (fourcc) {
+      case 'AV01':
+        // AV1 Main Profile, level 5.1, Main tier, 8-bit
+        return 'av01.0.12M.08';
+      case 'VP90':
+        return 'vp09.00.10.08';
+      case 'VP80':
+        return 'vp8';
+      default:
+        throw new Error(`Unsupported codec: ${fourcc}`);
+    }
+  }
+  
+  /**
+   * Handle decoded video frame
+   */
+  private handleDecodedFrame(frame: VideoFrame): void {
+    // Add to queue
+    this.frameQueue.push(frame);
+    
+    // Limit queue size
+    while (this.frameQueue.length > this.maxQueueSize) {
+      const oldFrame = this.frameQueue.shift();
+      oldFrame?.close();
+    }
+    
+    // Render if playing
+    if (this.isPlaying) {
+      this.renderNextFrame();
+    }
+    
+    // Call user callback
+    if (this.options.onFrame) {
+      this.options.onFrame(frame);
+    }
+  }
+  
+  /**
+   * Handle decoder errors
+   */
+  private handleDecoderError(error: any): void {
+    console.error('[AV1StreamPlayer] Decoder error:', error);
+    
+    if (this.options.onError) {
+      this.options.onError(new Error(String(error)));
+    }
+    
+    this.stop();
+  }
+  
+  /**
+   * Render next frame from queue
+   */
+  private renderNextFrame(): void {
+    const frame = this.frameQueue.shift();
+    if (!frame) {
+      return;
+    }
+    
+    try {
+      // Render to canvas if available
+      if (this.ctx && this.canvas) {
+        // Resize canvas if needed
+        if (this.canvas.width !== frame.displayWidth ||
+            this.canvas.height !== frame.displayHeight) {
+          this.canvas.width = frame.displayWidth;
+          this.canvas.height = frame.displayHeight;
+        }
+        
+        // Draw frame
+        this.ctx.drawImage(
+          frame,
+          0, 0,
+          frame.displayWidth,
+          frame.displayHeight
+        );
+      }
+    } finally {
+      // Always close frame to free memory
+      frame.close();
+    }
+  }
+  
+  /**
+   * Start decoding frames
+   */
+  private async startDecoding(): Promise<void> {
+    if (!this.reader || !this.decoder) {
+      return;
+    }
+    
+    const frameDuration = 1000 / (this.options.frameRate || 24);
+    
+    const decodeNextFrame = async () => {
+      if (!this.isPlaying || !this.reader || !this.decoder) {
+        return;
+      }
+      
+      // Get next frame from IVF
+      const frame = this.reader.nextFrame();
+      
+      if (frame) {
+        // Create encoded chunk
+        const chunk = new EncodedVideoChunk({
+          type: this.isKeyFrame(frame) ? 'key' : 'delta',
+          timestamp: frame.timestamp,
+          data: frame.data
+        });
+        
+        // Decode
+        this.decoder.decode(chunk);
+        this.currentFrame++;
+        
+        // Schedule next frame
+        this.frameTimer = window.setTimeout(decodeNextFrame, frameDuration);
+      } else {
+        // End of stream
+        if (this.options.loop) {
+          // Restart from beginning
+          this.reader.reset();
+          this.currentFrame = 0;
+          this.frameTimer = window.setTimeout(decodeNextFrame, frameDuration);
+        } else {
+          // Stop playback
+          this.stop();
+          
+          if (this.options.onEnd) {
+            this.options.onEnd();
+          }
+        }
+      }
+    };
+    
+    // Start decoding
+    decodeNextFrame();
+  }
+  
+  /**
+   * Check if frame is a keyframe
+   * For AV1, check OBU header
+   */
+  private isKeyFrame(frame: IVFFrame): boolean {
+    // Simple heuristic: first frame is always key
+    if (frame.frameNumber === 0) {
+      return true;
+    }
+    
+    // For AV1, check OBU type
+    // This is simplified; real implementation would parse OBU headers
+    if (frame.data.length > 0) {
+      const firstByte = frame.data[0];
+      const obuType = (firstByte >> 3) & 0x0f;
+      // OBU_FRAME (6) or OBU_FRAME_HEADER (3) with key frame flag
+      return obuType === 6 || obuType === 3;
+    }
+    
+    // Default to key frame every 30 frames
+    return frame.frameNumber % 30 === 0;
+  }
+  
+  /**
+   * Load IVF file and prepare for playback
+   */
+  async function loadFile(url: string, canvas?: HTMLCanvasElement): Promise<void> {
+    // Load IVF file
+    this.reader = await loadIVF(url);
+    
+    // Set up canvas if provided
+    if (canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      
+      if (!this.ctx) {
+        throw new Error('Failed to get 2D context');
+      }
+    }
+    
+    // Initialize decoder
+    await this.initDecoder(
+      this.reader.width,
+      this.reader.height,
+      this.reader.codec
+    );
+    
+    // Start playback if autoplay
+    if (this.options.autoplay) {
+      this.play();
+    }
+  }
+  
+  /**
+   * Start playback
+   */
+  play(): void {
+    if (this.isPlaying) {
+      return;
+    }
+    
+    this.isPlaying = true;
+    this.startDecoding();
+  }
+  
+  /**
+   * Pause playback
+   */
+  pause(): void {
+    this.isPlaying = false;
+    
+    if (this.frameTimer !== null) {
+      clearTimeout(this.frameTimer);
+      this.frameTimer = null;
+    }
+  }
+  
+  /**
+   * Stop playback and clean up
+   */
+  stop(): void {
+    this.pause();
+    
+    // Clear frame queue
+    for (const frame of this.frameQueue) {
+      frame.close();
+    }
+    this.frameQueue = [];
+    
+    // Reset decoder
+    if (this.decoder) {
+      this.decoder.close();
+      this.decoder = null;
+    }
+    
+    // Reset reader
+    if (this.reader) {
+      this.reader.reset();
+      this.currentFrame = 0;
+    }
+  }
+  
+  /**
+   * Seek to specific frame
+   */
+  seek(frameNumber: number): boolean {
+    if (!this.reader) {
+      return false;
+    }
+    
+    const wasPlaying = this.isPlaying;
+    this.pause();
+    
+    // Clear decoder state
+    if (this.decoder && this.decoder.state === 'configured') {
+      this.decoder.flush();
+    }
+    
+    // Clear frame queue
+    for (const frame of this.frameQueue) {
+      frame.close();
+    }
+    this.frameQueue = [];
+    
+    // Seek in reader
+    const success = this.reader.seekToFrame(frameNumber);
+    
+    if (success) {
+      this.currentFrame = frameNumber;
+      
+      if (wasPlaying) {
+        this.play();
+      }
+    }
+    
+    return success;
+  }
+  
+  /**
+   * Get current playback state
+   */
+  getState(): {
+    isPlaying: boolean;
+    currentFrame: number;
+    totalFrames: number;
+    queueSize: number;
+  } {
+    return {
+      isPlaying: this.isPlaying,
+      currentFrame: this.currentFrame,
+      totalFrames: this.reader?.frameCount || 0,
+      queueSize: this.frameQueue.length
+    };
+  }
+  
+  /**
+   * Dispose of all resources
+   */
+  dispose(): void {
+    this.stop();
+    this.reader = null;
+    this.canvas = null;
+    this.ctx = null;
+    this.options = {};
+  }
+}
+
+/**
+ * Simple function to start IVF stream playback
+ */
+export async function startIvfStream(
+  ivfUrl: string,
+  canvas: HTMLCanvasElement,
+  options: StreamOptions = {}
+): Promise<AV1StreamPlayer> {
+  const player = new AV1StreamPlayer(options);
+  await player.loadFile(ivfUrl, canvas);
+  return player;
+}
+
+/**
+ * Create video element from IVF stream
+ * Uses MediaSource API with WebCodecs
+ */
+export async function createVideoFromIVF(
+  ivfUrl: string
+): Promise<HTMLVideoElement> {
+  // This is a more complex implementation that would require
+  // MediaSource API integration. For now, return a placeholder.
+  
+  const video = document.createElement('video');
+  video.controls = true;
+  video.autoplay = true;
+  video.muted = true;
+  
+  // In a real implementation, we would:
+  // 1. Create MediaSource
+  // 2. Create SourceBuffer
+  // 3. Decode IVF frames with WebCodecs
+  // 4. Append decoded frames to SourceBuffer
+  // 5. Set video.src to MediaSource URL
+  
+  console.warn('[createVideoFromIVF] Full implementation requires MediaSource integration');
+  
+  return video;
+}
+
+/**
+ * WebGPU texture updater for video frames
+ */
+export class WebGPUVideoTexture {
+  private device: GPUDevice;
+  private texture: GPUTexture | null = null;
+  private sampler: GPUSampler;
+  
+  constructor(device: GPUDevice) {
+    this.device = device;
+    this.sampler = device.createSampler({
+      minFilter: 'linear',
+      magFilter: 'linear'
+    });
+  }
+  
+  /**
+   * Update texture from video frame
+   */
+  updateFromFrame(frame: VideoFrame): GPUTexture {
+    // Create or recreate texture if size changed
+    if (!this.texture ||
+        this.texture.width !== frame.displayWidth ||
+        this.texture.height !== frame.displayHeight) {
+      
+      if (this.texture) {
+        this.texture.destroy();
+      }
+      
+      this.texture = this.device.createTexture({
+        size: {
+          width: frame.displayWidth,
+          height: frame.displayHeight
+        },
+        format: 'rgba8unorm',
+        usage: GPUTextureUsage.TEXTURE_BINDING |
+               GPUTextureUsage.COPY_DST |
+               GPUTextureUsage.RENDER_ATTACHMENT
+      });
+    }
+    
+    // Copy frame to texture
+    // Note: This requires WebGPU copyExternalImageToTexture support
+    this.device.queue.copyExternalImageToTexture(
+      { source: frame },
+      { texture: this.texture },
+      {
+        width: frame.displayWidth,
+        height: frame.displayHeight
+      }
+    );
+    
+    return this.texture;
+  }
+  
+  getTexture(): GPUTexture | null {
+    return this.texture;
+  }
+  
+  getSampler(): GPUSampler {
+    return this.sampler;
+  }
+  
+  dispose(): void {
+    if (this.texture) {
+      this.texture.destroy();
+      this.texture = null;
+    }
+  }
+}

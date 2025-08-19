@@ -1,0 +1,9 @@
+{
+  "pitch": 49.8,
+  "tilt": 0.12,
+  "center": 0.0,
+  "subp": 0,
+  "panelW": 3840,
+  "panelH": 2160,
+  "comment": "Default calibration for Looking Glass Portrait - adjust for your display"
+}

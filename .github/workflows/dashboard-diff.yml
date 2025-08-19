@@ -1,0 +1,126 @@
+name: Dashboard Diff
+
+on:
+  pull_request:
+    paths:
+      - 'docs/dashboards/*.json'
+
+jobs:
+  dashboard-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install dependencies
+        run: |
+          npm install jsonlint jsonparse grafonnet-lib
+
+      - name: Generate dashboard diff
+        id: dashboard-diff
+        run: |
+          BASE_REF=${{ github.event.pull_request.base.ref }}
+          PR_SHA=${{ github.event.pull_request.head.sha }}
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          
+          echo "Comparing dashboards between $BASE_SHA and $PR_SHA"
+          mkdir -p dashboard-diffs
+          
+          for file in $(git diff --name-only $BASE_SHA $PR_SHA docs/dashboards/*.json); do
+            echo "Generating diff for $file"
+            
+            # Get file name
+            filename=$(basename "$file")
+            dashboard_name="${filename%.*}"
+            
+            # Create visual diff using git show
+            git show $BASE_SHA:$file > old_dashboard.json || echo "{}" > old_dashboard.json
+            git show $PR_SHA:$file > new_dashboard.json || cp $file new_dashboard.json
+            
+            # Check if files are valid JSON
+            if ! npx jsonlint old_dashboard.json >/dev/null 2>&1 || ! npx jsonlint new_dashboard.json >/dev/null 2>&1; then
+              echo "Warning: Invalid JSON in dashboard files. Skipping visual diff."
+              continue
+            fi
+            
+            # Generate textual diff with context
+            diff_output=$(git diff --no-index --color=never -U10 old_dashboard.json new_dashboard.json || true)
+            
+            # Extract metrics
+            old_metrics=$(grep -o '"expr": "[^"]*"' old_dashboard.json | sort | uniq | sed 's/"expr": "//g' | sed 's/"$//g')
+            new_metrics=$(grep -o '"expr": "[^"]*"' new_dashboard.json | sort | uniq | sed 's/"expr": "//g' | sed 's/"$//g')
+            
+            # Generate report
+            {
+              echo "# Dashboard Changes: $dashboard_name"
+              echo ""
+              echo "## Modified Metrics"
+              echo ""
+              echo "### Added Metrics"
+              echo ""
+              echo '```'
+              comm -13 <(echo "$old_metrics" | sort) <(echo "$new_metrics" | sort) || echo "None"
+              echo '```'
+              echo ""
+              echo "### Removed Metrics"
+              echo ""
+              echo '```'
+              comm -23 <(echo "$old_metrics" | sort) <(echo "$new_metrics" | sort) || echo "None"
+              echo '```'
+              echo ""
+              echo "## Full Diff"
+              echo ""
+              echo '```diff'
+              echo "$diff_output"
+              echo '```'
+            } > "dashboard-diffs/$dashboard_name.md"
+          done
+      
+      - name: Comment on PR
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const diffDir = path.join(process.env.GITHUB_WORKSPACE, 'dashboard-diffs');
+            
+            try {
+              const files = fs.readdirSync(diffDir);
+              
+              if (files.length === 0) {
+                console.log('No dashboard diffs to comment on');
+                return;
+              }
+              
+              for (const file of files) {
+                const diffContent = fs.readFileSync(path.join(diffDir, file), 'utf8');
+                
+                // If diff is too long, trim it
+                let comment = diffContent;
+                if (comment.length > 65000) {
+                  const summarySection = comment.split('## Full Diff')[0];
+                  comment = summarySection + '\n\n## Full Diff\n\n*Diff too large to display in comment. See build logs for full diff.*';
+                }
+                
+                // Add comment to PR
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+                
+                console.log(`Posted diff for ${file}`);
+              }
+            } catch (error) {
+              console.error('Error posting comment:', error);
+            }

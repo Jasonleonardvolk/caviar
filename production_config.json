@@ -1,0 +1,9 @@
+{
+  "evolution_mode": "suggest_only",
+  "auto_checkpoint_interval": 3600,
+  "max_checkpoints": 100,
+  "proposal_expiry_hours": 24,
+  "emergency_revert_enabled": true,
+  "require_rationale": true,
+  "max_concurrent_proposals": 10
+}

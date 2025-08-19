@@ -1,0 +1,22 @@
+// snapshot.fbs
+namespace alan.snapshot;
+
+// Raw byte buffer for packed little-endian IEEE-754 float32 values
+table ByteVector {
+  data:[ubyte];        // Packed as little-endian regardless of host
+}
+
+table SnapshotV2 {
+  theta:      ByteVector (required);   // float32 radians, length 4*N
+  p_theta:    ByteVector (required);   // float32 conjugate momenta, length 4*N
+  sigma:      ByteVector (required);   // float32 spin xyz, length 4*3*N
+  p_sigma:    ByteVector (required);   // float32 spin momenta, length 4*3*N
+  dt_phase:   float;                   // outer step size
+  dt_spin:    float;                   // inner step size
+  endianness: uint8 = 0;               // 0=little-endian, 1=big-endian
+  schema_crc32: uint32;                // CRC32 of schema for validation
+  version:    uint16 = 0x0200;         // major.minor version (2.0)
+}
+
+root_type SnapshotV2;
+file_identifier "ALSN";

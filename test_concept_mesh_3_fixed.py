@@ -1,0 +1,1045 @@
+#!/usr/bin/env python3
+"""
+Enhanced End-to-End Diagnostic and Self-Healing Test Suite for the TORI Concept Mesh System.
+Features:
+- Automatic service restart (--auto-fix) for API and WebSocket bridges if down.
+- Comprehensive subsystem checks: API health, WebSocket bridges (Audio & Concept), data integrity, concept creation flow, hologram data flow, query flow, and Prajna voice Q&A.
+- Dynamic port discovery via config files (config.json, api_port.json, tori_ports.json, etc.) and common port scanning.
+- Detection of duplicate concept data files and inconsistent concept counts.
+- Detailed result output with color-coded statuses, summary tables, and recommended fix suggestions.
+- Logging of all actions (auto-restarts, failures, diagnostics) to a timestamped log file in the ./logs directory.
+"""
+import asyncio
+import json
+import requests
+import websockets
+import time
+import sys
+import socket
+import argparse
+from pathlib import Path
+from typing import Dict, Any, List, Tuple, Optional
+from urllib.parse import urlparse
+from datetime import datetime
+import logging
+import subprocess
+import signal
+import atexit
+
+# Try to import colorama for cross-platform color support
+try:
+    import colorama
+    colorama.init()
+    COLORAMA_AVAILABLE = True
+except ImportError:
+    COLORAMA_AVAILABLE = False
+
+# Terminal color codes for formatted CLI output
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+# Global flag for using colored output
+USE_COLOR = True
+
+def colored(text: str, color: str) -> str:
+    """Wrap text in ANSI color codes if enabled."""
+    if not USE_COLOR:
+        return text
+    # On Windows without colorama, skip colors
+    if sys.platform == "win32" and not COLORAMA_AVAILABLE:
+        return text
+    return f"{color}{text}{Colors.ENDC}"
+
+# Logging utility: writes to file and (minimally) to console
+class TestLogger:
+    def __init__(self):
+        script_dir = Path(__file__).parent.absolute()
+        logs_dir = script_dir / "logs"
+        logs_dir.mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file = logs_dir / f"test_concept_mesh_e2e_{timestamp}.log"
+        
+        # Log retention policy - keep only last 25 logs
+        self._cleanup_old_logs(logs_dir)
+        
+        # Logger setup
+        self.logger = logging.getLogger('concept_mesh_e2e_test')
+        self.logger.setLevel(logging.DEBUG)
+        
+        # File handler (DEBUG level)
+        fh = logging.FileHandler(self.log_file, encoding='utf-8')
+        fh.setLevel(logging.DEBUG)
+        
+        # Console handler (INFO level, simple format)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        
+        file_formatter = logging.Formatter('%(asctime)s | %(levelname)-8s | %(message)s', 
+                                          datefmt='%Y-%m-%d %H:%M:%S')
+        console_formatter = logging.Formatter('%(message)s')
+        
+        fh.setFormatter(file_formatter)
+        ch.setFormatter(console_formatter)
+        
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
+        
+        self.logger.info(f"Test log started: {self.log_file}")
+    
+    def _cleanup_old_logs(self, logs_dir: Path):
+        """Keep only the last 25 log files"""
+        try:
+            log_files = sorted(logs_dir.glob("test_concept_mesh_e2e_*.log"))
+            if len(log_files) > 25:
+                for old_log in log_files[:-25]:
+                    old_log.unlink()
+                    print(f"Removed old log: {old_log.name}")
+        except Exception as e:
+            print(f"Warning: Could not clean up old logs: {e}")
+    
+    def log_test_start(self, test_name: str):
+        self.logger.debug(f"START TEST: {test_name}")
+    
+    def log_result(self, test_name: str, result: str, message: str = ""):
+        # result should be one of "PASS", "FAIL", "WARN", "SKIP"
+        if result == "PASS":
+            self.logger.debug(f"PASS: {test_name}")
+        elif result == "FAIL":
+            self.logger.debug(f"FAIL: {test_name} - {message}")
+        elif result == "WARN":
+            self.logger.debug(f"WARNING: {test_name} - {message}")
+        elif result == "SKIP":
+            self.logger.debug(f"SKIP: {test_name} - {message}")
+
+# Global list to track spawned subprocesses for cleanup
+SPAWNED_PROCESSES = []
+
+def cleanup_processes(signum=None, frame=None):
+    """Clean up all spawned subprocesses on exit or interrupt"""
+    global SPAWNED_PROCESSES
+    if SPAWNED_PROCESSES:
+        print("\nCleaning up spawned processes...")
+        for proc in SPAWNED_PROCESSES:
+            try:
+                proc.terminate()
+                proc.wait(timeout=5)
+            except:
+                try:
+                    proc.kill()
+                except:
+                    pass
+        SPAWNED_PROCESSES = []
+    if signum is not None:
+        sys.exit(0)
+
+# Register cleanup handlers
+signal.signal(signal.SIGINT, cleanup_processes)
+signal.signal(signal.SIGTERM, cleanup_processes)
+atexit.register(cleanup_processes)
+
+# Helper function to check if a given port is listening on localhost
+def is_port_open(port: int) -> bool:
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1.0)
+        result = sock.connect_ex(("localhost", port))
+        sock.close()
+        return result == 0  # 0 indicates success (port open)
+    except Exception:
+        return False
+
+def export_markdown_report(test_results: Dict[str, Any], test_logger: TestLogger):
+    """Export test results as a markdown report"""
+    try:
+        logs_dir = Path(test_logger.log_file).parent
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        md_file = logs_dir / f"test_report_{timestamp}.md"
+        
+        with open(md_file, "w", encoding="utf-8") as f:
+            f.write("# TORI Concept Mesh System Test Report\n\n")
+            f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            # Service Status
+            f.write("## Service Status\n\n")
+            f.write("| Service | Status |\n")
+            f.write("|---------|--------|\n")
+            for service, status in test_results.get('service_status', {}).items():
+                status_icon = "✅" if status else "❌"
+                f.write(f"| {service} | {status_icon} |\n")
+            
+            # Test Results
+            f.write("\n## Test Results\n\n")
+            f.write("| Test | Result | Details |\n")
+            f.write("|------|--------|---------|\n")
+            for test_name, result in test_results.get('test_results', {}).items():
+                status = result.get('status', 'UNKNOWN')
+                message = result.get('message', '')
+                icon = {"PASS": "✅", "FAIL": "❌", "WARN": "⚠️", "SKIP": "⏭️"}.get(status, "❓")
+                f.write(f"| {test_name} | {icon} {status} | {message} |\n")
+            
+            # Summary
+            f.write("\n## Summary\n\n")
+            total_tests = len(test_results.get('test_results', {}))
+            passed = sum(1 for r in test_results.get('test_results', {}).values() if r.get('status') == 'PASS')
+            failed = sum(1 for r in test_results.get('test_results', {}).values() if r.get('status') == 'FAIL')
+            f.write(f"- Total Tests: {total_tests}\n")
+            f.write(f"- Passed: {passed}\n")
+            f.write(f"- Failed: {failed}\n")
+            f.write(f"- Success Rate: {(passed/total_tests*100) if total_tests > 0 else 0:.1f}%\n")
+            
+            print(f"\n📄 Markdown report exported: {md_file}")
+            
+    except Exception as e:
+        print(f"Warning: Could not export markdown report: {e}")
+
+# Function to discover port configuration
+def discover_ports():
+    """Discover port configuration from various sources."""
+    api_discovery_source = None
+    api_url = None
+    api_port = None
+    ws_audio_port = 8765
+    ws_concept_port = 8766
+    
+    # Check api_port.json first (most reliable source)
+    try:
+        with open("api_port.json", "r") as f:
+            data = json.load(f)
+            if "api_url" in data:
+                api_url = data["api_url"].rstrip("/")
+                parsed = urlparse(api_url)
+                api_port = parsed.port or data.get("api_port", 8002)
+            elif "api_port" in data:
+                api_port = data["api_port"]
+                api_url = f"http://localhost:{api_port}"
+            
+            # Also check for WebSocket ports in api_port.json
+            if "hologram_services" in data:
+                hologram = data["hologram_services"]
+                if "audio_bridge_port" in hologram:
+                    ws_audio_port = hologram["audio_bridge_port"]
+                if "concept_mesh_bridge_port" in hologram:
+                    ws_concept_port = hologram["concept_mesh_bridge_port"]
+            
+            if api_url or api_port:
+                api_discovery_source = "api_port.json"
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print(f"Warning: Error reading api_port.json: {e}")
+    
+    # If not found, check other config files
+    if not api_discovery_source:
+        # Try tori_status.json
+        try:
+            with open("tori_status.json", "r") as f:
+                data = json.load(f)
+                if "api_port" in data:
+                    api_port = data["api_port"]
+                    api_url = f"http://localhost:{api_port}"
+                    api_discovery_source = "tori_status.json"
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Warning: Error reading tori_status.json: {e}")
+    
+    if not api_discovery_source:
+        # Try tori_ports.json
+        try:
+            with open("tori_ports.json", "r") as f:
+                data = json.load(f)
+                if "api_port" in data:
+                    api_port = data["api_port"]
+                    api_url = f"http://localhost:{api_port}"
+                    api_discovery_source = "tori_ports.json"
+                if "audio_port" in data:
+                    ws_audio_port = data["audio_port"]
+                if "concept_port" in data:
+                    ws_concept_port = data["concept_port"]
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Warning: Error reading tori_ports.json: {e}")
+    
+    if not api_discovery_source:
+        # Try config.json
+        try:
+            with open("config.json", "r") as f:
+                data = json.load(f)
+                if "api_port" in data:
+                    api_port = data["api_port"]
+                    api_url = f"http://localhost:{api_port}"
+                    api_discovery_source = "config.json"
+                if "api_url" in data:
+                    api_url = data["api_url"].rstrip("/")
+                    parsed = urlparse(api_url)
+                    if parsed.port:
+                        api_port = parsed.port
+                if "audio_port" in data:
+                    ws_audio_port = data["audio_port"]
+                if "concept_port" in data:
+                    ws_concept_port = data["concept_port"]
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Warning: Error reading config.json: {e}")
+    
+    if not api_discovery_source:
+        # Scan common default ports for an open TORI API
+        for p in [8002, 8000, 8001, 8003, 8004]:
+            if is_port_open(p):
+                try:
+                    r = requests.get(f"http://localhost:{p}/api/health", timeout=1)
+                    if r.status_code == 200:
+                        api_port = p
+                        api_url = f"http://localhost:{p}"
+                        api_discovery_source = "port scan"
+                        break
+                except Exception:
+                    continue
+        
+        if not api_discovery_source:
+            # Just check if any of these ports are open
+            for p in [8002, 8000, 8001, 8003, 8004]:
+                if is_port_open(p):
+                    api_port = p
+                    api_url = f"http://localhost:{p}"
+                    api_discovery_source = "port scan (open port)"
+                    break
+    
+    if not api_discovery_source:
+        # Try .port_manager_allocations.json
+        try:
+            with open(".port_manager_allocations.json", "r") as f:
+                data = json.load(f)
+                if "api_server" in data and "port" in data["api_server"]:
+                    api_port = data["api_server"]["port"]
+                    api_url = f"http://localhost:{api_port}"
+                    api_discovery_source = ".port_manager_allocations.json"
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Warning: Error reading .port_manager_allocations.json: {e}")
+    
+    if not api_discovery_source:
+        # Fallback to default enhanced launcher starting port
+        api_port = 8002
+        api_url = f"http://localhost:{api_port}"
+        api_discovery_source = "default (8002)"
+    
+    return {
+        "api_url": api_url,
+        "api_port": api_port,
+        "api_discovery_source": api_discovery_source,
+        "ws_audio_port": ws_audio_port,
+        "ws_concept_port": ws_concept_port
+    }
+
+# Initialize global variables (will be updated after discovery)
+API_PORT = 8002
+WS_AUDIO_PORT = 8765
+WS_CONCEPT_PORT = 8766
+API_BASE_URL = f"http://localhost:{API_PORT}"
+WS_AUDIO_URL = f"ws://localhost:{WS_AUDIO_PORT}"
+WS_CONCEPT_URL = f"ws://localhost:{WS_CONCEPT_PORT}"
+TIMEOUT = 10
+
+# Service status tracking
+service_status: Dict[str, bool] = {
+    "API": False,
+    "Audio WebSocket": False,
+    "Concept Mesh WebSocket": False,
+    "Data Files": False,
+    "Concept Mesh Loaded": False
+}
+
+# Test result tracking
+test_results: Dict[str, List] = {
+    "passed": [],
+    "failed": [],
+    "warnings": [],
+    "skipped": []
+}
+
+# List to store duplicate concept file paths (if found)
+duplicate_files: List[str] = []
+
+# Output helper functions for tests
+def print_test_header(test_name: str):
+    """Print a formatted header for a test section."""
+    test_logger.log_test_start(test_name)
+    print("\n" + "="*60)
+    print(f"TEST: {test_name}")
+    print("="*60)
+
+def record_result(test_name: str, success: bool, message: str = ""):
+    """Record and report a test pass/fail result."""
+    if success:
+        test_results["passed"].append(test_name)
+        print(colored(f"✅ PASS: {test_name}", Colors.OKGREEN))
+        if message:
+            print(f"   {message}")
+        test_logger.log_result(test_name, "PASS")
+    else:
+        test_results["failed"].append((test_name, message))
+        print(colored(f"❌ FAIL: {test_name}", Colors.FAIL))
+        if message:
+            print(colored(f"   Error: {message}", Colors.FAIL))
+        test_logger.log_result(test_name, "FAIL", message)
+
+def record_warning(test_name: str, message: str):
+    """Record and report a warning (non-critical issue)."""
+    test_results["warnings"].append((test_name, message))
+    print(colored(f"⚠️  WARNING: {message}", Colors.WARNING))
+    test_logger.log_result(test_name, "WARN", message)
+
+def record_skip(test_name: str, reason: str):
+    """Record and report a skipped test (due to missing dependency)."""
+    test_results["skipped"].append((test_name, reason))
+    print(colored(f"⏭️  SKIP: {test_name} ({reason})", Colors.OKBLUE))
+    test_logger.log_result(test_name, "SKIP", reason)
+
+# Test 0: Data file integrity check
+def test_concept_mesh_files():
+    """Check for concept mesh data files and detect duplicates."""
+    print_test_header("Concept Mesh Data Files")
+    
+    # Known concept data file paths
+    file_paths = [
+        "data/concepts.json",
+        "data/concept_db.json",
+        "concept_mesh_data.json",
+        "soliton_concept_memory.json",
+        "concept_graph.json",
+        "data/soliton_concept_memory.json"
+    ]
+    
+    found_files = []
+    concept_counts = {}
+    
+    for fp in file_paths:
+        path = Path(fp)
+        if path.exists():
+            found_files.append(fp)
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+                    # Count concepts (handle various formats)
+                    count = 0
+                    if isinstance(data, list):
+                        count = len(data)
+                    elif isinstance(data, dict):
+                        if "concepts" in data:
+                            count = len(data["concepts"])
+                        elif "nodes" in data:
+                            count = len(data["nodes"])
+                        else:
+                            # Maybe the dict itself contains concepts
+                            count = len(data)
+                    concept_counts[fp] = count
+                    print(f"   Found: {fp} ({count} concepts)")
+            except Exception as e:
+                print(f"   Found: {fp} (unable to read: {e})")
+    
+    if not found_files:
+        record_result("Data Files Present", False, "No concept data files found")
+        service_status["Data Files"] = False
+    else:
+        record_result("Data Files Present", True, f"Found {len(found_files)} data files")
+        service_status["Data Files"] = True
+        
+        # Check for duplicates or inconsistencies
+        if len(set(concept_counts.values())) > 1:
+            record_warning("Data Consistency", 
+                          f"Different concept counts across files: {concept_counts}")
+            duplicate_files.extend(found_files)
+        
+        # Warn if only default/mock data
+        max_count = max(concept_counts.values()) if concept_counts else 0
+        if max_count <= 10:
+            record_warning("Data Quality", 
+                          "Low concept count suggests mock/default data is in use")
+
+# Test 1: API Health Check
+def test_api_health() -> bool:
+    """Check API health endpoints (/health)."""
+    print_test_header("API Health Check")
+    
+    endpoints = ["/health", "/api/health", "/api/v1/health"]
+    healthy = False
+    
+    for endpoint in endpoints:
+        try:
+            response = requests.get(f"{API_BASE_URL}{endpoint}", timeout=TIMEOUT)
+            if response.status_code == 200:
+                record_result(f"API Health - {endpoint}", True)
+                healthy = True
+                break
+            else:
+                record_warning(f"API Health - {endpoint}", f"Status {response.status_code}")
+        except Exception:
+            # If connection refused or other network error, move to next endpoint
+            continue
+    
+    if not healthy:
+        record_result("API Health Check", False, "No health endpoint responded")
+    
+    service_status["API"] = healthy
+    return healthy
+
+# Test 2: Concept Mesh API Endpoints
+def test_concept_mesh_api():
+    """Test various Concept Mesh API endpoints (concept list, status, etc.)."""
+    print_test_header("Concept Mesh API")
+    
+    endpoints = [
+        ("/api/v1/concepts", "GET", None),
+        ("/api/v1/concept-mesh/status", "GET", None),
+        ("/api/v1/concept-mesh/concepts", "GET", None),
+        ("/api/v1/soliton/concepts", "GET", None)
+    ]
+    
+    for endpoint, method, data in endpoints:
+        try:
+            if method == "GET":
+                resp = requests.get(f"{API_BASE_URL}{endpoint}", timeout=TIMEOUT)
+            else:  # in case we add POST tests in the list
+                resp = requests.post(f"{API_BASE_URL}{endpoint}", json=data, timeout=TIMEOUT)
+            
+            if resp.status_code in (200, 201):
+                record_result(f"Concept API - {endpoint}", True)
+                # Print extra info if available (counts, status)
+                try:
+                    resp_data = resp.json()
+                    if isinstance(resp_data, list):
+                        print(f"   Retrieved {len(resp_data)} items")
+                    elif isinstance(resp_data, dict):
+                        if "status" in resp_data:
+                            print(f"   Status: {resp_data.get('status')}")
+                        if "concepts" in resp_data and isinstance(resp_data["concepts"], list):
+                            print(f"   Concepts count: {len(resp_data['concepts'])}")
+                except Exception:
+                    pass
+            else:
+                record_result(f"Concept API - {endpoint}", False, f"Status {resp.status_code}")
+        except Exception as e:
+            record_result(f"Concept API - {endpoint}", False, str(e))
+
+# Test 3: Prajna Voice Q&A
+def test_prajna_voice():
+    """Test the Prajna Voice query endpoint (/api/answer)."""
+    print_test_header("Prajna Voice Query")
+    
+    question = {"question": "What is 2+2?"}
+    
+    try:
+        resp = requests.post(f"{API_BASE_URL}/api/answer", json=question, timeout=TIMEOUT)
+        if resp.status_code == 200:
+            data = {}
+            try:
+                data = resp.json()
+            except Exception:
+                pass
+            
+            if data and ("answer" in data or "result" in data):
+                answer_text = data.get("answer") or data.get("result")
+                record_result("Prajna Voice Query", True)
+                print(f"   Received answer: {answer_text}")
+            else:
+                record_result("Prajna Voice Query", False, "No answer field in response")
+        else:
+            record_result("Prajna Voice Query", False, f"Status {resp.status_code}")
+    except Exception as e:
+        record_result("Prajna Voice Query", False, f"Exception: {e}")
+
+# Test 4: Audio WebSocket Bridge
+async def test_websocket_audio():
+    """Test the Audio WebSocket bridge (audio input to hologram data)."""
+    print_test_header("WebSocket Audio Bridge")
+    
+    try:
+        async with websockets.connect(WS_AUDIO_URL) as websocket:
+            # Send a sample audio waveform payload
+            test_data = {"amplitude": 0.5, "frequency": 440, "waveform": "sine"}
+            await websocket.send(json.dumps(test_data))
+            
+            # Await a hologram data response
+            response = await asyncio.wait_for(websocket.recv(), timeout=5)
+            data = json.loads(response)
+            
+            if data.get("type") == "hologram_data":
+                record_result("WebSocket Audio Bridge", True)
+                brightness = data.get("hologram_params", {}).get("brightness")
+                if brightness is not None:
+                    print(f"   Received hologram data (brightness: {brightness})")
+            else:
+                record_result("WebSocket Audio Bridge", False, "Invalid response format")
+    except asyncio.TimeoutError:
+        record_result("WebSocket Audio Bridge", False, "Connection timeout")
+    except Exception as e:
+        record_result("WebSocket Audio Bridge", False, str(e))
+    
+    service_status["Audio WebSocket"] = ("WebSocket Audio Bridge" in [t for t in test_results["passed"]])
+
+# Test 5: Concept Mesh WebSocket Bridge
+async def test_websocket_concepts():
+    """Test the Concept Mesh WebSocket bridge (concept data broadcasting)."""
+    print_test_header("WebSocket Concept Mesh Bridge")
+    
+    try:
+        async with websockets.connect(WS_CONCEPT_URL) as websocket:
+            # Expect an initial concept_update broadcast on connect
+            initial = await asyncio.wait_for(websocket.recv(), timeout=5)
+            data = json.loads(initial)
+            
+            if data.get("type") == "concept_update":
+                concepts = data.get("concepts", [])
+                record_result("WebSocket Concept Bridge - Initial Data", True)
+                print(f"   Received {len(concepts)} concepts")
+                
+                mesh_available = data.get("mesh_available", False)
+                print(f"   Mesh available: {mesh_available}")
+                
+                # Determine if real concept mesh data is loaded
+                if len(concepts) <= 5 or not mesh_available:
+                    record_warning("Concept Mesh Loaded", "Using default mock concepts (concept mesh not fully loaded)")
+                    service_status["Concept Mesh Loaded"] = False
+                else:
+                    service_status["Concept Mesh Loaded"] = True
+                
+                # Request concept list explicitly to verify request handling
+                await websocket.send(json.dumps({"type": "get_concepts"}))
+                resp = await asyncio.wait_for(websocket.recv(), timeout=5)
+                data2 = json.loads(resp)
+                
+                if data2.get("type") == "concept_update":
+                    record_result("WebSocket Concept Bridge - Request", True)
+                else:
+                    record_result("WebSocket Concept Bridge - Request", False, "Unexpected response to get_concepts")
+                
+                # Test focusing on the first concept (if any)
+                if concepts:
+                    focus_req = {"type": "focus_concept", "concept_id": concepts[0].get("id")}
+                    await websocket.send(json.dumps(focus_req))
+                    resp2 = await asyncio.wait_for(websocket.recv(), timeout=5)
+                    data3 = json.loads(resp2)
+                    
+                    if data3.get("type") == "concept_focus":
+                        record_result("WebSocket Concept Bridge - Focus", True)
+                        focused = data3.get("focused_concept", {})
+                        print(f"   Focused on concept: {focused.get('name', 'Unknown')}")
+                    else:
+                        record_result("WebSocket Concept Bridge - Focus", False, "Invalid response to focus_concept")
+            else:
+                record_result("WebSocket Concept Bridge", False, "No initial concept data received")
+    except asyncio.TimeoutError:
+        record_result("WebSocket Concept Bridge", False, "Connection timeout")
+    except Exception as e:
+        record_result("WebSocket Concept Bridge", False, str(e))
+    
+    service_status["Concept Mesh WebSocket"] = ("WebSocket Concept Bridge - Initial Data" in [t for t in test_results["passed"]])
+
+# Test 6: End-to-End Concept Creation and Retrieval
+async def test_end_to_end_flow():
+    """Test the end-to-end flow: create concept via API, receive via WS, add via WS, verify broadcast."""
+    print_test_header("End-to-End Data Flow")
+    
+    try:
+        # Step 1: Create a test concept through the API
+        test_concept = {
+            "name": "Test Concept E2E",
+            "description": "End-to-end test concept",
+            "category": "test",
+            "importance": 0.5
+        }
+        
+        created = False
+        for ep in ["/api/v1/concepts", "/api/v1/concept-mesh/concepts", "/api/v1/soliton/concepts"]:
+            try:
+                r = requests.post(f"{API_BASE_URL}{ep}", json=test_concept, timeout=TIMEOUT)
+                if r.status_code in (200, 201):
+                    created = True
+                    record_result(f"E2E - Create Concept via {ep}", True)
+                    break
+            except Exception:
+                continue
+        
+        if not created:
+            record_warning("E2E - Create Concept", "API concept creation failed")
+        
+        # Step 2: Connect to Concept Mesh WS and retrieve current concepts
+        async with websockets.connect(WS_CONCEPT_URL) as websocket:
+            await websocket.send(json.dumps({"type": "get_concepts"}))
+            resp = await asyncio.wait_for(websocket.recv(), timeout=5)
+            data = json.loads(resp)
+            
+            if data.get("type") == "concept_update":
+                concepts = data.get("concepts", [])
+                record_result("E2E - WebSocket Retrieval", True)
+                print(f"   Total concepts available: {len(concepts)}")
+                
+                # Step 3: Add a new concept via WebSocket and listen for broadcast
+                ws_concept = {
+                    "type": "add_concept",
+                    "concept": {
+                        "name": "WebSocket Test Concept",
+                        "description": "Added via WebSocket",
+                        "position": {"x": 5, "y": 5, "z": 5},
+                        "color": {"r": 1.0, "g": 0.0, "b": 0.0},
+                        "size": 1.5
+                    }
+                }
+                await websocket.send(json.dumps(ws_concept))
+                await asyncio.sleep(1)  # brief wait for broadcast
+                
+                try:
+                    update = await asyncio.wait_for(websocket.recv(), timeout=3)
+                    upd_data = json.loads(update)
+                    if upd_data.get("type") == "concept_update":
+                        record_result("E2E - WebSocket Addition", True)
+                        new_total = len(upd_data.get("concepts", []))
+                        print(f"   Concepts after addition: {new_total}")
+                    else:
+                        record_result("E2E - WebSocket Addition", False, "No update broadcast received")
+                except asyncio.TimeoutError:
+                    record_warning("E2E - WebSocket Addition", "No broadcast update received")
+            else:
+                record_result("E2E - WebSocket Flow", False, "Invalid initial WebSocket response")
+    except Exception as e:
+        record_result("E2E - Data Flow", False, str(e))
+
+# Test 7: Performance (basic latency)
+async def test_performance():
+    """Test basic performance metrics (API and WS latency)."""
+    print_test_header("Performance Test")
+    
+    # API response time
+    start = time.time()
+    try:
+        r = requests.get(f"{API_BASE_URL}/api/v1/health", timeout=TIMEOUT)
+        elapsed = time.time() - start
+        
+        if r.status_code == 200:
+            if elapsed < 1.0:
+                record_result("API Response Time", True)
+            else:
+                record_warning("API Response Time", f"Slow API response: {elapsed:.2f}s")
+            print(f"   API responded in {elapsed:.3f}s")
+        else:
+            record_result("API Response Time", False, f"Status {r.status_code}")
+    except Exception as e:
+        record_result("API Response Time", False, f"Error: {e}")
+    
+    # WebSocket connection time
+    try:
+        start = time.time()
+        async with websockets.connect(WS_CONCEPT_URL):
+            ws_time = time.time() - start
+        
+        if ws_time < 1.0:
+            record_result("WebSocket Connect Time", True)
+        else:
+            record_warning("WebSocket Connect Time", f"Slow WebSocket connect: {ws_time:.2f}s")
+        print(f"   WebSocket connected in {ws_time:.3f}s")
+    except Exception as e:
+        record_result("WebSocket Connect Time", False, f"Error: {e}")
+
+# Main test runner that orchestrates all tests
+async def run_all_tests():
+    # Header with configuration info
+    print("\n" + "="*60)
+    print("TORI SYSTEM END-TO-END DIAGNOSTIC TEST SUITE")
+    print("="*60)
+    print(f"API Base URL: {API_BASE_URL}")
+    print(f"Audio WS URL: {WS_AUDIO_URL}")
+    print(f"Concept WS URL: {WS_CONCEPT_URL}")
+    
+    # Run tests in order, skipping as needed based on service availability
+    
+    # 1. API checks
+    if not service_status["API"]:
+        if test_api_health():
+            test_concept_mesh_api()
+            test_prajna_voice()
+        else:
+            record_skip("Concept Mesh API", "API not running")
+            record_skip("Prajna Voice Query", "API not running")
+    else:
+        test_api_health()
+        test_concept_mesh_api()
+        test_prajna_voice()
+    
+    # 2. Data file integrity check (always run, even if API down)
+    test_concept_mesh_files()
+    
+    # 3. WebSocket bridge tests
+    if service_status["Audio WebSocket"]:
+        await test_websocket_audio()
+    else:
+        record_skip("WebSocket Audio Bridge", "service not running")
+    
+    if service_status["Concept Mesh WebSocket"]:
+        await test_websocket_concepts()
+    else:
+        record_skip("WebSocket Concept Mesh Bridge", "service not running")
+    
+    # 4. End-to-end flow test
+    if service_status["API"] and service_status["Concept Mesh WebSocket"]:
+        await test_end_to_end_flow()
+    else:
+        reason = []
+        if not service_status["API"]:
+            reason.append("API not running")
+        if not service_status["Concept Mesh WebSocket"]:
+            reason.append("Concept WS not running")
+        record_skip("End-to-End Data Flow", " and ".join(reason))
+    
+    # 5. Performance metrics
+    if service_status["API"] and service_status["Concept Mesh WebSocket"]:
+        await test_performance()
+    else:
+        record_skip("Performance Test", "core services not running")
+    
+    # Results summary
+    print("\n" + "="*60)
+    print("TEST RESULTS SUMMARY")
+    print("="*60)
+    print(colored(f"✅ Passed: {len(test_results['passed'])}", Colors.OKGREEN))
+    print(colored(f"❌ Failed: {len(test_results['failed'])}", Colors.FAIL))
+    print(colored(f"⚠️  Warnings: {len(test_results['warnings'])}", Colors.WARNING))
+    if test_results['skipped']:
+        print(colored(f"⏭️  Skipped: {len(test_results['skipped'])}", Colors.OKBLUE))
+    
+    if test_results['failed']:
+        print("\nFailed Tests:")
+        for test_name, error in test_results['failed']:
+            print(f"  - {test_name}: {error}")
+    
+    if test_results['warnings']:
+        print("\nWarnings:")
+        for test_name, warning in test_results['warnings']:
+            print(f"  - {test_name}: {warning}")
+    
+    # Service status overview table
+    print("\n" + "="*60)
+    print("TORI SERVICE STATUS SUMMARY")
+    print("="*60)
+    up_count = sum(1 for status in service_status.values() if status)
+    total_count = len(service_status)
+    
+    for service, status in service_status.items():
+        status_text = colored("✅ UP", Colors.OKGREEN) if status else colored("❌ DOWN", Colors.FAIL)
+        print(f"{service:<25}: {status_text}")
+    
+    overall_health = ("FULLY OPERATIONAL" if up_count == total_count else 
+                      "PARTIALLY OPERATIONAL" if up_count >= total_count/2 else 
+                      "DEGRADED")
+    print("-" * 50)
+    print(f"Overall System Health: {overall_health} ({up_count}/{total_count})")
+    
+    # Recommended fixes based on issues
+    fixes = []
+    if not service_status["API"]:
+        fixes.append("Start API: python enhanced_launcher.py")
+    if not service_status["Audio WebSocket"]:
+        fixes.append("Start Audio Bridge: python audio_hologram_bridge.py")
+    if not service_status["Concept Mesh WebSocket"]:
+        fixes.append("Start Concept Bridge: python concept_mesh_hologram_bridge.py")
+    if not service_status["Data Files"] or not service_status["Concept Mesh Loaded"]:
+        fixes.append("Initialize data: python init_concept_mesh_data.py")
+    if duplicate_files:
+        fixes.append("Remove or consolidate duplicate concept data files")
+    
+    if fixes:
+        print("\n" + "="*60)
+        print("RECOMMENDED FIXES")
+        print("="*60)
+        for i, fix in enumerate(fixes, start=1):
+            print(f"  {i}. {fix}")
+    
+    # Show log file path
+    print(f"\n📁 Detailed log saved to: {test_logger.log_file}")
+    
+    # Return exit code (0 if all tests passed, 1 if any failed)
+    return 0 if not test_results['failed'] else 1
+
+# Run the main routine when executed as script
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="TORI Concept Mesh E2E Diagnostic Test Suite")
+    parser.add_argument("--auto-fix", action="store_true", help="Automatically start downed services")
+    parser.add_argument("--force", action="store_true", help="Run tests even if critical services are down")
+    parser.add_argument("--api-url", type=str, help="Override API base URL (e.g., http://localhost:8002)")
+    parser.add_argument("--api-port", type=int, help="Override API port (e.g., 8002)")
+    parser.add_argument("--no-color", action="store_true", help="Disable colored output")
+    args = parser.parse_args()
+    
+    if args.no_color:
+        USE_COLOR = False
+    
+    # Initialize logger
+    test_logger = TestLogger()
+    
+    # Discover ports first, before doing anything else
+    port_config = discover_ports()
+    
+    # Apply command-line overrides
+    if args.api_url:
+        port_config["api_url"] = args.api_url.rstrip("/")
+        parsed = urlparse(port_config["api_url"])
+        port_config["api_port"] = parsed.port if parsed.port else (80 if parsed.scheme == "http" else 443)
+        port_config["api_discovery_source"] = "command-line --api-url"
+    elif args.api_port:
+        port_config["api_port"] = args.api_port
+        port_config["api_url"] = f"http://localhost:{args.api_port}"
+        port_config["api_discovery_source"] = "command-line --api-port"
+    
+    # Update global variables with discovered/configured values
+    API_PORT = port_config["api_port"]
+    API_BASE_URL = port_config["api_url"]
+    WS_AUDIO_PORT = port_config["ws_audio_port"]
+    WS_CONCEPT_PORT = port_config["ws_concept_port"]
+    WS_AUDIO_URL = f"ws://localhost:{WS_AUDIO_PORT}"
+    WS_CONCEPT_URL = f"ws://localhost:{WS_CONCEPT_PORT}"
+    
+    # Announce discovered configuration
+    print(f"Using API configuration: {API_BASE_URL} (discovered via: {port_config['api_discovery_source']})")
+    test_logger.logger.debug(f"API config from {port_config['api_discovery_source']}: {API_BASE_URL}")
+    
+    # Pre-flight system check
+    print("\n" + "="*60)
+    print("TORI SYSTEM PRE-FLIGHT CHECK")
+    print("="*60)
+    print("Port Status:")
+    print("----------------------------------------")
+    
+    api_open = is_port_open(API_PORT)
+    print(f"API                      Port {API_PORT}: " + ("OPEN" if api_open else "CLOSED"))
+    if not api_open:
+        print("   → Start with: python enhanced_launcher.py")
+    
+    audio_open = is_port_open(WS_AUDIO_PORT)
+    print(f"Audio WebSocket          Port {WS_AUDIO_PORT}: " + ("OPEN" if audio_open else "CLOSED"))
+    if not audio_open:
+        print("   → Start with: python audio_hologram_bridge.py")
+    
+    concept_open = is_port_open(WS_CONCEPT_PORT)
+    print(f"Concept Mesh WebSocket   Port {WS_CONCEPT_PORT}: " + ("OPEN" if concept_open else "CLOSED"))
+    if not concept_open:
+        print("   → Start with: python concept_mesh_hologram_bridge.py")
+    
+    # Quick data file existence check
+    data_files = [
+        "data/concepts.json",
+        "data/concept_db.json",
+        "concept_mesh_data.json",
+        "soliton_concept_memory.json"
+    ]
+    data_found = any(Path(fp).exists() for fp in data_files)
+    if not data_found:
+        print("\n⚠️  WARNING: No concept data files found – system will use fallback data (mock concepts).")
+    
+    # Critical service check (API is essential)
+    print("\nCritical Service Check:")
+    print("----------------------------------------")
+    if api_open:
+        print(colored(f"✅ API is running on port {API_PORT}", Colors.OKGREEN))
+    else:
+        print(colored(f"❌ API is NOT running on port {API_PORT}", Colors.FAIL))
+        print("   This service is required for all tests.")
+        print("   Start with: python enhanced_launcher.py")
+        if not args.auto_fix:
+            if not args.force:
+                print("\nAborting tests. Use --force to run anyway or --auto-fix to start services automatically.")
+                test_logger.logger.info("Pre-flight abort: API not running, tests aborted.")
+                sys.exit(1)
+    
+    # Auto-fix: attempt to start services if down
+    if args.auto_fix:
+        if not api_open:
+            test_logger.logger.info("Auto-fix: attempting to start API...")
+            print("\nAttempting to start API service...")
+            try:
+                proc = subprocess.Popen([sys.executable, "enhanced_launcher.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                SPAWNED_PROCESSES.append(proc)
+                # Wait up to 10 seconds for API to come up
+                waited = 0
+                while waited < 10:
+                    time.sleep(1)
+                    if is_port_open(API_PORT):
+                        api_open = True
+                        break
+                    waited += 1
+                
+                if api_open:
+                    print(colored(f"✅ API started on port {API_PORT}", Colors.OKGREEN))
+                    test_logger.logger.info(f"API started on port {API_PORT}")
+                else:
+                    print(colored("❌ Failed to start API automatically.", Colors.FAIL))
+                    test_logger.logger.error("Auto-fix failed: API did not start")
+            except Exception as e:
+                print(colored(f"❌ Failed to start API: {e}", Colors.FAIL))
+                test_logger.logger.error(f"Auto-fix exception (API): {e}")
+        
+        if not audio_open:
+            test_logger.logger.info("Auto-fix: starting Audio WebSocket Bridge...")
+            print("Attempting to start Audio WebSocket Bridge...")
+            try:
+                proc = subprocess.Popen([sys.executable, "audio_hologram_bridge.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                SPAWNED_PROCESSES.append(proc)
+                time.sleep(2)
+                if is_port_open(WS_AUDIO_PORT):
+                    audio_open = True
+                    print(colored("✅ Audio WebSocket Bridge started", Colors.OKGREEN))
+                    test_logger.logger.info("Audio WebSocket Bridge started")
+                else:
+                    print(colored("❌ Could not start Audio WebSocket Bridge", Colors.FAIL))
+                    test_logger.logger.error("Auto-fix failed: Audio WebSocket Bridge not started")
+            except Exception as e:
+                print(colored(f"❌ Failed to start Audio Bridge: {e}", Colors.FAIL))
+                test_logger.logger.error(f"Auto-fix exception (Audio Bridge): {e}")
+        
+        if not concept_open:
+            test_logger.logger.info("Auto-fix: starting Concept Mesh WebSocket Bridge...")
+            print("Attempting to start Concept Mesh WebSocket Bridge...")
+            try:
+                proc = subprocess.Popen([sys.executable, "concept_mesh_hologram_bridge.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                SPAWNED_PROCESSES.append(proc)
+                time.sleep(2)
+                if is_port_open(WS_CONCEPT_PORT):
+                    concept_open = True
+                    print(colored("✅ Concept Mesh WebSocket Bridge started", Colors.OKGREEN))
+                    test_logger.logger.info("Concept Mesh WebSocket Bridge started")
+                else:
+                    print(colored("❌ Could not start Concept Mesh WebSocket Bridge", Colors.FAIL))
+                    test_logger.logger.error("Auto-fix failed: Concept Mesh WebSocket Bridge not started")
+            except Exception as e:
+                print(colored(f"❌ Failed to start Concept Bridge: {e}", Colors.FAIL))
+                test_logger.logger.error(f"Auto-fix exception (Concept Bridge): {e}")
+    
+    # After auto-fix, decide if we can continue
+    if not api_open:
+        if not args.force:
+            print("\nAborting tests.")
+            sys.exit(1)
+        else:
+            print(colored("⚠️  Proceeding with tests despite API being down (--force).", Colors.WARNING))
+    
+    # Update service_status from final pre-flight results
+    if api_open:
+        service_status["API"] = True
+    if audio_open:
+        service_status["Audio WebSocket"] = True
+    if concept_open:
+        service_status["Concept Mesh WebSocket"] = True
+    
+    # Run all tests and exit with appropriate code
+    exit_code = asyncio.run(run_all_tests())
+    sys.exit(exit_code)

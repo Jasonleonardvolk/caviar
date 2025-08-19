@@ -1,0 +1,46 @@
+// ELFIN example with unit specifications
+// This file demonstrates the unit kiwi feature for parameters
+
+system RobotWithUnits {
+    continuous_state: [x, y, theta, v, omega];
+    input: [v_cmd, omega_cmd];
+    
+    params {
+        // Parameters with units
+        max_velocity: 2.0 [m/s];       // Maximum linear velocity
+        max_acceleration: 1.0 [m/s^2];  // Maximum linear acceleration
+        wheel_radius: 0.1 [m];         // Wheel radius
+        wheel_base: 0.5 [m];           // Distance between wheels
+        mass: 10.0 [kg];               // Robot mass
+        moment: 2.0 [kg*m^2];          // Moment of inertia
+        friction: 0.2 [N*s/m];         // Friction coefficient
+    }
+    
+    flow_dynamics {
+        // Kinematics
+        x_dot = v * cos(theta);
+        y_dot = v * sin(theta);
+        theta_dot = omega;
+        
+        // Dynamics with physical units maintained
+        v_dot = (v_cmd - friction * v / mass);
+        omega_dot = (omega_cmd - friction * omega * wheel_radius / moment);
+    }
+}
+
+// Legacy system without units - should still parse correctly
+system LegacySystem {
+    continuous_state: [position, velocity];
+    input: [force];
+    
+    params {
+        mass: 1.0;  // No units specified
+        spring_constant: 0.5;
+        damping: 0.1;
+    }
+    
+    flow_dynamics {
+        position_dot = velocity;
+        velocity_dot = (force - spring_constant * position - damping * velocity) / mass;
+    }
+}

@@ -1,0 +1,184 @@
+/**
+ * PID Controller Template
+ * 
+ * This template defines a Proportional-Integral-Derivative controller
+ * that can be used for various control applications in robotics.
+ */
+
+template PIDController(kp, ki=0.0, kd=0.0) {
+    parameters {
+        kp: float;           // Proportional gain (required)
+        ki: float = ki;      // Integral gain (optional)
+        kd: float = kd;      // Derivative gain (optional)
+    }
+    
+    // Controller state
+    property previous_error = 0.0;
+    property integral = 0.0;
+    property last_time = 0.0;
+    property setpoint = 0.0;
+    
+    // Anti-windup protection
+    property max_integral = 100.0;
+    property min_integral = -100.0;
+    
+    // Output limits
+    property max_output = 1000.0;
+    property min_output = -1000.0;
+    
+    // Set the desired setpoint
+    function set_setpoint(value) {
+        setpoint = value;
+    }
+    
+    // Configure anti-windup limits
+    function set_integral_limits(min_val, max_val) {
+        min_integral = min_val;
+        max_integral = max_val;
+    }
+    
+    // Configure output limits
+    function set_output_limits(min_val, max_val) {
+        min_output = min_val;
+        max_output = max_val;
+    }
+    
+    // Reset the controller state
+    function reset() {
+        previous_error = 0.0;
+        integral = 0.0;
+    }
+    
+    // Compute the control output based on the measured value
+    function compute(measured_value, dt) {
+        // Calculate error
+        error = setpoint - measured_value;
+        
+        // Proportional term
+        p_term = kp * error;
+        
+        // Integral term
+        integral += error * dt;
+        
+        // Apply anti-windup
+        if (integral > max_integral) {
+            integral = max_integral;
+        } else if (integral < min_integral) {
+            integral = min_integral;
+        }
+        
+        i_term = ki * integral;
+        
+        // Derivative term (on measurement, not error)
+        derivative = (error - previous_error) / dt;
+        d_term = kd * derivative;
+        
+        // Save error for next iteration
+        previous_error = error;
+        
+        // Calculate total output
+        output = p_term + i_term + d_term;
+        
+        // Apply output limits
+        if (output > max_output) {
+            output = max_output;
+        } else if (output < min_output) {
+            output = min_output;
+        }
+        
+        return output;
+    }
+    
+    // Auto-tuning functionality (placeholder)
+    function auto_tune(process_model, performance_criteria) {
+        // This would implement an auto-tuning algorithm like
+        // Ziegler-Nichols or relay method
+        
+        // For now, just return a simple rule-of-thumb tuning
+        new_kp = process_model.gain * 0.6;
+        new_ki = new_kp / (process_model.time_constant * 2.0);
+        new_kd = new_kp * (process_model.time_constant / 8.0);
+        
+        return {
+            "kp": new_kp,
+            "ki": new_ki,
+            "kd": new_kd
+        };
+    }
+    
+    // Return current controller parameters
+    property parameters {
+        return {
+            "kp": kp,
+            "ki": ki,
+            "kd": kd,
+            "setpoint": setpoint,
+            "integral": integral,
+            "previous_error": previous_error
+        };
+    }
+}
+
+// Specialized position controller using PID
+template PositionController(kp, ki=0.0, kd=0.0) {
+    parameters {
+        kp: float;           // Proportional gain (required)
+        ki: float = ki;      // Integral gain (optional)
+        kd: float = kd;      // Derivative gain (optional)
+    }
+    
+    // Create a PID controller with the specified gains
+    property controller = PIDController(kp, ki, kd);
+    
+    // Set the position setpoint
+    function set_position(target_position) {
+        controller.set_setpoint(target_position);
+    }
+    
+    // Compute the control output based on the current position
+    function compute(current_position, dt) {
+        return controller.compute(current_position, dt);
+    }
+    
+    // Reset the controller
+    function reset() {
+        controller.reset();
+    }
+    
+    // Configure limits
+    function set_limits(min_output, max_output) {
+        controller.set_output_limits(min_output, max_output);
+    }
+}
+
+// Specialized velocity controller using PID
+template VelocityController(kp, ki=0.0, kd=0.0) {
+    parameters {
+        kp: float;           // Proportional gain (required)
+        ki: float = ki;      // Integral gain (optional)
+        kd: float = kd;      // Derivative gain (optional)
+    }
+    
+    // Create a PID controller with the specified gains
+    property controller = PIDController(kp, ki, kd);
+    
+    // Set the velocity setpoint
+    function set_velocity(target_velocity) {
+        controller.set_setpoint(target_velocity);
+    }
+    
+    // Compute the control output based on the current velocity
+    function compute(current_velocity, dt) {
+        return controller.compute(current_velocity, dt);
+    }
+    
+    // Reset the controller
+    function reset() {
+        controller.reset();
+    }
+    
+    // Configure limits
+    function set_limits(min_output, max_output) {
+        controller.set_output_limits(min_output, max_output);
+    }
+}

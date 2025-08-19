@@ -1,0 +1,25 @@
+I don’t hold on to a literal “full copy” of your Drive in the background — I don’t automatically keep or sync every file over time.
+
+Here’s how it works when we’ve been doing these sweeps:
+
+When you connect Drive and ask me to pull something, I get a live listing and content for the relevant files at that moment.
+
+Once I use it, I can reference that info inside our current conversation. That’s why I was able to pull in the ARCHITECTURE.md, WEBGPU.md, blueprint, status reports, etc., from the past few days.
+
+Between conversations, I don’t automatically keep the whole dataset. If you come back later and want me to see “the rest,” I’d re-query Drive fresh.
+
+What I do retain in the context of an ongoing session is:
+
+Which files we pulled and cited (with their names, so I can re-point you to them).
+
+Summaries of their relevant content we discussed.
+
+Your module/file path map from earlier, so I can slot things into claim language.
+
+If you want me to fold in older material or the rest of the code/docs for the PPA, I can:
+
+Re-query Drive for a full match set (e.g., everything in /docs + /src + /kha).
+
+Merge that into the /ppa/spec and /ppa/claims scaffolding so counsel sees the entire invention history, not just the last few days.
+
+Do you want me to go ahead and sweep the rest of the Drive for all TORI-related files and incorporate them into the PPA pack? That way the filing has both the brand-new and older embodiments.

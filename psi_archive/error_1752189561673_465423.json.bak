@@ -1,0 +1,12 @@
+{
+  "id": "error_1752189561673_465423",
+  "timestamp": 1752189561.6737995,
+  "error_type": "ingestion_failure",
+  "source": "temp_chunk_100_200.txt",
+  "error": "Penrose verification FAILED. Failed checks: ['geometric_check']",
+  "metadata": {
+    "source_pdf": "C:\\Users\\jason\\Desktop\\tori\\kha\\anewapproach.pdf",
+    "pages": "101-200",
+    "chunk_of": 1096
+  }
+}

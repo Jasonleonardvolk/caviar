@@ -1,0 +1,779 @@
+// ${IRIS_ROOT}\frontend\lib\webgpu\fftCompute.ts
+// Production-ready FFT implementation with precomputed data and static shaders
+
+import { ShaderLoader } from './shaderLoader';
+import { getPrecomputedData, isPrecomputedSize } from './generated/fftPrecomputed';
+import type { PrecomputedFFTData } from './generated/fftPrecomputed';
+import { FFTOptimizations } from './fftOptimizations';
+import { getConstantsForShader, ShaderConstantConfig } from './shaderConstantManager';
+
+export interface FFTConfig {
+    size: number;
+    precision: 'f32' | 'f16';
+    normalization: 'none' | 'forward' | 'inverse' | 'symmetric';
+    direction: 'forward' | 'inverse';
+    dimensions: 1 | 2;
+    batchSize?: number;
+    workgroupSize?: number;
+    reuseBuffers?: boolean;
+}
+
+interface FFTBuffers {
+    input: GPUBuffer;
+    output: GPUBuffer;
+    temp: [GPUBuffer, GPUBuffer];
+}
+
+export class FFTCompute {
+    private device: GPUDevice;
+    private config: FFTConfig;
+    private pipelines = new Map<string, GPUComputePipeline>();
+    private bindGroupLayout!: GPUBindGroupLayout;
+    private pipelineLayout!: GPUPipelineLayout;
+    
+    // Persistent resources
+    private uniformBuffer!: GPUBuffer;
+    private twiddleBuffer!: GPUBuffer;
+    private bitReversalBuffer!: GPUBuffer;
+    private twiddleOffsetBuffer!: GPUBuffer;
+    private buffers?: FFTBuffers;
+    private precomputedData?: PrecomputedFFTData;
+    
+    // Performance monitoring
+    private querySet?: GPUQuerySet;
+    private queryBuffer?: GPUBuffer;
+    private performanceHistory: number[] = [];
+    
+    constructor(device: GPUDevice, config: FFTConfig) {
+        this.device = device;
+        this.config = this.validateConfig(config);
+    }
+    
+    private validateConfig(config: FFTConfig): FFTConfig {
+        // Validate power of 2
+        if (!FFTCompute.isPowerOfTwo(config.size)) {
+            throw new Error(`FFT size must be power of 2, got ${config.size}`);
+        }
+        
+        // Validate size limits
+        const maxSize = config.dimensions === 2 ? 4096 : 65536;
+        if (config.size > maxSize) {
+            throw new Error(`FFT size ${config.size} exceeds maximum ${maxSize}`);
+        }
+        
+        // Set defaults
+        config.batchSize = config.batchSize || 1;
+        config.workgroupSize = config.workgroupSize || 256;
+        config.reuseBuffers = config.reuseBuffers ?? true;
+        
+        // Validate workgroup divisibility
+        const totalElements = config.dimensions === 2 ? 
+            config.size * config.size : config.size;
+        config.workgroupSize = FFTOptimizations.validateWorkgroupSize(
+            totalElements, 
+            config.workgroupSize
+        );
+        
+        return config;
+    }
+    
+    async initialize(): Promise<void> {
+        // Create layouts
+        this.createLayouts();
+        
+        // Initialize resources
+        await this.initializeResources();
+        
+        // Create pipelines with specialization constants
+        await this.createPipelines();
+        
+        // Initialize performance monitoring if available
+        const features = await FFTOptimizations.checkGPUFeatures(this.device);
+        if (features.hasTimestampQuery) {
+            this.initializePerformanceMonitoring();
+        }
+        
+        // Allocate buffers if reuse is enabled
+        if (this.config.reuseBuffers) {
+            this.allocateBuffers();
+        }
+    }
+    
+    private createLayouts(): void {
+        this.bindGroupLayout = this.device.createBindGroupLayout({
+            label: 'FFT Bind Group Layout',
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } }
+            ]
+        });
+        
+        this.pipelineLayout = this.device.createPipelineLayout({
+            label: 'FFT Pipeline Layout',
+            bindGroupLayouts: [this.bindGroupLayout]
+        });
+    }
+    
+    private async initializeResources(): Promise<void> {
+        // Try to use precomputed data - handle case where it's not available
+        try {
+            this.precomputedData = getPrecomputedData(this.config.size) || undefined;
+        } catch (error) {
+            console.warn(`No precomputed data for size ${this.config.size}, will generate at runtime`);
+            this.precomputedData = undefined;
+        }
+        
+        // Create uniform buffer with correct size
+        const uniformSize = 64; // Increased to handle all uniform data
+        const uniformData = new ArrayBuffer(uniformSize);
+        const uniformView = new DataView(uniformData);
+        uniformView.setUint32(0, this.config.size, true);
+        uniformView.setUint32(4, Math.log2(this.config.size), true);
+        uniformView.setUint32(8, this.config.batchSize!, true);
+        uniformView.setFloat32(12, this.getNormalizationFactor(), true);
+        uniformView.setUint32(16, this.config.dimensions, true);
+        uniformView.setUint32(20, this.config.direction === 'forward' ? 0 : 1, true);
+        uniformView.setUint32(24, 0, true); // stage (will be updated during execution)
+        uniformView.setUint32(28, 0, true); // twiddle offset
+        
+        this.uniformBuffer = this.device.createBuffer({
+            label: 'FFT Uniforms',
+            size: uniformSize,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        
+        // Safe copy - ensure we don't exceed the buffer size
+        const mappedRange = this.uniformBuffer.getMappedRange();
+        const targetArray = new Uint8Array(mappedRange);
+        const sourceArray = new Uint8Array(uniformData);
+        
+        // Ensure we don't exceed the buffer size
+        const copySize = Math.min(targetArray.byteLength, sourceArray.byteLength);
+        targetArray.set(sourceArray.subarray(0, copySize));
+        
+        this.uniformBuffer.unmap();
+        
+        // Create or use precomputed twiddle factors
+        if (this.precomputedData) {
+            const twiddleData = this.config.direction === 'forward' ? 
+                this.precomputedData.twiddlesForward : 
+                this.precomputedData.twiddlesInverse;
+            
+            this.twiddleBuffer = this.device.createBuffer({
+                label: 'FFT Twiddles (Precomputed)',
+                size: twiddleData.byteLength,
+                usage: GPUBufferUsage.STORAGE,
+                mappedAtCreation: true
+            });
+            // Safe copy for twiddle buffer
+            const twiddleMapped = new Float32Array(this.twiddleBuffer.getMappedRange());
+            const twiddleSize = Math.min(twiddleMapped.length, twiddleData.length);
+            twiddleMapped.set(twiddleData.subarray(0, twiddleSize));
+            this.twiddleBuffer.unmap();
+            
+            // Use precomputed bit reversal
+            this.bitReversalBuffer = this.device.createBuffer({
+                label: 'FFT Bit Reversal (Precomputed)',
+                size: this.precomputedData.bitReversal.byteLength,
+                usage: GPUBufferUsage.STORAGE,
+                mappedAtCreation: true
+            });
+            
+            // Safe copy for bit reversal buffer
+            const bitReversalMapped = new Uint32Array(this.bitReversalBuffer.getMappedRange());
+            const bitReversalSize = Math.min(bitReversalMapped.length, this.precomputedData.bitReversal.length);
+            bitReversalMapped.set(this.precomputedData.bitReversal.subarray(0, bitReversalSize));
+            this.bitReversalBuffer.unmap();
+            
+            // Create twiddle offset buffer
+            this.twiddleOffsetBuffer = this.device.createBuffer({
+                label: 'FFT Twiddle Offsets',
+                size: this.precomputedData.twiddleOffsets.byteLength,
+                usage: GPUBufferUsage.STORAGE,
+                mappedAtCreation: true
+            });
+            
+            // Safe copy for twiddle offset buffer
+            const offsetMapped = new Uint32Array(this.twiddleOffsetBuffer.getMappedRange());
+            const offsetSize = Math.min(offsetMapped.length, this.precomputedData.twiddleOffsets.length);
+            offsetMapped.set(this.precomputedData.twiddleOffsets.subarray(0, offsetSize));
+            this.twiddleOffsetBuffer.unmap();
+        } else {
+            // Generate at runtime if not precomputed
+            console.warn(`No precomputed data for size ${this.config.size}, generating at runtime`);
+            await this.generateRuntimeData();
+        }
+    }
+    
+    private async generateRuntimeData(): Promise<void> {
+        // Similar to original implementation but only used as fallback
+        const { size, direction } = this.config;
+        const sign = direction === 'forward' ? -1 : 1;
+        const stages = Math.log2(size);
+        
+        // Generate twiddle factors
+        const twiddleData: number[] = [];
+        for (let stage = 0; stage < stages; stage++) {
+            const stageSize = 1 << (stage + 1);
+            const halfStageSize = stageSize >> 1;
+            
+            for (let k = 0; k < halfStageSize; k++) {
+                const angle = sign * 2 * Math.PI * k / stageSize;
+                twiddleData.push(Math.cos(angle), Math.sin(angle));
+            }
+        }
+        
+        this.twiddleBuffer = this.device.createBuffer({
+            label: 'FFT Twiddles (Runtime)',
+            size: twiddleData.length * 4,
+            usage: GPUBufferUsage.STORAGE,
+            mappedAtCreation: true
+        });
+        new Float32Array(this.twiddleBuffer.getMappedRange()).set(twiddleData);
+        this.twiddleBuffer.unmap();
+        
+        // Generate bit reversal indices
+        const bits = Math.log2(size);
+        const indices = new Uint32Array(size);
+        
+        for (let i = 0; i < size; i++) {
+            let reversed = 0;
+            let temp = i;
+            
+            for (let j = 0; j < bits; j++) {
+                reversed = (reversed << 1) | (temp & 1);
+                temp >>= 1;
+            }
+            
+            indices[i] = reversed;
+        }
+        
+        this.bitReversalBuffer = this.device.createBuffer({
+            label: 'FFT Bit Reversal (Runtime)',
+            size: indices.byteLength,
+            usage: GPUBufferUsage.STORAGE,
+            mappedAtCreation: true
+        });
+        new Uint32Array(this.bitReversalBuffer.getMappedRange()).set(indices);
+        this.bitReversalBuffer.unmap();
+        
+        // Generate twiddle offsets
+        const offsets = FFTOptimizations.getTwiddleOffsets(size);
+        this.twiddleOffsetBuffer = this.device.createBuffer({
+            label: 'FFT Twiddle Offsets (Runtime)',
+            size: offsets.byteLength,
+            usage: GPUBufferUsage.STORAGE,
+            mappedAtCreation: true
+        });
+        new Uint32Array(this.twiddleOffsetBuffer.getMappedRange()).set(offsets);
+        this.twiddleOffsetBuffer.unmap();
+    }
+    
+    private async createPipelines(): Promise<void> {
+        // Polyfill createComputePipelineAsync for Node mocks
+        if (!('createComputePipelineAsync' in this.device)) {
+            (this.device as any).createComputePipelineAsync =
+                async (desc: any) => Promise.resolve(this.device.createComputePipeline(desc));
+        }
+        
+        // Load shaders
+        const shaderSources = await this.loadShaders();
+        
+        
+        // Convert normalization config to numeric mode
+        let normalizationMode = 0;
+        switch (this.config.normalization) {
+            case 'none': normalizationMode = 3; break;
+            case 'forward': case 'inverse': normalizationMode = 1; break; // 1/N
+            case 'symmetric': normalizationMode = 2; break; // 1/sqrt(N)
+            default: normalizationMode = 0; // dynamic
+        }
+        
+        const constantConfig = {
+            workgroupSizeX: this.config.workgroupSize!,
+            normalizationMode,
+            enableDebug: false,
+            enableTemporal: false,
+            maxAASamples: 4,
+            hologramSize: this.config.size
+        };
+        
+        // Create pipelines
+        for (const [name, source] of shaderSources) {
+            // Use shader-specific constants based on actual @id declarations
+            const shaderConstants = getConstantsForShader(name, constantConfig);
+            
+            // Log what constants we're applying for debugging
+            if (Object.keys(shaderConstants).length > 0) {
+                console.log(`🔧 Applying constants to ${name}:`, shaderConstants);
+            } else {
+                console.log(`📝 No constants for ${name} (uses hardcoded const values)`);
+            }
+            
+            // Diagnostic-enhanced shader compilation
+            let shaderModule: GPUShaderModule;
+            try {
+                shaderModule = this.device.createShaderModule({
+                    label: `FFT Shader: ${name}`,
+                    code: source
+                });
+                
+                // Check compilation info if available
+                if ('compilationInfo' in shaderModule) {
+                    const info = await (shaderModule as any).compilationInfo();
+                    for (const msg of info.messages) {
+                        const logPrefix = `[${name}.wgsl]`;
+                        if (msg.type === "error") {
+                            console.error(`${logPrefix} ${msg.message}`);
+                        } else if (msg.type === "warning") {
+                            console.warn(`${logPrefix} ${msg.message}`);
+                        }
+                    }
+                    if (info.messages.some((msg: any) => msg.type === "error")) {
+                        throw new Error(`Shader compilation failed for ${name}.wgsl`);
+                    }
+                }
+            } catch (e) {
+                console.error(`Shader creation failed for ${name}:`, e);
+                throw e;
+            }
+            
+            const pipeline = await this.device.createComputePipelineAsync({
+                label: `FFT Pipeline: ${name}`,
+                layout: this.pipelineLayout,
+                compute: {
+                    module: shaderModule,
+                    entryPoint: 'main',
+                    constants: shaderConstants
+                }
+            });
+            
+            this.pipelines.set(name, pipeline);
+        }
+    }
+    
+    private async loadShaders(): Promise<Map<string, string>> {
+        const shaders = new Map<string, string>();
+        
+        const shaderFiles = [
+            ['bitReversal', 'shaders/bitReversal.wgsl'],
+            ['butterfly', 'shaders/butterflyStage.wgsl'],
+            ['normalize', 'shaders/normalize.wgsl'],
+            ['fftShift', 'shaders/fftShift.wgsl']
+        ];
+        
+        if (this.config.dimensions === 2) {
+            shaderFiles.push(['transpose', 'shaders/transpose.wgsl']);
+        }
+        
+        // Load all shaders in parallel
+        const loadPromises = shaderFiles.map(async ([name, path]) => {
+            const source = await ShaderLoader.load(path);
+            shaders.set(name, source);
+        });
+        
+        await Promise.all(loadPromises);
+        return shaders;
+    }
+    
+    private allocateBuffers(): void {
+        const memReq = FFTOptimizations.calculateMemoryRequirements({
+            size: this.config.size,
+            dimensions: this.config.dimensions,
+            batchSize: this.config.batchSize!,
+            precision: this.config.precision
+        });
+        
+        this.buffers = {
+            input: this.device.createBuffer({
+                label: 'FFT Input',
+                size: memReq.bufferSize,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+            }),
+            output: this.device.createBuffer({
+                label: 'FFT Output',
+                size: memReq.bufferSize,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+            }),
+            temp: [
+                this.device.createBuffer({
+                    label: 'FFT Temp 0',
+                    size: memReq.bufferSize,
+                    usage: GPUBufferUsage.STORAGE
+                }),
+                this.device.createBuffer({
+                    label: 'FFT Temp 1',
+                    size: memReq.bufferSize,
+                    usage: GPUBufferUsage.STORAGE
+                })
+            ]
+        };
+    }
+    
+    private initializePerformanceMonitoring(): void {
+        this.querySet = this.device.createQuerySet({
+            type: 'timestamp',
+            count: 8
+        });
+        
+        this.queryBuffer = this.device.createBuffer({
+            size: 8 * 8,
+            usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
+        });
+    }
+    
+    async execute(input: Float32Array | GPUBuffer, output?: Float32Array | GPUBuffer): Promise<Float32Array | void> {
+        // Validate input size
+        const expectedElements = this.config.dimensions === 2 ?
+            this.config.size * this.config.size : this.config.size;
+        const expectedSize = expectedElements * 2 * this.config.batchSize!; // complex
+        
+        if (input instanceof Float32Array && input.length !== expectedSize) {
+            throw new Error(`Input size mismatch. Expected ${expectedSize}, got ${input.length}`);
+        }
+        
+        // Get or allocate buffers
+        const buffers = this.buffers || this.allocateTemporaryBuffers();
+        
+        const encoder = this.device.createCommandEncoder({ label: 'FFT Execute' });
+        
+        let timestampIndex = 0;
+        
+        // Upload input if needed
+        if (input instanceof Float32Array) {
+            this.device.queue.writeBuffer(buffers.input, 0, input.buffer as ArrayBuffer.buffer);
+        } else {
+            encoder.copyBufferToBuffer(input, 0, buffers.input, 0, input.size);
+        }
+        
+        // Execute FFT stages
+        let currentBuffer = 0;
+        
+        // Bit reversal
+        this.dispatchKernel(encoder, 'bitReversal', buffers.input, buffers.temp[currentBuffer], timestampIndex++);
+        currentBuffer = 1 - currentBuffer;
+        
+        // Butterfly stages
+        const numStages = Math.log2(this.config.size);
+        for (let stage = 0; stage < numStages; stage++) {
+            // Update stage uniform
+            this.device.queue.writeBuffer(this.uniformBuffer, 24, new Uint8Array(new Uint32Array([stage].buffer).buffer));
+            
+            // Update twiddle offset uniform
+            if (this.precomputedData) {
+                this.device.queue.writeBuffer(
+                    this.uniformBuffer, 28, new Uint8Array(new Uint32Array([this.precomputedData.twiddleOffsets[stage]].buffer).buffer)
+                );
+            }
+            
+            this.dispatchKernel(
+                encoder, 
+                'butterfly', 
+                buffers.temp[1 - currentBuffer], 
+                buffers.temp[currentBuffer]
+            );
+            currentBuffer = 1 - currentBuffer;
+        }
+        
+        // Timestamp handled in dispatchKernel
+        
+        // Normalize
+        this.dispatchKernel(
+            encoder, 
+            'normalize', 
+            buffers.temp[1 - currentBuffer], 
+            buffers.temp[currentBuffer]
+        );
+        
+        // Copy to output
+        const finalBuffer = buffers.temp[currentBuffer];
+        if (output instanceof GPUBuffer) {
+            encoder.copyBufferToBuffer(finalBuffer, 0, output, 0, output.size);
+        } else {
+            encoder.copyBufferToBuffer(finalBuffer, 0, buffers.output, 0, buffers.output.size);
+        }
+        
+        if (this.querySet) {
+            const pass = encoder.beginComputePass();
+            // Timestamp queries not supported in current WebGPU
+            // // Timestamp queries not supported
+            // // Timestamp queries not supported
+            // if (this.device.features.has('timestamp-query')) pass.writeTimestamp(this.querySet, timestampIndex++);
+            pass.end();
+            encoder.resolveQuerySet(this.querySet, 0, timestampIndex, this.queryBuffer!, 0);
+        }
+        
+        this.device.queue.submit([encoder.finish()]);
+        
+        // Wait for completion
+        await this.device.queue.onSubmittedWorkDone();
+        
+        // Read results if needed
+        if (!output || output instanceof Float32Array) {
+            return await this.readResults(buffers.output, output as Float32Array | undefined);
+        }
+        
+        // Report performance
+        if (this.querySet) {
+            await this.reportPerformance(timestampIndex);
+        }
+    }
+    
+    private allocateTemporaryBuffers(): FFTBuffers {
+        const memReq = FFTOptimizations.calculateMemoryRequirements({
+            size: this.config.size,
+            dimensions: this.config.dimensions,
+            batchSize: this.config.batchSize!,
+            precision: this.config.precision
+        });
+        
+        return {
+            input: this.device.createBuffer({
+                size: memReq.bufferSize,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+            }),
+            output: this.device.createBuffer({
+                size: memReq.bufferSize,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.MAP_READ
+            }),
+            temp: [
+                this.device.createBuffer({
+                    size: memReq.bufferSize,
+                    usage: GPUBufferUsage.STORAGE
+                }),
+                this.device.createBuffer({
+                    size: memReq.bufferSize,
+                    usage: GPUBufferUsage.STORAGE
+                })
+            ]
+        };
+    }
+    
+    private dispatchKernel(
+        encoder: GPUCommandEncoder,
+        kernelName: string,
+        inputBuffer: GPUBuffer,
+        outputBuffer: GPUBuffer,
+        timestampIndex?: number
+    ): void {
+        const pipeline = this.pipelines.get(kernelName);
+        if (!pipeline) {
+            throw new Error(`Pipeline not found: ${kernelName}`);
+        }
+        
+        // Get auxiliary buffer
+        let auxBuffer: GPUBuffer;
+        switch (kernelName) {
+            case 'bitReversal':
+                auxBuffer = this.bitReversalBuffer;
+                break;
+            case 'butterfly':
+            case 'butterflyStage':
+                auxBuffer = this.twiddleBuffer;
+                break;
+            case 'normalize':
+                auxBuffer = this.twiddleBuffer; // Dummy
+                break;
+            case 'fftShift':
+                auxBuffer = this.twiddleBuffer; // Dummy
+                break;
+            case 'transpose':
+                auxBuffer = this.twiddleBuffer; // Dummy
+                break;
+            default:
+                auxBuffer = this.twiddleBuffer; // Dummy for kernels that don't use aux
+        }
+        
+        // Validate buffers before creating bind group
+        console.log(`[FFT] Validating buffers for ${kernelName}:`);
+        console.log(`  - Uniform buffer: ${this.uniformBuffer.size} bytes`);
+        console.log(`  - Aux buffer: ${auxBuffer.size} bytes`);
+        console.log(`  - Input buffer: ${inputBuffer.size} bytes`);
+        console.log(`  - Output buffer: ${outputBuffer.size} bytes`);
+        
+        // Check if any buffer is destroyed
+        if (!this.uniformBuffer || !auxBuffer || !inputBuffer || !outputBuffer) {
+            throw new Error(`[FFT] One or more buffers are null for ${kernelName}`);
+        }
+        
+        const bindGroup = this.device.createBindGroup({
+            layout: this.bindGroupLayout,
+            entries: [
+                { binding: 0, resource: { buffer: this.uniformBuffer } },
+                { binding: 1, resource: { buffer: auxBuffer } },
+                { binding: 2, resource: { buffer: inputBuffer } },
+                { binding: 3, resource: { buffer: outputBuffer } }
+            ]
+        });
+        
+        const pass = encoder.beginComputePass({
+            label: `FFT ${kernelName} pass`
+        });
+        
+        // Write timestamp if query set exists and index provided
+        // Note: writeTimestamp is not available in all browsers yet
+        // TODO: Check for actual API availability
+        
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, bindGroup);
+        
+        // Get dispatch parameters with validation
+        const dispatch = FFTOptimizations.getDispatchParams(
+            kernelName,
+            this.config.size,
+            this.config.batchSize!,
+            this.config.workgroupSize!
+        );
+        
+        // Log dispatch dimensions
+        console.log(`[FFT] Dispatching ${kernelName} with workgroups: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+        
+        // Validate dispatch dimensions
+        if (dispatch.x === 0 || dispatch.y === 0 || dispatch.z === 0) {
+            console.error(`[FFT] ERROR: Zero dispatch dimension for ${kernelName}!`);
+            throw new Error(`Invalid dispatch dimensions for ${kernelName}: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+        }
+        
+        // Check device limits
+        const limits = this.device.limits;
+        if (dispatch.x > limits.maxComputeWorkgroupsPerDimension ||
+            dispatch.y > limits.maxComputeWorkgroupsPerDimension ||
+            dispatch.z > limits.maxComputeWorkgroupsPerDimension) {
+            console.error(`[FFT] ERROR: Dispatch exceeds device limits!`);
+            console.error(`  Device limit: ${limits.maxComputeWorkgroupsPerDimension}`);
+            console.error(`  Requested: (${dispatch.x}, ${dispatch.y}, ${dispatch.z})`);
+            throw new Error(`Dispatch dimensions exceed device limits for ${kernelName}`);
+        }
+        
+        try {
+            pass.dispatchWorkgroups(dispatch.x, dispatch.y, dispatch.z);
+            console.log(`[FFT] ✓ ${kernelName} dispatched successfully`);
+        } catch (error) {
+            console.error(`[FFT] ERROR dispatching ${kernelName}:`, error);
+            throw error;
+        }
+        
+        pass.end();
+    }
+    
+    private async readResults(buffer: GPUBuffer, output?: Float32Array): Promise<Float32Array> {
+        await buffer.mapAsync(GPUMapMode.READ);
+        const result = new Float32Array(buffer.getMappedRange()).slice();
+        buffer.unmap();
+        
+        if (output) {
+            output.set(result);
+            return output;
+        }
+        
+        return result;
+    }
+    
+    private async reportPerformance(timestampCount: number): Promise<void> {
+        if (!this.queryBuffer) return;
+        
+        const resolveBuffer = this.device.createBuffer({
+            size: timestampCount * 8,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+        });
+        
+        const encoder = this.device.createCommandEncoder();
+        encoder.copyBufferToBuffer(this.queryBuffer, 0, resolveBuffer, 0, timestampCount * 8);
+        this.device.queue.submit([encoder.finish()]);
+        
+        await resolveBuffer.mapAsync(GPUMapMode.READ);
+        const timestamps = new BigUint64Array(resolveBuffer.getMappedRange());
+        
+        const elapsedNs = Number(timestamps[timestampCount - 1] - timestamps[0]);
+        const elapsedMs = elapsedNs / 1_000_000;
+        
+        this.performanceHistory.push(elapsedMs);
+        if (this.performanceHistory.length > 100) {
+            this.performanceHistory.shift();
+        }
+        
+        resolveBuffer.unmap();
+        resolveBuffer.destroy();
+    }
+    
+    resize(newSize: number, newBatchSize?: number): void {
+        // Validate new size
+        if (!FFTCompute.isPowerOfTwo(newSize)) {
+            throw new Error(`FFT size must be power of 2, got ${newSize}`);
+        }
+        
+        // Update config
+        this.config.size = newSize;
+        if (newBatchSize !== undefined) {
+            this.config.batchSize = newBatchSize;
+        }
+        
+        // Re-validate config
+        this.config = this.validateConfig(this.config);
+        
+        // Destroy old resources
+        this.destroy();
+        
+        // Reinitialize with new size
+        this.initialize();
+    }
+    
+    destroy(): void {
+        // Destroy buffers
+        this.uniformBuffer?.destroy();
+        this.twiddleBuffer?.destroy();
+        this.bitReversalBuffer?.destroy();
+        this.twiddleOffsetBuffer?.destroy();
+        
+        if (this.buffers) {
+            this.buffers.input.destroy();
+            this.buffers.output.destroy();
+            this.buffers.temp[0].destroy();
+            this.buffers.temp[1].destroy();
+        }
+        
+        // Destroy query resources
+        this.querySet?.destroy();
+        this.queryBuffer?.destroy();
+    }
+    
+    getPerformanceStats(): { average: number; min: number; max: number } | null {
+        if (this.performanceHistory.length === 0) return null;
+        
+        const sorted = [...this.performanceHistory].sort((a, b) => a - b);
+        return {
+            average: sorted.reduce((a, b) => a + b) / sorted.length,
+            min: sorted[0],
+            max: sorted[sorted.length - 1]
+        };
+    }
+    
+    private getNormalizationFactor(): number {
+        const { size, normalization, direction, dimensions } = this.config;
+        const totalSize = dimensions === 2 ? size * size : size;
+        
+        switch (normalization) {
+            case 'none':
+                return 1.0;
+            case 'forward':
+                return direction === 'forward' ? 1.0 / totalSize : 1.0;
+            case 'inverse':
+                return direction === 'inverse' ? 1.0 / totalSize : 1.0;
+            case 'symmetric':
+                return 1.0 / Math.sqrt(totalSize);
+            default:
+                return 1.0;
+        }
+    }
+    
+    static isPowerOfTwo(n: number): boolean {
+        return n > 0 && (n & (n - 1)) === 0;
+    }
+}
+
+export type FFTDirection = 'forward' | 'inverse';
+export type FFTPrecision = 'f32' | 'f16';
+export type FFTNormalization = 'none' | 'forward' | 'inverse' | 'symmetric';

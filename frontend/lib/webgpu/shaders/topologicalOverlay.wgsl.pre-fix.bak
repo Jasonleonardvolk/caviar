@@ -1,0 +1,310 @@
+// topologicalOverlay.wgsl
+// Shader for rendering topological charge overlays and BPS field visualization
+// Part of the TORI WebGPU rendering pipeline
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) worldPos: vec3<f32>,
+}
+
+struct UniformData {
+    viewMatrix: mat4x4<f32>,
+    projMatrix: mat4x4<f32>,
+    modelMatrix: mat4x4<f32>,
+    time: f32,
+    chargeScale: f32,
+    phaseOffset: f32,
+    displayMode: u32,  // 0: charge density, 1: phase, 2: energy, 3: coherence
+}
+
+struct ChargeData {
+    position: vec3<f32>,
+    charge: f32,
+    phase: f32,
+    energy: f32,
+    coherence: f32,
+    damping: f32,  // Phase sponge damping factor
+}
+
+@group(0) @binding(0) var<uniform> uniforms: UniformData;
+@group(0) @binding(1) var<storage, read> charges: array<ChargeData>;
+@group(0) @binding(2) var<storage, read> chargeCount: u32;
+@group(1) @binding(0) var baseTexture: texture_2d<f32>;
+@group(1) @binding(1) var textureSampler: sampler;
+
+// Vertex shader for full-screen quad
+@vertex
+fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+    var output: VertexOutput;
+    
+    // Generate full-screen triangle
+    let x = f32((vertexIndex << 1u) & 2u);
+    let y = f32(vertexIndex & 2u);
+    
+    output.position = vec4<f32>(x * 2.0 - 1.0, y * 2.0 - 1.0, 0.0, 1.0);
+    output.uv = vec2<f32>(x, 1.0 - y);
+    
+    // Calculate world position
+    let invViewProj = uniforms.projMatrix * uniforms.viewMatrix;
+    output.worldPos = (uniforms.modelMatrix * vec4<f32>(x * 2.0 - 1.0, y * 2.0 - 1.0, 0.0, 1.0)).xyz;
+    
+    return output;
+}
+
+// Helper function to calculate topological charge density at a point
+fn calculateChargeDensity(worldPos: vec3<f32>) -> f32 {
+    var totalCharge = 0.0;
+    let count = min(chargeCount, 1000u); // Safety limit
+    
+    for (var i = 0u; i < count; i = i + 1u) {
+        let charge = charges[i];
+        let distance = length(worldPos - charge.position);
+        
+        // Gaussian falloff for charge influence
+        let sigma = uniforms.chargeScale;
+        let influence = exp(-distance * distance / (2.0 * sigma * sigma));
+        
+        // Apply phase sponge damping
+        let dampedCharge = charge.charge * charge.damping;
+        totalCharge += dampedCharge * influence;
+    }
+    
+    return totalCharge;
+}
+
+// Helper function to calculate phase field
+fn calculatePhaseField(worldPos: vec3<f32>) -> f32 {
+    var totalPhase = 0.0;
+    var totalWeight = 0.0;
+    let count = min(chargeCount, 1000u);
+    
+    for (var i = 0u; i < count; i = i + 1u) {
+        let charge = charges[i];
+        let distance = length(worldPos - charge.position);
+        
+        // Phase interpolation with distance weighting
+        let weight = 1.0 / (1.0 + distance * distance);
+        totalPhase += charge.phase * weight * charge.damping;
+        totalWeight += weight;
+    }
+    
+    if (totalWeight > 0.0) {
+        totalPhase = totalPhase / totalWeight;
+    }
+    
+    // Add time-based phase evolution
+    return totalPhase + uniforms.phaseOffset + uniforms.time * 0.1;
+}
+
+// Helper function to calculate energy density
+fn calculateEnergyDensity(worldPos: vec3<f32>) -> f32 {
+    var totalEnergy = 0.0;
+    let count = min(chargeCount, 1000u);
+    
+    for (var i = 0u; i < count; i = i + 1u) {
+        let charge = charges[i];
+        let distance = length(worldPos - charge.position);
+        
+        // Energy falls off as 1/r^2 (coulomb-like)
+        if (distance > 0.001) {
+            let falloff = 1.0 / (distance * distance);
+            totalEnergy += abs(charge.energy) * falloff * charge.damping;
+        }
+    }
+    
+    return min(totalEnergy, 10.0); // Clamp for visualization
+}
+
+// Helper function to calculate phase coherence
+fn calculateCoherence(worldPos: vec3<f32>) -> f32 {
+    var complexSum = vec2<f32>(0.0, 0.0);
+    var count = 0u;
+    let maxCount = min(chargeCount, 1000u);
+    
+    for (var i = 0u; i < maxCount; i = i + 1u) {
+        let charge = charges[i];
+        let distance = length(worldPos - charge.position);
+        
+        if (distance < uniforms.chargeScale * 3.0) {
+            // Complex order parameter
+            complexSum += vec2<f32>(
+                cos(charge.phase) * charge.coherence,
+                sin(charge.phase) * charge.coherence
+            ) * charge.damping;
+            count = count + 1u;
+        }
+    }
+    
+    if (count > 0u) {
+        return length(complexSum) / f32(count);
+    }
+    return 0.0;
+}
+
+// Convert charge value to color
+fn chargeToColor(charge: f32) -> vec3<f32> {
+    // Red for positive, blue for negative, intensity based on magnitude
+    if (charge > 0.0) {
+        return vec3<f32>(charge, 0.0, 0.0);
+    } else {
+        return vec3<f32>(0.0, 0.0, -charge);
+    }
+}
+
+// Convert phase to color using HSV
+fn phaseToColor(phase: f32) -> vec3<f32> {
+    let h = (phase / (2.0 * 3.14159265359) + 1.0) * 0.5; // Normalize to [0, 1]
+    let s = 1.0;
+    let v = 1.0;
+    
+    // HSV to RGB conversion
+    let c = v * s;
+    let x = c * (1.0 - abs((h * 6.0) % 2.0 - 1.0));
+    let m = v - c;
+    
+    var rgb: vec3<f32>;
+    let h6 = h * 6.0;
+    
+    if (h6 < 1.0) {
+        rgb = vec3<f32>(c, x, 0.0);
+    } else if (h6 < 2.0) {
+        rgb = vec3<f32>(x, c, 0.0);
+    } else if (h6 < 3.0) {
+        rgb = vec3<f32>(0.0, c, x);
+    } else if (h6 < 4.0) {
+        rgb = vec3<f32>(0.0, x, c);
+    } else if (h6 < 5.0) {
+        rgb = vec3<f32>(x, 0.0, c);
+    } else {
+        rgb = vec3<f32>(c, 0.0, x);
+    }
+    
+    return rgb + vec3<f32>(m, m, m);
+}
+
+// Energy density to heat map color
+fn energyToColor(energy: f32) -> vec3<f32> {
+    let t = clamp(energy / 5.0, 0.0, 1.0);
+    
+    // Heat map: black -> blue -> cyan -> green -> yellow -> red
+    if (t < 0.2) {
+        let s = t / 0.2;
+        return vec3<f32>(0.0, 0.0, s);
+    } else if (t < 0.4) {
+        let s = (t - 0.2) / 0.2;
+        return vec3<f32>(0.0, s, 1.0);
+    } else if (t < 0.6) {
+        let s = (t - 0.4) / 0.2;
+        return vec3<f32>(0.0, 1.0, 1.0 - s);
+    } else if (t < 0.8) {
+        let s = (t - 0.6) / 0.2;
+        return vec3<f32>(s, 1.0, 0.0);
+    } else {
+        let s = (t - 0.8) / 0.2;
+        return vec3<f32>(1.0, 1.0 - s, 0.0);
+    }
+}
+
+// Coherence to grayscale
+fn coherenceToColor(coherence: f32) -> vec3<f32> {
+    let c = clamp(coherence, 0.0, 1.0);
+    return vec3<f32>(c, c, c);
+}
+
+// Fragment shader for topological overlay
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Sample base texture
+    let baseColor = textureSample(baseTexture, textureSampler, input.uv);
+    
+    var overlayColor: vec3<f32>;
+    var overlayAlpha: f32;
+    
+    // Calculate field value based on display mode
+    switch (uniforms.displayMode) {
+        case 0u: { // Charge density
+            let charge = calculateChargeDensity(input.worldPos);
+            overlayColor = chargeToColor(charge);
+            overlayAlpha = min(abs(charge), 1.0) * 0.7;
+        }
+        case 1u: { // Phase field
+            let phase = calculatePhaseField(input.worldPos);
+            overlayColor = phaseToColor(phase);
+            overlayAlpha = 0.5;
+        }
+        case 2u: { // Energy density
+            let energy = calculateEnergyDensity(input.worldPos);
+            overlayColor = energyToColor(energy);
+            overlayAlpha = min(energy / 2.0, 1.0) * 0.6;
+        }
+        case 3u: { // Phase coherence
+            let coherence = calculateCoherence(input.worldPos);
+            overlayColor = coherenceToColor(coherence);
+            overlayAlpha = coherence * 0.8;
+        }
+        default: {
+            overlayColor = vec3<f32>(1.0, 0.0, 1.0); // Magenta for unknown mode
+            overlayAlpha = 0.5;
+        }
+    }
+    
+    // Blend overlay with base texture
+    let finalColor = mix(baseColor.rgb, overlayColor, overlayAlpha);
+    
+    return vec4<f32>(finalColor, baseColor.a);
+}
+
+// Compute shader for updating charge positions and phases
+@compute @workgroup_size(64, 1, 1)
+fn cs_update_charges(
+    @builtin(global_invocation_id) global_id: vec3<u32>
+) {
+    let index = global_id.x;
+    if (index >= chargeCount) {
+        return;
+    }
+    
+    var charge = charges[index];
+    
+    // Update phase with natural frequency
+    charge.phase = charge.phase + 0.01 * uniforms.time;
+    
+    // Normalize phase to [-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬, ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬]
+    while (charge.phase > 3.14159265359) {
+        charge.phase = charge.phase - 2.0 * 3.14159265359;
+    }
+    while (charge.phase < -3.14159265359) {
+        charge.phase = charge.phase + 2.0 * 3.14159265359;
+    }
+    
+    // Update energy based on BPS saturation condition E = |Q|
+    charge.energy = abs(charge.charge);
+    
+    // Update coherence based on neighboring charges
+    var neighborPhases = 0.0;
+    var neighborCount = 0u;
+    
+    for (var i = 0u; i < min(chargeCount, 100u); i = i + 1u) {
+        if (i != index) {
+            let other = charges[i];
+            let distance = length(charge.position - other.position);
+            
+            if (distance < uniforms.chargeScale * 2.0) {
+                neighborPhases = neighborPhases + other.phase;
+                neighborCount = neighborCount + 1u;
+            }
+        }
+    }
+    
+    if (neighborCount > 0u) {
+        let avgPhase = neighborPhases / f32(neighborCount);
+        let phaseDiff = abs(charge.phase - avgPhase);
+        charge.coherence = cos(phaseDiff * 0.5); // High coherence when phases align
+    } else {
+        charge.coherence = 1.0; // Perfect coherence when isolated
+    }
+    
+    // Store updated charge
+    charges[index] = charge;
+}

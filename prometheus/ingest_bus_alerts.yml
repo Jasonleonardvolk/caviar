@@ -1,0 +1,83 @@
+# Ingest Bus Alert Rules for Prometheus
+# 
+# This file contains alert rules for monitoring the Ingest Bus service.
+# To use it, add this file to your Prometheus configuration.
+
+groups:
+- name: ingest_bus_alerts
+  rules:
+  # Alert for high failure rate in ingest jobs
+  - alert: IngestFailureRateHigh
+    expr: increase(ingest_failures_total[15m]) / (increase(ingest_files_processed_total[15m]) + increase(ingest_failures_total[15m])) > 0.1
+    for: 5m
+    labels:
+      severity: warning
+      category: ingest
+      team: data-ops
+    annotations:
+      summary: "High ingest failure rate"
+      description: "Ingest job failure rate is above 10% for the last 15 minutes"
+      kaizen_ticket: "INGEST-ALERT"
+
+  # Alert for low concept recall accuracy
+  - alert: LowConceptRecallAccuracy
+    expr: concept_recall_accuracy < 0.7
+    for: 10m
+    labels:
+      severity: warning
+      category: knowledge
+      team: data-science
+    annotations:
+      summary: "Low concept recall accuracy"
+      description: "ScholarSphere concept recall accuracy is below threshold ({{ $value }})"
+      kaizen_ticket: "KB-REGRESS"
+
+  # Alert for high queue depth (too many pending jobs)
+  - alert: IngestQueueBacklog
+    expr: queue_depth > 20
+    for: 15m
+    labels:
+      severity: warning
+      category: ingest
+      team: data-ops
+    annotations:
+      summary: "Ingest queue backlog"
+      description: "{{ $value }} jobs have been waiting in the queue for over 15 minutes"
+
+  # Alert for ingest service not responding
+  - alert: IngestServiceDown
+    expr: up{job="ingest_bus"} == 0
+    for: 2m
+    labels:
+      severity: critical
+      category: ingest
+      team: sre
+    annotations:
+      summary: "Ingest Bus service is down"
+      description: "The Ingest Bus service has been down for more than 2 minutes"
+      kaizen_ticket: "INGEST-DOWN"
+
+  # Alert when no new documents are being ingested
+  - alert: NoNewIngestActivity
+    expr: rate(ingest_files_queued_total[1h]) == 0
+    for: 24h
+    labels:
+      severity: info
+      category: ingest
+      team: data-ops
+    annotations:
+      summary: "No new ingest activity"
+      description: "No new documents have been queued for ingestion in the last 24 hours"
+
+  # Alert for dropped ScholarSphere nodes (if tracked by metrics)
+  - alert: ScholarSphereNodesDrop
+    expr: increase(graph_nodes_dropped_total[1h]) > 10
+    for: 15m
+    labels:
+      severity: warning
+      category: knowledge
+      team: data-science
+    annotations:
+      summary: "ScholarSphere nodes being dropped"
+      description: "{{ $value }} ScholarSphere nodes have been dropped in the last hour"
+      kaizen_ticket: "KB-NODES-DROP"

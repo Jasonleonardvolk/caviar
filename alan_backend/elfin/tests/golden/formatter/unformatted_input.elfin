@@ -1,0 +1,38 @@
+# This is an unformatted ELFIN file used as a golden test for the formatter
+
+import StdHelpers from   "std/helpers.elfin"  ;
+
+system    PendulumSystem {
+ continuous_state:[theta, omega];
+   input  : [tau];
+  
+  params{
+ m   :mass[kg]  = 1.0;  # Mass
+   l:  length   [m]= 0.5;  # Length of pendulum
+    g:acceleration[m/s^2]=9.81;   # Gravity
+   b:damping[kg*m^2/s]=0.1;# Damping coefficient
+    
+    
+    inertia    =    m*l*l;  # Moment of inertia
+  }
+  
+flow_dynamics  {
+  theta_dot=omega;
+    omega_dot=-(g/l)*sin(theta)-(b/inertia)*omega+tau/inertia;
+}
+
+  lyapunov   EnergyFunction {
+ V  = 0.5*inertia*omega*omega+m*g*l*(1-cos(theta));
+  }
+  
+barrier   SafetyBarrier{
+  B  =  theta_max*theta_max-theta*theta;
+  alpha_fun  = alpha*B;
+  
+  params  {
+    theta_max  :  angle[rad]= 1.0;  # Maximum angular displacement
+    alpha  :  1.0;  # Class-K function parameter
+  }
+}
+
+}

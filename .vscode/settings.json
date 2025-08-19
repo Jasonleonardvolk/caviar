@@ -1,0 +1,61 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "Ingest-Dev": { 
+      "path": "C:\\Windows\\System32\\cmd.exe"
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Ingest-Dev",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.format.enable": true,
+  "eslint.run": "onSave",
+  "eslint.options": {
+    "extensions": [".js", ".jsx", ".ts", ".tsx"]
+  },
+  "eslint.alwaysShowStatus": true,
+  "eslint.workingDirectories": [
+    { "directory": "." },
+    { "directory": "./client" },
+    { "directory": "./server" }
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "npm.packageManager": "yarn",
+  "npm.scriptExplorerExclude": [
+    "^dev:.*",
+    "^test:.*",
+    "constraints",
+    "constraints:fix"
+  ],
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.ts": "${capture}.js, ${capture}.d.ts",
+    "*.tsx": "${capture}.ts, ${capture}.jsx, ${capture}.js",
+    "package.json": "package-lock.json, yarn.lock, .yarnrc.yml",
+    ".eslintrc.js": ".eslintrc.json, .prettierrc, .prettierignore, .eslintignore",
+    "jest.config.js": "jest.setup.js, jest.config.*.js",
+    "README.md": "LICENSE, CONTRIBUTING.md, CHANGELOG.md, LINTING_GUIDE.md"
+  },
+  "eslint.debug": true,
+  "git.ignoreLimitWarning": true,
+  "CodeGPT.apiKey": "CodeGPT Plus Beta"
+}

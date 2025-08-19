@@ -1,0 +1,33 @@
+{
+  "persona": "Ghost Collective",
+  "reflection": "I'm detecting 3 key concept areas emerging from this video segment: AI Consciousness, Neural Architecture, and Emergent Behavior. The speaker's discussion of consciousness in artificial systems suggests deep philosophical implications that warrant further exploration.",
+  "timestamp": "2025-05-27T12:30:45Z",
+  "segment_id": "video_abc123_segment_3",
+  "video_id": "abc123",
+  "concept_links": [
+    "ai_consciousness",
+    "neural_architecture", 
+    "emergent_behavior",
+    "artificial_intelligence"
+  ],
+  "confidence": 0.95,
+  "reasoning": "High confidence based on clear conceptual markers and consistent terminology throughout the segment",
+  "source_evidence": [
+    "Speaker explicitly mentions 'consciousness in AI systems'",
+    "Discussion of neural network emergence patterns",
+    "Reference to behavioral complexity arising from simple rules"
+  ],
+  "memory_anchors": [
+    "psi_video_abc123",
+    "concept_mesh_ai_consciousness"
+  ],
+  "drift_indicators": {
+    "detected": false,
+    "score": 0.02,
+    "factors": ["slight terminology variation from baseline"]
+  },
+  "collaborative_notes": [
+    "Creator ghost expressed interest in visualization possibilities",
+    "Scholar ghost requested additional source verification"
+  ]
+}

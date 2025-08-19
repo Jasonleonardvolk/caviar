@@ -1,0 +1,216 @@
+"""
+pipeline/pruning.py
+
+Entropy-based pruning and concept clustering for diversity optimization.
+Handles similarity calculations and concept deduplication.
+"""
+
+import os
+import logging
+from typing import List, Dict, Any, Optional
+
+# Check if entropy pruning is disabled
+if os.getenv("TORI_DISABLE_ENTROPY_PRUNE"):
+    raise ImportError("Entropy pruning disabled by env flag")
+
+# Local imports
+from .config import ENTROPY_CONFIG, HIGH_QUALITY_THRESHOLD
+from .utils import safe_get, safe_divide, get_logger
+
+# Setup logger
+logger = get_logger(__name__)
+
+# Import entropy pruning with multiple fallbacks
+try:
+    from ..entropy_prune import entropy_prune, entropy_prune_with_categories
+    logger.debug("Imported entropy_prune from parent directory")
+except ImportError as e1:
+    try:
+        from ingest_pdf.entropy_prune import entropy_prune, entropy_prune_with_categories
+        logger.debug("Imported entropy_prune using absolute import")
+    except ImportError as e2:
+        try:
+            # Add parent directory to path temporarily
+            import sys
+            from pathlib import Path
+            parent_dir = Path(__file__).parent.parent
+            if str(parent_dir) not in sys.path:
+                sys.path.insert(0, str(parent_dir))
+            from entropy_prune import entropy_prune, entropy_prune_with_categories
+            logger.debug("Imported entropy_prune after adding to path")
+        except ImportError as e3:
+            logger.error(f"❌ Failed to import entropy pruning modules")
+            logger.error(f"  Relative import error: {e1}")
+            logger.error(f"  Absolute import error: {e2}")
+            logger.error(f"  Path import error: {e3}")
+            logger.error(f"  Current file: {__file__}")
+            logger.error(f"  Expected location: {Path(__file__).parent.parent / 'entropy_prune.py'}")
+            
+            # Provide stub implementations to allow pipeline to continue
+            logger.warning("⚠️  Using stub implementations for entropy pruning")
+            
+            def entropy_prune(concepts, **kwargs):
+                """Stub implementation - returns concepts unchanged"""
+                return concepts, {"selected": len(concepts), "pruned": 0}
+            
+            def entropy_prune_with_categories(concepts, **kwargs):
+                """Stub implementation - returns concepts unchanged"""
+                return concepts, {"selected": len(concepts), "pruned": 0}
+
+
+def calculate_simple_similarity(text1: str, text2: str) -> float:
+    """
+    Calculate simple text similarity using Jaccard index.
+    
+    Args:
+        text1: First text
+        text2: Second text
+        
+    Returns:
+        Similarity score between 0 and 1
+    """
+    words1 = set(text1.lower().split())
+    words2 = set(text2.lower().split())
+    
+    if not words1 or not words2:
+        return 0.0
+    
+    intersection = len(words1 & words2)
+    union = len(words1 | words2)
+    
+    return safe_divide(intersection, union, 0.0)
+
+
+def cluster_similar_concepts(concepts: List[Dict], 
+                           similarity_threshold: float = 0.8) -> List[List[Dict]]:
+    """
+    Group similar concepts into clusters based on name similarity.
+    
+    Args:
+        concepts: List of concept dictionaries
+        similarity_threshold: Minimum similarity to group concepts
+        
+    Returns:
+        List of concept clusters
+    """
+    if not concepts:
+        return []
+    
+    clusters = []
+    used = set()
+    
+    for i, concept in enumerate(concepts):
+        if i in used:
+            continue
+            
+        cluster = [concept]
+        used.add(i)
+        
+        # Find similar concepts
+        for j, other in enumerate(concepts[i+1:], i+1):
+            if j in used:
+                continue
+                
+            # Check similarity
+            if calculate_simple_similarity(concept['name'], other['name']) >= similarity_threshold:
+                cluster.append(other)
+                used.add(j)
+        
+        clusters.append(cluster)
+    
+    return clusters
+
+
+def apply_entropy_pruning(pure_concepts: List[Dict[str, Any]], 
+                         admin_mode: bool = False) -> tuple[List[Dict], Optional[Dict]]:
+    """
+    Apply entropy-based pruning to concept list for diversity.
+    
+    Args:
+        pure_concepts: List of pure concepts to prune
+        admin_mode: Whether to apply admin mode (unlimited concepts)
+        
+    Returns:
+        Tuple of (pruned concepts, pruning statistics)
+    """
+    if not pure_concepts:
+        return pure_concepts, None
+        
+    logger.info("🎯 Applying enhanced entropy pruning...")
+    
+    try:
+        # Enhanced selection criteria with quality score threshold
+        quality_threshold = HIGH_QUALITY_THRESHOLD
+        high_quality_concepts = [
+            c for c in pure_concepts 
+            if safe_get(c, 'quality_score', 0) >= quality_threshold
+        ]
+        
+        if len(high_quality_concepts) > 0:
+            # Dynamic survivor count based on high-quality concepts
+            min_survivors = len(high_quality_concepts)
+            if min_survivors < 5:
+                min_survivors = 5
+            
+            logger.info(f"📊 High-quality concepts (≥{quality_threshold}): {len(high_quality_concepts)}")
+            logger.info(f"🎯 Minimum survivors target: {min_survivors}")
+            
+            selected_concepts, prune_stats = entropy_prune(
+                high_quality_concepts,
+                top_k=min_survivors,
+                min_survivors=min_survivors,
+                similarity_threshold=0.87,  # Allow semantic siblings but not clones
+                verbose=True
+            )
+            
+            # Supplement with remaining concepts if needed
+            if len(selected_concepts) < min_survivors and len(pure_concepts) > len(high_quality_concepts):
+                remaining_concepts = [c for c in pure_concepts if c not in high_quality_concepts]
+                remaining_concepts.sort(
+                    key=lambda x: safe_get(x, 'quality_score', safe_get(x, 'score', 0)), 
+                    reverse=True
+                )
+                
+                needed = min_survivors - len(selected_concepts)
+                supplemental = remaining_concepts[:needed]
+                selected_concepts.extend(supplemental)
+                
+                logger.info(f"📈 Added {len(supplemental)} supplemental concepts to reach minimum")
+            
+            return selected_concepts, prune_stats
+        else:
+            # Fallback to original logic if no high-quality concepts
+            logger.info("⚠️ No concepts meet high quality threshold, using original entropy pruning")
+            return entropy_prune(
+                pure_concepts,
+                top_k=None if admin_mode else safe_get(ENTROPY_CONFIG, "max_diverse_concepts"),
+                entropy_threshold=safe_get(ENTROPY_CONFIG, "entropy_threshold", 0.0001),
+                similarity_threshold=safe_get(ENTROPY_CONFIG, "similarity_threshold", 0.95),
+                verbose=True
+            )
+            
+    except Exception as e:
+        logger.error(f"Error in entropy pruning: {e}")
+        return pure_concepts, None
+
+
+def deduplicate_concepts(concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicate concepts based on name (case-insensitive).
+    
+    Args:
+        concepts: List of concepts possibly containing duplicates
+        
+    Returns:
+        List of unique concepts
+    """
+    seen = set()
+    unique = []
+    
+    for concept in concepts:
+        name_lower = safe_get(concept, 'name', '').lower().strip()
+        if name_lower and name_lower not in seen:
+            seen.add(name_lower)
+            unique.append(concept)
+    
+    return unique

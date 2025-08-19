@@ -1,0 +1,3 @@
+﻿error TS2688: Cannot find type definition file for 'webxr'.
+  The file is in the program because:
+    Entry point of type library 'webxr' specified in compilerOptions

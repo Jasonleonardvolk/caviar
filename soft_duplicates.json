@@ -1,0 +1,316 @@
+{
+  "pairs": [
+    {
+      "concept1": {
+        "id": "concept_cc82b7884b31",
+        "label": "10x",
+        "score": 0.8,
+        "method": "spacy_entity"
+      },
+      "concept2": {
+        "id": "concept_0b5410fd5972",
+        "label": "1000x",
+        "score": 0.8,
+        "method": "spacy_entity+spacy_entity+spacy_entity"
+      },
+      "similarity": 1.0,
+      "recommendation": "merge"
+    },
+    {
+      "concept1": {
+        "id": "concept_309cbd3ec8cf",
+        "label": "adaptive",
+        "score": 0.955561296370583,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_4685d147fe09",
+        "label": "computing",
+        "score": 0.9724303903888893,
+        "method": "yake"
+      },
+      "similarity": 0.9999999403953552,
+      "recommendation": "merge"
+    },
+    {
+      "concept1": {
+        "id": "concept_309cbd3ec8cf",
+        "label": "adaptive",
+        "score": 0.955561296370583,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_6744313b5f00",
+        "label": "architectures",
+        "score": 0.9539435627950722,
+        "method": "yake+svo_object"
+      },
+      "similarity": 0.9999999403953552,
+      "recommendation": "merge"
+    },
+    {
+      "concept1": {
+        "id": "concept_cec8bc99d043",
+        "label": "memory",
+        "score": 0.9925891140097092,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_24cbf509849d",
+        "label": "GPU",
+        "score": 0.8,
+        "method": "spacy_entity+spacy_entity"
+      },
+      "similarity": 1.0,
+      "recommendation": "merge"
+    },
+    {
+      "concept1": {
+        "id": "concept_60f4a581673d",
+        "label": "soliton memory",
+        "score": 0.9890049338167799,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_b5aad3d0a44f",
+        "label": "soliton memory systems",
+        "score": 0.9729177751975104,
+        "method": "yake"
+      },
+      "similarity": 0.8852410316467285,
+      "recommendation": "review"
+    },
+    {
+      "concept1": {
+        "id": "concept_81648709a07c",
+        "label": "efficiency",
+        "score": 0.9633900476530894,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_e1d0671486f7",
+        "label": "energy efficiency",
+        "score": 0.9564112344720233,
+        "method": "yake"
+      },
+      "similarity": 0.8574976921081543,
+      "recommendation": "review"
+    },
+    {
+      "concept1": {
+        "id": "concept_4685d147fe09",
+        "label": "computing",
+        "score": 0.9724303903888893,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_6744313b5f00",
+        "label": "architectures",
+        "score": 0.9539435627950722,
+        "method": "yake+svo_object"
+      },
+      "similarity": 0.9999999403953552,
+      "recommendation": "merge"
+    },
+    {
+      "concept1": {
+        "id": "concept_8a30e3741ab1",
+        "label": "Living soliton memory",
+        "score": 0.9921071927263373,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_4cb674146d4e",
+        "label": "living soliton-based memory",
+        "score": 0.9759082665468954,
+        "method": "yake"
+      },
+      "similarity": 0.856208086013794,
+      "recommendation": "review"
+    },
+    {
+      "concept1": {
+        "id": "concept_ce3bb517810e",
+        "label": "soliton-based memory systems",
+        "score": 0.9583548214457976,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_b5aad3d0a44f",
+        "label": "soliton memory systems",
+        "score": 0.9729177751975104,
+        "method": "yake"
+      },
+      "similarity": 0.8800333738327026,
+      "recommendation": "review"
+    },
+    {
+      "concept1": {
+        "id": "concept_ce3bb517810e",
+        "label": "soliton-based memory systems",
+        "score": 0.9583548214457976,
+        "method": "yake"
+      },
+      "concept2": {
+        "id": "concept_4cb674146d4e",
+        "label": "living soliton-based memory",
+        "score": 0.9759082665468954,
+        "method": "yake"
+      },
+      "similarity": 0.8576167225837708,
+      "recommendation": "review"
+    }
+  ],
+  "clusters": [
+    {
+      "size": 5,
+      "primary": {
+        "id": "concept_8a30e3741ab1",
+        "label": "Living soliton memory",
+        "score": 0.9921071927263373,
+        "method": "yake"
+      },
+      "members": [
+        {
+          "id": "concept_8a30e3741ab1",
+          "label": "Living soliton memory",
+          "score": 0.9921071927263373,
+          "method": "yake"
+        },
+        {
+          "id": "concept_60f4a581673d",
+          "label": "soliton memory",
+          "score": 0.9890049338167799,
+          "method": "yake"
+        },
+        {
+          "id": "concept_4cb674146d4e",
+          "label": "living soliton-based memory",
+          "score": 0.9759082665468954,
+          "method": "yake"
+        },
+        {
+          "id": "concept_b5aad3d0a44f",
+          "label": "soliton memory systems",
+          "score": 0.9729177751975104,
+          "method": "yake"
+        },
+        {
+          "id": "concept_ce3bb517810e",
+          "label": "soliton-based memory systems",
+          "score": 0.9583548214457976,
+          "method": "yake"
+        }
+      ],
+      "recommendation": "Keep 'Living soliton memory' (highest score)"
+    },
+    {
+      "size": 3,
+      "primary": {
+        "id": "concept_4685d147fe09",
+        "label": "computing",
+        "score": 0.9724303903888893,
+        "method": "yake"
+      },
+      "members": [
+        {
+          "id": "concept_4685d147fe09",
+          "label": "computing",
+          "score": 0.9724303903888893,
+          "method": "yake"
+        },
+        {
+          "id": "concept_309cbd3ec8cf",
+          "label": "adaptive",
+          "score": 0.955561296370583,
+          "method": "yake"
+        },
+        {
+          "id": "concept_6744313b5f00",
+          "label": "architectures",
+          "score": 0.9539435627950722,
+          "method": "yake+svo_object"
+        }
+      ],
+      "recommendation": "Keep 'computing' (highest score)"
+    },
+    {
+      "size": 2,
+      "primary": {
+        "id": "concept_cc82b7884b31",
+        "label": "10x",
+        "score": 0.8,
+        "method": "spacy_entity"
+      },
+      "members": [
+        {
+          "id": "concept_cc82b7884b31",
+          "label": "10x",
+          "score": 0.8,
+          "method": "spacy_entity"
+        },
+        {
+          "id": "concept_0b5410fd5972",
+          "label": "1000x",
+          "score": 0.8,
+          "method": "spacy_entity+spacy_entity+spacy_entity"
+        }
+      ],
+      "recommendation": "Keep '10x' (highest score)"
+    },
+    {
+      "size": 2,
+      "primary": {
+        "id": "concept_cec8bc99d043",
+        "label": "memory",
+        "score": 0.9925891140097092,
+        "method": "yake"
+      },
+      "members": [
+        {
+          "id": "concept_cec8bc99d043",
+          "label": "memory",
+          "score": 0.9925891140097092,
+          "method": "yake"
+        },
+        {
+          "id": "concept_24cbf509849d",
+          "label": "GPU",
+          "score": 0.8,
+          "method": "spacy_entity+spacy_entity"
+        }
+      ],
+      "recommendation": "Keep 'memory' (highest score)"
+    },
+    {
+      "size": 2,
+      "primary": {
+        "id": "concept_81648709a07c",
+        "label": "efficiency",
+        "score": 0.9633900476530894,
+        "method": "yake"
+      },
+      "members": [
+        {
+          "id": "concept_81648709a07c",
+          "label": "efficiency",
+          "score": 0.9633900476530894,
+          "method": "yake"
+        },
+        {
+          "id": "concept_e1d0671486f7",
+          "label": "energy efficiency",
+          "score": 0.9564112344720233,
+          "method": "yake"
+        }
+      ],
+      "recommendation": "Keep 'efficiency' (highest score)"
+    }
+  ],
+  "stats": {
+    "total_concepts": 40,
+    "duplicate_pairs": 10,
+    "clusters_found": 5,
+    "threshold_used": 0.85
+  }
+}

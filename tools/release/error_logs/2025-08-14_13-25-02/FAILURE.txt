@@ -1,0 +1,13 @@
+Test Run Summary
+================
+Timestamp: 2025-08-14_13-25-02
+Shader Bundle: PASSED
+TypeScript: FAILED
+Total Errors: 108
+
+Files with errors: 14
+
+Top files with most errors:
+  - tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts: 31 errors   - frontend/lib/webgpu/kernels/splitStepOrchestrator.ts: 20 errors   - frontend/lib/webgpu/enginePerf.ts: 12 errors   - frontend/lib/webgpu/fftCompute.ts: 11 errors   - frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts: 9 errors
+
+Full log: D:\Dev\kha\tools\release\error_logs\2025-08-14_13-25-02\typescript_errors.txt

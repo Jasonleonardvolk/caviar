@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "dev": "concurrently \"vite\"",
+    "validate:wgsl": "node scripts/validate-wgsl.js",
+    "bundle-shaders": "npm run validate:wgsl && vite build"
+  }
+}

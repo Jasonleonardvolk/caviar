@@ -1,0 +1,54 @@
+/* Base styles for the entire app */
+:root {
+  /* Design tokens from ui_wireframes.md */
+  --color-bg-dark: #1E1E1E;
+  --color-bg-light: #E0E0E0;
+  --color-surface-dark: #23272F;
+  --color-surface-light: #F5F5F5;
+  
+  --color-primary: #00FFCC;
+  --color-primary-dark: #00FFC8;
+  --color-primary-light: #1E90FF;
+  
+  --color-secondary: #FF007F;
+  --color-secondary-alt: #FF6F61;
+  
+  --color-purple: #8A2BE2;
+  --color-gold: #FFD700;
+  
+  --color-success: #32CD32;
+  --color-warning: #FFC857;
+  --color-error: #FF6B6B;
+  
+  --color-text-primary-dark: #E0E0E0;
+  --color-text-primary-light: #23272F;
+  --color-text-secondary: #A9B1BD;
+  
+  --color-hover: rgba(0,255,200,0.12);
+  --color-selected: #00FFCC;
+  --color-group: #FF007F;
+  --color-tooltip-bg: #23272F;
+  --color-tooltip-text: #FFFFFF;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-primary-dark);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}

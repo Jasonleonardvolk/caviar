@@ -1,0 +1,79 @@
+// UPDATE_TYPESCRIPT_BUFFERS.ts
+// Copy these changes to your TypeScript/JavaScript WebGPU setup files
+
+// ============= WAVEFIELD_PARAMS BUFFER =============
+// FIND THIS:
+/*
+const wavefieldParamsBuffer = device.createBuffer({
+    size: wavefieldParamsSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+});
+*/
+
+// REPLACE WITH:
+const wavefieldParamsBuffer = device.createBuffer({
+    size: wavefieldParamsSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+});
+
+// ============= BIND GROUP LAYOUT =============
+// FIND THIS:
+/*
+const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+        {
+            binding: 0,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: "uniform" }
+        },
+        // ... other entries
+    ]
+});
+*/
+
+// REPLACE WITH:
+const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+        {
+            binding: 0,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: "read-only-storage" }
+        },
+        // ... other entries remain unchanged
+    ]
+});
+
+// ============= OSC_DATA BUFFER (Group 1, Binding 0) =============
+// FIND THIS:
+/*
+const oscDataBuffer = device.createBuffer({
+    size: oscDataSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+});
+*/
+
+// REPLACE WITH:
+const oscDataBuffer = device.createBuffer({
+    size: oscDataSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+});
+
+// AND UPDATE ITS BIND GROUP LAYOUT:
+// FIND:
+/*
+{
+    binding: 0,
+    visibility: GPUShaderStage.COMPUTE,
+    buffer: { type: "uniform" }
+}
+*/
+
+// REPLACE WITH:
+{
+    binding: 0,
+    visibility: GPUShaderStage.COMPUTE,
+    buffer: { type: "read-only-storage" }
+}
+
+// ============= DATA UPLOAD REMAINS THE SAME =============
+// No changes needed to queue.writeBuffer() calls

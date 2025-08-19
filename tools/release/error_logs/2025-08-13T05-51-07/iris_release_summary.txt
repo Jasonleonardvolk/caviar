@@ -1,0 +1,18 @@
+IRIS Release Gate - 2025-08-13T05-51-07
+Repo: ${IRIS_ROOT}
+
+TypeScript: FAIL (40 errors - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T05-51-07\typescript_errors.txt)
+ESLint: SKIP (no config)
+Quilt: FOUND WebGPUQuiltGenerator.ts
+Quilt: IMPORT MISMATCH in 1 files - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T05-51-07\quilt_import_mismatches.txt
+Shaders: DUAL TREES (canonical + public)
+Uniforms: OK
+API: SKIP (no base URL)
+Prod env: MISSING .env.production
+Build: SKIP (use -Build to run)
+Shader validation: SKIP
+
+Timestamp: 2025-08-13T05-51-07
+Summary: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T05-51-07\iris_release_summary.txt
+Error Log: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T05-51-07\iris_errors.log
+Full Report: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T05-51-07\iris_full_report.txt

@@ -1,0 +1,38 @@
+IRIS Release Gate - 2025-08-12T21-43-07
+Repo: ${IRIS_ROOT}
+
+TypeScript: FAIL (40 errors - see ${IRIS_ROOT}\tools\release\error_logs\typescript_errors_2025-08-12T21-43-07.txt)
+ESLint: SKIP (no config)
+Quilt: MISSING WebGPUQuiltGenerator.ts
+Quilt: IMPORT MISMATCH in 1 files - see ${IRIS_ROOT}\tools\release\error_logs\quilt_import_mismatches_2025-08-12T21-43-07.txt
+Shaders: DUAL TREES (canonical + public)
+Uniforms: OK
+API: SKIP (no base URL)
+Prod env: MISSING .env.production
+Build: SKIP (use -Build to run)
+Shader validation: WARNINGS - see ${IRIS_ROOT}\tools\release\error_logs\shader_validation_errors_2025-08-12T21-43-07.txt
+
+Timestamp: 2025-08-12T21-43-07
+Summary: ${IRIS_ROOT}\tools\release\iris_release_summary_2025-08-12T21-43-07.txt
+Error Log: ${IRIS_ROOT}\tools\release\error_logs\iris_errors_2025-08-12T21-43-07.log
+Full Report: ${IRIS_ROOT}\tools\release\iris_full_report_2025-08-12T21-43-07.txt
+IRIS Release Gate - 2025-08-12T22-00-54
+Repo: ${IRIS_ROOT}
+
+TypeScript: FAIL (40 errors - see ${IRIS_ROOT}\tools\release\error_logs\typescript_errors_2025-08-12T22-00-54.txt)
+ESLint: SKIP (no config)
+Quilt: MISSING WebGPUQuiltGenerator.ts
+Quilt: IMPORT MISMATCH in 1 files - see ${IRIS_ROOT}\tools\release\error_logs\quilt_import_mismatches_2025-08-12T22-00-54.txt
+Shaders: DUAL TREES (canonical + public)
+Uniforms: OK
+API: SKIP (no base URL)
+Prod env: MISSING .env.production
+Build: SKIP (use -Build to run)
+Shader validation: WARNINGS
+  - iPhone 11 (4-core GPU): WARN - see ${IRIS_ROOT}\tools\release\error_logs\shader_validation_iphone11_conservative_2025-08-12T22-00-54.txt
+  - iPhone 15 (6-core GPU): WARN - see ${IRIS_ROOT}\tools\release\error_logs\shader_validation_iphone15_2025-08-12T22-00-54.txt
+
+Timestamp: 2025-08-12T22-00-54
+Summary: ${IRIS_ROOT}\tools\release\iris_release_summary_2025-08-12T22-00-54.txt
+Error Log: ${IRIS_ROOT}\tools\release\error_logs\iris_errors_2025-08-12T22-00-54.log
+Full Report: ${IRIS_ROOT}\tools\release\iris_full_report_2025-08-12T22-00-54.txt

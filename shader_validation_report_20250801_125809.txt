@@ -1,0 +1,76 @@
+﻿SHADER VALIDATION REPORT
+========================
+Generated: 2025-08-01 12:58:09
+
+SUMMARY
+-------
+Total Expected: 11
+Valid:         8
+Invalid:       3  
+Missing:       0
+
+VALID SHADERS
+-------------
+avatarShader.wgsl
+bitReversal.wgsl
+butterflyStage.wgsl
+fftShift.wgsl
+normalize.wgsl
+propagation.wgsl
+transpose.wgsl
+wavefieldEncoder_optimized.wgsl
+
+INVALID SHADERS
+---------------
+lenticularInterlace.wgsl
+naga.exe : [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'core' is invalid[0m
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([0m[1m[38;5;... is invalid[0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    [0m[36mΓöîΓöÇ[0m lenticularInterlace.wgsl:109:23
+    [0m[36mΓöé[0m
+[0m[36m109[0m [0m[36mΓöé[0m @group(0) @binding(0) [0m[31mvar<uniform> core: CoreUniforms;[0m
+    [0m[36mΓöé[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m 
+[0m[31mnaga::ir::GlobalVariable [0][0m
+    [0m[36mΓöé[0m
+    [0m[36m=[0m Alignment requirements for address space Uniform are not met by [1]
+    [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+ multiViewSynthesis.wgsl
+naga.exe : [ERROR naga::valid::compose] Vector component[0] type Scalar(Scalar { kind: Uint, width: 4 }), building 
+Scalar { kind: Float, width: 4 }
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([ERROR naga::va...oat, width: 4 }:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[0m[1m[38;5;9merror[0m[1m: Entry point main at Compute is invalid[0m
+    [0m[36mΓöîΓöÇ[0m multiViewSynthesis.wgsl:301:46
+    [0m[36mΓöé[0m
+[0m[36m301[0m [0m[36mΓöé[0m     let local_uv = vec2<f32>(local_coords) / 
+[0m[31mvec2<f32>(view_params.tile_width, view_params.tile_height)[0m;
+    [0m[36mΓöé[0m                                              
+[0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::Expression [22][0m
+    [0m[36mΓöé[0m
+    [0m[36m=[0m Expression [22] is invalid
+    [0m[36m=[0m Composing 0's component type is not expected
+ velocityField.wgsl
+naga.exe : [0m[1m[38;5;9merror[0m[1m: Global variable [0] 'wavefield_params' is invalid[0m
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([0m[1m[38;5;... is invalid[0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   [0m[36mΓöîΓöÇ[0m velocityField.wgsl:24:23
+   [0m[36mΓöé[0m
+[0m[36m24[0m [0m[36mΓöé[0m @group(0) @binding(0) [0m[31mvar<uniform> wavefield_params: WavefieldParams;[0m
+   [0m[36mΓöé[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m 
+[0m[31mnaga::ir::GlobalVariable [0][0m
+   [0m[36mΓöé[0m
+   [0m[36m=[0m Alignment requirements for address space Uniform are not met by [1]
+   [0m[36m=[0m The array stride 4 is not a multiple of the required alignment 16
+

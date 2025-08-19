@@ -1,0 +1,18 @@
+MCP Filesystem Server Test File
+================================
+
+This is a test file created to verify MCP Filesystem Server functionality.
+Created at: Test timestamp
+Purpose: Verify create, read, edit, and delete operations
+
+Test content:
+- Line 1: Testing basic write operation
+- Line 2: This file should be readable
+- Line 3: We will edit this file next
+- Line 4: Then we'll clean it up
+
+Status: Initial creation successful!
+
+EDIT TEST:
+This line was added through the edit_file function.
+Edit operation completed successfully!

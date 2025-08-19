@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-08-01T15:26:41.762Z",
+  "totalShaders": 11,
+  "validShaders": 10,
+  "invalidShaders": 1,
+  "errors": [
+    {
+      "shader": "multiViewSynthesis_wgsl",
+      "path": "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\multiViewSynthesis.wgsl",
+      "errors": [
+        "Missing shader entry point (@compute, @vertex, or @fragment)",
+        "No functions defined"
+      ]
+    }
+  ]
+}

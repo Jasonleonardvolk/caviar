@@ -1,0 +1,16 @@
+[Unit]
+Description=Weekly ZeroMQ Key Rotation
+Documentation=man:systemd.timer(5)
+
+[Timer]
+# Run every Monday at 3 AM
+OnCalendar=Mon *-*-* 03:00:00
+
+# Run immediately if missed (e.g., system was down)
+Persistent=true
+
+# Randomize by up to 1 hour to avoid thundering herd
+RandomizedDelaySec=3600
+
+[Install]
+WantedBy=timers.target

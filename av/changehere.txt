@@ -1,0 +1,1099 @@
+Below are the Phase A files. Each begins with a banner showing its full path and dependencies. Paste them into your repo, then run:
+
+bash
+
+pytest tests/audio/test_transcribe.py
+python
+
+# ──────────────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\audio\ingest_audio.py
+# References:
+#   - whisper                         (speech‐to‐text model)
+#   - numpy                           (FFT for spectral features)
+#   - wave                            (read raw PCM frames)
+# ──────────────────────────────────────────────────────────────────────────────
+"""
+Transcribe an audio file to text and compute a basic spectral centroid.
+"""
+import whisper
+import numpy as np
+import wave
+
+
+def transcribe_audio(audio_path: str) -> dict:
+    """
+    Given a WAV/MP3 file path, returns a dict with:
+      - 'transcript': recognized text
+      - 'spectral_centroid': spectral centroid (float)
+    """
+    # 1) Speech‐to‐text
+    model = whisper.load_model("base.en")
+    result = model.transcribe(audio_path)
+    transcript = result["text"]
+
+    # 2) Spectral feature: centroid of magnitude spectrum
+    wf = wave.open(audio_path, "rb")
+    n_frames = wf.getnframes()
+    raw = wf.readframes(n_frames)
+    wf.close()
+
+    # Interpret PCM data as int16
+    data = np.frombuffer(raw, dtype=np.int16)
+    # Compute magnitude spectrum via real FFT
+    mag = np.abs(np.fft.rfft(data))
+    # Centroid = Σ(freq_i * mag_i) / Σ(mag_i)
+    freqs = np.fft.rfftfreq(data.size, d=1.0 / wf.getframerate())
+    centroid = float(np.sum(freqs * mag) / np.sum(mag))
+
+    return {
+        "transcript": transcript,
+        "spectral_centroid": centroid,
+    }
+python
+
+# ────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\audio\__init__.py
+# References:
+#   - ingest_audio.transcribe_audio
+# ────────────────────────────────────────────────────────────────────
+"""
+Audio ingestion package: expose the main transcription API.
+"""
+from .ingest_audio import transcribe_audio
+
+__all__ = ["transcribe_audio"]
+python
+
+# ──────────────────────────────────────────────────────────────────
+# File: tests/audio/test_transcribe.py
+# References:
+#   - tori.kha.ingest_bus.audio.transcribe_audio
+#   - whisper.load_model         (monkeypatched stub)
+#   - numpy, wave                (for sample WAV generation)
+# ──────────────────────────────────────────────────────────────────
+import os
+import wave
+import numpy as np
+import whisper
+import pytest
+
+from tori.kha.ingest_bus.audio import transcribe_audio
+
+
+def create_sample_wav(path, freq=440, duration=0.5, rate=8000):
+    """Generate a mono WAV file with a sine wave at given freq."""
+    t = np.linspace(0, duration, int(rate * duration), False)
+    tone = (0.5 * np.sin(2 * np.pi * freq * t) * 32767).astype(np.int16)
+    with wave.open(path, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(rate)
+        wf.writeframes(tone.tobytes())
+
+
+@pytest.fixture(scope="module")
+def sample_wav(tmp_path_factory, monkeypatch):
+    # 1) Create a temporary WAV file
+    samp_dir = tmp_path_factory.mktemp("samples")
+    samp_file = samp_dir / "hello.wav"
+    create_sample_wav(str(samp_file))
+
+    # 2) Stub whisper.load_model to return a dummy model
+    class DummyModel:
+        def transcribe(self, path):
+            return {"text": "hello world"}
+
+    monkeypatch.setattr(whisper, "load_model", lambda name: DummyModel())
+    return str(samp_file)
+
+
+def test_transcribe_audio_structure(sample_wav):
+    result = transcribe_audio(sample_wav)
+    # Must be a dict with our two keys
+    assert isinstance(result, dict)
+    assert "transcript" in result and isinstance(result["transcript"], str)
+    assert "spectral_centroid" in result and isinstance(result["spectral_centroid"], float)
+    # Check stub transcript correctness
+    assert result["transcript"] == "hello world"
+Next steps:
+
+Paste each file into the exact path shown.
+
+Install dependencies if needed:
+
+bash
+
+pip install whisper numpy
+Run the test suite:
+
+bash
+
+pytest tests/audio/test_transcribe.py
+Confirm you see a passing result.
+Once green, we’ll move on to Phase B (emotion extraction).
+
+
+
+Here are the Phase B changes for emotion extraction. Each file has its full path, dependencies, and precise math. Paste them in, then run:
+
+bash
+
+pytest tests/audio/test_emotion.py
+python
+
+# ────────────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\audio\emotion.py
+# References:
+#   - numpy            (FFT, array math)
+#   - wave             (read PCM frames)
+# ────────────────────────────────────────────────────────────────────────────
+"""
+Compute low-level audio features and classify basic emotion from a WAV.
+"""
+
+import numpy as np
+import wave
+
+
+def compute_spectral_centroid(data: np.ndarray, rate: int) -> float:
+    """
+    Spectral centroid = Σ(f_i * M_i) / Σ(M_i),
+    where M_i is magnitude at bin i, f_i is its frequency.
+    """
+    mag = np.abs(np.fft.rfft(data.astype(np.float64)))
+    freqs = np.fft.rfftfreq(data.size, d=1.0 / rate)
+    return float(np.sum(freqs * mag) / np.sum(mag))
+
+
+def compute_rms(data: np.ndarray) -> float:
+    """
+    Root-mean-square energy = sqrt(mean(data^2)).
+    """
+    return float(np.sqrt(np.mean(data.astype(np.float64) ** 2)))
+
+
+def detect_emotion(audio_path: str) -> dict:
+    """
+    Read WAV at audio_path, compute spectral centroid and RMS, then:
+      - 'excited' if centroid>500 Hz and RMS>1000
+      - 'calm'    if centroid<300 Hz and RMS<500
+      - otherwise 'neutral'
+    Returns dict with keys: 'emotion', 'spectral_centroid', 'rms'
+    """
+    wf = wave.open(audio_path, "rb")
+    rate = wf.getframerate()
+    raw = wf.readframes(wf.getnframes())
+    wf.close()
+
+    data = np.frombuffer(raw, dtype=np.int16)
+    centroid = compute_spectral_centroid(data, rate)
+    rms = compute_rms(data)
+
+    if centroid > 500.0 and rms > 1000.0:
+        emotion = "excited"
+    elif centroid < 300.0 and rms < 500.0:
+        emotion = "calm"
+    else:
+        emotion = "neutral"
+
+    return {
+        "emotion": emotion,
+        "spectral_centroid": centroid,
+        "rms": rms,
+    }
+python
+
+# ─────────────────────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\audio\ingest_audio.py   [modified]
+# References:
+#   - whisper                         (speech‐to‐text model)
+#   - numpy, wave                     (spectral centroid)
+#   - .emotion.detect_emotion         (emotion + RMS)
+# ─────────────────────────────────────────────────────────────────────────────────────
+"""
+Transcribe an audio file and attach spectral & emotion features.
+"""
+import whisper
+import numpy as np
+import wave
+from .emotion import detect_emotion
+
+
+def transcribe_audio(audio_path: str) -> dict:
+    """
+    Returns:
+      - transcript: str
+      - spectral_centroid: float
+      - rms: float
+      - emotion: str
+    """
+    # 1) Speech‐to‐text
+    model = whisper.load_model("base.en")
+    result = model.transcribe(audio_path)
+    transcript = result["text"]
+
+    # 2) Spectral centroid (as before)
+    wf = wave.open(audio_path, "rb")
+    n_frames = wf.getnframes()
+    raw = wf.readframes(n_frames)
+    rate = wf.getframerate()
+    wf.close()
+
+    data = np.frombuffer(raw, dtype=np.int16)
+    mag = np.abs(np.fft.rfft(data.astype(np.float64)))
+    freqs = np.fft.rfftfreq(data.size, d=1.0 / rate)
+    centroid = float(np.sum(freqs * mag) / np.sum(mag))
+
+    # 3) Emotion + RMS
+    emo = detect_emotion(audio_path)
+
+    return {
+        "transcript": transcript,
+        "spectral_centroid": centroid,
+        "rms": emo["rms"],
+        "emotion": emo["emotion"],
+    }
+python
+
+# ────────────────────────────────────────────────────────────────────────────
+# File: tests/audio/test_emotion.py
+# References:
+#   - ingest_bus.audio.emotion.detect_emotion
+#   - numpy, wave (for sample WAV generation)
+# ────────────────────────────────────────────────────────────────────────────
+import wave
+import numpy as np
+import pytest
+
+from tori.kha.ingest_bus.audio.emotion import detect_emotion
+
+
+def create_test_wav(path, freq=880, duration=0.5, rate=8000, amplitude=20000):
+    """
+    Generate a WAV file with a sine wave:
+      x(t) = amplitude * sin(2π f t)
+    """
+    t = np.linspace(0, duration, int(rate * duration), endpoint=False)
+    tone = (amplitude * np.sin(2 * np.pi * freq * t)).astype(np.int16)
+    with wave.open(path, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(rate)
+        wf.writeframes(tone.tobytes())
+
+
+@pytest.fixture
+def excited_wav(tmp_path):
+    file = tmp_path / "excited.wav"
+    # High freq (880 Hz) & high amplitude → should classify as 'excited'
+    create_test_wav(str(file), freq=880, amplitude=20000)
+    return str(file)
+
+
+@pytest.fixture
+def calm_wav(tmp_path):
+    file = tmp_path / "calm.wav"
+    # Low freq (220 Hz) & low amplitude → should classify as 'calm'
+    create_test_wav(str(file), freq=220, amplitude=1000)
+    return str(file)
+
+
+def test_detect_excited(emitted excited_wav):
+    res = detect_emotion(excited_wav)
+    assert res["emotion"] == "excited"
+    assert isinstance(res["spectral_centroid"], float)
+    assert isinstance(res["rms"], float)
+
+
+def test_detect_calm(calm_wav):
+    res = detect_emotion(calm_wav)
+    assert res["emotion"] == "calm"
+    assert res["spectral_centroid"] < 300.0
+    assert res["rms"] < 500.0
+
+
+def test_detect_neutral(tmp_path):
+    # Medium freq & amplitude → 'neutral'
+    file = tmp_path / "neutral.wav"
+    create_test_wav(str(file), freq=440, amplitude=8000)
+    res = detect_emotion(str(file))
+    assert res["emotion"] == "neutral"
+    # Centroid between thresholds
+    assert 300.0 <= res["spectral_centroid"] <= 500.0
+    # RMS between thresholds
+    assert 500.0 <= res["rms"] <= 1000.0
+Next
+Install numpy if needed:
+
+nginx
+
+pip install numpy
+Run tests:
+
+bash
+
+pytest tests/audio/test_emotion.py
+Confirm green results, then we’ll proceed to Phase C (API routing).
+
+
+2/2
+
+
+Deploy Phase C Hologram API Endpoints
+Next run Jun 25, 2025
+
+I’ve scheduled the Phase C implementation for this afternoon. I’ll deliver the FastAPI endpoint code next—complete with full-path banners, imports, and a test suite—to integrate audio ingestion into your API. Then you can wire it up in your launcher. Let me know if you’d like to adjust the timing or add other routes!
+
+
+ChatGPT said:
+Below are the Phase D – UI & client plumbing snippets.
+They:
+
+add a 🎙️ microphone button in the Quick Actions bar,
+
+stream or upload the recorded WAV to /api/v1/audio/ingest,
+
+and post the returned transcript + emotion into chat.
+
+When these compile cleanly you’ll have end-to-end voice → transcript → chat ➜ ready for later hologram hooks.
+
+tsx
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * File: C:\Users\jason\Desktop\tori\frontend\lib\audioRecorder.ts
+ * References:
+ *   – browser MediaRecorder
+ *   – axios (HTTP POST to FastAPI)
+ *   – types/ChatMessage (inject user-side message)
+ * ────────────────────────────────────────────────────────────────────────────*/
+import axios from "axios";
+
+/** Record mic, return a Promise<Blob> (WAV PCM-16-mono 48 kHz). */
+export async function recordWav(seconds = 15): Promise<Blob> {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const rec = new MediaRecorder(stream, { mimeType: "audio/webm" });
+
+  const chunks: BlobPart[] = [];
+  rec.ondataavailable = (e) => chunks.push(e.data);
+
+  return new Promise<Blob>((resolve) => {
+    rec.onstop = () => {
+      const webmBlob = new Blob(chunks, { type: "audio/webm" });
+      resolve(webmBlob);
+      stream.getTracks().forEach((t) => t.stop());
+    };
+    rec.start();
+    setTimeout(() => rec.stop(), seconds * 1000);
+  });
+}
+
+/** POST blob -> /api/v1/audio/ingest ; returns JSON response. */
+export async function ingestAudio(blob: Blob) {
+  const form = new FormData();
+  form.append("file", blob, "voice.webm");
+  const { data } = await axios.post("/api/v1/audio/ingest", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data as {
+    transcript: string;
+    spectral_centroid: number;
+    rms: number;
+    emotion: string;
+  };
+}
+jsx
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: C:\Users\jason\Desktop\tori\frontend\components\QuickActionsBar.jsx
+// References:
+//   – lib/audioRecorder.recordWav, ingestAudio
+//   – Chat context dispatch (addUserMessage)
+// ─────────────────────────────────────────────────────────────────────────────
+import React, { useState } from "react";
+import { recordWav, ingestAudio } from "../lib/audioRecorder";
+import { useChat } from "../context/ChatContext";
+
+export default function QuickActionsBar() {
+  const { addUserMessage } = useChat();
+  const [recording, setRecording] = useState(false);
+
+  async function handleVoiceClick() {
+    try {
+      setRecording(true);
+      const wavBlob = await recordWav(15); // 15-sec cap
+      const res = await ingestAudio(wavBlob);
+
+      // Post user transcript as a normal chat message
+      addUserMessage(res.transcript, {
+        meta: {
+          audioEmotion: res.emotion,
+          spectralCentroid: res.spectral_centroid,
+          rms: res.rms,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Voice capture failed");
+    } finally {
+      setRecording(false);
+    }
+  }
+
+  return (
+    <div className="quick-bar">
+      {/* existing buttons … */}
+      <button
+        className={voice-btn ${recording ? "recording" : ""}}
+        onClick={handleVoiceClick}
+        title="Record voice (15 s)"
+      >
+        {recording ? "◼︎" : "🎙️"}
+      </button>
+    </div>
+  );
+}
+Add minimal CSS (optional):
+
+css
+
+/* frontend/styles/quick-bar.css */
+.voice-btn.recording {
+  color: red;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  50% { transform: scale(1.2); }
+}
+tsx
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * File: C:\Users\jason\Desktop\tori\frontend\context\ChatContext.tsx   (modify)
+ * – adds meta param so we can pass emotion to ghosts later
+ * ────────────────────────────────────────────────────────────────────────────*/
+export interface ChatMessage {
+  role: "user" | "assistant" | "ghost";
+  text: string;
+  meta?: Record<string, any>;          // ← new
+}
+/* rest of context unchanged */
+Quick local test
+In a terminal (from the project root) run:
+
+bash
+
+uvicorn api:app --reload
+npm --prefix frontend run dev   # or yarn / pnpm as appropriate
+Open the front-end, click the 🎙️ button, speak for a few seconds, wait for processing.
+You should see your speech appear as a regular user chat bubble; check dev-tools network tab for POST /api/v1/audio/ingest.
+
+Verify console shows JSON with emotion, etc., confirming the pipeline is wired.
+
+Once this works you’ll have audio → ingestion → chat ready.
+Next phases (video upload, hologram preview canvas, ghost emotion triggers) can stack cleanly on this foundation. L
+Below is Phase E – Ghost emotion triggers.
+These patches connect the emotion metadata coming from your new audio pipeline to the Ghost-persona engine, letting TORI automatically summon the right helper (Unsettled, Chaotic, Mentor, etc.) when a user sounds calm, excited, or stressed.
+
+After pasting the snippets, run:
+
+bash
+
+npm run test:ghost      # see test file below
+js
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: C:\Users\jason\Desktop\tori\core\ghosts\trigger.js       (NEW)
+// References:
+//   – exports selectPersona({emotion, coherence, entropy})
+//   – Persona IDs defined in ghostEngine.js
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Simple rule-based selector that maps (emotion, coherence, entropy)
+ * → the persona name TORI should manifest.
+ *
+ *   emotion ∈ {calm, neutral, excited}
+ *   coherence ∈ [0,1]   (semantic cohesion of conversation)
+ *   entropy   ∈ [0,1]   (conceptual chaos)
+ *
+ * Rules (v1):
+ *   calm + high coherence         → "Mentor"
+ *   excited + high entropy        → "Chaotic"
+ *   neutral + low coherence       → "Scholar"
+ *   excited + low coherence       → "Unsettled" (user may be frantic)
+ *   default                       → "Default"
+ */
+export function selectPersona({ emotion, coherence, entropy }) {
+  if (emotion === "calm" && coherence > 0.7) return "Mentor";
+  if (emotion === "excited" && entropy > 0.6) return "Chaotic";
+  if (emotion === "neutral" && coherence < 0.4) return "Scholar";
+  if (emotion === "excited" && coherence < 0.4) return "Unsettled";
+  return "Default";
+}
+js
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: C:\Users\jason\Desktop\tori\core\ghosts\ghostEngine.js   (MODIFY)
+// References:
+//   – ./trigger.selectPersona
+//   – chat context (incoming user message with meta.audioEmotion…)
+// ─────────────────────────────────────────────────────────────────────────────
+import { selectPersona } from "./trigger.js";
+
+/**
+ * handleUserMessage(msg, stats)
+ *  – msg.text : user string
+ *  – msg.meta : { audioEmotion, spectralCentroid, rms }
+ *  – stats    : { coherence, entropy } (computed upstream)
+ */
+export function handleUserMessage(msg, stats) {
+  const emotion = msg.meta?.audioEmotion || "neutral";
+  const { coherence = 0.5, entropy = 0.5 } = stats;
+
+  const persona = selectPersona({ emotion, coherence, entropy });
+  if (persona !== "Default") {
+    // Broadcast an internal event – UI overlay / avatar glow etc.
+    globalThis.dispatchEvent(
+      new CustomEvent("ghost:manifest", { detail: { persona } }),
+    );
+  }
+
+  // proceed with normal assistant processing…
+}
+jsx
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: C:\Users\jason\Desktop\tori\frontend\components\GhostMessageOverlay.jsx (MODIFY)
+// References:
+//   – listen to window 'ghost:manifest' events
+// ─────────────────────────────────────────────────────────────────────────────
+import React, { useEffect, useState } from "react";
+
+export default function GhostMessageOverlay() {
+  const [persona, setPersona] = useState(null);
+
+  useEffect(() => {
+    const onManifest = (e) => setPersona(e.detail.persona);
+    window.addEventListener("ghost:manifest", onManifest);
+    return () => window.removeEventListener("ghost:manifest", onManifest);
+  }, []);
+
+  if (!persona) return null;
+
+  const styles = {
+    Mentor: { background: "rgba(0,180,180,0.35)" },
+    Chaotic: { background: "rgba(255,0,0,0.35)" },
+    Scholar: { background: "rgba(120,120,255,0.35)" },
+    Unsettled: { background: "rgba(255,140,0,0.35)" },
+  };
+
+  return (
+    <div className="ghost-overlay" style={styles[persona] ?? {}}>
+      👻 {persona} is here
+    </div>
+  );
+}
+Add CSS for overlay if not present:
+
+css
+
+.ghost-overlay {
+  position: absolute;
+  bottom: 10%;
+  right: 2%;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+}
+js
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: tests/ghost/test_persona_select.js             (NEW)
+// References:
+//   – core/ghosts/trigger.selectPersona
+// ─────────────────────────────────────────────────────────────────────────────
+import { selectPersona } from "../../../core/ghosts/trigger.js";
+import assert from "assert";
+
+describe("selectPersona", () => {
+  it("picks Mentor for calm + coherent", () => {
+    assert.equal(
+      selectPersona({ emotion: "calm", coherence: 0.9, entropy: 0.2 }),
+      "Mentor",
+    );
+  });
+
+  it("picks Chaotic for excited + entropy", () => {
+    assert.equal(
+      selectPersona({ emotion: "excited", coherence: 0.8, entropy: 0.9 }),
+      "Chaotic",
+    );
+  });
+
+  it("defaults when no strong signal", () => {
+    assert.equal(
+      selectPersona({ emotion: "neutral", coherence: 0.6, entropy: 0.5 }),
+      "Default",
+    );
+  });
+});
+Add to your package.json test script (if using Jest / Mocha):
+
+jsonc
+Copy
+Edit
+"scripts": {
+  "test:ghost": "mocha tests/ghost/**/*.js"
+}
+Run & Observe
+Unit tests
+
+bash
+
+npm run test:ghost
+All three assertions should pass.
+
+Live manual test
+
+Start API + front-end.
+
+Press 🎙️, speak angrily / loudly ⇒ audio pipeline returns "excited".
+
+Ghost engine picks up emotion="excited", sees entropy maybe high (you can log stub values) ⇒ selects Chaotic.
+
+React overlay flashes red “Chaotic is here” box.
+
+Swap to a calm monotone voice → “calm” + high coherence from prior messages ⇒ overlay shows teal Mentor.
+
+With Phase E complete, TORI now feels alive—ghost personas materialize in real-time based on user tone and concept stability.
+Let me know when you’re ready for Phase F (video ingestion + hologram preview canvas)!
+
+
+Below is Phase F – Video ingestion & hologram preview hook.
+Copy each file to the exact path, install opencv-python (pip install opencv-python), then run:
+
+bash
+
+pytest tests/video/test_ingest_video.py
+python
+
+# ──────────────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\video\ingest_video.py
+# References:
+#   - cv2 (OpenCV)              : frame sampling + color histogram
+#   - numpy                     : array math
+# ──────────────────────────────────────────────────────────────────────────────
+"""
+Ingest an MP4 / MOV: sample 1 fps, compute dominant hue & motion score,
+return concept tags + hologram hints.
+"""
+
+import cv2
+import numpy as np
+from pathlib import Path
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class VideoIngestionResult:
+    concepts: List[str]
+    avg_hue: float          # 0-179 OpenCV hue
+    motion_score: float     # 0-1
+    holographic_hints: dict
+
+
+def ingest_video(path: str, sample_fps: int = 1) -> VideoIngestionResult:
+    cap = cv2.VideoCapture(str(path))
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open {path}")
+
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30
+    step = int(round(fps / sample_fps))
+    frames, hues, motions = [], [], []
+
+    ret, prev = cap.read()
+    frame_idx = 0
+    while ret:
+        if frame_idx % step == 0:
+            frames.append(prev)
+            hsv = cv2.cvtColor(prev, cv2.COLOR_BGR2HSV)
+            hue_hist = cv2.calcHist([hsv], [0], None, [180], [0, 180])
+            dominant_hue = int(np.argmax(hue_hist))
+            hues.append(dominant_hue)
+
+        ret, curr = cap.read()
+        if ret and frame_idx % step == 0:
+            # Motion = mean abs diff grayscale
+            motion = cv2.absdiff(cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY),
+                                 cv2.cvtColor(curr, cv2.COLOR_BGR2GRAY))
+            motions.append(float(np.mean(motion) / 255.0))
+            prev = curr
+        frame_idx += 1
+
+    cap.release()
+    if not frames:
+        raise RuntimeError("No frames sampled")
+
+    avg_hue = float(np.mean(hues))
+    motion_score = float(np.mean(motions) if motions else 0.0)
+
+    # Simple concept tags
+    concepts = []
+    if avg_hue < 30 or avg_hue > 150:
+        concepts.append("dominant_red_or_purple")
+    elif 30 <= avg_hue <= 90:
+        concepts.append("dominant_green")
+    else:
+        concepts.append("dominant_cyan")
+
+    if motion_score > 0.3:
+        concepts.append("high_motion")
+
+    return VideoIngestionResult(
+        concepts,
+        avg_hue,
+        motion_score,
+        holographic_hints={
+            "colorHue": avg_hue,
+            "motionIntensity": motion_score,
+        },
+    )
+python
+
+# ──────────────────────────────────────────────────────────────────────────────
+# File: ${IRIS_ROOT}\ingest_bus\video\__init__.py
+# References:
+#   – ingest_video.ingest_video
+# ──────────────────────────────────────────────────────────────────────────────
+from .ingest_video import ingest_video
+
+__all__ = ["ingest_video"]
+python
+
+# ──────────────────────────────────────────────────────────────────────────────
+# File: C:\Users\jason\Desktop\tori\api\routes\video.py       (NEW)
+# References:
+#   – fastapi.APIRouter
+#   – ingest_bus.video.ingest_video
+# ──────────────────────────────────────────────────────────────────────────────
+from fastapi import APIRouter, UploadFile, File, HTTPException
+import tempfile, os
+
+from tori.kha.ingest_bus.video import ingest_video
+
+router = APIRouter()
+
+
+@router.post("/video/ingest")
+async def ingest_video_endpoint(file: UploadFile = File(...)):
+    _, ext = os.path.splitext(file.filename or "")
+    if ext.lower() not in {".mp4", ".mov", ".mkv", ".avi"}:
+        raise HTTPException(status_code=400, detail=f"Unsupported: {ext}")
+
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    try:
+        tmp.write(await file.read())
+        tmp.flush()
+        tmp.close()
+        result = ingest_video(tmp.name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
+
+    return result.__dict__
+(and add to api/__init__.py)
+
+python
+
+from .routes import video          # ← add below existing imports
+app.include_router(video.router, prefix="/api/v1", tags=["video"])
+tsx
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * File: C:\Users\jason\Desktop\tori\frontend\components\QuickActionsBar.jsx (modify)
+ * Adds 📹 upload button → /api/v1/video/ingest
+ * ────────────────────────────────────────────────────────────────────────────*/
+import { useState } from "react";
+import axios from "axios";
+import { useChat } from "../context/ChatContext";
+
+function uploadVideo(file) {
+  const form = new FormData();
+  form.append("file", file);
+  return axios.post("/api/v1/video/ingest", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }).then(r => r.data);
+}
+
+export default function QuickActionsBar() {
+  const { addUserMessage } = useChat();
+  const [busy, setBusy] = useState(false);
+
+  async function onPickVideo(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBusy(true);
+    try {
+      const data = await uploadVideo(file);
+      // Post summary to chat
+      addUserMessage(
+        [video summary] concepts: ${data.concepts.join(", ")},
+        { meta: { holoHints: data.holographic_hints } },
+      );
+      // TODO: forward holoHints to HologramCanvas
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="quick-bar">
+      {/* existing buttons */}
+      <label className={video-btn ${busy ? "busy" : ""}}>
+        📹
+        <input
+          type="file"
+          accept="video/*"
+          hidden
+          onChange={onPickVideo}
+        />
+      </label>
+    </div>
+  );
+}
+python
+
+# ──────────────────────────────────────────────────────────────────────────────
+# File: tests/video/test_ingest_video.py
+# References:
+#   – ingest_bus.video.ingest_video
+#   – cv2, numpy (generate synthetic frames)
+# ──────────────────────────────────────────────────────────────────────────────
+import cv2, numpy as np, pytest, tempfile
+from tori.kha.ingest_bus.video import ingest_video
+
+
+def create_dummy_mp4(path):
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(path, fourcc, 10, (64, 64))
+    for i in range(30):
+        frame = np.zeros((64, 64, 3), dtype=np.uint8)
+        if i % 2:
+            frame[:] = (0, 255, 0)   # green frames → dominant_green
+        out.write(frame)
+    out.release()
+
+
+def test_ingest_video_green(tmp_path):
+    vid = tmp_path / "g.mp4"
+    create_dummy_mp4(str(vid))
+    res = ingest_video(str(vid))
+    assert "dominant_green" in res.concepts
+    assert 30 <= res.avg_hue <= 90
+    assert res.motion_score < 0.05
+Smoke Test
+Install OpenCV: pip install opencv-python
+
+Run unit tests: pytest tests/video/test_ingest_video.py
+
+Start backend + frontend. Upload a short video via 📹 button.
+Chat shows [video summary] concepts: dominant_green, ... and meta contains holoHints.
+(HologramCanvas will consume these hints in Phase G.)
+
+Phase F complete!
+When tests and manual upload succeed, we can progress to Phase G: adding the HologramCanvas 3-D preview and mapping holoHints to visual elements.
+
+
+Below is Phase G – the first working hologram preview.
+These snippets wire the holoHints you already inject into chat into a live 3-D canvas that renders:
+
+a colored orb whose hue = video avg_hue,
+
+pulsing scale whose amplitude = motionIntensity,
+
+a gentle “emotion glow” when a Ghost persona manifests.
+
+Everything is framework-agnostic: the React demo uses Three.js; the Svelte demo shares the same store, so you can flip either on.
+Copy files exactly, then start the dev-server and watch the orb react when you upload new videos or trigger ghosts.
+
+1 · Shared reactive store (holographicMemory)
+ts
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File: C:\Users\jason\Desktop\tori\frontend\lib\holographicMemory.ts  (NEW)
+// References:  Svelte/React stores  – export { holoHints, activePersona }
+// ─────────────────────────────────────────────────────────────────────────────
+import { writable } from "svelte/store";
+
+/** Latest hologram hints coming from video/audio ingestion. */
+export const holoHints = writable<{
+  colorHue?: number;          // 0-179 (OpenCV palette)
+  motionIntensity?: number;   // 0-1
+}>({});
+
+/** Currently manifesting Ghost persona (set by Ghost overlay). */
+export const activePersona = writable<string | null>(null);
+2 · Feed the store from chat + ghosts
+2a QuickActionsBar.jsx – already modified earlier
+Add one line after you receive data.holographic_hints:
+
+diff
+
+import { holoHints } from "../lib/holographicMemory";     // ← add
+
+...
+      const data = await uploadVideo(file);
++     holoHints.set(data.holographic_hints);               // push to store
+      addUserMessage(
+2b GhostMessageOverlay.jsx – push persona id:
+diff
+
+import { activePersona } from "../lib/holographicMemory";
+...
+    const onManifest = (e) => {
+       const p = e.detail.persona;
+       setPersona(p);
++      activePersona.set(p);        // drive hologram glow
+    };
+3 · React prototype – HologramCanvas.tsx
+tsx
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * File: C:\Users\jason\Desktop\tori\frontend\components\HologramCanvas.tsx  (NEW)
+ * References:
+ *   – three   (npm install three @react-three/fiber)
+ *   – recoil / zustand / context not needed – we pull from holographicMemory store
+ * ────────────────────────────────────────────────────────────────────────────*/
+import React, { useRef, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { holoHints, activePersona } from "../lib/holographicMemory";
+import { useStore } from "react-svelte-store";   // thin helper – install
+
+function Orb() {
+  const mesh = useRef<THREE.Mesh>(null);
+  // Subscribe to Svelte store inside React:
+  const hints = useStore(holoHints);
+  const persona = useStore(activePersona);
+
+  // Map hue to THREE.Color
+  const color = new THREE.Color();
+  color.setHSL(((hints.colorHue ?? 180) / 360), 0.7, 0.5);
+
+  useFrame((state, dt) => {
+    // Pulse scale by motionIntensity
+    const m = hints.motionIntensity ?? 0;
+    const scale = 1 + m * Math.sin(state.clock.elapsedTime * 4);
+    if (mesh.current) mesh.current.scale.set(scale, scale, scale);
+
+    // Subtle glow: if a ghost persona is active, modulate emissive
+    if (mesh.current) {
+      const mat = mesh.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = persona ? 1.0 : 0.1;
+    }
+  });
+
+  return (
+    <mesh ref={mesh}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.1} />
+    </mesh>
+  );
+}
+
+export default function HologramCanvas() {
+  return (
+    <div style={{ width: "240px", height: "240px" }}>
+      <Canvas camera={{ position: [0, 0, 3] }}>
+        <ambientLight intensity={0.6} />
+        <pointLight position={[3, 3, 3]} />
+        <Orb />
+      </Canvas>
+    </div>
+  );
+}
+Add to frontend/package.json dev dependencies:
+
+json
+
+"@react-three/fiber": "^8.0.0",
+"three": "^0.161.0",
+"react-svelte-store": "^1.0.3"
+4 · Svelte twin – optional drop-in panel
+svelte
+
+<!-- ───────────────────────────────────────────────────────────────────────────
+     File: C:\Users\jason\Desktop\tori\frontend\ui/HolographicVisualization.svelte
+     References: lib/holographicMemory store
+──────────────────────────────────────────────────────────────────────────────-->
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { holoHints, activePersona } from "../lib/holographicMemory";
+  let canvas: HTMLCanvasElement;
+  let gl: WebGLRenderingContext;
+  let hue = 180, motion = 0, glow = 0;
+
+  const unsub1 = holoHints.subscribe(h => {
+    hue = h.colorHue ?? 180;
+    motion = h.motionIntensity ?? 0;
+  });
+  const unsub2 = activePersona.subscribe(p => glow = p ? 1 : 0);
+
+  onMount(() => {
+    gl = canvas.getContext("2d") as any;
+    const loop = () => {
+      const t = performance.now() / 1000;
+      const r = Math.sin(t * 4) * motion * 30 + 50;
+      gl.fillStyle = hsl(${hue},70%,${glow?60:50}%);
+      gl.clearRect(0,0,240,240);
+      gl.beginPath();
+      gl.arc(120,120,r,0,Math.PI*2);
+      gl.fill();
+      requestAnimationFrame(loop);
+    };
+    loop();
+    return () => { unsub1(); unsub2(); };
+  });
+</script>
+
+<canvas bind:this={canvas} width="240" height="240" class="holo"></canvas>
+
+<style>
+.holo { border-radius: 8px; background: #111; }
+</style>
+(If you prefer Svelte over React, import this component in your chat layout instead of HologramCanvas.)
+
+5 · Display the preview panel
+Insert <HologramCanvas /> (or Svelte equivalent) in your chat sidebar or footer.
+Example (React ChatLayout):
+
+jsx
+
+import HologramCanvas from "./HologramCanvas";
+/* … */
+<div className="sidebar">
+  {/* other widgets */}
+  <HologramCanvas />
+</div>
+6 · Quick Manual Test
+npm install to pick up Three.js deps.
+
+Start backend & front-end:
+
+bash
+
+uvicorn api:app --reload
+npm run dev
+Upload a green, low-motion video → orb turns green, stays small.
+
+Upload a red, shaky video → orb shifts toward magenta and pulses bigger.
+
+Click 🎙️, shout loudly (emotion = excited) → Chaotic ghost manifests → overlay red & orb emissive glows.
+
+You now have a live hologram preview driven by ψ-hints and ghost state.
+Future phases can swap this out for real WebXR/OpenXR streaming, but the data plumbing and visual feedback loop are complete.

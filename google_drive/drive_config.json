@@ -1,0 +1,82 @@
+{
+  "drive_folder": {
+    "name": "My Drive",
+    "type": "Google Drive Folder",
+    "location": "My Laptop",
+    "owner": "me",
+    "created": "2025-08-02T00:00:00Z",
+    "modified": "2025-08-02T00:00:00Z",
+    "last_opened": "2025-08-07T00:00:00Z",
+    "folder_id": "",
+    "parent_folder_id": "root"
+  },
+  "sync_settings": {
+    "enabled": true,
+    "sync_interval_minutes": 15,
+    "auto_sync_on_startup": true,
+    "sync_direction": "bidirectional",
+    "conflict_resolution": "newest_wins",
+    "exclude_patterns": [
+      "*.tmp",
+      "*.cache",
+      "__pycache__",
+      ".git",
+      "node_modules",
+      ".venv"
+    ],
+    "include_patterns": [
+      "*.py",
+      "*.js",
+      "*.ts",
+      "*.json",
+      "*.md",
+      "*.txt",
+      "*.yaml",
+      "*.yml"
+    ]
+  },
+  "authentication": {
+    "type": "oauth2",
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "http://localhost:8080/callback",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+      "https://www.googleapis.com/auth/drive.appdata"
+    ],
+    "token_file": "google_drive/token.json",
+    "credentials_file": "google_drive/credentials.json"
+  },
+  "local_sync_folders": [
+    {
+      "local_path": "C:\\Users\\jason\\Desktop\\tori\\kha",
+      "drive_path": "/tori_project",
+      "sync_enabled": true
+    },
+    {
+      "local_path": "D:\Dev\kha\src",
+      "drive_path": "/tori_project/src",
+      "sync_enabled": true
+    },
+    {
+      "local_path": "D:\Dev\kha\docs",
+      "drive_path": "/tori_project/docs",
+      "sync_enabled": true
+    }
+  ],
+  "backup_settings": {
+    "auto_backup": true,
+    "backup_interval_hours": 24,
+    "max_backups": 10,
+    "backup_folder": "/tori_backups",
+    "compress_backups": true
+  },
+  "logging": {
+    "enabled": true,
+    "log_level": "INFO",
+    "log_file": "google_drive/sync.log",
+    "max_log_size_mb": 50,
+    "max_log_files": 5
+  }
+}

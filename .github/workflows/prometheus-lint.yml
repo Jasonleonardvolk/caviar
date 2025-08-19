@@ -1,0 +1,72 @@
+name: Prometheus Rules Lint
+
+on:
+  pull_request:
+    paths:
+      - 'prometheus/rules/*.yml'
+      - 'prometheus/rules/*.yaml'
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'prometheus/rules/*.yml'
+      - 'prometheus/rules/*.yaml'
+
+jobs:
+  prometheus-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Setup Prometheus
+        run: |
+          wget https://github.com/prometheus/prometheus/releases/download/v2.35.0/prometheus-2.35.0.linux-amd64.tar.gz
+          tar xvfz prometheus-2.35.0.linux-amd64.tar.gz
+      
+      - name: Lint Rules
+        run: |
+          echo "Checking Prometheus rules for syntax errors..."
+          exit_code=0
+          
+          for file in prometheus/rules/*.yml prometheus/rules/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Checking $file"
+              ./prometheus-2.35.0.linux-amd64/promtool check rules "$file"
+              
+              if [ $? -ne 0 ]; then
+                echo "❌ Error in $file"
+                exit_code=1
+              else
+                echo "✅ $file is valid"
+              fi
+            fi
+          done
+          
+          exit $exit_code
+      
+      - name: Check for Duplicate Alerts
+        run: |
+          echo "Checking for duplicate alert names..."
+          
+          # Extract all alert names and check for duplicates
+          alert_names=$(grep -r "alert: " prometheus/rules/ | awk '{print $3}' | sort)
+          duplicate_alerts=$(echo "$alert_names" | uniq -d)
+          
+          if [ -n "$duplicate_alerts" ]; then
+            echo "❌ Found duplicate alert names:"
+            echo "$duplicate_alerts"
+            exit 1
+          else
+            echo "✅ No duplicate alert names found"
+          fi
+      
+      - name: Check for Overlapping Conditions
+        run: |
+          echo "Note: This is a basic check for potential rule overlaps."
+          echo "Manual review is still recommended for complex expressions."
+          
+          # List of alert expressions for manual comparison
+          grep -r -A 1 "alert: " prometheus/rules/ | grep -v "alert: " | grep -v -- "--" | sort
+          
+          # This step doesn't fail the build, it's informational only
+          echo "✅ Overlapping conditions check complete (informational only)"

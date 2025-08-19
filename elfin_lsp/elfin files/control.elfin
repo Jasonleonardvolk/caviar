@@ -1,0 +1,214 @@
+# Control Theory Components for ELFIN
+# Standard controllers and control elements
+
+import StdHelpers from "std/helpers.elfin";
+
+# PID Controller Implementation
+pid_controller {
+  # Controller parameters
+  params {
+    k_p: gain = 1.0;         # Proportional gain
+    k_i: gain = 0.0;         # Integral gain
+    k_d: gain = 0.0;         # Derivative gain
+    
+    min_output: dimensionless = -1.0; # Minimum output value (for anti-windup)
+    max_output: dimensionless = 1.0;  # Maximum output value (for anti-windup)
+    
+    use_derivative_filter: bool = true;  # Whether to use derivative filtering
+    tau_d: time[s] = 0.1;               # Derivative filter time constant
+  }
+  
+  # State variables
+  state {
+    integral: dimensionless = 0.0;       # Integral term
+    prev_error: dimensionless = 0.0;     # Previous error value
+    prev_derivative: dimensionless = 0.0; # Previous derivative value
+    prev_time: time[s] = 0.0;            # Previous update time
+  }
+  
+  # Update function to calculate control output
+  update(error, time) {
+    # Calculate time difference
+    dt = time - prev_time;
+    
+    # Handle first call or time not advancing
+    if dt <= 0.0 {
+      return k_p * error;
+    }
+    
+    # Calculate proportional term
+    p_term = k_p * error;
+    
+    # Calculate integral term with anti-windup
+    if integral < max_output/k_i && integral > min_output/k_i {
+      integral = integral + error * dt;
+    }
+    i_term = k_i * integral;
+    
+    # Calculate derivative term
+    derivative = (error - prev_error) / dt;
+    
+    # Apply derivative filter if enabled
+    if use_derivative_filter {
+      alpha = tau_d / (tau_d + dt);
+      derivative = alpha * prev_derivative + (1.0 - alpha) * derivative;
+    }
+    
+    d_term = k_d * derivative;
+    
+    # Calculate output
+    output = p_term + i_term + d_term;
+    
+    # Apply output limits
+    if output > max_output {
+      output = max_output;
+    } else if output < min_output {
+      output = min_output;
+    }
+    
+    # Update state
+    prev_error = error;
+    prev_derivative = derivative;
+    prev_time = time;
+    
+    return output;
+  }
+  
+  # Reset the controller state
+  reset() {
+    integral = 0.0;
+    prev_error = 0.0;
+    prev_derivative = 0.0;
+    prev_time = 0.0;
+  }
+}
+
+# State Feedback Controller
+state_feedback {
+  params {
+    # Gain matrix dimensions depend on system
+    K: gain_matrix = [0.0, 0.0]; # State feedback gains
+    
+    # Reference tracking weight
+    N: gain = 1.0;               # Feedforward gain for reference
+  }
+  
+  # Calculate control output
+  update(x_state, r_ref) {
+    # Calculate state feedback
+    u = -K * x_state;
+    
+    # Add reference tracking if provided
+    if r_ref != null {
+      u = u + N * r_ref;
+    }
+    
+    return u;
+  }
+}
+
+# Linear Quadratic Regulator (LQR) Solver
+lqr_solver {
+  # Compute LQR gain matrix K for system x_dot = A*x + B*u
+  # to minimize cost J = integral(x'Qx + u'Ru) dt
+  solve(A, B, Q, R) {
+    # Note: This would be implemented as a native function
+    # that solves the Riccati equation. For now, we provide
+    # the interface but the actual solution would be 
+    # platform-dependent.
+    
+    # Return the optimal gain matrix K
+    K = solve_riccati(A, B, Q, R);
+    return K;
+  }
+}
+
+# Low-Pass Filter
+low_pass_filter {
+  params {
+    tau: time[s] = 0.1;         # Filter time constant
+  }
+  
+  state {
+    y_prev: dimensionless = 0.0; # Previous output value
+    t_prev: time[s] = 0.0;       # Previous update time
+  }
+  
+  # Update filter with new input
+  update(u, time) {
+    # Calculate time difference
+    dt = time - t_prev;
+    
+    # Handle first call or time not advancing
+    if dt <= 0.0 {
+      y_prev = u;
+      t_prev = time;
+      return u;
+    }
+    
+    # Calculate filter coefficient
+    alpha = dt / (tau + dt);
+    
+    # Update filter state
+    y = alpha * u + (1.0 - alpha) * y_prev;
+    
+    # Store state
+    y_prev = y;
+    t_prev = time;
+    
+    return y;
+  }
+  
+  # Reset the filter state
+  reset(value = 0.0) {
+    y_prev = value;
+    t_prev = 0.0;
+  }
+}
+
+# Differentiator with filtering
+differentiator {
+  params {
+    tau: time[s] = 0.1;         # Filter time constant
+  }
+  
+  state {
+    x_prev: dimensionless = 0.0; # Previous input value
+    dx_prev: dimensionless = 0.0; # Previous derivative value
+    t_prev: time[s] = 0.0;       # Previous update time
+  }
+  
+  # Calculate derivative of input signal
+  update(x, time) {
+    # Calculate time difference
+    dt = time - t_prev;
+    
+    # Handle first call or time not advancing
+    if dt <= 0.0 {
+      x_prev = x;
+      t_prev = time;
+      return 0.0;
+    }
+    
+    # Calculate raw derivative
+    dx_raw = (x - x_prev) / dt;
+    
+    # Apply derivative filter
+    alpha = tau / (tau + dt);
+    dx = alpha * dx_prev + (1.0 - alpha) * dx_raw;
+    
+    # Store state
+    x_prev = x;
+    dx_prev = dx;
+    t_prev = time;
+    
+    return dx;
+  }
+  
+  # Reset the differentiator state
+  reset() {
+    x_prev = 0.0;
+    dx_prev = 0.0;
+    t_prev = 0.0;
+  }
+}

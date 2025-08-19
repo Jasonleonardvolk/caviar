@@ -1,0 +1,3 @@
+@echo off
+echo Running ELFIN ParallelVerifier Demo...
+python -m alan_backend.elfin.examples.parallel_verifier_demo %*

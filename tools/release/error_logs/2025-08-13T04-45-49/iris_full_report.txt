@@ -1,0 +1,52 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20250813044550
+Username: JASONPC\jason
+RunAs User: JASONPC\jason
+Configuration Name: 
+Machine: JASONPC (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File .\Run-IrisReleaseGate.ps1 -SkipShaders
+Process ID: 26596
+PSVersion: 5.1.26100.4768
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.4768
+BuildVersion: 10.0.26100.4768
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+== TypeScript import/compile sanity ==
+[2025-08-13 04:45:52] ERROR: TypeScript compilation failed with exit code 2
+[2025-08-13 04:45:52] ERROR: TypeScript errors saved to: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T04-45-49\typescript_errors.txt
+
+== ESLint (if configured) ==
+SKIP: no ESLint config found
+
+== Quilt integration ==
+WARN: Missing frontend\lib\webgpu\quilt\WebGPUQuiltGenerator.ts
+[2025-08-13 04:46:38] WARN: Found imports of 'QuiltGenerator' (should be 'WebGPUQuiltGenerator')
+ - ${IRIS_ROOT}\frontend\lib\holographicEngine.ts
+
+== Shader tree check ==
+WARN: Both canonical and public shader directories exist
+  Canonical: ${IRIS_ROOT}\frontend\lib\webgpu\shaders
+  Public: ${IRIS_ROOT}\frontend\public\hybrid\wgsl
+
+== Uniform array check ==
+OK: No uniform array issues
+
+== API probes ==
+SKIP: No -ApiBase provided and IRIS_API_BASE not set
+
+== Production toggles ==
+WARN: frontend\.env.production not found
+
+== Shader validation (skipped by flag) ==
+
+== Complete ==
+**********************
+Windows PowerShell transcript end
+End time: 20250813044639
+**********************

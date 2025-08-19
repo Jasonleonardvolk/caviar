@@ -1,0 +1,92 @@
+# Dark Soliton Lattice Configuration
+# YAML schema for FDTD simulation parameters
+
+# Lattice dimensions
+lattice_size: 128  # NxN grid size
+
+# Time evolution parameters
+dt: 0.01          # Time step
+dx: 1.0           # Spatial step
+initial_steps: 0  # Steps to run on initialization
+
+# Physics parameters
+nonlinearity: 1.0    # Nonlinear coefficient (|ψ|²ψ term)
+dispersion: 0.5      # Dispersion coefficient (∇² term)
+damping: 0.1         # Boundary damping rate
+
+# Initial soliton configuration
+initial_solitons:
+  - x: 64            # X position (center)
+    y: 64            # Y position (center) 
+    width: 10.0      # Soliton width parameter
+    depth: 0.8       # Darkness depth (0-1)
+    angle: 0.0       # Propagation angle (radians)
+  
+  # Uncomment for multiple solitons
+  # - x: 32
+  #   y: 96
+  #   width: 8.0
+  #   depth: 0.6
+  #   angle: 0.785    # 45 degrees
+
+# Monitoring parameters
+checkpoint_interval: 1000  # Steps between snapshots
+metrics_interval: 100      # Steps between metric calculations
+
+# Render settings
+render:
+  colormap_amplitude: "viridis"
+  colormap_phase: "hsv"
+  dpi: 150
+  figsize: [10, 10]
+
+# Stability thresholds
+thresholds:
+  max_phase_drift: 0.02      # Maximum allowed phase drift per step
+  min_amplitude: 0.1         # Minimum amplitude before warning
+  max_amplitude: 2.0         # Maximum amplitude before warning
+  energy_tolerance: 0.05     # Relative energy conservation tolerance
+
+# Advanced parameters
+advanced:
+  use_absorbing_boundaries: true
+  boundary_width: 5
+  nonlinear_damping: 0.0
+  dispersion_order: 2        # 2 for standard Laplacian, 4 for bi-Laplacian
+  
+# Soliton interaction modes
+interaction_mode: "multiplicative"  # "multiplicative" or "additive"
+
+# Output settings
+output:
+  save_snapshots: true
+  snapshot_dir: "./snapshots"
+  save_metrics: true
+  metrics_file: "./metrics.csv"
+  
+# Performance settings
+performance:
+  use_numba: true
+  parallel: true
+  cache_kernels: true
+  
+# Visualization presets
+visualization_presets:
+  standard:
+    show_amplitude: true
+    show_phase: true
+    show_intensity: false
+    show_energy: false
+    
+  diagnostic:
+    show_amplitude: true
+    show_phase: true
+    show_intensity: true
+    show_energy: true
+    show_phase_gradient: true
+    
+  minimal:
+    show_amplitude: true
+    show_phase: false
+    show_intensity: false
+    show_energy: false

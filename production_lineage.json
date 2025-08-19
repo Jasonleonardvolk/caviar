@@ -1,0 +1,730 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "phase": "Phase 2 Alpha",
+    "last_updated": "2025-06-06T14:28:16.248910",
+    "total_concepts": 16,
+    "total_relationships": 0,
+    "total_evolution_events": 16
+  },
+  "concepts": {
+    "concept_from_python.pdf_neural_architecture": {
+      "concept_id": "concept_from_python.pdf_neural_architecture",
+      "canonical_name": "concept-from-python.pdf-neural-architecture",
+      "creation_time": "2025-06-06T12:57:53.524531",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_from_python.pdf_hyperdimensional_computing": {
+      "concept_id": "concept_from_python.pdf_hyperdimensional_computing",
+      "canonical_name": "concept-from-python.pdf-hyperdimensional-computing",
+      "creation_time": "2025-06-06T12:57:53.526036",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_from_python.pdf_quantum_cognition": {
+      "concept_id": "concept_from_python.pdf_quantum_cognition",
+      "canonical_name": "concept-from-python.pdf-quantum-cognition",
+      "creation_time": "2025-06-06T12:57:53.526036",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_from_2506.04220v1.pdf_neural_architecture": {
+      "concept_id": "concept_from_2506.04220v1.pdf_neural_architecture",
+      "canonical_name": "concept-from-2506.04220v1.pdf-neural-architecture",
+      "creation_time": "2025-06-06T13:32:33.749521",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_from_2506.04220v1.pdf_hyperdimensional_computing": {
+      "concept_id": "concept_from_2506.04220v1.pdf_hyperdimensional_computing",
+      "canonical_name": "concept-from-2506.04220v1.pdf-hyperdimensional-computing",
+      "creation_time": "2025-06-06T13:32:33.754908",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_from_2506.04220v1.pdf_quantum_cognition": {
+      "concept_id": "concept_from_2506.04220v1.pdf_quantum_cognition",
+      "canonical_name": "concept-from-2506.04220v1.pdf-quantum-cognition",
+      "creation_time": "2025-06-06T13:32:33.761018",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_model": {
+      "concept_id": "concept_model",
+      "canonical_name": "concept-model",
+      "creation_time": "2025-06-06T14:28:16.181945",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_set": {
+      "concept_id": "concept_set",
+      "canonical_name": "concept-set",
+      "creation_time": "2025-06-06T14:28:16.192177",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_bench": {
+      "concept_id": "concept_bench",
+      "canonical_name": "concept-bench",
+      "creation_time": "2025-06-06T14:28:16.192177",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_vsi_bench": {
+      "concept_id": "concept_vsi_bench",
+      "canonical_name": "concept-vsi-bench",
+      "creation_time": "2025-06-06T14:28:16.202334",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_object_centric": {
+      "concept_id": "concept_object_centric",
+      "canonical_name": "concept-object-centric",
+      "creation_time": "2025-06-06T14:28:16.212471",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_models": {
+      "concept_id": "concept_models",
+      "canonical_name": "concept-models",
+      "creation_time": "2025-06-06T14:28:16.222665",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_figure": {
+      "concept_id": "concept_figure",
+      "canonical_name": "concept-figure",
+      "creation_time": "2025-06-06T14:28:16.232831",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_these": {
+      "concept_id": "concept_these",
+      "canonical_name": "concept-these",
+      "creation_time": "2025-06-06T14:28:16.233783",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_table": {
+      "concept_id": "concept_table",
+      "canonical_name": "concept-table",
+      "creation_time": "2025-06-06T14:28:16.248910",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    },
+    "concept_you": {
+      "concept_id": "concept_you",
+      "canonical_name": "concept-you",
+      "creation_time": "2025-06-06T14:28:16.248910",
+      "status": "active",
+      "origin_type": "extraction",
+      "parent_concepts": [],
+      "child_concepts": [],
+      "usage_count": 0,
+      "coherence_score": 0.5,
+      "psi_phase": 0.5,
+      "last_used": null,
+      "failure_count": 0,
+      "metadata": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "lifecycle_events": []
+    }
+  },
+  "concept_relationships": {
+    "concept_from_python.pdf_neural_architecture": [],
+    "concept_from_python.pdf_hyperdimensional_computing": [],
+    "concept_from_python.pdf_quantum_cognition": [],
+    "concept_from_2506.04220v1.pdf_neural_architecture": [],
+    "concept_from_2506.04220v1.pdf_hyperdimensional_computing": [],
+    "concept_from_2506.04220v1.pdf_quantum_cognition": [],
+    "concept_model": [],
+    "concept_set": [],
+    "concept_bench": [],
+    "concept_vsi_bench": [],
+    "concept_object_centric": [],
+    "concept_models": [],
+    "concept_figure": [],
+    "concept_these": [],
+    "concept_table": [],
+    "concept_you": []
+  },
+  "evolution_events": [
+    {
+      "event_id": "create_concept_from_python.pdf_neural_architecture_1749232673",
+      "concept_id": "concept_from_python.pdf_neural_architecture",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T12:57:53.524531",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_from_python.pdf_hyperdimensional_computing_1749232673",
+      "concept_id": "concept_from_python.pdf_hyperdimensional_computing",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T12:57:53.526036",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_from_python.pdf_quantum_cognition_1749232673",
+      "concept_id": "concept_from_python.pdf_quantum_cognition",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T12:57:53.526036",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\python.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_from_2506.04220v1.pdf_neural_architecture_1749234753",
+      "concept_id": "concept_from_2506.04220v1.pdf_neural_architecture",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T13:32:33.749521",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_from_2506.04220v1.pdf_hyperdimensional_computing_1749234753",
+      "concept_id": "concept_from_2506.04220v1.pdf_hyperdimensional_computing",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T13:32:33.754908",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_from_2506.04220v1.pdf_quantum_cognition_1749234753",
+      "concept_id": "concept_from_2506.04220v1.pdf_quantum_cognition",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T13:32:33.761018",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_model_1749238096",
+      "concept_id": "concept_model",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.181945",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_set_1749238096",
+      "concept_id": "concept_set",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.192177",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_bench_1749238096",
+      "concept_id": "concept_bench",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.192177",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_vsi_bench_1749238096",
+      "concept_id": "concept_vsi_bench",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.202334",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_object_centric_1749238096",
+      "concept_id": "concept_object_centric",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.212471",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_models_1749238096",
+      "concept_id": "concept_models",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.222665",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_figure_1749238096",
+      "concept_id": "concept_figure",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.232831",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_these_1749238096",
+      "concept_id": "concept_these",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.233783",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_table_1749238096",
+      "concept_id": "concept_table",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.248910",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    },
+    {
+      "event_id": "create_concept_you_1749238096",
+      "concept_id": "concept_you",
+      "event_type": "concept_creation",
+      "timestamp": "2025-06-06T14:28:16.248910",
+      "trigger_context": {
+        "source": "pdf_upload",
+        "file": "uploads\\2506.04220v1.pdf"
+      },
+      "pre_state": {},
+      "post_state": {
+        "status": "active",
+        "phase": "nascent"
+      },
+      "success_metrics": {
+        "creation_success": 1.0
+      },
+      "causal_chain": [],
+      "emergence_indicators": {
+        "novelty": 1.0,
+        "potential": 0.5
+      }
+    }
+  ],
+  "coherence_history": [],
+  "phase_data": {
+    "coherence_matrix": {},
+    "evolution_phases": {
+      "concept_from_python.pdf_neural_architecture": "mature",
+      "concept_from_python.pdf_hyperdimensional_computing": "mature",
+      "concept_from_python.pdf_quantum_cognition": "mature",
+      "concept_from_2506.04220v1.pdf_neural_architecture": "mature",
+      "concept_from_2506.04220v1.pdf_hyperdimensional_computing": "mature",
+      "concept_from_2506.04220v1.pdf_quantum_cognition": "mature",
+      "concept_model": "nascent",
+      "concept_set": "nascent",
+      "concept_bench": "nascent",
+      "concept_vsi_bench": "nascent",
+      "concept_object_centric": "nascent",
+      "concept_models": "nascent",
+      "concept_figure": "nascent",
+      "concept_these": "nascent",
+      "concept_table": "nascent",
+      "concept_you": "nascent"
+    },
+    "causal_chains": {}
+  },
+  "mutation_events": [],
+  "usage_stats": {},
+  "emergence_patterns": {}
+}

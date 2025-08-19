@@ -1,0 +1,16 @@
+{
+  "total_errors": 164,
+  "fixes_applied": 0,
+  "fixes_failed": 0,
+  "error_summary": {
+    "TS1128": 11,
+    "TS1005": 95,
+    "TS1003": 1,
+    "TS1359": 2,
+    "TS1434": 35,
+    "TS1127": 15,
+    "TS1443": 3,
+    "TS1435": 1,
+    "TS1109": 1
+  }
+}

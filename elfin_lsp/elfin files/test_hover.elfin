@@ -1,0 +1,31 @@
+system TestHover {
+  continuous_state: [position, velocity, acceleration];
+  inputs: [force];
+  
+  params {
+    m: mass[kg] = 1.0;                # Mass of the object
+    k: spring_const[N/m] = 10.0;      # Spring constant
+    b: damping[N*s/m] = 0.5;          # Damping coefficient
+    g: acceleration[m/s^2] = 9.81;    # Gravitational acceleration
+  }
+  
+  flow_dynamics {
+    # Position derivative is velocity
+    position_dot = velocity;
+    
+    # Velocity derivative is acceleration
+    velocity_dot = acceleration;
+    
+    # Force equation: F = ma
+    # Here, we include spring force (-k*x), damping force (-b*v), and gravity
+    acceleration_dot = (force - k * position - b * velocity - m * g) / m;
+  }
+}
+
+# This file demonstrates hover functionality in the ELFIN Language Server.
+# Try hovering over the variables in the flow_dynamics section to see their dimensions.
+# For example:
+#   - position: [m]
+#   - velocity: [m/s]
+#   - acceleration: [m/s^2]
+#   - force: [N] or [kg*m/s^2]

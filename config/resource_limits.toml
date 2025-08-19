@@ -1,0 +1,4 @@
+# Resource limits for TORI self-modification sandbox
+cpu_seconds   = 120
+mem_mebibytes = 4096
+wall_seconds  = 150

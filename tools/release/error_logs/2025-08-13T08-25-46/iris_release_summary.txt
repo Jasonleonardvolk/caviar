@@ -1,0 +1,20 @@
+IRIS Release Gate - 2025-08-13T08-25-46
+Repo: ${IRIS_ROOT}
+
+TypeScript: FAIL (143 errors - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\typescript_errors.txt)
+ESLint: SKIP (no config)
+Quilt: FOUND WebGPUQuiltGenerator.ts
+Quilt: IMPORT MISMATCH in 1 files - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\quilt_import_mismatches.txt
+Shaders: DUAL TREES (canonical + public)
+Uniforms: OK
+API: 0 OK, 3 WARN/FAIL (base=http://localhost:8000)
+Prod env: FOUND .env.production
+Build: FAIL (see console)
+Shader validation: WARNINGS
+  - iPhone 11 (4-core GPU): WARN - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\shader_validation_iphone11_conservative.txt
+  - iPhone 15 (6-core GPU): WARN - see ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\shader_validation_iphone15.txt
+
+Timestamp: 2025-08-13T08-25-46
+Summary: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\iris_release_summary.txt
+Error Log: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\iris_errors.log
+Full Report: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\iris_full_report.txt

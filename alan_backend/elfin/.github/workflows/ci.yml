@@ -1,0 +1,85 @@
+name: ELFIN CI Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest
+        
+    - name: Run unit tests with unittest
+      run: |
+        python -m unittest discover
+    
+    - name: Run unit tests with pytest
+      run: |
+        pytest -q tests/
+
+  check-formatting:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Check code formatting
+      run: |
+        # Run formatter in check mode to verify all files are formatted correctly
+        elfin fmt --check templates/
+        
+    - name: Formatter golden tests
+      run: |
+        # Run golden file tests to ensure formatting behavior doesn't change unexpectedly
+        pytest -q tests/test_fmt_golden.py
+        
+  check-units:
+    name: Dimensional Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Run dimensional checker
+      run: |
+        # Run unit checker in warning-only mode
+        elfin check-units templates/
+        # Print any warnings but don't fail the build
+        exit 0

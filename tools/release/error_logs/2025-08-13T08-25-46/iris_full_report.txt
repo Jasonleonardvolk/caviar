@@ -1,0 +1,82 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20250813082546
+Username: JASONPC\jason
+RunAs User: JASONPC\jason
+Configuration Name: 
+Machine: JASONPC (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File .\Run-IrisReleaseGate.ps1 -Build
+Process ID: 3276
+PSVersion: 5.1.26100.4768
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.4768
+BuildVersion: 10.0.26100.4768
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+== TypeScript import/compile sanity ==
+[2025-08-13 08:25:50] ERROR: TypeScript compilation failed with exit code 2
+[2025-08-13 08:25:50] ERROR: TypeScript errors saved to: ${IRIS_ROOT}\tools\release\error_logs\2025-08-13T08-25-46\typescript_errors.txt
+
+== ESLint (if configured) ==
+SKIP: no ESLint config found
+
+== Quilt integration ==
+OK: Found WebGPUQuiltGenerator.ts
+[2025-08-13 08:25:59] WARN: Found imports of 'QuiltGenerator' (should be 'WebGPUQuiltGenerator')
+ - ${IRIS_ROOT}\frontend\lib\holographicEngine.ts
+
+== Shader tree check ==
+WARN: Both canonical and public shader directories exist
+  Canonical: ${IRIS_ROOT}\frontend\lib\webgpu\shaders
+  Public: ${IRIS_ROOT}\frontend\public\hybrid\wgsl
+
+== Uniform array check ==
+OK: No uniform array issues
+
+== API probes ==
+PS>TerminatingError(Invoke-WebRequest): "Unable to connect to the remote server"
+WARN: http://localhost:8000/health (Failed: Unable to connect to the remote server)
+PS>TerminatingError(Invoke-WebRequest): "Unable to connect to the remote server"
+WARN: http://localhost:8000/api/health (Failed: Unable to connect to the remote server)
+PS>TerminatingError(Invoke-WebRequest): "Unable to connect to the remote server"
+WARN: http://localhost:8000/api/oscillator/status (Failed: Unable to connect to the remote server)
+
+== Production toggles ==
+OK: Found frontend\.env.production
+
+== Production build ==
+
+> tori-holographic-frontend@0.1.0 build
+> npm run build:all
+
+
+> tori-holographic-frontend@0.1.0 build:all
+> npm run build:assets && npm run build:quilt-manifests && npm run build:quilt-videos && npm run build:frontend
+
+
+> tori-holographic-frontend@0.1.0 build:assets
+> node scripts/transcode-ktx2.js
+
+❌❌ Neither toktx nor basisu found on PATH
+Install KTX-Software or Basis Universal:
+  Ubuntu: sudo apt-get install ktx-tools
+  macOS: brew install ktx
+  Windows: Download from https://github.com/KhronosGroup/KTX-Software/releases
+FAIL: build exit code 2
+
+== Shader validation (Multi-Device) ==
+Testing against iPhone 11 (4-core GPU)...
+  WARN: iPhone 11 (4-core GPU) has warnings
+Testing against iPhone 15 (6-core GPU)...
+  WARN: iPhone 15 (6-core GPU) has warnings
+[2025-08-13 08:26:29] WARN: Shader validation has warnings
+
+== Complete ==
+**********************
+Windows PowerShell transcript end
+End time: 20250813082629
+**********************

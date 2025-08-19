@@ -1,0 +1,187 @@
+"""
+Soliton Memory API Routes
+=========================
+
+Handles memory storage and retrieval for TORI.
+"""
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Create router
+router = APIRouter()
+
+# In-memory storage (replace with actual implementation)
+_memory_store: Dict[str, Dict[str, Any]] = {}
+
+
+class MemoryInit(BaseModel):
+    """Memory initialization request"""
+    user_id: str  # Changed to match frontend
+    config: Optional[Dict[str, Any]] = {}
+
+
+class MemoryStore(BaseModel):
+    """Memory storage request"""
+    userId: str
+    content: str
+    conceptId: Optional[str] = None
+    strength: float = 1.0
+
+
+class MemoryQuery(BaseModel):
+    """Memory query request"""
+    userId: str
+    query: str
+    limit: int = 10
+
+
+@router.post("/init")
+async def initialize_memory(request: MemoryInit):
+    """Initialize memory for a user"""
+    try:
+        user_id = request.user_id
+        
+        # Initialize user memory if not exists
+        if user_id not in _memory_store:
+            _memory_store[user_id] = {
+                "memories": [],
+                "config": request.config,
+                "initialized_at": datetime.utcnow().isoformat()
+            }
+            logger.info(f"Initialized memory for user: {user_id}")
+        
+        return {
+            "success": True,
+            "userId": user_id,
+            "message": "Memory initialized"
+        }
+    
+    except Exception as e:
+        logger.error(f"Memory init error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/store")
+async def store_memory(request: MemoryStore):
+    """Store a memory entry"""
+    try:
+        user_id = request.userId
+        
+        # Ensure user is initialized
+        if user_id not in _memory_store:
+            _memory_store[user_id] = {
+                "memories": [],
+                "config": {},
+                "initialized_at": datetime.utcnow().isoformat()
+            }
+        
+        # Create memory entry
+        memory_entry = {
+            "id": f"mem_{len(_memory_store[user_id]['memories'])}_{datetime.utcnow().timestamp()}",
+            "content": request.content,
+            "conceptId": request.conceptId,
+            "strength": request.strength,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Store memory
+        _memory_store[user_id]["memories"].append(memory_entry)
+        
+        logger.info(f"Stored memory for user {user_id}: {memory_entry['id']}")
+        
+        return {
+            "success": True,
+            "memoryId": memory_entry["id"],
+            "timestamp": memory_entry["timestamp"]
+        }
+    
+    except Exception as e:
+        logger.error(f"Memory store error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/find")
+async def find_memories(request: MemoryQuery):
+    """Find memories matching query"""
+    try:
+        user_id = request.userId
+        
+        if user_id not in _memory_store:
+            return {"memories": [], "count": 0}
+        
+        # Simple text search (replace with vector search)
+        memories = _memory_store[user_id]["memories"]
+        query_lower = request.query.lower()
+        
+        matching = [
+            mem for mem in memories
+            if query_lower in mem["content"].lower()
+        ][:request.limit]
+        
+        return {
+            "memories": matching,
+            "count": len(matching),
+            "total": len(memories)
+        }
+    
+    except Exception as e:
+        logger.error(f"Memory find error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/stats/{user_id}")
+async def get_memory_stats(user_id: str):
+    """Get memory statistics for user"""
+    try:
+        if user_id not in _memory_store:
+            return {
+                "userId": user_id,
+                "totalMemories": 0,
+                "activeWaves": 0,
+                "resonanceStrength": 0.0
+            }
+        
+        memories = _memory_store[user_id]["memories"]
+        
+        # Calculate stats
+        total_strength = sum(m.get("strength", 1.0) for m in memories)
+        avg_strength = total_strength / len(memories) if memories else 0.0
+        
+        return {
+            "userId": user_id,
+            "totalMemories": len(memories),
+            "activeWaves": min(len(memories), 10),  # Simulated
+            "resonanceStrength": avg_strength,
+            "lastUpdate": memories[-1]["timestamp"] if memories else None
+        }
+    
+    except Exception as e:
+        logger.error(f"Memory stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/embed")
+async def embed_content(content: str):
+    """Generate embedding for content (stub)"""
+    try:
+        # In production, use actual embedding model
+        import random
+        embedding = [random.random() for _ in range(768)]
+        
+        return {
+            "embedding": embedding,
+            "dimension": len(embedding)
+        }
+    
+    except Exception as e:
+        logger.error(f"Embedding error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+logger.info("Soliton Memory routes initialized")

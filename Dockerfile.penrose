@@ -1,0 +1,55 @@
+# Base image with scientific Python stack
+FROM python:3.10-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    gfortran \
+    libopenblas-dev \
+    liblapack-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables for Penrose
+ENV NUMBA_CACHE_DIR=/tmp/numba \
+    ENABLE_PENROSE=true \
+    PENROSE_RANK=32 \
+    PENROSE_THRESHOLD=0.7 \
+    PENROSE_CACHE=/app/data/.penrose_cache \
+    PSI_LOKI_ENABLED=false
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements first for layer caching
+COPY requirements.txt .
+
+# Install Python dependencies including Penrose requirements
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir \
+    scipy>=1.10.0 \
+    numba>=0.57.0 \
+    zstandard>=0.21.0 \
+    matplotlib>=3.7.0
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p data/archive data/snapshots data/.penrose_cache /tmp/numba
+
+# Set up cron for archive maintenance
+RUN apt-get update && apt-get install -y cron && \
+    echo "0 2 * * * /usr/local/bin/python /app/tools/cron_daily_seal.py >> /var/log/cron.log 2>&1" | crontab - && \
+    echo "0 3 * * 0 /usr/local/bin/python /app/tools/psi_archive_cron.sh snapshot >> /var/log/cron.log 2>&1" | crontab -
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/api/archive/health').raise_for_status()"
+
+# Expose API port
+EXPOSE 8000
+
+# Start command
+CMD ["uvicorn", "api.enhanced_api_with_archive:app", "--host", "0.0.0.0", "--port", "8000"]

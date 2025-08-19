@@ -1,0 +1,42 @@
+[Unit]
+Description=TORI Concept Mesh Compaction Service
+Documentation=https://github.com/yourusername/tori
+After=network.target
+
+[Service]
+Type=oneshot
+# User and group - update these
+User=tori
+Group=tori
+
+# Working directory - update path as needed
+WorkingDirectory=/opt/tori/kha/scripts
+
+# Python path - update as needed
+Environment="PYTHONPATH=/opt/tori/kha"
+
+# Execute compaction
+ExecStart=/usr/bin/python3 /opt/tori/kha/scripts/compact_all_meshes.py
+
+# Logging
+StandardOutput=append:/var/log/tori/compaction.log
+StandardError=append:/var/log/tori/compaction.log
+
+# Resource limits
+MemoryLimit=2G
+CPUQuota=80%
+IOWeight=50
+
+# Security hardening
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/tori/kha/data /var/log/tori
+
+# Restart on failure
+Restart=on-failure
+RestartSec=300
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,1 @@
+Get-ChildItem -Path "C:\Users\jason\Desktop\tori\kha" -Filter "*.py" -Recurse | Select-String -Pattern "from pydantic import" | Select-Object -First 20

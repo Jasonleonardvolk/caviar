@@ -1,0 +1,136 @@
+# ────────────────────────────────────────────────────────────
+# 6‑DOF Manipulator Controller — ELFIN v2 (lint‑clean)
+# ────────────────────────────────────────────────────────────
+
+# Import helper functions from standard library
+import StdHelpers from "std/helpers.elfin";
+
+# ── Plant ───────────────────────────────────────────────────
+system Manipulator {
+  continuous_state:
+    [q1,q2,q3,q4,q5,q6,          # joint positions
+     dq1,dq2,dq3,dq4,dq5,dq6];   # joint velocities
+  input: [tau1,tau2,tau3,tau4,tau5,tau6];
+
+  params {
+    m1:5; m2:4; m3:3; m4:2; m5:1; m6:0.5;
+    l1:0.3; l2:0.4; l3:0.4; l4:0.2; l5:0.1; l6:0.1;
+    I1:0.10; I2:0.15; I3:0.12; I4:0.08; I5:0.05; I6:0.02;
+    d1:0.5; d2:0.5; d3:0.5; d4:0.3; d5:0.3; d6:0.2;
+    g:9.81;
+  }
+
+  flow_dynamics {
+    # θ̇ = ω
+    q1_dot = dq1; q2_dot = dq2; q3_dot = dq3;
+    q4_dot = dq4; q5_dot = dq5; q6_dot = dq6;
+
+    # ω̇ (simplified diagonal‑I model)
+    dq1_dot = (tau1 - d1*dq1 - g*m1*l1*sin(q1)) / I1;
+    dq2_dot = (tau2 - d2*dq2 - g*m2*l2*sin(q2)) / I2;
+    dq3_dot = (tau3 - d3*dq3 - g*m3*l3*sin(q3)) / I3;
+    dq4_dot = (tau4 - d4*dq4) / I4;
+    dq5_dot = (tau5 - d5*dq5) / I5;
+    dq6_dot = (tau6 - d6*dq6) / I6;
+  }
+}
+
+# ── Lyapunov — position tracking ───────────────────────────
+lyapunov PosTrack {
+  system Manipulator;
+  params { k_p:2; q1_d:0; q2_d:0; q3_d:0; q4_d:0; q5_d:0; q6_d:0; }
+
+  V = 0.5*(I1*dq1**2 + I2*dq2**2 + I3*dq3**2 + I4*dq4**2 + I5*dq5**2 + I6*dq6**2)
+      + 0.5*k_p*((q1-q1_d)**2 + (q2-q2_d)**2 + (q3-q3_d)**2
+                + (q4-q4_d)**2 + (q5-q5_d)**2 + (q6-q6_d)**2);
+}
+
+# ── Barriers ────────────────────────────────────────────────
+barrier JointLimits {
+  system Manipulator;
+  params {
+    q1_min:-2; q1_max:2; q2_min:-1.5; q2_max:1.5; q3_min:-2.5; q3_max:2.5;
+    q4_min:-1.8; q4_max:1.8; q5_min:-1.5; q5_max:1.5; q6_min:-3; q6_max:3;
+    alpha:1;
+  }
+  B        = (q1_max-q1)*(q1-q1_min)
+           * (q2_max-q2)*(q2-q2_min)
+           * (q3_max-q3)*(q3-q3_min)
+           * (q4_max-q4)*(q4-q4_min)
+           * (q5_max-q5)*(q5-q5_min)
+           * (q6_max-q6)*(q6-q6_min);
+  alphaFun = alpha*B;
+}
+
+barrier SelfCollision {
+  system Manipulator;
+  params { d_min:0.1; alpha:1; }
+  B        = d_min**2 - (l2*sin(q2)-l4*sin(q4))**2 - (l2*cos(q2)-l4*cos(q4))**2;
+  alphaFun = alpha*B;
+}
+
+barrier Workspace {
+  system Manipulator;
+  params { r_max:1; alpha:1; }
+  B        = r_max**2
+           - (l1*cos(q1)+l2*cos(q1+q2)+l3*cos(q1+q2+q3))**2
+           - (l1*sin(q1)+l2*sin(q1+q2)+l3*sin(q1+q2+q3))**2;
+  alphaFun = alpha*B;
+}
+
+barrier HumanSafety {
+  system Manipulator;
+  params { x_h:0.5; y_h:0.5; d_safe:0.3; alpha:1; }
+  B        = (x_h-(l1*cos(q1)+l2*cos(q1+q2)))**2
+           + (y_h-(l1*sin(q1)+l2*sin(q1+q2)))**2 - d_safe**2;
+  alphaFun = alpha*B;
+}
+
+# ── Modes / controllers ─────────────────────────────────────
+mode JointPD {
+  system Manipulator; lyapunov PosTrack; barriers [JointLimits, Workspace];
+  params { k_p1:10; k_p2:10; k_p3:10; k_p4:8; k_p5:5; k_p6:3;
+           k_d1:2; k_d2:2; k_d3:2; k_d4:1.5; k_d5:1; k_d6:0.5; }
+  controller {
+    tau1 = k_p1*(q1_d-q1) + k_d1*(-dq1) + g*m1*l1*sin(q1);
+    tau2 = k_p2*(q2_d-q2) + k_d2*(-dq2) + g*m2*l2*sin(q2);
+    tau3 = k_p3*(q3_d-q3) + k_d3*(-dq3) + g*m3*l3*sin(q3);
+    tau4 = k_p4*(q4_d-q4) + k_d4*(-dq4);
+    tau5 = k_p5*(q5_d-q5) + k_d5*(-dq5);
+    tau6 = k_p6*(q6_d-q6) + k_d6*(-dq6);
+  }
+}
+
+mode HumanCollab {
+  system Manipulator; lyapunov PosTrack; barriers [JointLimits, SelfCollision, HumanSafety];
+  params { k_p1:10; k_p2:10; k_p3:10; k_p4:8; k_p5:5; k_p6:3;
+           k_d1:2; k_d2:2; k_d3:2; k_d4:1.5; k_d5:1; k_d6:0.5;
+           human_factor:0.5; }
+  controller {
+    kp1 = k_p1*human_factor; kp2 = k_p2*human_factor; kp3 = k_p3*human_factor;
+    kp4 = k_p4*human_factor; kp5 = k_p5*human_factor; kp6 = k_p6*human_factor;
+    kd1 = k_d1*(2-human_factor); kd2 = k_d2*(2-human_factor); kd3 = k_d3*(2-human_factor);
+    kd4 = k_d4*(2-human_factor); kd5 = k_d5*(2-human_factor); kd6 = k_d6*(2-human_factor);
+    tau1 = kp1*(q1_d-q1) + kd1*(-dq1) + g*m1*l1*sin(q1);
+    tau2 = kp2*(q2_d-q2) + kd2*(-dq2) + g*m2*l2*sin(q2);
+    tau3 = kp3*(q3_d-q3) + kd3*(-dq3) + g*m3*l3*sin(q3);
+    tau4 = kp4*(q4_d-q4) + kd4*(-dq4);
+    tau5 = kp5*(q5_d-q5) + kd5*(-dq5);
+    tau6 = kp6*(q6_d-q6) + kd6*(-dq6);
+  }
+}
+
+mode ForceHybrid {
+  system Manipulator; barriers [JointLimits, SelfCollision];
+  params { k_p1:10; k_p2:10; k_p4:8; k_p5:5; k_p6:3;
+           k_d1:2; k_d2:2; k_d4:1.5; k_d5:1; k_d6:0.5;
+           k_f:0.1; F_d:5; F_meas:0; }
+  controller {
+    tau1 = k_p1*(q1_d-q1) + k_d1*(-dq1) + g*m1*l1*sin(q1);
+    tau2 = k_p2*(q2_d-q2) + k_d2*(-dq2) + g*m2*l2*sin(q2);
+    tau3 = k_f*(F_d - F_meas) + g*m3*l3*sin(q3);
+    tau4 = k_p4*(q4_d-q4) + k_d4*(-dq4);
+    tau5 = k_p5*(q5_d-q5) + k_d5*(-dq5);
+    tau6 = k_p6*(q6_d-q6) + k_d6*(-dq6);
+  }
+}

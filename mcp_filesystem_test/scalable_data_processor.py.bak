@@ -1,0 +1,201 @@
+"""
+Scalable Data Processor
+A demonstration of the MCP Filesystem Server capabilities
+with scalable, production-ready code.
+"""
+
+import asyncio
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import multiprocessing
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+class ScalableDataProcessor:
+    """A scalable data processing system that utilizes all available resources."""
+    
+    def __init__(self, 
+                 max_workers: Optional[int] = None,
+                 use_processes: bool = True,
+                 batch_size: int = 1000):
+        """
+        Initialize the scalable data processor.
+        
+        Args:
+            max_workers: Maximum number of workers (defaults to CPU count)
+            use_processes: Use ProcessPoolExecutor if True, ThreadPoolExecutor if False
+            batch_size: Size of data batches for processing
+        """
+        self.max_workers = max_workers or multiprocessing.cpu_count()
+        self.use_processes = use_processes
+        self.batch_size = batch_size
+        self.results_cache = {}
+        
+        # Initialize the appropriate executor
+        if self.use_processes:
+            self.executor = ProcessPoolExecutor(max_workers=self.max_workers)
+        else:
+            self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
+            
+        logger.info(f"Initialized ScalableDataProcessor with {self.max_workers} workers")
+    
+    async def process_data_async(self, data: List[Any]) -> List[Any]:
+        """
+        Process data asynchronously using asyncio for I/O-bound operations.
+        
+        Args:
+            data: List of data items to process
+            
+        Returns:
+            List of processed results
+        """
+        async def process_item(item):
+            # Simulate async processing
+            await asyncio.sleep(0.01)
+            return {
+                'original': item,
+                'processed': str(item).upper() if isinstance(item, str) else item * 2,
+                'timestamp': datetime.now().isoformat()
+            }
+        
+        tasks = [process_item(item) for item in data]
+        results = await asyncio.gather(*tasks)
+        return results
+    
+    def process_data_parallel(self, data: List[Any]) -> List[Any]:
+        """
+        Process data in parallel using multiprocessing/threading.
+        
+        Args:
+            data: List of data items to process
+            
+        Returns:
+            List of processed results
+        """
+        def process_batch(batch):
+            results = []
+            for item in batch:
+                result = {
+                    'original': item,
+                    'processed': str(item).upper() if isinstance(item, str) else item ** 2,
+                    'timestamp': datetime.now().isoformat(),
+                    'worker_id': multiprocessing.current_process().pid
+                }
+                results.append(result)
+            return results
+        
+        # Split data into batches
+        batches = [data[i:i + self.batch_size] 
+                   for i in range(0, len(data), self.batch_size)]
+        
+        # Process batches in parallel
+        futures = [self.executor.submit(process_batch, batch) for batch in batches]
+        
+        # Collect results
+        all_results = []
+        for future in futures:
+            batch_results = future.result()
+            all_results.extend(batch_results)
+        
+        return all_results
+    
+    def save_results(self, results: List[Dict[str, Any]], filepath: str) -> None:
+        """
+        Save processing results to a JSON file.
+        
+        Args:
+            results: List of result dictionaries
+            filepath: Path to save the results
+        """
+        output_data = {
+            'metadata': {
+                'total_items': len(results),
+                'processing_time': datetime.now().isoformat(),
+                'processor_config': {
+                    'max_workers': self.max_workers,
+                    'use_processes': self.use_processes,
+                    'batch_size': self.batch_size
+                }
+            },
+            'results': results
+        }
+        
+        with open(filepath, 'w') as f:
+            json.dump(output_data, f, indent=2)
+        
+        logger.info(f"Saved {len(results)} results to {filepath}")
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.executor.shutdown(wait=True)
+        logger.info("ScalableDataProcessor shutdown complete")
+
+
+# Example usage functions
+def demonstrate_async_processing():
+    """Demonstrate async data processing."""
+    async def main():
+        processor = ScalableDataProcessor(use_processes=False)
+        
+        # Generate test data
+        test_data = ['item_' + str(i) for i in range(100)]
+        
+        # Process asynchronously
+        results = await processor.process_data_async(test_data)
+        
+        # Save results
+        processor.save_results(
+            results, 
+            'C:\\Users\\jason\\Desktop\\tori\\kha\\mcp_filesystem_test\\async_results.json'
+        )
+        
+        processor.executor.shutdown(wait=True)
+        return results
+    
+    return asyncio.run(main())
+
+
+def demonstrate_parallel_processing():
+    """Demonstrate parallel data processing."""
+    with ScalableDataProcessor(use_processes=True) as processor:
+        # Generate test data
+        test_data = list(range(1000))
+        
+        # Process in parallel
+        results = processor.process_data_parallel(test_data)
+        
+        # Save results
+        processor.save_results(
+            results,
+            'C:\\Users\\jason\\Desktop\\tori\\kha\\mcp_filesystem_test\\parallel_results.json'
+        )
+        
+        return results
+
+
+if __name__ == "__main__":
+    logger.info("Starting scalable data processor demonstration...")
+    
+    # Run async demonstration
+    logger.info("Running async processing demonstration...")
+    async_results = demonstrate_async_processing()
+    logger.info(f"Async processing completed: {len(async_results)} items processed")
+    
+    # Run parallel demonstration
+    logger.info("Running parallel processing demonstration...")
+    parallel_results = demonstrate_parallel_processing()
+    logger.info(f"Parallel processing completed: {len(parallel_results)} items processed")
+    
+    logger.info("All demonstrations completed successfully!")

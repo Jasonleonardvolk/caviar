@@ -1,0 +1,1 @@
+from setuptools import setup; setup(name="concept_mesh", version="0.0.1", packages=["concept_mesh"], package_dir={"concept_mesh": "."})

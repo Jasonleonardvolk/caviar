@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Shader Quality Gate" tests="17" failures="0" errors="0" time="1" timestamp="2025-08-09T01:25:03.399Z">
+    <testcase name="frontend\lib\webgpu\shaders\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+  </testsuite>
+</testsuites>

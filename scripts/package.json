@@ -1,0 +1,10 @@
+{
+  "name": "tori-scripts",
+  "version": "1.0.0",
+  "description": "Build and utility scripts for TORI",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

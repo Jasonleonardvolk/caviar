@@ -1,0 +1,13 @@
+donor:
+  mode: lan         # lan|off
+  keyframe_interval: auto  # 2..5 by Wi‑Fi class
+  compressed_return: true
+kernels:
+  default: onnx_waveop     # onnx_waveop|splitstep_fft|biharmonic
+  fft:
+    backend: auto          # auto|subgroup|baseline
+    filter: { type: raised_cos, cutoff_norm: 0.38, roll: 0.06 }
+safety:
+  max_mem_mb: 1024
+  max_ms_per_frame: 14
+  kill_on_vis_hidden: true

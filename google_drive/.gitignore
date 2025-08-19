@@ -1,0 +1,33 @@
+# .gitignore for Google Drive integration
+
+# Authentication files - NEVER commit these!
+credentials.json
+token.json
+*.pickle
+
+# Log files
+*.log
+sync.log
+auto_sync.log
+
+# Backup markers
+.last_backup
+
+# Temporary files
+*.tmp
+*.temp
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

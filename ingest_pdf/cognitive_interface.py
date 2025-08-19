@@ -1,0 +1,108 @@
+"""
+Cognitive Interface for concept management
+"""
+
+__all__ = ['CognitiveInterface', 'add_concept_diff', 'load_concept_mesh']
+
+# Simple implementation of add_concept_diff
+
+
+def load_concept_mesh():
+    """
+    Load concept mesh data from JSON files
+    Returns a list of concept diff dictionaries
+    """
+    import json
+    from pathlib import Path
+    
+    # Try multiple possible locations for concept mesh data
+    possible_paths = [
+        Path(__file__).parent.parent / "concept_mesh" / "data.json",  # CANONICAL PATH
+        Path(__file__).parent.parent / "data/concept_db.json",
+        Path(__file__).parent.parent / "data" / "concept_mesh" / "diffs.json",
+        Path(__file__).parent.parent / "data" / "concept_diffs",
+    ]
+    
+    mesh_data = []
+    
+    # Try to load from a single JSON file first
+    for json_path in possible_paths[:-1]:  # Skip directory path
+        if json_path.exists() and json_path.is_file():
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        mesh_data.extend(data)
+                    elif isinstance(data, dict) and 'diffs' in data:
+                        mesh_data.extend(data['diffs'])
+                    print(f"Loaded {len(mesh_data)} diffs from {json_path}")
+                    return mesh_data
+            except Exception as e:
+                print(f"Failed to load {json_path}: {e}")
+    
+    # Try to load from individual diff files
+    diffs_dir = possible_paths[-1]
+    if diffs_dir.exists() and diffs_dir.is_dir():
+        diff_files = sorted(diffs_dir.glob("diff_*.json"))
+        for diff_file in diff_files:
+            try:
+                with open(diff_file, 'r', encoding='utf-8') as f:
+                    diff_data = json.load(f)
+                    mesh_data.append(diff_data)
+            except Exception as e:
+                print(f"Failed to load {diff_file}: {e}")
+        
+        if mesh_data:
+            print(f"Loaded {len(mesh_data)} diffs from {diffs_dir}")
+            return mesh_data
+    
+    # Return empty list if no data found
+    print("No concept mesh data found")
+    return []
+
+
+def add_concept_diff(concept_id: str, diff_data: dict):
+    """Add a concept diff to the archive"""
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    
+    # Create diffs directory
+    diffs_dir = Path(__file__).parent.parent / "data" / "concept_diffs"
+    diffs_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create diff file
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    diff_file = diffs_dir / f"diff_{concept_id}_{timestamp}.json"
+    
+    diff_record = {
+        "concept_id": concept_id,
+        "timestamp": timestamp,
+        "diff": diff_data
+    }
+    
+    with open(diff_file, 'w', encoding='utf-8') as f:
+        json.dump(diff_record, f, indent=2)
+    
+    return diff_file
+
+class CognitiveInterface:
+    """Interface for cognitive operations"""
+    
+    def __init__(self, psi_archive=None):
+        self.psi_archive = psi_archive
+        self._concepts = {}
+    
+    def add_concept(self, concept_id: str, data: dict):
+        """Add a concept to the interface"""
+        self._concepts[concept_id] = data
+        # Also create a diff
+        add_concept_diff(concept_id, data)
+    
+    def get_concept(self, concept_id: str):
+        """Get a concept by ID"""
+        return self._concepts.get(concept_id)
+    
+    def list_concepts(self):
+        """List all concept IDs"""
+        return list(self._concepts.keys())

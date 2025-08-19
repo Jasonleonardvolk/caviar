@@ -1,0 +1,81 @@
+name: Build Concept Mesh
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'concept_mesh/**'
+      - '.github/workflows/build-concept-mesh.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'concept_mesh/**'
+      - '.github/workflows/build-concept-mesh.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install maturin
+      run: |
+        python -m pip install --upgrade pip
+        pip install maturin
+    
+    - name: Build wheel
+      working-directory: ./concept_mesh
+      run: |
+        maturin build --release
+    
+    - name: Upload wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: concept-mesh-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: concept_mesh/target/wheels/*.whl
+    
+    - name: Test wheel installation
+      run: |
+        pip install concept_mesh/target/wheels/*.whl
+        python -c "import concept_mesh; print('✅ Concept mesh imported successfully')"
+    
+  test-in-project:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Download wheel artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: concept-mesh-ubuntu-latest-py3.11
+        path: ./wheels
+    
+    - name: Install project dependencies
+      run: |
+        pip install -r requirements.lock
+        pip install ./wheels/*.whl
+    
+    - name: Run soliton API tests
+      run: |
+        export TORI_DISABLE_MESH_CHECK=0  # Use real mesh
+        pytest tests/test_soliton_api.py -v

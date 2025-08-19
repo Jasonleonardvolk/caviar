@@ -1,0 +1,10 @@
+{
+  "file": "D:\Dev\kha\alan_backend\\elfin\\templates\\mobile\\src\\mobile_robot_controller.elfin",
+  "issues": [
+    {
+      "type": "missing_section",
+      "severity": "error",
+      "message": "Could not find flow_dynamics section in system DifferentialDrive"
+    }
+  ]
+}

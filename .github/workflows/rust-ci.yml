@@ -1,0 +1,116 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'alan_core/**'
+      - '.github/workflows/rust-ci.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'alan_core/**'
+      - '.github/workflows/rust-ci.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: rustfmt, clippy
+    
+    - name: Install nightly toolchain for fuzzing
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        components: rust-src
+        
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          alan_core/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+    
+    - name: Check formatting
+      working-directory: ./alan_core
+      run: cargo fmt -- --check
+    
+    - name: Clippy
+      working-directory: ./alan_core
+      run: cargo clippy --all-targets --all-features
+    
+    - name: Build
+      working-directory: ./alan_core
+      run: cargo build --verbose
+    
+    - name: Run tests
+      working-directory: ./alan_core
+      run: cargo test --verbose
+    
+    - name: Install cargo-fuzz
+      run: cargo install cargo-fuzz
+    
+    - name: Quick fuzz sanity
+      working-directory: ./alan_core
+      run: cargo +nightly fuzz run fuzz_roundtrip -- -runs=5000
+    
+    - name: Generate C headers with cbindgen
+      working-directory: ./alan_core
+      run: |
+        cargo install cbindgen
+        cbindgen --config cbindgen.toml --output alan.h
+    
+    - name: Build with y4 feature
+      working-directory: ./alan_core
+      run: cargo build --verbose --features y4
+    
+    - name: Run tests with y4 feature
+      working-directory: ./alan_core
+      run: cargo test --verbose --features y4
+
+  wasm-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        target: wasm32-unknown-unknown
+    
+    - name: Install wasm-pack
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    
+    - name: Build WebAssembly package
+      working-directory: ./alan_core
+      run: wasm-pack build --target web
+    
+    - name: Check Wasm size limit
+      working-directory: ./alan_core
+      run: |
+        WASM_SIZE=$(ls -la pkg/alan_core_bg.wasm | awk '{print $5}')
+        echo "WebAssembly size: $WASM_SIZE bytes"
+        if [ $WASM_SIZE -gt 256000 ]; then
+          echo "Error: WebAssembly size exceeds 250 KB limit"
+          exit 1
+        fi

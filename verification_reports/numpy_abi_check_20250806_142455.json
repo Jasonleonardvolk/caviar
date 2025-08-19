@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-08-06 14:24:49",
+  "working_directory": "C:\\Users\\jason\\Desktop\\tori\\kha",
+  "environment": {
+    "poetry_available": true,
+    "virtual_env": true,
+    "python_version": "3.11.8 (tags/v3.11.8:db85d51, Feb  6 2024, 22:03:32) [MSC v.1937 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\jason\\Desktop\\tori\\kha\\.venv\\Scripts\\python.exe",
+    "pip_version": "25.1.1",
+    "poetry_version": "Poetry (version 2.1.3)"
+  },
+  "numpy_details": {
+    "installed": true,
+    "version": "2.2.6",
+    "path": "C:\\Users\\jason\\Desktop\\tori\\kha\\.venv\\Lib\\site-packages\\numpy\\__init__.py",
+    "dtype_sizes": {
+      "float32": 4,
+      "float64": 8,
+      "int32": 4,
+      "int64": 8,
+      "complex64": 8,
+      "complex128": 16
+    },
+    "c_api_version": "Not available",
+    "build_config": {
+      "raw": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-ilsfmine/cp311-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/include\n    lib directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-ilsfmine/cp311-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.29  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=24\n    pc file directory: C:/a/numpy/numpy/.openblas\n    version: 0.3.29\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-ilsfmine/cp311-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/include\n    lib directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-ilsfmine/cp311-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.29  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=24\n    pc file directory: C:/a/numpy/numpy/.openblas\n    version: 0.3.29\nCompilers:\n  c:\n    commands: cl\n    linker: link\n    name: msvc\n    version: 19.29.30159\n  c++:\n    commands: cl\n    linker: link\n    name: msvc\n    version: 19.29.30159\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.1.0\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: windows\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: windows\nPython Information:\n  path: C:\\Users\\runneradmin\\AppData\\Local\\Temp\\build-env-xikgbntl\\Scripts\\python.exe\n  version: '3.11'\nSIMD Extensions:\n  baseline:\n  - SSE\n  - SSE2\n  - SSE3\n  found:\n  - SSSE3\n  - SSE41\n  - POPCNT\n  - SSE42\n  - AVX\n  - F16C\n  - FMA3\n  - AVX2\n  not found:\n  - AVX512F\n  - AVX512CD\n  - AVX512_SKX\n  - AVX512_CLX\n  - AVX512_CNL\n  - AVX512_ICL\n\n"
+    }
+  },
+  "dependencies": [
+    {
+      "package": "numpy",
+      "installed": true,
+      "version": "2.2.6",
+      "error": null
+    },
+    {
+      "package": "scipy",
+      "installed": true,
+      "version": "1.16.0",
+      "error": null,
+      "numpy_version_required": "2.2.6"
+    },
+    {
+      "package": "pandas",
+      "installed": true,
+      "version": "2.2.3",
+      "error": null
+    },
+    {
+      "package": "scikit-learn",
+      "installed": false,
+      "version": null,
+      "error": "No module named 'scikit-learn'"
+    },
+    {
+      "package": "matplotlib",
+      "installed": true,
+      "version": "3.10.1",
+      "error": null
+    },
+    {
+      "package": "thinc",
+      "installed": true,
+      "version": "8.2.4",
+      "error": null
+    },
+    {
+      "package": "spacy",
+      "installed": false,
+      "version": null,
+      "error": "Unexpected error: numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject"
+    },
+    {
+      "package": "cupy",
+      "installed": false,
+      "version": null,
+      "error": "No module named 'cupy'"
+    },
+    {
+      "package": "numba",
+      "installed": true,
+      "version": "0.61.2",
+      "error": null
+    },
+    {
+      "package": "torch",
+      "installed": true,
+      "version": "2.7.0+cpu",
+      "error": null
+    },
+    {
+      "package": "tensorflow",
+      "installed": false,
+      "version": null,
+      "error": "No module named 'tensorflow'"
+    },
+    {
+      "package": "jax",
+      "installed": false,
+      "version": null,
+      "error": "No module named 'jax'"
+    }
+  ],
+  "spacy_models": []
+}

@@ -1,0 +1,152 @@
+# Oscillator Lattice Configuration
+# Enhanced with hot-swap topology and self-organizing soliton memory
+
+# Basic lattice parameters
+lattice:
+  initial_size: 10000
+  dimension: 3
+  coupling_range: 3
+  damping: 0.01
+  
+  # Energy parameters
+  base_energy: 1.0
+  coupling_strength: 0.1
+  
+  # Synchronization targets
+  target_order_parameter: 0.8
+  target_entropy: 2.0
+
+# Topology configuration
+topology:
+  # Initial topology type
+  initial: "kagome"  # Options: kagome, hexagonal, square, small_world
+  
+  # Morphing parameters
+  morph_rate: 0.02  # How fast to blend between topologies
+  energy_harvest_efficiency: 0.8  # How much energy to capture during transitions
+  
+  # Switching policy
+  policy:
+    type: "adaptive"  # Options: adaptive, scheduled, threshold
+    check_interval: 60  # seconds
+    
+    # Adaptive policy parameters
+    entropy_low_threshold: 1.5
+    entropy_high_threshold: 3.0
+    coherence_threshold: 0.7
+    workload_window: 300  # seconds
+    
+    # Comfort-based adjustments
+    comfort_weight: 0.3
+    min_comfort_for_switch: 0.4
+
+# Chaos Control Layer
+chaos_control:
+  enabled: true
+  target_entropy: 2.0
+  adaptation_rate: 0.01
+  energy_budget: 1000.0
+  
+  # Modulation parameters
+  phase_modulation_strength: 0.1
+  amplitude_modulation_strength: 0.05
+  
+  # Control regions
+  focus_regions:
+    - center: [0, 0, 0]
+      radius: 10
+      strength: 2.0
+    - center: [50, 50, 50]
+      radius: 15
+      strength: 1.5
+      
+# Soliton Memory Configuration
+soliton_memory:
+  enabled: true
+  
+  # Phase mechanics
+  phase_lattice_size: 10000
+  resonance_threshold: 0.7
+  phase_drift_rate: 0.001
+  
+  # Memory parameters
+  decay_rate: 0.01
+  heat_decay_rate: 0.95
+  heat_boost_on_access: 0.2
+  
+  # Dark soliton settings
+  dark_soliton_coupling_strength: 1.0
+  suppression_threshold: 0.5
+  
+  # Crystallization parameters
+  crystallization:
+    hot_threshold: 0.7
+    cold_threshold: 0.1
+    migration_stability_boost: 0.1
+    fusion_threshold: 0.7
+    
+  # Vaulting configuration
+  vault_phases:
+    light: 0.785398  # π/4
+    medium: 1.570796  # π/2
+    deep: 3.141593  # π
+    
+# Coupling Matrix
+coupling:
+  type: "sparse"
+  symmetry: true
+  decay_with_distance: true
+  decay_rate: 0.5
+  
+  # Hebbian learning
+  learning_rate: 0.01
+  max_coupling_strength: 0.5
+  
+# Performance optimization
+performance:
+  batch_size: 100
+  update_interval: 0.1  # seconds
+  use_gpu: true
+  gpu_batch_size: 1024
+  
+  # Memory management
+  max_oscillators: 100000
+  cleanup_interval: 3600  # seconds
+  inactive_threshold: 0.1
+  
+# Monitoring and metrics
+monitoring:
+  enabled: true
+  metrics_interval: 1.0  # seconds
+  
+  # Metrics to track
+  track_order_parameter: true
+  track_entropy: true
+  track_energy: true
+  track_synchronization: true
+  track_memory_usage: true
+  
+  # Logging
+  log_level: "INFO"
+  log_file: "lattice_evolution.log"
+  
+# Nightly growth engine
+growth_engine:
+  enabled: true
+  start_hour: 3  # 3 AM
+  
+  # Growth tasks
+  tasks:
+    - name: "crystallize_memories"
+      priority: 1
+    - name: "optimize_topology"
+      priority: 2
+    - name: "prune_weak_couplings"
+      priority: 3
+    - name: "consolidate_similar"
+      priority: 4
+      
+  # Resource limits
+  max_duration_hours: 2
+  cpu_limit_percent: 50
+  memory_limit_gb: 8

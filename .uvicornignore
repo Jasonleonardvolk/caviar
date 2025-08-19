@@ -1,0 +1,11 @@
+packages/
+node_modules/
+dist/
+build/
+.git/
+__pycache__/
+*.pyc
+.env
+tori_ui_svelte/
+ide_frontend/
+backups/

@@ -1,0 +1,21 @@
+// ${IRIS_ROOT}\frontend\lib\webgpu\indirect.ts
+import type { Caps } from './caps';
+
+export function makeIndirectBuffer(device: GPUDevice, draws: Uint32Array) {
+  const buf = device.createBuffer({
+    size: draws.byteLength,
+    usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(buf, 0, draws.buffer as ArrayBuffer.buffer);
+  return buf;
+}
+
+// Use firstInstance>0 only if feature present; otherwise force 0
+export function encodeIndirectDraw(pass: GPURenderPassEncoder, caps: Caps, buf: GPUBuffer, offset = 0) {
+  pass.drawIndirect(buf, offset);
+}
+
+export function drawPacket(vertexCount:number, instanceCount:number, firstVertex:number, firstInstance:number, caps:Caps): Uint32Array {
+  const fi = caps.indirectFirstInstance ? firstInstance : 0;
+  return new Uint32Array([vertexCount, instanceCount, firstVertex, fi]);
+}

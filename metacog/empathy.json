@@ -1,0 +1,20 @@
+{
+  "id": "meta.empathy",
+  "value": 0.78,
+  "description": "Current empathy calibration",
+  "last_updated": "2025-07-07T00:30:00-05:00",
+  "range": {
+    "min": 0.0,
+    "max": 1.0
+  },
+  "metadata": {
+    "type": "metacognitive_attribute",
+    "category": "social_awareness",
+    "update_frequency": "dynamic",
+    "influences": [
+      "conversation_tone",
+      "response_style",
+      "context_sensitivity"
+    ]
+  }
+}

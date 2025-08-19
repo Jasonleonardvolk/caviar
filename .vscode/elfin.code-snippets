@@ -1,0 +1,74 @@
+{
+  "ELFIN System Template": {
+    "prefix": "system",
+    "body": [
+      "system ${1:SystemName} {",
+      "  continuous_state: [${2:x}, ${3:v}];",
+      "  inputs: [${4:u}];",
+      "  ",
+      "  params {",
+      "    ${5:m}: ${6:mass}[${7:kg}] = ${8:1.0};",
+      "    $0",
+      "  }",
+      "  ",
+      "  flow_dynamics {",
+      "    # Position derivative",
+      "    ${2:x}_dot = ${3:v};",
+      "    ",
+      "    # Velocity derivative",
+      "    ${3:v}_dot = ${9:expression};",
+      "  }",
+      "}"
+    ],
+    "description": "Create a new ELFIN system template"
+  },
+  "Import Helpers": {
+    "prefix": "import",
+    "body": [
+      "import Helpers from \"std/helpers.elfin\";"
+    ],
+    "description": "Import ELFIN standard helpers"
+  },
+  "wrapAngle Function": {
+    "prefix": "wrap",
+    "body": [
+      "Helpers.wrapAngle(${1:theta})"
+    ],
+    "description": "Wrap angle to range [-π, π]"
+  },
+  "hAbs Function": {
+    "prefix": "abs",
+    "body": [
+      "Helpers.hAbs(${1:x})"
+    ],
+    "description": "Absolute value function"
+  },
+  "hMin Function": {
+    "prefix": "min",
+    "body": [
+      "Helpers.hMin(${1:a}, ${2:b})"
+    ],
+    "description": "Minimum of two values"
+  },
+  "hMax Function": {
+    "prefix": "max",
+    "body": [
+      "Helpers.hMax(${1:a}, ${2:b})"
+    ],
+    "description": "Maximum of two values"
+  },
+  "clamp Function": {
+    "prefix": "clamp",
+    "body": [
+      "Helpers.clamp(${1:x}, ${2:min}, ${3:max})"
+    ],
+    "description": "Clamp value between min and max"
+  },
+  "lerp Function": {
+    "prefix": "lerp",
+    "body": [
+      "Helpers.lerp(${1:a}, ${2:b}, ${3:t})"
+    ],
+    "description": "Linear interpolation between a and b by factor t"
+  }
+}

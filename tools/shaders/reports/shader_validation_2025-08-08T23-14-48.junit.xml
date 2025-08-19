@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Shader Quality Gate" tests="17" failures="6" errors="0" time="1" timestamp="2025-08-08T23:14:48.129Z">
+    <testcase name="frontend\lib\webgpu\shaders\avatarShader.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\bitReversal.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\butterflyStage.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\fftShift.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_hybridWavefieldBlend.wgsl:1:1
+  │
+1 │ {
+  │ ^ expected global item (`struct`, `const`, `var`, `alias`, `fn`, `diagnostic`, `enable`, `requires`, `;`) or the end of the file
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\lenticularInterlace.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\lightFieldComposer.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: wrong number of arguments: expected 4, found 3
+   ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_lightFieldComposer.wgsl:69:40
+   │
+69 │             let baseColor: vec4<f32> = textureLoad(baseTex, vec2<i32>(local_x, local_y), i32(viewIndex));
+   │                                        ^^^^^^^^^^^ wrong number of arguments
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_multiDepthWaveSynth.wgsl:5:51
+  │
+5 │ @group(0) @binding(2) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Total invocations (512) exceeds device limit (256)" type="WORKGROUP_SIZE_LIMITS"><![CDATA[WORKGROUP_SIZE_LIMITS: Total invocations (512) exceeds device limit (256)]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\normalize.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\phaseOcclusion.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: Could not parse WGSL:
+error: expected `;`, found "{"
+  ┌─ C:\Users\jason\Desktop\tori\kha\frontend\lib\webgpu\shaders\.temp_phaseOcclusion.wgsl:5:51
+  │
+5 │ @group(0) @binding(3) var<uniform> params: struct {
+  │                                                   ^ expected `;`
+
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\propagation.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\topologicalOverlay.wgsl" classname="ShaderValidation" time="0.1">
+      <failure message="[0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+" type="NAGA_VALIDATION"><![CDATA[NAGA_VALIDATION: [0m[1m[38;5;9merror[0m[1m: Entry point cs_update_charges at Compute is invalid[0m
+    [0m[36m┌─[0m .temp_topologicalOverlay.wgsl:309:5
+    [0m[36m│[0m
+[0m[36m309[0m [0m[36m│[0m     [0m[31mcharges[index][0m = charge;
+    [0m[36m│[0m     [0m[31m^^^^^^^^^^^^^^[0m [0m[31mwriting to this location is not permitted[0m
+    [0m[36m│[0m
+    [0m[36m=[0m The pointer [96] doesn't relate to a valid destination for a store
+
+]]></failure>
+    </testcase>
+    <testcase name="frontend\lib\webgpu\shaders\transpose.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\velocityField.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl" classname="ShaderValidation" time="0.1" />
+    <testcase name="frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl" classname="ShaderValidation" time="0.1" />
+  </testsuite>
+</testsuites>

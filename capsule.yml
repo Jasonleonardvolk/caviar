@@ -1,0 +1,78 @@
+# TORI Metacognitive Service Capsule Manifest
+# This capsule packages the No-DB migration components
+
+name: tori-metacognitive
+version: "2.1.0"
+entrypoint: alan_backend/start_true_metacognition.py
+
+# Systemd services this capsule provides
+services:
+  - tori-metacog      # Main metacognitive service
+  - tori-observer     # Observer synthesis service
+
+# Environment variables
+env:
+  TORI_STATE_ROOT: "/opt/tori/state"
+  MAX_TOKENS_PER_MIN: "200"
+  TORI_NOVELTY_THRESHOLD: "0.01"
+  PYTHONPATH: "/opt/tori/releases/{CAPSULE_SHA}"
+  
+# Runtime dependencies
+dependencies:
+  python: "3.10"
+  pip_requirements: "requirements_nodb.txt"
+  
+# Volumes for persistent data
+volumes:
+  - source: "/opt/tori/state"
+    target: "/data"
+    mode: "rw"
+    description: "Shared Parquet storage across capsule versions"
+    
+# Resource limits (systemd slice configuration)
+resources:
+  cpu_quota: "80%"      # High priority for real-time processing
+  memory_max: "16G"     # Sufficient for observer synthesis
+  memory_high: "12G"    # Soft limit for memory pressure
+  io_weight: 100        # Fast Parquet I/O priority
+  
+# Health checks
+health:
+  http:
+    path: "/health"
+    port: 8080
+    interval: 30s
+    timeout: 5s
+  exec:
+    command: ["python", "-c", "import alan_backend; alan_backend.health_check()"]
+    interval: 60s
+    
+# Files to include (beyond standard directories)
+files:
+  - src: "alan_backend/"
+    dst: "alan_backend/"
+  - src: "python/core/"
+    dst: "python/core/"
+  - src: "INTEGRATION_STATUS_REPORT.md"
+    dst: "docs/INTEGRATION_STATUS_REPORT.md"
+    
+# Pre/post scripts
+hooks:
+  pre_start: |
+    # Ensure state directory exists
+    mkdir -p $TORI_STATE_ROOT
+    # Run any migrations
+    if [ -f "alan_backend/migrate_to_nodb_ast.py" ]; then
+      python alan_backend/migrate_to_nodb_ast.py --dry-run
+    fi
+  post_start: |
+    # Verify Parquet files are accessible
+    python -c "from pathlib import Path; assert Path('$TORI_STATE_ROOT').exists()"
+    
+# Metadata for tracking
+metadata:
+  team: "TORI Core"
+  repo: "https://github.com/tori/kha"
+  commit: "${GIT_COMMIT}"  # Filled by CI/CD
+  build_host: "${HOSTNAME}"
+  no_db_migration: "v2.1"

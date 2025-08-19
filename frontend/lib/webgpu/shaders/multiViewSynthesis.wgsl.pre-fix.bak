@@ -1,0 +1,393 @@
+// C:\Users\jason\Desktop\tori\kha\frontend\shaders\multiViewSynthesis.wgsl
+// Production-ready multi-view synthesis for holographic quilt generation
+// Optimized for real-time performance with proper phase-based view synthesis
+
+struct ViewParams {
+    num_views: u32,              // Total number of views
+    current_view: u32,           // Current view being rendered (single-view mode)
+    view_cone: f32,              // Total viewing angle in radians
+    convergence_distance: f32,   // Distance to convergence plane in mm
+    eye_separation: f32,         // Inter-ocular distance in mm
+    tile_width: u32,             // Width of each view tile
+    tile_height: u32,            // Height of each view tile
+    view_blend_width: f32,       // Width of blending region between views
+    // Precomputed values for optimization
+    inv_tile_width: f32,         // 1.0 / tile_width
+    inv_tile_height: f32,        // 1.0 / tile_height
+    inv_num_views: f32,          // 1.0 / (num_views - 1)
+    pixel_size: f32,             // Physical pixel size in mm
+    // Advanced parameters
+    aberration_strength: f32,     // Chromatic aberration correction
+    depth_of_field: f32,         // DoF blur strength
+    focal_distance: f32,         // Focus distance for DoF
+    mapping_mode: u32,           // 0: standard quilt, 1: single view, 2: debug
+}
+
+struct QuiltParams {
+    cols: u32,                   // Number of columns in quilt
+    rows: u32,                   // Number of rows in quilt
+    quilt_width: u32,            // Total quilt texture width
+    quilt_height: u32,           // Total quilt texture height
+    // Precomputed optimization values
+    inv_cols: f32,               // 1.0 / cols
+    inv_rows: f32,               // 1.0 / rows
+    aspect_ratio: f32,           // Display aspect ratio
+    debug_mode: u32,             // 0: normal, 1: tile colors, 2: view angles
+}
+
+struct RenderingParams {
+    wavelength_r: f32,           // Red wavelength in mm (0.000633)
+    wavelength_g: f32,           // Green wavelength in mm (0.000532)
+    wavelength_b: f32,           // Blue wavelength in mm (0.000465)
+    gamma: f32,                  // Gamma correction value (2.2)
+    exposure: f32,               // Exposure adjustment
+    contrast: f32,               // Contrast enhancement
+    saturation: f32,             // Color saturation
+    tone_mapping_mode: u32,      // 0: linear, 1: reinhard, 2: ACES
+}
+
+// Primary bindings - propagated wavefield and output
+@group(0) @binding(0) var wavefield_r: texture_2d<f32>;        // Complex field R (rg32float)
+@group(0) @binding(1) var wavefield_g: texture_2d<f32>;        // Complex field G (rg32float)
+@group(0) @binding(2) var wavefield_b: texture_2d<f32>;        // Complex field B (rg32float)
+@group(0) @binding(3) var quilt_output: texture_storage_2d<rgba8unorm, write>;
+@group(0) @binding(4) var hdr_output: texture_storage_2d<rgba16float, write>; // Optional HDR
+
+// Uniforms
+@group(1) @binding(0) var<uniform> view_params: ViewParams;
+@group(1) @binding(1) var<uniform> quilt_params: QuiltParams;
+@group(1) @binding(2) var<uniform> render_params: RenderingParams;
+
+// Additional resources
+@group(2) @binding(0) var depth_texture: texture_2d<f32>;      // Scene depth
+@group(2) @binding(1) var field_sampler: sampler;              // Linear sampler
+@group(2) @binding(2) var<storage, read> lut_phase_tilt: array<vec4<f32>>; // Precomputed phase tilts packed
+
+// Constants
+const PI: f32 = 3.14159265359;
+const TWO_PI: f32 = 6.28318530718;
+const INV_PI: f32 = 0.31830988618;
+const WORKGROUP_SIZE: u32 = 16u;
+const TILE_BORDER: u32 = 2u; // For shared memory padding
+
+// Shared memory for wavefield caching
+var<workgroup> shared_field_r: array<vec4<f32>, 400>; // (16+4)ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â²
+var<workgroup> shared_field_g: array<vec4<f32>, 400>;
+var<workgroup> shared_field_b: array<vec4<f32>, 400>;
+
+// Complex operations
+fn complex_multiply(a: vec2<f32>, b: vec2<f32>) -> vec2<f32> {
+    return vec2<f32>(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x
+    );
+}
+
+fn complex_magnitude_squared(c: vec2<f32>) -> f32 {
+    return c.x * c.x + c.y * c.y;
+}
+
+fn complex_exp(phase: f32) -> vec2<f32> {
+    return vec2<f32>(cos(phase), sin(phase));
+}
+
+// Optimized coordinate calculations using precomputed reciprocals
+fn get_tile_indices(coord: vec2<u32>) -> vec2<u32> {
+    // Use multiplication instead of division
+    let tile_x = u32(f32(coord.x) * view_params.inv_tile_width);
+    let tile_y = u32(f32(coord.y) * view_params.inv_tile_height);
+    return vec2<u32>(tile_x, tile_y);
+}
+
+fn get_local_coords(coord: vec2<u32>) -> vec2<u32> {
+    // Optimized modulus using multiplication
+    let tile_indices = get_tile_indices(coord);
+    let local_x = coord.x - tile_indices.x * view_params.tile_width;
+    let local_y = coord.y - tile_indices.y * view_params.tile_height;
+    return vec2<u32>(local_x, local_y);
+}
+
+// Calculate view index based on mapping mode
+fn calculate_view_index(coord: vec2<u32>) -> f32 {
+    switch (view_params.mapping_mode) {
+        case 0u: { // Standard quilt mapping
+            let tile_indices = get_tile_indices(coord);
+            let tile_idx = tile_indices.y * quilt_params.cols + tile_indices.x;
+            return f32(min(tile_idx, view_params.num_views - 1u));
+        }
+        case 1u: { // Single view preview
+            return f32(view_params.current_view);
+        }
+        case 2u: { // Debug: continuous view across width
+            return f32(coord.x) * f32(view_params.num_views) / f32(quilt_params.quilt_width);
+        }
+        default: {
+            return 0.0;
+        }
+    }
+}
+
+// Load wavefield into shared memory with borders
+fn load_shared_wavefield(local_id: vec3<u32>, workgroup_id: vec3<u32>) {
+    let shared_size = WORKGROUP_SIZE + 2u * TILE_BORDER;
+    let threads_per_workgroup = WORKGROUP_SIZE * WORKGROUP_SIZE;
+    let values_per_thread = (shared_size * shared_size + threads_per_workgroup - 1u) / threads_per_workgroup;
+    
+    let thread_idx = local_id.y * WORKGROUP_SIZE + local_id.x;
+    let workgroup_offset = vec2<i32>(workgroup_id.xy) * i32(WORKGROUP_SIZE) - i32(TILE_BORDER);
+    
+    for (var i = 0u; i < values_per_thread; i++) {
+        let shared_idx = thread_idx * values_per_thread + i;
+        if (shared_idx < shared_size * shared_size) {
+            let shared_x = shared_idx % shared_size;
+            let shared_y = shared_idx / shared_size;
+            let global_coord = workgroup_offset + vec2<i32>(i32(shared_x), i32(shared_y));
+            
+            // Clamp to texture bounds
+            let tex_dims = textureDimensions(wavefield_g, 0);
+            let clamped_coord = clamp(global_coord, vec2<i32>(0), vec2<i32>(tex_dims) - 1);
+            
+            // Load all three channels
+            shared_field_r[shared_idx] = textureLoad(wavefield_r, clamped_coord, 0);
+            shared_field_g[shared_idx] = textureLoad(wavefield_g, clamped_coord, 0);
+            shared_field_b[shared_idx] = textureLoad(wavefield_b, clamped_coord, 0);
+        }
+    }
+    
+    workgroupBarrier();
+}
+
+// Core view synthesis function with phase-based transformation
+fn blend_views(uv: vec2<f32>, view_index: f32) -> vec3<f32> {
+    // Calculate normalized view position
+    let view_normalized = view_index * view_params.inv_num_views;
+    let view_offset = view_normalized - 0.5;
+    let view_angle = view_offset * view_params.view_cone;
+    
+    // Phase tilt for angular view transformation
+    let k = TWO_PI / render_params.wavelength_g; // Use green as reference
+    let phase_tilt_x = k * sin(view_angle);
+    let phase_tilt_y = 0.0; // No vertical tilt for horizontal parallax only
+    
+    // Physical coordinate offset for parallax
+    let parallax_offset = tan(view_angle) * view_params.convergence_distance / view_params.pixel_size;
+    
+    // Sample depth for depth-dependent effects
+    let depth = textureSampleLevel(depth_texture, field_sampler, uv, 0.0).r;
+    let depth_factor = (depth - 0.5) * 2.0; // Normalize to [-1, 1]
+    
+    // Apply chromatic aberration per channel
+    let aberration_r = view_offset * view_params.aberration_strength * 
+                      (render_params.wavelength_r / render_params.wavelength_g - 1.0);
+    let aberration_b = view_offset * view_params.aberration_strength * 
+                      (render_params.wavelength_b / render_params.wavelength_g - 1.0);
+    
+    // Sample positions with parallax and aberration
+    let sample_uv_r = uv + vec2<f32>(parallax_offset + aberration_r, 0.0) * depth_factor;
+    let sample_uv_g = uv + vec2<f32>(parallax_offset, 0.0) * depth_factor;
+    let sample_uv_b = uv + vec2<f32>(parallax_offset + aberration_b, 0.0) * depth_factor;
+    
+    // Sample complex fields
+    var field_r = textureSampleLevel(wavefield_r, field_sampler, sample_uv_r, 0.0).xy;
+    var field_g = textureSampleLevel(wavefield_g, field_sampler, sample_uv_g, 0.0).xy;
+    var field_b = textureSampleLevel(wavefield_b, field_sampler, sample_uv_b, 0.0).xy;
+    
+    // Apply phase tilts for view angle
+    let phase_shift = vec2<f32>(phase_tilt_x * uv.x * f32(view_params.tile_width), 
+                                phase_tilt_y * uv.y * f32(view_params.tile_height));
+    let phase_factor = complex_exp(phase_shift.x + phase_shift.y);
+    
+    field_r = complex_multiply(field_r, phase_factor);
+    field_g = complex_multiply(field_g, phase_factor);
+    field_b = complex_multiply(field_b, phase_factor);
+    
+    // Apply depth of field if enabled
+    if (view_params.depth_of_field > 0.0) {
+        let defocus = abs(depth - view_params.focal_distance) * view_params.depth_of_field;
+        if (defocus > 0.001) {
+            // Simple defocus by phase randomization
+            let defocus_phase = defocus * PI;
+            let defocus_kernel = complex_exp(-defocus_phase);
+            field_r = complex_multiply(field_r, defocus_kernel);
+            field_g = complex_multiply(field_g, defocus_kernel);
+            field_b = complex_multiply(field_b, defocus_kernel);
+        }
+    }
+    
+    // Convert complex field to intensity
+    let intensity_r = sqrt(complex_magnitude_squared(field_r));
+    let intensity_g = sqrt(complex_magnitude_squared(field_g));
+    let intensity_b = sqrt(complex_magnitude_squared(field_b));
+    
+    return vec3<f32>(intensity_r, intensity_g, intensity_b);
+}
+
+// Post-processing pipeline
+fn apply_post_processing(color: vec3<f32>) -> vec3<f32> {
+    var processed = color;
+    
+    // Exposure adjustment
+    processed *= render_params.exposure;
+    
+    // Tone mapping
+    switch (render_params.tone_mapping_mode) {
+        case 1u: { // Reinhard
+            processed = processed / (processed + vec3<f32>(1.0));
+        }
+        case 2u: { // ACES approximation
+            let a = 2.51;
+            let b = 0.03;
+            let c = 2.43;
+            let d = 0.59;
+            let e = 0.14;
+            processed = saturate((processed * (a * processed + b)) / 
+                                (processed * (c * processed + d) + e));
+        }
+        default: {} // Linear (no tone mapping)
+    }
+    
+    // Contrast adjustment using S-curve
+    let midpoint = vec3<f32>(0.5);
+    processed = mix(midpoint, processed, render_params.contrast);
+    
+    // Saturation adjustment
+    let luminance = dot(processed, vec3<f32>(0.2126, 0.7152, 0.0722));
+    processed = mix(vec3<f32>(luminance), processed, render_params.saturation);
+    
+    // Gamma correction
+    processed = pow(max(processed, vec3<f32>(0.0)), vec3<f32>(1.0 / render_params.gamma));
+    
+    return saturate(processed);
+}
+
+// Debug visualization modes
+fn debug_color(view_index: f32, coord: vec2<u32>) -> vec3<f32> {
+    switch (quilt_params.debug_mode) {
+        case 1u: { // Tile colors
+            let hue = view_index * view_params.inv_num_views;
+            return hsv_to_rgb(vec3<f32>(hue, 0.8, 0.8));
+        }
+        case 2u: { // View angles
+            let angle = (view_index * view_params.inv_num_views - 0.5) * view_params.view_cone;
+            let angle_normalized = (angle + PI) / TWO_PI;
+            return vec3<f32>(angle_normalized, 0.5, 1.0 - angle_normalized);
+        }
+        default: {
+            return vec3<f32>(0.0);
+        }
+    }
+}
+
+// Main entry point for quilt generation
+@compute @workgroup_size(WORKGROUP_SIZE, WORKGROUP_SIZE, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>,
+        @builtin(local_invocation_id) local_id: vec3<u32>,
+        @builtin(workgroup_id) workgroup_id: vec3<u32>) {
+    let coord = global_id.xy;
+    
+    // Check bounds
+    if (any(coord >= vec2<u32>(quilt_params.quilt_width, quilt_params.quilt_height))) {
+        return;
+    }
+    
+    // Load shared memory for better cache utilization
+    load_shared_wavefield(local_id, workgroup_id);
+    
+    // Calculate view index for this pixel
+    let view_index = calculate_view_index(coord);
+    
+    // Get local UV within tile
+    let local_coords = get_local_coords(coord);
+    let local_uv = vec2<f32>(local_coords) / vec2<f32>(f32(view_params.tile_width), f32(view_params.tile_height));
+    
+    // Generate color based on mode
+    var color: vec3<f32>;
+    if (quilt_params.debug_mode > 0u) {
+        color = debug_color(view_index, coord);
+    } else {
+        // Normal rendering - synthesize view
+        color = blend_views(local_uv, view_index);
+        color = apply_post_processing(color);
+    }
+    
+    // Write to appropriate output
+    let final_color = vec4<f32>(color, 1.0);
+    textureStore(quilt_output, coord, final_color);
+    
+    // Also write to HDR output if available
+    textureStore(hdr_output, coord, final_color);
+}
+
+// Optimized entry point for batch processing multiple views
+@compute @workgroup_size(8, 8, 8)
+fn batch_synthesize(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let tile_coord = global_id.xy;
+    let view_batch_start = global_id.z * 8u;
+    
+    // Process 8 views in this batch
+    for (var v = 0u; v < 8u; v++) {
+        let view_idx = view_batch_start + v;
+        if (view_idx >= view_params.num_views) {
+            break;
+        }
+        
+        let tile_x = view_idx % quilt_params.cols;
+        let tile_y = view_idx / quilt_params.cols;
+        
+        let quilt_coord = vec2<u32>(
+            tile_x * view_params.tile_width + tile_coord.x,
+            tile_y * view_params.tile_height + tile_coord.y
+        );
+        
+        if (all(quilt_coord < vec2<u32>(quilt_params.quilt_width, quilt_params.quilt_height))) {
+            let local_uv = vec2<f32>(tile_coord) / vec2<f32>(f32(view_params.tile_width), f32(view_params.tile_height));
+            let color = blend_views(local_uv, f32(view_idx));
+            let processed = apply_post_processing(color);
+            textureStore(quilt_output, quilt_coord, vec4<f32>(processed, 1.0));
+        }
+    }
+}
+
+// Single view preview mode for debugging
+@compute @workgroup_size(WORKGROUP_SIZE, WORKGROUP_SIZE, 1)
+fn single_view_preview(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let coord = global_id.xy;
+    let dims = vec2<u32>(view_params.tile_width, view_params.tile_height);
+    
+    if (any(coord >= dims)) {
+        return;
+    }
+    
+    let uv = vec2<f32>(coord) / vec2<f32>(dims);
+    let view_index = f32(view_params.current_view);
+    
+    let color = blend_views(uv, view_index);
+    let processed = apply_post_processing(color);
+    
+    textureStore(quilt_output, coord, vec4<f32>(processed, 1.0));
+}
+
+// Helper: HSV to RGB conversion
+fn hsv_to_rgb(hsv: vec3<f32>) -> vec3<f32> {
+    let h = hsv.x * 6.0;
+    let s = hsv.y;
+    let v = hsv.z;
+    
+    let c = v * s;
+    let x = c * (1.0 - abs(fract(h * 0.5) * 2.0 - 1.0));
+    let m = v - c;
+    
+    let h_sector = u32(h) % 6u;
+    var rgb: vec3<f32>;
+    
+    switch (h_sector) {
+        case 0u: { rgb = vec3<f32>(c, x, 0.0); }
+        case 1u: { rgb = vec3<f32>(x, c, 0.0); }
+        case 2u: { rgb = vec3<f32>(0.0, c, x); }
+        case 3u: { rgb = vec3<f32>(0.0, x, c); }
+        case 4u: { rgb = vec3<f32>(x, 0.0, c); }
+        default: { rgb = vec3<f32>(c, 0.0, x); }
+    }
+    
+    return rgb + vec3<f32>(m);
+}

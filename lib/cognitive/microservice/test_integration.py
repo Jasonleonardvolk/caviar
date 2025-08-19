@@ -1,0 +1,308 @@
+#!/usr/bin/env python3
+"""
+🧠 TORI Cognitive System Integration Test Suite
+Comprehensive tests for the complete cognitive architecture
+"""
+
+import asyncio
+import httpx
+import json
+import time
+from datetime import datetime
+from typing import Dict, List, Any
+
+# Test configuration
+COGNITIVE_SERVICE_URL = "http://localhost:4321"
+FASTAPI_BRIDGE_URL = "http://localhost:8000"
+TIMEOUT = 30.0
+
+class CognitiveSystemTester:
+    def __init__(self):
+        self.test_results = []
+        self.client = None
+    
+    async def __aenter__(self):
+        self.client = httpx.AsyncClient(timeout=TIMEOUT)
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.client:
+            await self.client.aclose()
+    
+    def log_test(self, test_name: str, success: bool, details: str = ""):
+        result = {
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        
+        status = "✅" if success else "❌"
+        print(f"{status} {test_name}: {details}")
+    
+    async def test_service_health(self, name: str, url: str) -> bool:
+        """Test if a service is healthy and responding"""
+        try:
+            response = await self.client.get(f"{url}/api/health")
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test(f"{name} Health Check", True, f"Status: {data.get('status', 'unknown')}")
+                return True
+            else:
+                self.log_test(f"{name} Health Check", False, f"HTTP {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test(f"{name} Health Check", False, f"Connection failed: {str(e)}")
+            return False
+    
+    async def test_cognitive_processing(self, url: str, service_name: str) -> bool:
+        """Test actual cognitive processing through the service"""
+        try:
+            test_data = {
+                "message": "Test cognitive processing with symbolic reasoning",
+                "glyphs": ["anchor", "concept-synthesizer", "meta-echo:reflect", "return"],
+                "metadata": {
+                    "testMode": True,
+                    "testSuite": "integration_test"
+                }
+            }
+            
+            response = await self.client.post(f"{url}/api/chat", json=test_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ["success", "answer", "trace"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test(f"{service_name} Processing", False, f"Missing fields: {missing_fields}")
+                    return False
+                
+                # Validate trace structure
+                trace = data.get("trace", {})
+                required_trace_fields = ["loopId", "closed", "processingTime"]
+                missing_trace_fields = [field for field in required_trace_fields if field not in trace]
+                
+                if missing_trace_fields:
+                    self.log_test(f"{service_name} Processing", False, f"Missing trace fields: {missing_trace_fields}")
+                    return False
+                
+                processing_time = trace.get("processingTime", 0)
+                closed = trace.get("closed", False)
+                
+                self.log_test(
+                    f"{service_name} Processing", 
+                    True, 
+                    f"Processed in {processing_time}ms, closed: {closed}"
+                )
+                return True
+            else:
+                self.log_test(f"{service_name} Processing", False, f"HTTP {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test(f"{service_name} Processing", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_smart_ask_endpoint(self) -> bool:
+        """Test the smart ask endpoint with automatic glyph generation"""
+        try:
+            test_data = {
+                "message": "Analyze the relationship between quantum mechanics and consciousness",
+                "complexity": "research"
+            }
+            
+            response = await self.client.post(f"{FASTAPI_BRIDGE_URL}/api/smart/ask", json=test_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for smart processing indicators
+                metadata = data.get("trace", {}).get("metadata", {})
+                if metadata.get("smartProcessing") and metadata.get("autoGeneratedGlyphs"):
+                    self.log_test("Smart Ask Endpoint", True, "Auto-generated glyphs and processed successfully")
+                    return True
+                else:
+                    self.log_test("Smart Ask Endpoint", False, "Missing smart processing indicators")
+                    return False
+            else:
+                self.log_test("Smart Ask Endpoint", False, f"HTTP {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Ask Endpoint", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_glyph_suggestions(self) -> bool:
+        """Test the glyph suggestion endpoint"""
+        try:
+            params = {
+                "message": "Help me understand machine learning algorithms",
+                "complexity": "complex"
+            }
+            
+            response = await self.client.get(f"{FASTAPI_BRIDGE_URL}/api/glyph-suggestions", params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                suggested_glyphs = data.get("suggestedGlyphs", [])
+                if len(suggested_glyphs) > 0 and "anchor" in suggested_glyphs and "return" in suggested_glyphs:
+                    self.log_test("Glyph Suggestions", True, f"Generated {len(suggested_glyphs)} glyphs")
+                    return True
+                else:
+                    self.log_test("Glyph Suggestions", False, "Invalid glyph sequence")
+                    return False
+            else:
+                self.log_test("Glyph Suggestions", False, f"HTTP {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Glyph Suggestions", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_batch_processing(self) -> bool:
+        """Test batch cognitive processing"""
+        try:
+            test_requests = [
+                {
+                    "message": "Analyze concept A",
+                    "glyphs": ["anchor", "concept-synthesizer", "return"],
+                    "metadata": {"batch_item": 1}
+                },
+                {
+                    "message": "Analyze concept B", 
+                    "glyphs": ["anchor", "concept-synthesizer", "return"],
+                    "metadata": {"batch_item": 2}
+                },
+                {
+                    "message": "Synthesize A and B",
+                    "glyphs": ["anchor", "paradox-analyzer", "meta-echo:reflect", "return"],
+                    "metadata": {"batch_item": 3}
+                }
+            ]
+            
+            batch_data = {"requests": test_requests}
+            
+            response = await self.client.post(f"{FASTAPI_BRIDGE_URL}/api/cognitive/batch", json=batch_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                processed = data.get("processed", 0)
+                successful = data.get("successful", 0)
+                
+                if processed == 3 and successful >= 2:  # Allow for some failures in testing
+                    self.log_test("Batch Processing", True, f"Processed {processed}, successful {successful}")
+                    return True
+                else:
+                    self.log_test("Batch Processing", False, f"Low success rate: {successful}/{processed}")
+                    return False
+            else:
+                self.log_test("Batch Processing", False, f"HTTP {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Batch Processing", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_full_system_status(self) -> bool:
+        """Test comprehensive system status from both services"""
+        try:
+            # Test Node.js microservice status
+            node_response = await self.client.get(f"{COGNITIVE_SERVICE_URL}/api/status")
+            fastapi_response = await self.client.get(f"{FASTAPI_BRIDGE_URL}/api/status")
+            
+            if node_response.status_code == 200 and fastapi_response.status_code == 200:
+                node_data = node_response.json()
+                fastapi_data = fastapi_response.json()
+                
+                # Check for key system components
+                node_status = node_data.get("status") == "online"
+                bridge_status = fastapi_data.get("bridge", {}).get("status") == "online"
+                cognitive_available = "cognitive" in fastapi_data
+                
+                if node_status and bridge_status and cognitive_available:
+                    self.log_test("Full System Status", True, "All services online and integrated")
+                    return True
+                else:
+                    self.log_test("Full System Status", False, "Some components not responding correctly")
+                    return False
+            else:
+                self.log_test("Full System Status", False, "Status endpoints not responding")
+                return False
+                
+        except Exception as e:
+            self.log_test("Full System Status", False, f"Error: {str(e)}")
+            return False
+    
+    async def run_comprehensive_tests(self):
+        """Run the complete test suite"""
+        print("🧠 Starting TORI Cognitive System Integration Tests")
+        print("=" * 60)
+        
+        # Health checks
+        node_healthy = await self.test_service_health("Node.js Microservice", COGNITIVE_SERVICE_URL)
+        fastapi_healthy = await self.test_service_health("FastAPI Bridge", FASTAPI_BRIDGE_URL)
+        
+        if not (node_healthy and fastapi_healthy):
+            print("\n❌ Critical services not healthy. Please start both services first:")
+            print("   1. Run start-cognitive-microservice.bat")
+            print("   2. Run start-fastapi-bridge.bat")
+            return False
+        
+        print(f"\n🔥 Both services healthy! Running integration tests...")
+        print("-" * 60)
+        
+        # Core functionality tests
+        tests = [
+            ("Node.js Direct", lambda: self.test_cognitive_processing(COGNITIVE_SERVICE_URL, "Node.js Direct")),
+            ("FastAPI Bridge", lambda: self.test_cognitive_processing(FASTAPI_BRIDGE_URL, "FastAPI Bridge")),
+            ("Smart Ask", self.test_smart_ask_endpoint),
+            ("Glyph Suggestions", self.test_glyph_suggestions),
+            ("Batch Processing", self.test_batch_processing),
+            ("System Status", self.test_full_system_status)
+        ]
+        
+        successful_tests = 0
+        total_tests = len(tests)
+        
+        for test_name, test_func in tests:
+            print(f"\n🧪 Running {test_name} test...")
+            success = await test_func()
+            if success:
+                successful_tests += 1
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("🏁 TORI Cognitive System Test Results")
+        print("=" * 60)
+        
+        success_rate = (successful_tests / total_tests) * 100
+        print(f"✅ Successful: {successful_tests}/{total_tests} ({success_rate:.1f}%)")
+        
+        if successful_tests == total_tests:
+            print("🎉 ALL TESTS PASSED! Your cognitive system is ready for Act Mode!")
+        elif successful_tests >= total_tests * 0.8:
+            print("🟡 Most tests passed. System is mostly functional.")
+        else:
+            print("🔴 Many tests failed. Please check your configuration.")
+        
+        print(f"\n📊 Detailed results saved to: {len(self.test_results)} test records")
+        
+        # Save detailed results
+        with open(f"test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", "w") as f:
+            json.dump(self.test_results, f, indent=2)
+        
+        return successful_tests == total_tests
+
+async def main():
+    """Main test runner"""
+    async with CognitiveSystemTester() as tester:
+        await tester.run_comprehensive_tests()
+
+if __name__ == "__main__":
+    asyncio.run(main())

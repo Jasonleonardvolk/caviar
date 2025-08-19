@@ -1,0 +1,203 @@
+// Linear algebra module for testing ELFIN imports
+// Provides basic vector and matrix operations
+
+// 3D Vector implementation
+template Vector3(x=0.0, y=0.0, z=0.0) {
+  parameters {
+    x: dimensionless = x;
+    y: dimensionless = y;
+    z: dimensionless = z;
+  }
+  
+  functions {
+    // Vector addition
+    add(other: Vector3) -> Vector3 {
+      return Vector3(x + other.x, y + other.y, z + other.z);
+    }
+    
+    // Vector subtraction
+    subtract(other: Vector3) -> Vector3 {
+      return Vector3(x - other.x, y - other.y, z - other.z);
+    }
+    
+    // Dot product
+    dot(other: Vector3) -> dimensionless {
+      return x * other.x + y * other.y + z * other.z;
+    }
+    
+    // Cross product
+    cross(other: Vector3) -> Vector3 {
+      return Vector3(
+        y * other.z - z * other.y,
+        z * other.x - x * other.z,
+        x * other.y - y * other.x
+      );
+    }
+    
+    // Magnitude (length) of vector
+    magnitude() -> dimensionless {
+      return sqrt(x*x + y*y + z*z);
+    }
+    
+    // Normalize vector
+    normalize() -> Vector3 {
+      mag = magnitude();
+      if (mag > 0.0) {
+        return Vector3(x / mag, y / mag, z / mag);
+      } else {
+        return Vector3(0.0, 0.0, 0.0);
+      }
+    }
+  }
+  
+  // Static methods
+  static {
+    // Create zero vector
+    zero() -> Vector3 {
+      return Vector3(0.0, 0.0, 0.0);
+    }
+    
+    // Create unit vectors
+    unit_x() -> Vector3 {
+      return Vector3(1.0, 0.0, 0.0);
+    }
+    
+    unit_y() -> Vector3 {
+      return Vector3(0.0, 1.0, 0.0);
+    }
+    
+    unit_z() -> Vector3 {
+      return Vector3(0.0, 0.0, 1.0);
+    }
+  }
+}
+
+// 3x3 Matrix implementation
+template Matrix3(rows=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]) {
+  parameters {
+    rows: array[3, array[3, dimensionless]] = rows;
+  }
+  
+  functions {
+    // Get element at index (i, j)
+    get(i: dimensionless, j: dimensionless) -> dimensionless {
+      return rows[i][j];
+    }
+    
+    // Set element at index (i, j)
+    set(i: dimensionless, j: dimensionless, value: dimensionless) {
+      rows[i][j] = value;
+    }
+    
+    // Matrix addition
+    add(other: Matrix3) -> Matrix3 {
+      result_rows = [
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0]
+      ];
+      
+      for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+          result_rows[i][j] = rows[i][j] + other.rows[i][j];
+        }
+      }
+      
+      return Matrix3(result_rows);
+    }
+    
+    // Matrix multiplication
+    multiply(other: Matrix3) -> Matrix3 {
+      result_rows = [
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0]
+      ];
+      
+      for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+          for (k = 0; k < 3; k++) {
+            result_rows[i][j] += rows[i][k] * other.rows[k][j];
+          }
+        }
+      }
+      
+      return Matrix3(result_rows);
+    }
+    
+    // Determinant
+    determinant() -> dimensionless {
+      return rows[0][0] * (rows[1][1] * rows[2][2] - rows[1][2] * rows[2][1])
+           - rows[0][1] * (rows[1][0] * rows[2][2] - rows[1][2] * rows[2][0])
+           + rows[0][2] * (rows[1][0] * rows[2][1] - rows[1][1] * rows[2][0]);
+    }
+    
+    // Transpose
+    transpose() -> Matrix3 {
+      result_rows = [
+        [rows[0][0], rows[1][0], rows[2][0]],
+        [rows[0][1], rows[1][1], rows[2][1]],
+        [rows[0][2], rows[1][2], rows[2][2]]
+      ];
+      
+      return Matrix3(result_rows);
+    }
+  }
+  
+  // Static methods
+  static {
+    // Create identity matrix
+    identity() -> Matrix3 {
+      return Matrix3([
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]
+      ]);
+    }
+    
+    // Create zero matrix
+    zero() -> Matrix3 {
+      return Matrix3([
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0]
+      ]);
+    }
+    
+    // Create rotation matrix around X axis
+    rotation_x(angle: angle[rad]) -> Matrix3 {
+      c = cos(angle);
+      s = sin(angle);
+      
+      return Matrix3([
+        [1.0, 0.0, 0.0],
+        [0.0, c, -s],
+        [0.0, s, c]
+      ]);
+    }
+    
+    // Create rotation matrix around Y axis
+    rotation_y(angle: angle[rad]) -> Matrix3 {
+      c = cos(angle);
+      s = sin(angle);
+      
+      return Matrix3([
+        [c, 0.0, s],
+        [0.0, 1.0, 0.0],
+        [-s, 0.0, c]
+      ]);
+    }
+    
+    // Create rotation matrix around Z axis
+    rotation_z(angle: angle[rad]) -> Matrix3 {
+      c = cos(angle);
+      s = sin(angle);
+      
+      return Matrix3([
+        [c, -s, 0.0],
+        [s, c, 0.0],
+        [0.0, 0.0, 1.0]
+      ]);
+    }
+  }
+}

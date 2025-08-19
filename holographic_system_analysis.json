@@ -1,0 +1,85 @@
+{
+  "MISSING_CRITICAL": {
+    "description": "Files that RealGhostEngine imports but don't exist",
+    "files": [
+      {
+        "import": "./holographicEngine",
+        "expected_class": "SpectralHologramEngine",
+        "actual_location": "frontend/lib/holographicEngine.ts",
+        "purpose": "WebGPU spectral phase-field rendering",
+        "week": "Week 7"
+      },
+      {
+        "import": "./holographicRenderer",
+        "expected_class": "ToriHolographicRenderer",
+        "actual_location": "frontend/lib/holographicRenderer.ts",
+        "purpose": "Volumetric WebGPU renderer",
+        "week": "Week 5-6"
+      },
+      {
+        "import": "./webgpu/fftCompute",
+        "expected_class": "FFTCompute",
+        "actual_location": "frontend/lib/webgpu/fftCompute.ts",
+        "purpose": "GPU-accelerated FFT for hologram propagation",
+        "week": "Week 7"
+      },
+      {
+        "import": "./webgpu/hologramPropagation",
+        "expected_class": "HologramPropagation",
+        "actual_location": "frontend/lib/webgpu/hologramPropagation.ts",
+        "purpose": "Angular spectrum propagation",
+        "week": "Week 7"
+      },
+      {
+        "import": "./webgpu/quiltGenerator",
+        "expected_class": "QuiltGenerator",
+        "actual_location": "frontend/lib/webgpu/quiltGenerator.ts",
+        "purpose": "Multi-view quilt texture generation",
+        "week": "Week 5"
+      }
+    ]
+  },
+  "EXISTING": {
+    "description": "Files that exist and are working",
+    "files": [
+      {
+        "name": "conceptHologramRenderer.js",
+        "status": "EXISTS",
+        "purpose": "Concept mesh visualization"
+      },
+      {
+        "name": "realGhostEngine.js",
+        "status": "EXISTS (but imports missing files)",
+        "purpose": "Main holographic engine"
+      }
+    ]
+  },
+  "ARCHITECTURE_MISMATCH": {
+    "description": "Path mismatches between plan and implementation",
+    "issues": [
+      {
+        "issue": "RealGhostEngine expects files in src/lib/",
+        "reality": "Plan documents show files in frontend/lib/",
+        "impact": "Import paths won't resolve"
+      },
+      {
+        "issue": "TypeScript vs JavaScript mismatch",
+        "reality": "Plan shows .ts files, RealGhostEngine imports .js",
+        "impact": "Module resolution failures"
+      }
+    ]
+  },
+  "TIMELINE": {
+    "description": "Implementation timeline from documents",
+    "weeks": {
+      "Week 5": "Baseline Multi-View Quilt Rendering",
+      "Week 6": "Lenticular Interlace Shader",
+      "Week 7": "Spectral Phase-Field Rendering (FFT, propagation)",
+      "Week 8": "Front-End Integration",
+      "Week 9": "3D Avatar Integration",
+      "Week 10": "Lip-Sync & Multi-Avatar",
+      "Week 11": "Performance Optimization",
+      "Week 12": "QA and Deployment"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+﻿SHADER VALIDATION REPORT
+========================
+Generated: 2025-08-01 13:02:29
+
+SUMMARY
+-------
+Total Expected: 11
+Valid:         10
+Invalid:       1  
+Missing:       0
+
+VALID SHADERS
+-------------
+avatarShader.wgsl
+bitReversal.wgsl
+butterflyStage.wgsl
+fftShift.wgsl
+lenticularInterlace.wgsl
+multiViewSynthesis.wgsl
+normalize.wgsl
+propagation.wgsl
+transpose.wgsl
+wavefieldEncoder_optimized.wgsl
+
+INVALID SHADERS
+---------------
+velocityField.wgsl
+naga.exe : [WARN  naga::valid::interface] 	Usage error for: GlobalVariable { name: Some("velocity_out"), space: 
+Handle, binding: Some(ResourceBinding { group: 0, binding: 3 }), ty: [7], init: None }
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WARN  naga::va...], init: None }:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[WARN  naga::valid::interface] 	Allowed usage: GlobalUse(WRITE | QUERY), requested: GlobalUse(READ | QUERY)
+[0m[1m[38;5;9merror[0m[1m: Entry point advect_particles at Compute is invalid[0m
+   [0m[36mΓöîΓöÇ[0m velocityField.wgsl:27:23
+   [0m[36mΓöé[0m
+[0m[36m27[0m [0m[36mΓöé[0m @group(0) @binding(3) [0m[31mvar velocity_out: texture_storage_2d<rg32float, 
+write>;[0m
+   [0m[36mΓöé[0m                       [0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m 
+[0m[31mnaga::ir::GlobalVariable [3][0m
+   [0m[36mΓöé[0m
+   [0m[36m=[0m Global variable [3] is used incorrectly as GlobalUse(READ | QUERY)
+

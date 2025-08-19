@@ -1,0 +1,393 @@
+{
+  `path`: `hybridWavefieldBlend.wgsl`,
+  `content`: `// hybridWavefieldBlend.wgsl
+// TORI-GAEA Hybrid Holographic Core - Wavefield Blending Shader
+// Seamlessly blends physical laser holography with computational 4D persona rendering
+
+struct HybridBlendParams {
+    blend_ratio: f32,           // 0.0 = pure physical, 1.0 = pure computational
+    coherence_lock: f32,        // Phase lock strength between subsystems
+    temporal_coherence: f32,    // 4D persona temporal coherence
+    spatial_coherence: f32,     // 4D persona spatial coherence
+    wavelength: f32,            // Current rendering wavelength (m)
+    pixel_size: f32,            // Physical pixel size (m) 
+    time: f32,                  // Current time for temporal effects
+    persona_emotion: f32,       // Persona emotional intensity (0-1)
+    scientific_precision: f32,  // Required precision level (0-1)
+    interaction_level: f32,     // User interaction intensity (0-1)
+    gaze_x: f32,               // User gaze direction X
+    gaze_y: f32,               // User gaze direction Y
+    proximity: f32,            // User proximity factor
+    adaptation_strength: f32,   // AI adaptation strength
+    coherence_seed: f32,       // Seed for coherence randomization
+    _padding: f32              // Ensure 16-byte alignment
+}
+
+struct PersonaState {
+    personality_vector: array<f32, 32>,  // Compressed personality embedding
+    emotion_history: array<f32, 8>,     // Recent emotion history
+    interaction_weights: array<f32, 16>, // Interaction adaptation weights
+    coherence_modulation: array<f32, 4>  // Coherence control parameters
+}
+
+// Bindings
+@group(0) @binding(0) var<storage, read> physical_hologram: array<vec2<f32>>;    // Physical SLM phase pattern
+@group(0) @binding(1) var<storage, read> computational_wavefield: array<vec2<f32>>; // GPU-generated wavefield
+@group(0) @binding(2) var<storage, write> hybrid_output: array<vec2<f32>>;       // Blended output
+@group(0) @binding(3) var<uniform> blend_params: HybridBlendParams;
+@group(0) @binding(4) var<uniform> persona_state: PersonaState;
+
+// Oscillator coupling data (from ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -oscillator lattice)
+@group(1) @binding(0) var<storage, read> oscillator_phases: array<f32>;         // 64 oscillator phases
+@group(1) @binding(1) var<storage, read> oscillator_amplitudes: array<f32>;     // 64 oscillator amplitudes
+@group(1) @binding(2) var<storage, read> coupling_matrix: array<f32>;           // 64x64 coupling matrix
+
+// Fractal soliton memory data
+@group(2) @binding(0) var<storage, read> soliton_memory: array<vec2<f32>>;      // Soliton field states
+@group(2) @binding(1) var<storage, read> curvature_field: array<f32>;           // Geometric curvature
+@group(2) @binding(2) var<storage, read> memory_gradients: array<vec2<f32>>;     // Field gradients
+
+// Constants
+const PI: f32 = 3.14159265359;
+const TWO_PI: f32 = 6.28318530718;
+const INV_PI: f32 = 0.31830988618;
+const SPEED_OF_LIGHT: f32 = 299792458.0;
+const WORKGROUP_SIZE: u32 = 16u;
+
+// Complex number operations
+fn complex_multiply(a: vec2<f32>, b: vec2<f32>) -> vec2<f32> {
+    return vec2<f32>(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x
+    );
+}
+
+fn complex_add(a: vec2<f32>, b: vec2<f32>) -> vec2<f32> {
+    return a + b;
+}
+
+fn complex_magnitude_squared(c: vec2<f32>) -> f32 {
+    return c.x * c.x + c.y * c.y;
+}
+
+fn complex_magnitude(c: vec2<f32>) -> f32 {
+    return sqrt(complex_magnitude_squared(c));
+}
+
+fn complex_phase(c: vec2<f32>) -> f32 {
+    return atan2(c.y, c.x);
+}
+
+fn complex_exp(phase: f32) -> vec2<f32> {
+    return vec2<f32>(cos(phase), sin(phase));
+}
+
+fn complex_conjugate(c: vec2<f32>) -> vec2<f32> {
+    return vec2<f32>(c.x, -c.y);
+}
+
+// Hash function for pseudorandom numbers
+fn hash_float(x: f32) -> f32 {
+    let i = bitcast<u32>(x);
+    let h = (i ^ (i >> 16u)) * 0x45d9f3bu;
+    let h2 = (h ^ (h >> 16u)) * 0x45d9f3bu;
+    let h3 = h2 ^ (h2 >> 16u);
+    return f32(h3) / 4294967296.0;
+}
+
+fn hash_vec2(p: vec2<f32>) -> f32 {
+    return hash_float(p.x + 37.0 * p.y);
+}
+
+// ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -oscillator coupling calculation
+fn calculate_oscillator_coupling(pixel_pos: vec2<f32>, lattice_size: u32) -> vec2<f32> {
+    var coupling_field = vec2<f32>(0.0, 0.0);
+    let normalized_pos = pixel_pos / f32(lattice_size);
+    
+    // Sample from oscillator lattice
+    for (var i = 0u; i < 64u; i++) {
+        let osc_x = f32(i % 8u) / 8.0;
+        let osc_y = f32(i / 8u) / 8.0;
+        let osc_pos = vec2<f32>(osc_x, osc_y);
+        
+        let distance = length(normalized_pos - osc_pos);
+        let coupling_strength = exp(-distance * 5.0); // Gaussian coupling
+        
+        let phase = oscillator_phases[i];
+        let amplitude = oscillator_amplitudes[i];
+        
+        let contribution = amplitude * coupling_strength * complex_exp(phase);
+        coupling_field = complex_add(coupling_field, contribution);
+    }
+    
+    return coupling_field;
+}
+
+// Persona coherence modulation
+fn apply_persona_coherence(field: vec2<f32>, pixel_pos: vec2<f32>) -> vec2<f32> {
+    let emotion = blend_params.persona_emotion;
+    let temporal_coh = blend_params.temporal_coherence;
+    let spatial_coh = blend_params.spatial_coherence;
+    
+    // Temporal coherence affects phase stability
+    let time_phase_noise = hash_vec2(pixel_pos + blend_params.time * 0.1) * TWO_PI;
+    let temporal_modulation = (1.0 - temporal_coh) * 0.5 * sin(time_phase_noise);
+    
+    // Spatial coherence affects field correlation
+    let spatial_noise = hash_vec2(pixel_pos * 0.01) * TWO_PI;
+    let spatial_modulation = (1.0 - spatial_coh) * 0.3 * cos(spatial_noise);
+    
+    // Emotion affects coherence breakdown
+    let emotion_phase = emotion * PI * hash_vec2(pixel_pos * emotion);
+    
+    let total_phase_mod = temporal_modulation + spatial_modulation + emotion_phase;
+    let coherence_phasor = complex_exp(total_phase_mod);
+    
+    return complex_multiply(field, coherence_phasor);
+}
+
+// Soliton memory integration
+fn integrate_soliton_memory(field: vec2<f32>, pixel_idx: u32, pixel_pos: vec2<f32>) -> vec2<f32> {
+    // Read soliton memory state
+    let memory_field = soliton_memory[pixel_idx];
+    let curvature = curvature_field[pixel_idx];
+    let gradient = memory_gradients[pixel_idx];
+    
+    // Curvature-dependent phase modulation
+    let curvature_phase = curvature * 0.1 * PI;
+    let curvature_phasor = complex_exp(curvature_phase);
+    
+    // Memory field provides contextual modulation
+    let memory_strength = complex_magnitude(memory_field) * 0.2;
+    let memory_phase = complex_phase(memory_field);
+    
+    // Gradient coupling for spatial coherence
+    let gradient_coupling = length(gradient) * 0.1;
+    
+    // Blend memory influence
+    let memory_modulated = complex_multiply(field, curvature_phasor);
+    let memory_contribution = memory_strength * complex_exp(memory_phase);
+    
+    return complex_add(memory_modulated, memory_contribution * gradient_coupling);
+}
+
+// Scientific precision enhancement
+fn enhance_scientific_precision(field: vec2<f32>, precision_level: f32) -> vec2<f32> {
+    if (precision_level < 0.5) {
+        return field; // No enhancement needed
+    }
+    
+    // Phase quantization for higher precision
+    let current_phase = complex_phase(field);
+    let magnitude = complex_magnitude(field);
+    
+    // Quantize phase to reduce noise
+    let phase_levels = 1024.0 * precision_level;
+    let quantized_phase = round(current_phase * phase_levels / TWO_PI) * TWO_PI / phase_levels;
+    
+    // Stabilize amplitude
+    let stabilized_magnitude = magnitude * (0.8 + 0.2 * precision_level);
+    
+    return stabilized_magnitude * complex_exp(quantized_phase);
+}
+
+// Interactive adaptation based on user state
+fn apply_interactive_adaptation(field: vec2<f32>, pixel_pos: vec2<f32>) -> vec2<f32> {
+    let interaction = blend_params.interaction_level;
+    let gaze = vec2<f32>(blend_params.gaze_x, blend_params.gaze_y);
+    let proximity = blend_params.proximity;
+    
+    // Gaze-dependent phase tilt
+    let gaze_phase_tilt = TWO_PI * dot(gaze, pixel_pos / 512.0);
+    let gaze_phasor = complex_exp(gaze_phase_tilt * interaction);
+    
+    // Proximity affects field intensity
+    let proximity_factor = 0.5 + 0.5 * proximity;
+    
+    // Interaction level affects responsiveness
+    let adaptation_strength = blend_params.adaptation_strength * interaction;
+    
+    let adapted_field = field * proximity_factor;
+    let gaze_modulated = complex_multiply(adapted_field, gaze_phasor);
+    
+    // Blend adapted field with original based on adaptation strength
+    return mix(field, gaze_modulated, adaptation_strength);
+}
+
+// Main hybrid blending function
+fn blend_holograms(physical: vec2<f32>, computational: vec2<f32>, 
+                  pixel_pos: vec2<f32>, pixel_idx: u32) -> vec2<f32> {
+    let blend_ratio = blend_params.blend_ratio;
+    let coherence_lock = blend_params.coherence_lock;
+    
+    // Convert physical phase pattern to complex field
+    let physical_magnitude = 1.0; // Assume uniform amplitude from laser
+    let physical_complex = physical_magnitude * complex_exp(physical.x); // physical.x is phase
+    
+    // Computational field is already complex
+    var computational_complex = computational;
+    
+    // Apply persona coherence to computational field
+    computational_complex = apply_persona_coherence(computational_complex, pixel_pos);
+    
+    // Integrate ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -oscillator coupling
+    let oscillator_coupling = calculate_oscillator_coupling(pixel_pos, 512u);
+    physical_complex = complex_add(physical_complex, oscillator_coupling * 0.1);
+    
+    // Integrate soliton memory
+    computational_complex = integrate_soliton_memory(computational_complex, pixel_idx, pixel_pos);
+    
+    // Apply scientific precision enhancement to physical component
+    let enhanced_physical = enhance_scientific_precision(physical_complex, blend_params.scientific_precision);
+    
+    // Apply interactive adaptation to computational component
+    let adapted_computational = apply_interactive_adaptation(computational_complex, pixel_pos);
+    
+    // Coherence locking between subsystems
+    if (coherence_lock > 0.5) {
+        let physical_phase = complex_phase(enhanced_physical);
+        let computational_phase = complex_phase(adapted_computational);
+        let phase_difference = physical_phase - computational_phase;
+        
+        // Apply phase correction to computational field for coherence lock
+        let phase_correction = phase_difference * coherence_lock * 0.5;
+        let correction_phasor = complex_exp(phase_correction);
+        computational_complex = complex_multiply(adapted_computational, correction_phasor);
+    } else {
+        computational_complex = adapted_computational;
+    }
+    
+    // Linear blend with coherence considerations
+    let blended_field = mix(enhanced_physical, computational_complex, blend_ratio);
+    
+    // Add interference terms for hybrid effects
+    let interference_strength = 0.1 * (1.0 - abs(blend_ratio - 0.5) * 2.0); // Max at 50/50 blend
+    let interference_term = complex_multiply(enhanced_physical, complex_conjugate(computational_complex));
+    let interference_contribution = interference_strength * vec2<f32>(interference_term.x, 0.0);
+    
+    return complex_add(blended_field, interference_contribution);
+}
+
+// Quality assessment function
+fn assess_blend_quality(hybrid_field: vec2<f32>, pixel_pos: vec2<f32>) -> f32 {
+    let magnitude = complex_magnitude(hybrid_field);
+    let phase_stability = 1.0 - abs(sin(complex_phase(hybrid_field) * 10.0)) * 0.1;
+    
+    // Spatial coherence check
+    let coherence_metric = blend_params.spatial_coherence * blend_params.temporal_coherence;
+    
+    // Interaction responsiveness
+    let interaction_quality = blend_params.interaction_level * blend_params.adaptation_strength;
+    
+    return magnitude * phase_stability * coherence_metric * (0.8 + 0.2 * interaction_quality);
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, WORKGROUP_SIZE, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let pixel_coord = global_id.xy;
+    let dims = vec2<u32>(textureDimensions(hybrid_output));
+    
+    if (any(pixel_coord >= dims)) {
+        return;
+    }
+    
+    let pixel_idx = pixel_coord.y * dims.x + pixel_coord.x;
+    let pixel_pos = vec2<f32>(pixel_coord);
+    
+    // Read input fields
+    let physical_data = physical_hologram[pixel_idx];
+    let computational_data = computational_wavefield[pixel_idx];
+    
+    // Perform hybrid blending
+    let hybrid_result = blend_holograms(physical_data, computational_data, pixel_pos, pixel_idx);
+    
+    // Quality assessment and potential enhancement
+    let quality_score = assess_blend_quality(hybrid_result, pixel_pos);
+    
+    // Apply final quality enhancement if needed
+    var final_result = hybrid_result;
+    if (quality_score < 0.8) {
+        // Enhance low-quality regions
+        let enhancement_factor = 1.2 - quality_score * 0.5;
+        final_result = final_result * enhancement_factor;
+    }
+    
+    // Write to output
+    hybrid_output[pixel_idx] = final_result;
+}
+
+// Debug visualization mode
+@compute @workgroup_size(WORKGROUP_SIZE, WORKGROUP_SIZE, 1)
+fn debug_visualization(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let pixel_coord = global_id.xy;
+    let dims = vec2<u32>(textureDimensions(hybrid_output));
+    
+    if (any(pixel_coord >= dims)) {
+        return;
+    }
+    
+    let pixel_idx = pixel_coord.y * dims.x + pixel_coord.x;
+    let pixel_pos = vec2<f32>(pixel_coord);
+    let normalized_pos = pixel_pos / vec2<f32>(dims);
+    
+    var debug_color = vec2<f32>(0.0, 0.0);
+    
+    // Visualize different debug modes based on blend_params.coherence_seed
+    let debug_mode = u32(blend_params.coherence_seed * 10.0) % 4u;
+    
+    switch (debug_mode) {
+        case 0u: {
+            // Blend ratio visualization
+            debug_color.x = blend_params.blend_ratio;
+            debug_color.y = 1.0 - blend_params.blend_ratio;
+        }
+        case 1u: {
+            // Coherence visualization
+            debug_color.x = blend_params.temporal_coherence;
+            debug_color.y = blend_params.spatial_coherence;
+        }
+        case 2u: {
+            // Persona state visualization
+            debug_color.x = blend_params.persona_emotion;
+            debug_color.y = blend_params.interaction_level;
+        }
+        case 3u: {
+            // Oscillator coupling visualization
+            let coupling = calculate_oscillator_coupling(pixel_pos, 512u);
+            debug_color = coupling * 0.5 + 0.5;
+        }
+        default: {
+            debug_color = vec2<f32>(normalized_pos.x, normalized_pos.y);
+        }
+    }
+    
+    hybrid_output[pixel_idx] = debug_color;
+}
+
+// Performance optimization variant
+@compute @workgroup_size(WORKGROUP_SIZE, WORKGROUP_SIZE, 1)
+fn fast_blend(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let pixel_coord = global_id.xy;
+    let dims = vec2<u32>(textureDimensions(hybrid_output));
+    
+    if (any(pixel_coord >= dims)) {
+        return;
+    }
+    
+    let pixel_idx = pixel_coord.y * dims.x + pixel_coord.x;
+    
+    // Simplified blending for performance
+    let physical_data = physical_hologram[pixel_idx];
+    let computational_data = computational_wavefield[pixel_idx];
+    
+    // Convert physical phase to complex
+    let physical_complex = complex_exp(physical_data.x);
+    
+    // Simple linear blend
+    let blend_ratio = blend_params.blend_ratio;
+    let blended = mix(physical_complex, computational_data, blend_ratio);
+    
+    hybrid_output[pixel_idx] = blended;
+}
+`
+}

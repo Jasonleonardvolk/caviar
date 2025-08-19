@@ -1,0 +1,124 @@
+=== TORI MCP NUCLEAR DIAGNOSTIC ===
+Working Directory: ${IRIS_ROOT}
+
+=== SECTION 1: PYTHON ENVIRONMENT ===
+Python Version: 3.11.8 (tags/v3.11.8:db85d51, Feb  6 2024, 22:03:32) [MSC v.1937 64 bit (AMD64)]
+Python Executable: ${IRIS_ROOT}\.venv\Scripts\python.exe
+Virtual Environment: True
+
+=== SECTION 2: FILE SYSTEM REALITY CHECK ===
+✅ EXISTS : mcp_metacognitive/__init__.py
+✅ EXISTS : mcp_metacognitive/core/__init__.py
+✅ EXISTS : mcp_metacognitive/core/soliton_memory.py
+✅ EXISTS : mcp_metacognitive/tools/__init__.py
+✅ EXISTS : mcp_metacognitive/tools/soliton_memory_tools.py
+✅ EXISTS : mcp_metacognitive/server.py
+✅ EXISTS : setup.py
+✅ EXISTS : pyproject.toml
+
+=== SECTION 3: PYTHON PATH ANALYSIS ===
+sys.path entries:
+  [0] ${IRIS_ROOT}
+  [1] C:\ALANPY311\python311.zip
+  [2] C:\ALANPY311\DLLs
+  [3] C:\ALANPY311\Lib
+  [4] C:\ALANPY311
+  [5] ${IRIS_ROOT}\.venv
+  [6] ${IRIS_ROOT}\.venv\Lib\site-packages
+  [7] ${IRIS_ROOT}\.venv\Lib\site-packages\win32
+  [8] ${IRIS_ROOT}\.venv\Lib\site-packages\win32\lib
+  [9] ${IRIS_ROOT}\.venv\Lib\site-packages\Pythonwin
+  [10] ${IRIS_ROOT}
+
+✅ Current directory IS in sys.path
+
+=== SECTION 4: IMPORT TESTS ===
+✅ mcp_metacognitive: SUCCESS - Base package
+   Location: ${IRIS_ROOT}\mcp_metacognitive\__init__.py
+✅ mcp_metacognitive.core: SUCCESS - Core subpackage
+   Location: ${IRIS_ROOT}\mcp_metacognitive\__init__.py
+✅ mcp_metacognitive.core.soliton_memory: SUCCESS - Soliton memory module
+   Location: ${IRIS_ROOT}\mcp_metacognitive\__init__.py
+✅ mcp_metacognitive.tools: SUCCESS - Tools subpackage
+   Location: ${IRIS_ROOT}\mcp_metacognitive\__init__.py
+✅ mcp_metacognitive.tools.soliton_memory_tools: SUCCESS - Soliton tools module
+   Location: ${IRIS_ROOT}\mcp_metacognitive\__init__.py
+❌ core.soliton_memory: FAILED - BAD IMPORT - should fail
+   Error: No module named 'core.soliton_memory'
+
+=== SECTION 5: MODULE CONTENTS CHECK ===
+✅ Successfully imported soliton_memory
+   Module file: ${IRIS_ROOT}\mcp_metacognitive\core\soliton_memory.py
+   Available attributes:
+     - Any
+     - CONCEPT_MESH_AVAILABLE
+     - CONCEPT_MESH_URL
+     - ConceptMesh
+     - ContentType
+     - DEBUG_MODE
+     - DEFAULT_VECTOR_DIM
+     - Dict
+     - Enum
+     - LOCAL_CACHE_ENABLED
+     - List
+     - MemoryEntry
+     - MemoryQuery
+     - Optional
+     - PhaseTag
+     - SOLITON_API_URL
+     - SolitonMemory
+     - SolitonMemoryClient
+     - SolitonMemoryLattice
+     - Tuple
+     - USING_RUST_WHEEL
+     - UnifiedSolitonMemory
+     - Union
+     - VaultStatus
+     - asyncio
+     - check_health
+     - concept_mesh_rs
+     - datetime
+     - find_related_memories
+     - get_user_stats
+     - initialize_user
+     - json
+     - logger
+     - logging
+     - os
+     - record_phase_change
+     - soliton_client
+     - store_memory
+     - time
+     - verify_connectivity
+
+=== SECTION 6: TESTING EXACT FAILING IMPORT ===
+✅ GOOD: "from core.soliton_memory" failed as expected
+   Error: No module named 'core.soliton_memory'
+✅ GOOD: Correct import works!
+
+=== SECTION 7: PACKAGE INSTALLATION STATUS ===
+✅ Package 'tori-kha' is installed
+Name: tori-kha
+Version: 0.9.6
+Summary: TORI Knowledge Harmonization Architecture - A multi-modal cognitive system
+
+Author: TORI Team
+Author-email: 
+License: MIT
+Location: ${IRIS_ROOT}\.venv\Lib\site-packages
+Editable project location: ${IRIS_ROOT}
+Requires: aiofiles, deepdiff, fastapi, httpx, nltk, numpy, pandas, psutil, pydantic, pypdf2, python-dotenv, python-multipart, requests, scikit-learn, scipy, sse-starlette, uvicorn
+Required-by: 
+
+
+=== SECTION 8: ACTUAL IMPORT LINE CHECK ===
+Line 11: from ..core.soliton_memory import VaultStatus, ContentType
+
+=== SECTION 9: THE SMOKING GUN ===
+Checking for rogue 'core' in sys.path:
+❌ FOUND: ${IRIS_ROOT}\core
+❌ FOUND: ${IRIS_ROOT}\core
+
+PYTHONPATH: NOT SET
+
+=== DIAGNOSTIC COMPLETE ===

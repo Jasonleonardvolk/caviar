@@ -1,0 +1,55 @@
+# TORI Production Dependencies
+
+# Core ML/AI
+torch>=2.0.0
+torchvision
+torchaudio
+sentence-transformers>=2.5.0
+
+# Web Framework
+fastapi>=0.100.0
+pydantic-settings>=2.0.0
+uvicorn[standard]>=0.23.0
+httpx>=0.24.0
+
+# Authentication & Security
+pyjwt>=2.8.0
+python-multipart
+
+# Caching
+diskcache>=5.6.0
+
+# Scientific Computing
+numpy>=1.24.0
+scipy>=1.10.0
+scikit-learn>=1.3.0
+
+# NLP
+spacy>=3.6.0
+scispacy>=0.5.3
+
+# Monitoring & Metrics
+prometheus-fastapi-instrumentator>=6.0.0
+psutil>=5.9.0
+gputil>=1.4.0
+
+# PDF Processing
+PyMuPDF>=1.23.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-benchmark>=4.0.0
+
+# Observability (optional)
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-httpx>=0.41b0
+opentelemetry-instrumentation-asyncio>=0.41b0
+opentelemetry-instrumentation-logging>=0.41b0
+
+# Quantization support (optional)
+bitsandbytes>=0.41.0
+optimum>=1.13.0

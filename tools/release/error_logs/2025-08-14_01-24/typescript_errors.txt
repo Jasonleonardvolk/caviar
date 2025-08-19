@@ -1,0 +1,119 @@
+frontend/lib/render_select_complete.ts(9,47): error TS2307: Cannot find module '../types/renderer' or its corresponding type declarations.
+frontend/lib/webgpu/caps.ts(36,15): error TS2345: Argument of type '"subgroups-f16"' is not assignable to parameter of type 'GPUFeatureName'.
+frontend/lib/webgpu/engine.ts(154,36): error TS2339: Property 'render' does not exist on type 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(81,44): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(86,44): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(92,59): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(97,59): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(102,46): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(117,33): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(126,26): error TS2339: Property 'canvas' does not exist on type 'WebGPUPerfEngine'.
+frontend/lib/webgpu/enginePerf.ts(127,27): error TS2339: Property 'canvas' does not exist on type 'WebGPUPerfEngine'.
+frontend/lib/webgpu/enginePerf.ts(131,29): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(140,27): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(164,12): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/enginePerf.ts(202,49): error TS2341: Property 'device' is private and only accessible within class 'WebGPUEngine'.
+frontend/lib/webgpu/fftCompute.ts(29,13): error TS2564: Property 'bindGroupLayout' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(30,13): error TS2564: Property 'pipelineLayout' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(33,13): error TS2564: Property 'uniformBuffer' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(34,13): error TS2564: Property 'twiddleBuffer' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(35,13): error TS2564: Property 'bitReversalBuffer' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(36,13): error TS2564: Property 'twiddleOffsetBuffer' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/fftCompute.ts(326,40): error TS18046: 'shaderModule.compilationInfo' is of type 'unknown'.
+frontend/lib/webgpu/fftCompute.ts(335,44): error TS7006: Parameter 'msg' implicitly has an 'any' type.
+frontend/lib/webgpu/fftCompute.ts(458,67): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUComputePassEncoder'.
+frontend/lib/webgpu/fftCompute.ts(490,67): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUComputePassEncoder'.
+frontend/lib/webgpu/fftCompute.ts(512,67): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUComputePassEncoder'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(32,21): error TS2694: Namespace '"onnxruntime-web"' has no exported member 'IOBinding'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(170,28): error TS2694: Namespace '"onnxruntime-web"' has no exported member 'IOBinding'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(218,21): error TS2322: Type 'string[] | { name: "webgpu"; deviceType: string; powerPreference: string; }[]' is not assignable to type 'readonly ExecutionProviderConfig[] | undefined'.
+  Type '{ name: "webgpu"; deviceType: string; powerPreference: string; }[]' is not assignable to type 'readonly ExecutionProviderConfig[]'.
+    Object literal may only specify known properties, and 'deviceType' does not exist in type 'ExecutionProviderOption | WebGpuExecutionProviderOption'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(259,21): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'Uint8Array<ArrayBufferLike>'.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(323,59): error TS2349: This expression is not callable.
+  Type 'readonly string[]' has no call signatures.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(324,60): error TS2349: This expression is not callable.
+  Type 'readonly string[]' has no call signatures.
+frontend/lib/webgpu/kernels/onnxWaveOpRunner.ts(448,35): error TS2339: Property 'set' does not exist on type 'string[] | Float32Array<ArrayBufferLike> | Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | ... 6 more ... | BigUint64Array<...>'.
+  Property 'set' does not exist on type 'string[]'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,31): error TS2448: Block-scoped variable 'performance' used before its declaration.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,31): error TS2454: Variable 'performance' is used before being assigned.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(316,43): error TS2339: Property 'now' does not exist on type 'PerformanceMetrics'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,29): error TS2448: Block-scoped variable 'performance' used before its declaration.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,29): error TS2454: Variable 'performance' is used before being assigned.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(326,41): error TS2339: Property 'now' does not exist on type 'PerformanceMetrics'.
+frontend/lib/webgpu/kernels/schrodingerBenchmark.ts(613,17): error TS2783: 'method' is specified more than once, so this usage will be overwritten.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(158,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(161,27): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(167,46): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(200,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(203,27): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(205,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(212,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(239,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/schrodingerKernelRegistry.ts(246,22): error TS2339: Property 'implementation' does not exist on type 'SchrodingerKernelRegistry'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(85,13): error TS2564: Property 'fftModule' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(86,13): error TS2564: Property 'transposeModule' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(87,13): error TS2564: Property 'phaseModule' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(88,13): error TS2564: Property 'kspaceModule' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(89,13): error TS2564: Property 'normalizeModule' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(93,13): error TS2564: Property 'fftPipeline' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(94,13): error TS2564: Property 'transposePipeline' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(95,13): error TS2564: Property 'phasePipeline' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(96,13): error TS2564: Property 'kspacePipeline' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(97,13): error TS2564: Property 'normalizePipeline' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(102,13): error TS2564: Property 'bufferA' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(103,13): error TS2564: Property 'bufferB' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(104,13): error TS2564: Property 'uniformBuffer' has no initializer and is not definitely assigned in the constructor.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(506,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(518,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(525,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(532,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(539,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(549,28): error TS2339: Property 'writeTimestamp' does not exist on type 'GPUCommandEncoder'.
+frontend/lib/webgpu/kernels/splitStepOrchestrator.ts(777,13): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'KernelSpec'.
+frontend/lib/webgpu/minimalGPUTest.ts(4,28): error TS2307: Cannot find module './frontend/lib/webgpu/fftCompute' or its corresponding type declarations.
+frontend/lib/webgpu/minimalGPUTest.ts(5,38): error TS2307: Cannot find module './frontend/lib/webgpu/fftDispatchValidator' or its corresponding type declarations.
+frontend/lib/webgpu/utils/gpuHelpers.ts(32,90): error TS2339: Property 'depthOrArrayLayers' does not exist on type 'Partial<GPUTextureDescriptor>'.
+frontend/lib/webgpu/utils/texturePool.ts(76,29): error TS2339: Property 'width' does not exist on type 'GPUExtent3DStrict'.
+  Property 'width' does not exist on type 'Iterable<number>'.
+frontend/lib/webgpu/utils/texturePool.ts(77,30): error TS2339: Property 'height' does not exist on type 'GPUExtent3DStrict'.
+  Property 'height' does not exist on type 'Iterable<number>'.
+frontend/lib/webgpu/utils/texturePool.ts(78,29): error TS2339: Property 'depthOrArrayLayers' does not exist on type 'GPUExtent3DStrict'.
+  Property 'depthOrArrayLayers' does not exist on type 'Iterable<number>'.
+frontend/lib/webgpu/validateDeviceLimits.ts(56,76): error TS2304: Cannot find name 'GPULimits'.
+frontend/lib/webgpu/validateDeviceLimits.ts(63,23): error TS18046: 'value' is of type 'unknown'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(2,42): error TS2307: Cannot find module './holographicEngine' or its corresponding type declarations.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(6,11): error TS2564: Property 'propagationPipeline' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(7,11): error TS2564: Property 'velocityFieldPipeline' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(8,11): error TS2564: Property 'multiViewPipeline' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(9,11): error TS2564: Property 'lenticularPipeline' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(12,11): error TS2564: Property 'propagationShader' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(13,11): error TS2564: Property 'velocityShader' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(14,11): error TS2564: Property 'multiViewShader' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(15,11): error TS2564: Property 'lenticularShader' has no initializer and is not definitely assigned in the constructor.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(83,14): error TS2339: Property 'applyExplosiveConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(88,14): error TS2339: Property 'applyFlowingConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(93,14): error TS2339: Property 'applyStructuredConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(98,14): error TS2339: Property 'applyCrystallineConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(103,14): error TS2339: Property 'applyOrganicConversion' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(119,19): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(157,41): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(158,41): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(172,23): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(218,45): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(219,45): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(235,24): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(235,43): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(243,18): error TS2339: Property 'renderView' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(252,25): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(252,45): error TS2339: Property 'size' does not exist on type 'GPUTexture'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(273,38): error TS2339: Property 'createLenticularParams' does not exist on type 'PhotoMorphPipeline'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(296,12): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ explosive: number; flowing: number; structured: number; crystalline: number; organic: number; }'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(308,12): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ explosive: string; flowing: string; structured: string; crystalline: string; organic: string; }'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(341,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ angular: number; fresnel: number; fraunhofer: number; auto: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ angular: number; fresnel: number; fraunhofer: number; auto: number; }'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(371,7): error TS2741: Property 'targets' is missing in type '{ module: GPUShaderModule; entryPoint: string; }' but required in type 'GPUFragmentState'.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.ts(387,7): error TS2741: Property 'targets' is missing in type '{ module: GPUShaderModule; entryPoint: string; }' but required in type 'GPUFragmentState'.

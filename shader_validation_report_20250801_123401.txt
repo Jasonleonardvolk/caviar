@@ -1,0 +1,84 @@
+﻿SHADER VALIDATION REPORT
+========================
+Generated: 2025-08-01 12:34:01
+
+SUMMARY
+-------
+Total Expected: 11
+Valid:         8
+Invalid:       3  
+Missing:       0
+
+VALID SHADERS
+-------------
+avatarShader.wgsl
+bitReversal.wgsl
+butterflyStage.wgsl
+fftShift.wgsl
+normalize.wgsl
+propagation.wgsl
+transpose.wgsl
+wavefieldEncoder_optimized.wgsl
+
+INVALID SHADERS
+---------------
+lenticularInterlace.wgsl
+naga.exe : Could not parse WGSL:
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Could not parse WGSL::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: wrong number of arguments: expected 2, found 3
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\lenticularInterlace.wgsl:372:18
+    Γöé
+372 Γöé     let center = textureLoad(temp_buffer, coord, 0).rgb;
+    Γöé                  ^^^^^^^^^^^ wrong number of arguments
+ multiViewSynthesis.wgsl
+naga.exe : [ERROR naga::valid::compose] Vector component[0] type Scalar(Scalar { kind: Uint, width: 4 }), building 
+Scalar { kind: Sint, width: 4 }
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([ERROR naga::va...int, width: 4 }:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[0m[1m[38;5;9merror[0m[1m: Function [6] 'load_shared_wavefield' is invalid[0m
+    [0m[36mΓöîΓöÇ[0m multiViewSynthesis.wgsl:131:1
+    [0m[36mΓöé[0m  
+[0m[36m131[0m [0m[36mΓöé[0m [0m[31mΓò¡[0m [0m[31mfn load_shared_wavefield(local_id: vec3<u32>, 
+workgroup_id: vec3<u32>) {[0m
+[0m[36m132[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let shared_size = WORKGROUP_SIZE + 2u * 
+TILE_BORDER;[0m
+[0m[36m133[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let threads_per_workgroup = WORKGROUP_SIZE * 
+WORKGROUP_SIZE;[0m
+[0m[36m134[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    let values_per_thread = (shared_size * shared_size + 
+threads_per_workgroup - 1u) / threads_per_workgroup;[0m
+    [0m[36m┬╖[0m [0m[31mΓöé[0m
+[0m[36m144[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m            let global_coord = workgroup_offset + 
+vec2<i32>(shared_x, shared_y);[0m
+    [0m[36mΓöé[0m [0m[31mΓöé[0m                                                   
+[0m[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m [0m[31mnaga::ir::Expression [32][0m
+    [0m[36m┬╖[0m [0m[31mΓöé[0m
+[0m[36m156[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    [0m
+[0m[36m157[0m [0m[36mΓöé[0m [0m[31mΓöé[0m [0m[31m    workgroupBarrier();[0m
+    [0m[36mΓöé[0m [0m[31mΓò░[0m[0m[31mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ^ 
+naga::ir::Function [6][0m
+    [0m[36mΓöé[0m  
+    [0m[36m=[0m Expression [32] is invalid
+    [0m[36m=[0m Composing 0's component type is not expected
+ velocityField.wgsl
+naga.exe : Could not parse WGSL:
+At ${IRIS_ROOT}\VALIDATE_ALL_SHADERS.ps1:65 char:15
++     $output = & naga $shaderPath 2>&1 | Out-String
++               ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Could not parse WGSL::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: wrong number of arguments: expected 2, found 3
+    ΓöîΓöÇ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\velocityField.wgsl:313:30
+    Γöé
+313 Γöé             let sample_vel = textureLoad(velocity_out, clamped, 0).xy;
+    Γöé                              ^^^^^^^^^^^ wrong number of arguments
+

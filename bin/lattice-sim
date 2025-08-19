@@ -1,0 +1,66 @@
+#!/bin/bash
+# Dark Soliton Lattice Simulator CLI Wrapper
+
+# Set Python path
+export PYTHONPATH="${PYTHONPATH}:$(dirname $(dirname $(realpath $0)))"
+
+# Default config file
+CONFIG_FILE="${1:-conf/lattice_config.yaml}"
+
+# Check if config exists
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Error: Config file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+# Run simulator
+echo "Starting dark soliton simulation..."
+echo "Config: $CONFIG_FILE"
+
+python -c "
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath('$0'))))
+
+from tools.simulate_darknet import run
+import logging
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+try:
+    # Run simulation
+    sim = run('$CONFIG_FILE')
+    
+    # Run some steps
+    print('Running simulation...')
+    metrics = sim.step(1000)
+    
+    # Check phase drift
+    if metrics['phase_drift'] < 0.02:
+        print(f\"✓ Phase drift: {metrics['phase_drift']:.6f} rad (PASS)\")
+    else:
+        print(f\"✗ Phase drift: {metrics['phase_drift']:.6f} rad (FAIL)\")
+        sys.exit(1)
+    
+    print(f\"Energy: {metrics['energy']:.3f}\")
+    print(f\"Steps completed: {metrics['step_count']}\")
+    print('Simulation done ✓')
+    
+except Exception as e:
+    print(f'Simulation failed: {e}')
+    sys.exit(1)
+"
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "Simulation completed successfully"
+else
+    echo "Simulation failed with exit code: $EXIT_CODE"
+fi
+
+exit $EXIT_CODE

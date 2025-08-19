@@ -1,0 +1,19 @@
+#!/bin/sh
+# Git pre-commit hook to validate enhanced files
+# 
+# To install:
+# cp hooks/pre-commit-enhanced-check .git/hooks/pre-commit
+# chmod +x .git/hooks/pre-commit
+
+# Check for enhanced files
+node tools/validate_enhanced_files.mjs
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "⚠️  Commit blocked: Undocumented enhanced files found!"
+    echo "Please either:"
+    echo "  1. Add them to ENHANCED_FILES_MANIFEST.md if legitimate"
+    echo "  2. Merge them into canonical versions if duplicates"
+    echo "  3. Use --no-verify to bypass this check (not recommended)"
+    exit 1
+fi

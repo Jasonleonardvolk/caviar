@@ -1,0 +1,26 @@
+﻿[
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\wavefieldEncoder.wgsl",
+        "type":  "WGSL",
+        "changed":  false,
+        "note":  ""
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\lib\\webgpu\\shaders\\wavefieldEncoder_optimized.wgsl",
+        "type":  "WGSL",
+        "changed":  false,
+        "note":  ""
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\wavefieldEncoder.wgsl",
+        "type":  "WGSL",
+        "changed":  false,
+        "note":  ""
+    },
+    {
+        "file":  "C:\\Users\\jason\\Desktop\\tori\\kha\\frontend\\public\\hybrid\\wgsl\\wavefieldEncoder_optimized.wgsl",
+        "type":  "WGSL",
+        "changed":  false,
+        "note":  ""
+    }
+]

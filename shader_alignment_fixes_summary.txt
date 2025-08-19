@@ -1,0 +1,35 @@
+SHADER ALIGNMENT FIXES SUMMARY
+==============================
+Date: 2025-08-01
+
+All shader uniform buffer alignment errors have been fixed:
+
+1. lenticularInterlace.wgsl
+   - Fixed CoreUniforms struct:
+     * Changed `_padding: array<f32, 8>` to `_padding: array<vec4<f32>, 2>`
+   - Fixed storage buffer binding:
+     * Changed `var<storage, read> trig_lut: array<vec2<f32>>` to `array<vec4<f32>>`
+   
+2. multiViewSynthesis.wgsl
+   - Fixed storage buffer binding:
+     * Changed `var<storage, read> lut_phase_tilt: array<vec2<f32>>` to `array<vec4<f32>>`
+   - Fixed vec2<f32> constructor type mismatches:
+     * Added explicit f32() casts for tile_width and tile_height: 
+       `vec2<f32>(f32(view_params.tile_width), f32(view_params.tile_height))`
+
+3. velocityField.wgsl
+   - Fixed WavefieldParams struct:
+     * Changed `phases: array<f32, 16>` to `phases: array<vec4<f32>, 4>`
+     * Changed `spatial_freqs: array<vec2<f32>, 32>` to `spatial_freqs: array<vec4<f32>, 16>`
+   - Updated array access code:
+     * phases access: `wavefield_params.phases[i / 4u][i % 4u]`
+     * spatial_freqs unpacking: each vec4 contains 2 vec2s (xy and zw components)
+
+KEY ALIGNMENT RULES:
+- Uniform buffers require 16-byte alignment for array elements
+- array<f32> has 4-byte stride → invalid for uniforms
+- array<vec4<f32>> has 16-byte stride → correct for uniforms
+- array<vec2<f32>> has 8-byte stride → invalid for uniforms/storage
+- Must explicitly cast u32 to f32 when constructing vec2<f32>
+
+All shaders should now pass validation!

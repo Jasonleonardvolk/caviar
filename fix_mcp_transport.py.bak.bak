@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""
+Fix MCP Server startup issue - ensure SSE transport
+"""
+
+import os
+import sys
+from pathlib import Path
+
+print("🔧 Fixing MCP Server Transport Configuration")
+print("=" * 50)
+
+# 1. Update the .env file in mcp_metacognitive directory
+env_path = Path(r"C:\Users\jason\Desktop\tori\kha\mcp_metacognitive\.env")
+print(f"\n✅ Already created .env file at: {env_path}")
+print("   TRANSPORT_TYPE=sse")
+print("   SERVER_HOST=0.0.0.0")
+print("   SERVER_PORT=8100")
+
+# 2. Set environment variables for current session
+os.environ.update({
+    'TRANSPORT_TYPE': 'sse',
+    'SERVER_HOST': '0.0.0.0',
+    'SERVER_PORT': '8100',
+    'MCP_TRANSPORT_TYPE': 'sse',
+    'MCP_SERVER_HOST': '0.0.0.0',
+    'MCP_SERVER_PORT': '8100'
+})
+
+print("\n✅ Set environment variables for current session")
+
+# 3. Test MCP server directly
+print("\n📋 Testing MCP server configuration...")
+print("\nTo test the MCP server directly:")
+print("1. Open a new terminal")
+print("2. Run these commands:")
+print("   cd C:\\Users\\jason\\Desktop\\tori\\kha\\mcp_metacognitive")
+print("   set TRANSPORT_TYPE=sse")
+print("   set SERVER_HOST=0.0.0.0")
+print("   set SERVER_PORT=8100")
+print("   python server.py")
+print("\nYou should see:")
+print("   INFO:__main__:Starting TORI MCP server with SSE transport on 0.0.0.0:8100...")
+
+print("\n🚀 Then run: python enhanced_launcher.py")
+print("\nThe MCP server should start with SSE transport and no more 500 errors!")

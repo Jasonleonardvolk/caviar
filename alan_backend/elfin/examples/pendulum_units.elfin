@@ -1,0 +1,30 @@
+# Simple pendulum system with dimensional units
+system Pendulum {
+  continuous_state {
+    theta: angle[rad];
+    omega: angular_velocity[rad/s];
+  }
+
+  parameters {
+    m: mass[kg] = 1.0;
+    l: length[m] = 1.0;
+    g: acceleration[m/s^2] = 9.81;
+    b: angular_damping[N·m·s/rad] = 0.1;
+  }
+
+  input {
+    u: torque[N·m];
+  }
+
+  flow_dynamics {
+    theta_dot = omega;
+    omega_dot = -g/l * sin(theta) - b/(m*l^2) * omega + u/(m*l^2);
+  }
+  
+  # Example of dimensionally incorrect dynamics (for testing)
+  # Uncomment to see dimensional checking errors
+  # error_dynamics {
+  #   theta_error = omega + g;  # Error: adding angle/s and acceleration
+  #   omega_error = sin(l);     # Error: sin() expects angle or dimensionless
+  # }
+}

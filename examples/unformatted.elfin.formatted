@@ -1,0 +1,18 @@
+system TestSystem{
+  continuous_state: [x, v];
+  inputs: [f];
+
+  params {
+  m:mass   [  kg  ]    = 1.0;
+  k: spring_const[N/m] = 10.0;
+  b:   damping [N*s/m] = 0.5;
+  }
+
+  flow_dynamics{
+    # Position derivative
+    x_dot = v;
+
+    # Using helper function
+    v_dot = (-k * x - b * v) / m;
+  }
+}

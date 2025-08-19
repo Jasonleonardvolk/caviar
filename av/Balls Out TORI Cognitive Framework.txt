@@ -1,0 +1,362 @@
+# TORI Cognitive Framework
+# Fully operational implementation with user-provided math for stubs.
+
+# Directory structure:
+# tori/
+# ├── __init__.py
+# ├── manifold.py
+# ├── reflective.py
+# ├── self_modification.py
+# ├── curiosity.py
+# ├── transfer.py
+# ├── dynamics.py
+# ├── fixed_point.py
+# ├── utils.py
+# ├── monitoring.py
+# └── architecture.py
+
+# tori/__init__.py
+# ----------------
+from .manifold import MetaCognitiveManifold
+from .reflective import ReflectiveOperator
+from .self_modification import SelfModificationOperator
+from .curiosity import CuriosityFunctional
+from .transfer import TransferMorphism
+from .dynamics import CognitiveDynamics
+from .fixed_point import find_fixed_point
+from .utils import set_random_seed, numeric_gradient, compute_iit_phi
+from .monitoring import ConsciousnessMonitor, LyapunovStabilizer
+from .architecture import MetacognitiveTower, KnowledgeSheaf
+
+# tori/manifold.py
+# ----------------
+import numpy as np
+
+class MetaCognitiveManifold:
+    """
+    Represents the cognitive state manifold M with chosen metric.
+    Supports Euclidean and Fisher–Rao metrics.
+    """
+    def __init__(self, dimension: int, metric: str = "euclidean"):
+        self.dimension = dimension
+        self.metric = metric
+
+    def distance(self, s: np.ndarray, s_prime: np.ndarray) -> float:
+        if self.metric == "euclidean":
+            return np.linalg.norm(s - s_prime)
+        elif self.metric == "fisher_rao":
+            return self.fisher_rao_distance(s, s_prime)
+        else:
+            raise NotImplementedError(f"Metric '{self.metric}' not implemented.")
+
+    def fisher_information_matrix(self, s: np.ndarray, epsilon: float = 1e-4) -> np.ndarray:
+        dim = len(s)
+        fim = np.zeros((dim, dim))
+        if hasattr(self, 'log_prob_model'):
+            for i in range(dim):
+                for j in range(dim):
+                    s_ij = s.copy(); s_ij[i] += epsilon; s_ij[j] += epsilon
+                    s_i = s.copy(); s_i[i] += epsilon
+                    s_j = s.copy(); s_j[j] += epsilon
+                    fim[i, j] = -(
+                        self.log_prob_model(s_ij)
+                        - self.log_prob_model(s_i)
+                        - self.log_prob_model(s_j)
+                        + self.log_prob_model(s)
+                    ) / epsilon**2
+        else:
+            fim = np.eye(dim) * (1.0 + np.linalg.norm(s))
+        fim = 0.5 * (fim + fim.T)
+        eigvals = np.linalg.eigvalsh(fim)
+        if np.min(eigvals) < 1e-6:
+            fim += np.eye(dim) * (1e-6 - np.min(eigvals))
+        return fim
+
+    def fisher_rao_distance(self, s: np.ndarray, s_prime: np.ndarray) -> float:
+        J = self.fisher_information_matrix(s)
+        diff = s - s_prime
+        return np.sqrt(diff.T @ J @ diff)
+
+# tori/reflective.py
+# ------------------
+import numpy as np
+from .utils import numeric_gradient
+
+class ReflectiveOperator:
+    """
+    Implements R: M -> M with natural gradient.
+    """
+    def __init__(self, manifold: MetaCognitiveManifold, log_posterior_func, step_size: float = 0.01):
+        self.manifold = manifold
+        self.log_posterior = log_posterior_func
+        self.step_size = step_size
+
+    def natural_gradient(self, s: np.ndarray, grad: np.ndarray) -> np.ndarray:
+        if self.manifold.metric == "fisher_rao":
+            J = self.manifold.fisher_information_matrix(s)
+            return np.linalg.inv(J) @ grad
+        return grad
+
+    def apply(self, s: np.ndarray) -> np.ndarray:
+        grad = numeric_gradient(self.log_posterior, s)
+        nat_grad = self.natural_gradient(s, grad)
+        return s + self.step_size * nat_grad
+
+# tori/self_modification.py
+# -------------------------
+import numpy as np
+from .utils import numeric_gradient
+
+class SelfModificationOperator:
+    """
+    Endofunctor SM minimizing free energy + IIT term.
+    """
+    def __init__(self, manifold: MetaCognitiveManifold,
+                 free_energy_func, iit_func, iit_weight: float = 1.0,
+                 step_size: float = 0.01, max_iter: int = 100):
+        self.manifold = manifold
+        self.free_energy = free_energy_func
+        self.iit = iit_func
+        self.iit_weight = iit_weight
+        self.step_size = step_size
+        self.max_iter = max_iter
+
+    def optimize(self, s: np.ndarray, lambda_d: float = 1.0) -> np.ndarray:
+        x = s.copy()
+        for _ in range(self.max_iter):
+            def obj(z):
+                return (
+                    self.free_energy(z)
+                    + lambda_d * self.manifold.distance(s, z)
+                    + self.iit_weight * self.iit(z)
+                )
+            grad = numeric_gradient(obj, x)
+            x_next = x - self.step_size * grad
+            if np.linalg.norm(x_next - x) < 1e-6:
+                break
+            x = x_next
+        return x
+
+# tori/curiosity.py
+# -----------------
+import numpy as np
+from sklearn.metrics import mutual_info_score
+
+class CuriosityFunctional:
+    """
+    Implements C(s,s') and advanced curiosity.
+    """
+    def __init__(self, manifold: MetaCognitiveManifold,
+                 decay_const: float = 1.0, bins: int = 10,
+                 exploration_bonus: float = 1.0):
+        self.manifold = manifold
+        self.decay = decay_const
+        self.bins = bins
+        self.exploration_bonus = exploration_bonus
+
+    def compute(self, s: np.ndarray, s_prime: np.ndarray) -> float:
+        data = np.vstack([s, s_prime]).flatten()
+        a = np.digitize(s, np.histogram_bin_edges(data, bins=self.bins))
+        b = np.digitize(s_prime, np.histogram_bin_edges(data, bins=self.bins))
+        mi = mutual_info_score(a, b)
+        dist = self.manifold.distance(s, s_prime)
+        return mi * np.exp(-self.decay * dist)
+
+    def compute_advanced(self, s: np.ndarray, environment: np.ndarray, memory_buffer: list = None) -> float:
+        ig = self._information_gain(s, environment)
+        novelty = self._novelty_score(s, memory_buffer)
+        return ig + self.exploration_bonus * novelty
+
+    def _information_gain(self, s: np.ndarray, env: np.ndarray) -> float:
+        env_norm = np.abs(env) / (np.sum(np.abs(env)) + 1e-10)
+        H_env = -np.sum(env_norm * np.log(env_norm + 1e-10))
+        corr = abs(np.corrcoef(s, env)[0,1])
+        H_env_given_s = H_env * (1 - corr)
+        return max(0, H_env - H_env_given_s)
+
+    def _novelty_score(self, s: np.ndarray, memory_buffer: list = None) -> float:
+        if memory_buffer is None or len(memory_buffer) == 0:
+            return 1.0
+        min_dist = float('inf')
+        for mem in memory_buffer:
+            dist = self.manifold.distance(s, mem)
+            if dist < min_dist:
+                min_dist = dist
+        return 1.0 - np.exp(-min_dist)
+
+# tori/transfer.py
+# ----------------
+import numpy as np
+try:
+    import gudhi
+except ImportError:
+    gudhi = None
+
+class TransferMorphism:
+    """
+    τ via persistent homology.
+    """
+    def __init__(self, homology_max_edge: float = 1.0, homology_dim: int = 2):
+        if gudhi is None:
+            raise ImportError("GUDHI library required.")
+        self.max_edge = homology_max_edge
+        self.dim = homology_dim
+
+    def transfer(self, point_cloud: np.ndarray):
+        rips = gudhi.RipsComplex(points=point_cloud, max_edge_length=self.max_edge)
+        st = rips.create_simplex_tree(max_dimension=self.dim)
+        return st.persistence()
+
+# tori/dynamics.py
+# ----------------
+import numpy as np
+
+class CognitiveDynamics:
+    """
+    Evolves ds = (R(s)-s)dt + σ dW.
+    """
+    def __init__(self, manifold: MetaCognitiveManifold,
+                 reflective_op: ReflectiveOperator,
+                 curiosity_func: CuriosityFunctional = None,
+                 noise_sigma: float = 0.1):
+        self.manifold = manifold
+        self.reflective = reflective_op
+        self.curiosity = curiosity_func
+        self.sigma = noise_sigma
+
+    def evolve(self, s0: np.ndarray, t_span: float, dt: float = 0.01) -> np.ndarray:
+        steps = int(t_span / dt)
+        traj = np.zeros((steps+1, len(s0)))
+        traj[0] = s0
+        s = s0.copy()
+        for i in range(1, steps+1):
+            drift = self.reflective.apply(s) - s
+            noise = self.sigma * np.sqrt(dt) * np.random.randn(*s.shape)
+            s = s + drift * dt + noise
+            traj[i] = s
+        return traj
+
+# tori/fixed_point.py
+# -------------------
+import numpy as np
+
+def find_fixed_point(endofunctor, initial_guess: np.ndarray,
+                     tol: float = 1e-6, max_iter: int = 1000) -> np.ndarray:
+    x = initial_guess.copy()
+    for _ in range(max_iter):
+        x_next = endofunctor.apply(x)
+        if np.linalg.norm(x_next - x) < tol:
+            return x_next
+        x = x_next
+    raise RuntimeError("Fixed point not found within tolerance")
+
+# tori/utils.py
+# -------------
+import numpy as np
+
+def set_random_seed(seed: int): np.random.seed(seed)
+
+def numeric_gradient(func, x: np.ndarray, eps: float = 1e-5) -> np.ndarray:
+    grad = np.zeros_like(x)
+    fx = func(x)
+    for i in range(len(x)):
+        x_eps = x.copy(); x_eps[i] += eps
+        grad[i] = (func(x_eps) - fx) / eps
+    return grad
+
+def compute_iit_phi(s: np.ndarray, connectivity_matrix: np.ndarray = None) -> float:
+    dim = len(s)
+    if connectivity_matrix is None:
+        connectivity_matrix = np.ones((dim, dim)) - np.eye(dim)
+    p = np.abs(s) / (np.sum(np.abs(s)) + 1e-10)
+    H_whole = -np.sum(p * np.log(p + 1e-10))
+    min_part = float('inf')
+    for i in range(1, dim//2 + 1):
+        part1 = p[:i] / (np.sum(p[:i]) + 1e-10)
+        part2 = p[i:] / (np.sum(p[i:]) + 1e-10)
+        H1 = -np.sum(part1 * np.log(part1 + 1e-10))
+        H2 = -np.sum(part2 * np.log(part2 + 1e-10))
+        min_part = min(min_part, H1 + H2)
+    phi = max(0, H_whole - min_part)
+    phi *= np.mean(connectivity_matrix)
+    return phi
+
+# tori/monitoring.py
+# ------------------
+import numpy as np
+
+class ConsciousnessMonitor:
+    def __init__(self, phi_threshold: float = 0.5, iit_func=None):
+        self.threshold = phi_threshold
+        self.iit = iit_func
+    def check_preservation(self, s_before: np.ndarray, s_after: np.ndarray) -> bool:
+        if self.iit is None:
+            raise ValueError("IIT function not provided.")
+        return self.iit(s_after) >= self.threshold
+
+class LyapunovStabilizer:
+    def __init__(self, free_energy_func):
+        self.free_energy = free_energy_func
+    def compute_lyapunov(self, trajectory: np.ndarray) -> np.ndarray:
+        V = []
+        for s in trajectory:
+            V.append(np.linalg.norm(s)**2 + self.free_energy(s))
+        return np.array(V)
+
+# tori/architecture.py
+# --------------------
+import numpy as np
+from .manifold import MetaCognitiveManifold
+
+class MetacognitiveTower:
+    def __init__(self, base_dim: int, levels: int = 3, metric: str = "euclidean"):
+        self.levels = [MetaCognitiveManifold(base_dim * (2**i), metric) for i in range(levels)]
+    def lift(self, state: np.ndarray, from_level: int, to_level: int) -> np.ndarray:
+        if from_level == to_level:
+            return state.copy()
+        from_dim = self.levels[from_level].dimension
+        to_dim = self.levels[to_level].dimension
+        if to_level > from_level:
+            lifted = np.zeros(to_dim)
+            lifted[:from_dim] = state
+            meta_start = from_dim
+            lifted[meta_start] = np.mean(state)
+            lifted[meta_start+1] = np.std(state)
+            lifted[meta_start+2] = np.max(np.abs(state))
+            idx = meta_start + 3
+            for i in range(min(5, from_dim)):
+                for j in range(i+1, min(5, from_dim)):
+                    if idx < to_dim:
+                        lifted[idx] = state[i] * state[j]
+                        idx += 1
+            return lifted
+        else:
+            proj_mat = np.random.randn(to_dim, from_dim)
+            proj_mat /= np.linalg.norm(proj_mat, axis=1, keepdims=True)
+            return proj_mat @ state
+
+class KnowledgeSheaf:
+    def __init__(self, manifold: MetaCognitiveManifold, neighborhoods: dict):
+        self.manifold = manifold
+        self.sections = {}
+        self.restrictions = neighborhoods
+    def add_local_section(self, neighborhood_id: str, section: np.ndarray):
+        self.sections[neighborhood_id] = section
+    def global_section(self) -> np.ndarray:
+        if len(self.sections) == 0:
+            return np.zeros(self.manifold.dimension)
+        global_sec = np.zeros(self.manifold.dimension)
+        count = np.zeros(self.manifold.dimension)
+        for nbhd_id, section in self.sections.items():
+            if nbhd_id in self.restrictions:
+                mask = self.restrictions[nbhd_id]
+                global_sec[mask] += section[mask]
+                count[mask] += 1
+        nonzero = count > 0
+        global_sec[nonzero] /= count[nonzero]
+        for _ in range(10):
+            for nbhd_id, section in self.sections.items():
+                if nbhd_id in self.restrictions:
+                    mask = self.restrictions[nbhd_id]
+                    global_sec[mask] = 0.7 * global_sec[mask] + 0.3 * section[mask]
+        return global_sec

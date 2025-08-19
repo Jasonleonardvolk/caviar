@@ -1,0 +1,2852 @@
+# Dependency Tree
+
+Total modules: 2845
+Total dependencies: 8925
+
+## Dependency Hierarchy
+
+- +server.ts
+  - fs
+  - fs/promises
+  - path
+- .eslintrc.js
+- .github/workflows/verify-build.js
+- ImSpecial/demo_soliton_consciousness.js
+  - ./soliton_user.js
+- ImSpecial/soliton_user.js
+- SelectionContext.js
+  - react
+- Tori/generate_protos.py
+  - argparse
+  - glob
+  - os
+  - pathlib
+  - shutil
+  - subprocess
+  - sys
+- Tori/lib/mcpClient.js
+  - axios
+- Tori/mcp_services/koopman_learner/smoke_data.py
+  - datetime
+  - grpc
+  - json
+  - mcp_services.koopman_learner.proto
+  - numpy
+  - tabulate
+  - time
+- Tori/mcp_services/metrics.py
+  - prometheus_client
+- Tori/mcp_services/sleep_scheduler/replay.py
+  - ..metrics
+  - dataclasses
+  - enum
+  - logging
+  - tqdm
+  - typing
+- Tori/mcp_services/sleep_scheduler/trigger.py
+  - mcp_services.sleep_scheduler.proto
+- Tori/mcp_services/sparse_pruner/prune.py
+  - mcp_services.sparse_pruner.proto
+- Tori/scripts/dev/feedgen.py
+  - mcp_services.episodic_vault.proto
+  - uuid
+- Tori/scripts/dev/loadgen.py
+  - concurrent.futures
+  - signal
+  - threading
+- Tori/scripts/dev/send_dummy_episodes.py
+- Tori/scripts/dev/vault-cli.py
+- Tori/src/koopman_estimator.py
+  - scipy
+  - scipy.linalg
+  - scipy.sparse
+  - sklearn.decomposition
+  - warnings
+- Tori/src/lyapunov_spike_detector.py
+  - collections
+  - scipy.integrate
+- Tori/src/memory_sculptor.py
+- Tori/test_ghost_ai_integration.py
+  - requests
+- Tori/test_grpc_integration.py
+  - asyncio
+  - sleep_scheduler_pb2
+  - sleep_scheduler_pb2_grpc
+  - sparse_pruner_pb2
+  - sparse_pruner_pb2_grpc
+  - test_koopman_grpc
+  - test_vault_grpc
+- Tori/test_koopman_grpc.py
+  - episodic_pb2
+  - koopman_learner_pb2
+  - koopman_learner_pb2_grpc
+- Tori/test_koopman_lyapunov_integration.py
+  - koopman_estimator
+  - lyapunov_spike_detector
+  - memory_sculptor
+- Tori/test_vault_grpc.py
+  - vault_pb2
+  - vault_pb2_grpc
+- add_shutdown.py
+  - re
+- advanced_integration.py
+  - extractConceptsFromDocument
+  - extraction
+  - pipeline
+  - tempfile
+  - traceback
+  - utils.logging
+- advanced_pdf_processor.py
+- advanced_prajna_processor.py
+- alan_backend/__init__.py
+- alan_backend/apply_all_braid_patches.py
+- alan_backend/apply_code_review_fixes.py
+  - functools
+  - kha.python.core.observer_synthesis
+  - kha.python.core.torus_cells
+  - kha.python.core.torus_registry
+  - python.core
+  - python.core.observer_synthesis
+  - python.core.torus_cells
+  - python.core.torus_registry
+  - websockets
+- alan_backend/banksy/__init__.py
+  - .alan_psi_sync_bridge
+  - .banksy_spin
+  - .psi_koopman_integration
+  - .psi_sync_monitor
+- alan_backend/banksy/alan_psi_sync_bridge.py
+  - alan_backend.banksy
+- alan_backend/banksy/banksy_spin.py
+  - .broadcast
+  - .clock
+- alan_backend/banksy/broadcast.py
+  - httpx
+- alan_backend/banksy/clock.py
+- alan_backend/banksy/psi_koopman_integration.py
+  - ingest_pdf.koopman_estimator
+  - matplotlib.pyplot
+- alan_backend/banksy/psi_sync_demo.py
+- alan_backend/banksy/psi_sync_monitor.py
+  - math
+- alan_backend/banksy/quantum_bridge.py
+  - pcc
+- alan_backend/banksy/run_psi_sync_tests.py
+  - alan_psi_sync_bridge
+  - psi_koopman_integration
+  - psi_sync_demo
+- alan_backend/banksy/tests/test_clock.py
+  - alan_backend.banksy.clock
+  - pytest
+- alan_backend/braid_aggregator.py
+  - alan_backend.origin_sentry
+  - python.core.braid_buffers
+- alan_backend/braid_aggregator_modified.py
+- alan_backend/chaos_channel_controller.py
+  - scipy.ndimage
+- alan_backend/chaos_channel_controller_modified.py
+- alan_backend/config.py
+  - yaml
+- alan_backend/core/__init__.py
+- alan_backend/core/banksy_fusion.py
+  - alan_backend.core.controller.trs_ode
+  - alan_backend.core.memory.spin_hopfield
+  - alan_backend.core.oscillator.banksy_oscillator
+  - alan_backend.snapshot
+- alan_backend/core/controller/__init__.py
+- alan_backend/core/controller/trs_ode.py
+  - artificially
+- alan_backend/core/demo_banksy_alan.py
+  - alan_backend.core.banksy_fusion
+- alan_backend/core/elfin_bridge.py
+- alan_backend/core/elfin_bridge/units.py
+- alan_backend/core/memory/__init__.py
+- alan_backend/core/memory/spin_hopfield.py
+- alan_backend/core/oscillator/__init__.py
+- alan_backend/core/oscillator/banksy_oscillator.py
+  - fractions
+- alan_backend/core/tests/__init__.py
+- alan_backend/core/tests/benchmark_oscillator.py
+- alan_backend/core/tests/conftest.py
+  - random
+  - tensorflow
+  - torch
+- alan_backend/core/tests/test_cross_arch.py
+  - alan_backend.snapshot.snapshot_serializer
+  - struct
+- alan_backend/core/tests/test_fuzz_long.py
+  - hypothesis
+- alan_backend/core/tests/test_snapshot_serialization.py
+- alan_backend/core/tests/test_trs_rollback.py
+  - ..controller.trs_ode
+  - ..oscillator.banksy_oscillator
+- alan_backend/demo_braid_patches.py
+- alan_backend/eigensentry_guard.py
+  - alan_backend.lyap_exporter
+- alan_backend/eigensentry_guard_modified.py
+- alan_backend/elfin/__init__.py
+  - importlib
+- alan_backend/elfin/analyzer/circular_analyzer.py
+- alan_backend/elfin/analyzer/cli.py
+  - alan_backend.elfin.analyzer.circular_analyzer
+- alan_backend/elfin/analyzer/debug_analyzer.py
+  - reference_analyzer
+- alan_backend/elfin/analyzer/direct_debug.py
+- alan_backend/elfin/analyzer/reference_analyzer.py
+- alan_backend/elfin/analyzer/run_tests.py
+- alan_backend/elfin/analyzer/simple_debug.py
+- alan_backend/elfin/analyzer/test_analyzer.py
+  - alan_backend.elfin.analyzer.reference_analyzer
+- alan_backend/elfin/analyzer/test_circular.py
+  - circular_analyzer
+- alan_backend/elfin/analyzer/test_files/debug_test.elfin
+- alan_backend/elfin/analyzer/test_files/direct_circular.elfin
+- alan_backend/elfin/analyzer/test_files/direct_debug.elfin
+- alan_backend/elfin/analyzer/test_files/indirect_circular.elfin
+- alan_backend/elfin/analyzer/test_files/no_circular.elfin
+- alan_backend/elfin/analyzer/test_files/simple_debug.elfin
+- alan_backend/elfin/analyzer/test_files/test_with_errors.elfin
+- alan_backend/elfin/analyzer/test_files/test_without_errors.elfin
+- alan_backend/elfin/barrier/__init__.py
+  - alan_backend.elfin.barrier.barrier_bridge_agent
+  - alan_backend.elfin.barrier.cli
+  - alan_backend.elfin.barrier.learner
+  - alan_backend.elfin.barrier.sos_mosek
+  - alan_backend.elfin.barrier.sos_verifier
+- alan_backend/elfin/barrier/barrier_bridge_agent.py
+  - alan_backend.elfin.koopman.dictionaries
+  - alan_backend.elfin.stability.core.interactions
+  - sklearn.neighbors
+- alan_backend/elfin/barrier/cli.py
+  - alan_backend.elfin.cli
+  - alan_backend.elfin.examples.demo_barrier
+- alan_backend/elfin/barrier/learner.py
+  - cvxpy
+  - data.
+- alan_backend/elfin/barrier/sos_mosek.py
+  - hashlib
+  - itertools
+  - mosek
+  - sympy
+  - sympy.polys.polytools
+- alan_backend/elfin/barrier/sos_verifier.py
+  - SparsePOP
+- alan_backend/elfin/benchmarks/__init__.py
+  - .benchmark
+  - .metrics
+  - .runner
+  - .systems
+- alan_backend/elfin/benchmarks/benchmark.py
+  - abc
+- alan_backend/elfin/benchmarks/examples/mobile_robot_example.py
+  - alan_backend.elfin.benchmarks
+  - alan_backend.elfin.benchmarks.benchmark
+  - alan_backend.elfin.benchmarks.metrics
+  - matplotlib.patches
+- alan_backend/elfin/benchmarks/metrics.py
+- alan_backend/elfin/benchmarks/run.py
+- alan_backend/elfin/benchmarks/runner.py
+- alan_backend/elfin/benchmarks/systems/__init__.py
+  - .autonomous_vehicle
+  - .cart_pole
+  - .chemical_reactor
+  - .inverted_pendulum_robot
+  - .manipulator
+  - .pendulum
+  - .quadrotor
+  - .van_der_pol
+- alan_backend/elfin/benchmarks/systems/cart_pole.py
+  - ..benchmark
+- alan_backend/elfin/benchmarks/systems/pendulum.py
+- alan_backend/elfin/benchmarks/systems/van_der_pol.py
+- alan_backend/elfin/check_circular_refs.py
+- alan_backend/elfin/ci/verify_imports.py
+  - import_processor
+- alan_backend/elfin/cli.py
+  - alan_backend.elfin.codegen.rust
+  - alan_backend.elfin.formatting.elffmt
+  - alan_backend.elfin.lsp.server
+  - alan_backend.elfin.units.checker
+  - elfin.compiler.passes.dim_checker
+  - elfin.standalone_parser
+- alan_backend/elfin/cli/doctor_cli.py
+  - click
+  - cupy
+  - packaging
+  - platform
+  - psutil
+- alan_backend/elfin/cli/packaging_cli.py
+  - alan_backend.elfin.packaging.lockfile
+  - alan_backend.elfin.packaging.manifest
+  - alan_backend.elfin.packaging.registry_client
+  - alan_backend.elfin.packaging.resolver
+  - alan_backend.elfin.packaging.setup
+  - semver
+- alan_backend/elfin/codegen/__init__.py
+  - .rust
+- alan_backend/elfin/codegen/rust.py
+  - ..units
+- alan_backend/elfin/compiler/__init__.py
+- alan_backend/elfin/compiler/ast/__init__.py
+  - .megatron
+  - .nodes
+- alan_backend/elfin/compiler/ast/const_expr.py
+  - alan_backend.elfin.compiler.ast.nodes
+  - alan_backend.elfin.units.unit_expr
+- alan_backend/elfin/compiler/ast/megatron.py
+  - importlib.util
+  - lark
+- alan_backend/elfin/compiler/ast/nodes.py
+  - __future__
+- alan_backend/elfin/compiler/ast/visitor.py
+- alan_backend/elfin/compiler/cache.py
+  - pickle
+- alan_backend/elfin/compiler/codegen/__init__.py
+- alan_backend/elfin/compiler/compiler.py
+  - alan_backend.elfin.parser.ast
+- alan_backend/elfin/compiler/grammar/__init__.py
+- alan_backend/elfin/compiler/grammar/parser.py
+  - lark.exceptions
+- alan_backend/elfin/compiler/main.py
+  - .ast.megatron
+  - .grammar.parser
+- alan_backend/elfin/compiler/minimal_test.py
+- alan_backend/elfin/compiler/module_compiler.py
+  - alan_backend.elfin.compiler.cache
+  - alan_backend.elfin.compiler.compiler
+  - alan_backend.elfin.modules.resolver
+  - alan_backend.elfin.modules.symbols
+  - alan_backend.elfin.modules.templates
+  - alan_backend.elfin.parser.module_ast
+  - alan_backend.elfin.parser.module_parser
+- alan_backend/elfin/compiler/passes/__init__.py
+  - .dim_checker
+- alan_backend/elfin/compiler/passes/constant_folder.py
+  - alan_backend.elfin.compiler.ast.const_expr
+  - alan_backend.elfin.compiler.passes.dim_checker
+  - operator
+- alan_backend/elfin/compiler/passes/dim_checker.py
+  - alan_backend.elfin.compiler.symbol
+  - alan_backend.elfin.standalone_parser
+  - alan_backend.elfin.utils.file_hash
+- alan_backend/elfin/compiler/passes/inlay_hints.py
+- alan_backend/elfin/compiler/passes/partial_evaluator.py
+  - copy
+- alan_backend/elfin/compiler/passes/system_indexer.py
+- alan_backend/elfin/compiler/pipeline.py
+  - alan_backend.elfin.compiler.passes.constant_folder
+- alan_backend/elfin/compiler/stability_codegen.py
+  - alan_backend.elfin.parser.stability_parser
+  - textwrap
+- alan_backend/elfin/compiler/symbol.py
+- alan_backend/elfin/compiler/tests/__init__.py
+- alan_backend/elfin/compiler/tests/direct_test.py
+  - unittest
+- alan_backend/elfin/compiler/tests/run_tests.py
+- alan_backend/elfin/compiler/tests/test_basic.py
+  - alan_backend.elfin.compiler
+  - alan_backend.elfin.compiler.ast
+  - alan_backend.elfin.compiler.grammar
+- alan_backend/elfin/compiler/tests/test_parser.py
+  - StdHelpers
+  - ast
+  - grammar.parser
+- alan_backend/elfin/debug/__init__.py
+  - alan_backend.elfin.debug.bridge
+  - alan_backend.elfin.debug.lyapunov_monitor
+  - alan_backend.elfin.debug.unit_checker
+- alan_backend/elfin/debug/bridge.py
+- alan_backend/elfin/debug/lyapunov_monitor.py
+- alan_backend/elfin/debug/unit_checker.py
+  - alan_backend.elfin.units.units
+- alan_backend/elfin/elfin_check.py
+  - alan_backend.elfin.analyzer.cli
+- alan_backend/elfin/errors/__init__.py
+  - .error_handler
+- alan_backend/elfin/errors/elf_errors.py
+  - alan_backend.elfin.errors.error_handler
+- alan_backend/elfin/errors/error_handler.py
+  - webbrowser
+- alan_backend/elfin/examples/complete_standalone_demo.py
+  - any
+  - cmd
+  - io
+  - matplotlib.animation
+  - queue
+- alan_backend/elfin/examples/completely_standalone_demo.py
+- alan_backend/elfin/examples/constant_folding_test.elfin
+- alan_backend/elfin/examples/dashboard_demo.py
+  - alan_backend.elfin.stability.jit_guard
+  - alan_backend.elfin.stability.lyapunov
+  - alan_backend.elfin.visualization.dashboard
+- alan_backend/elfin/examples/debug_demo.py
+- alan_backend/elfin/examples/demo_barrier.py
+  - matplotlib
+- alan_backend/elfin/examples/demo_units.py
+- alan_backend/elfin/examples/direct_demo.py
+- alan_backend/elfin/examples/direct_parallel_demo.py
+  - alan_backend.elfin.stability.verify.dep_graph
+  - alan_backend.elfin.stability.verify.milp_verifier
+  - alan_backend.elfin.stability.verify.parallel_verifier
+- alan_backend/elfin/examples/elfin_demo.py
+  - alan_backend.elfin.parser
+  - alan_backend.elfin.runtime
+- alan_backend/elfin/examples/elfin_stability_demo.py
+  - alan_backend.elfin.compiler.stability_codegen
+  - alan_backend.elfin.stability.verifier
+- alan_backend/elfin/examples/elfin_stability_direct.py
+  - alan_backend.elfin.stability.psi_bridge
+- alan_backend/elfin/examples/elfin_stability_example.elfin
+- alan_backend/elfin/examples/elfin_stability_integrated_demo.py
+  - alan_backend.elfin.stability.incremental_verifier
+  - alan_backend.elfin.stability.koopman_bridge_poc
+  - alan_backend.elfin.stability.phase_drift_monitor
+  - matplotlib.colors
+- alan_backend/elfin/examples/koopman_bridge_demo.py
+  - alan_backend.elfin.koopman
+  - alan_backend.elfin.koopman.koopman_bridge_agent
+- alan_backend/elfin/examples/module_demo.py
+- alan_backend/elfin/examples/parallel_verifier_demo.py
+  - alan_backend.elfin.stability.agents
+  - alan_backend.elfin.stability.core
+  - alan_backend.elfin.stability.verify
+  - torch.nn
+- alan_backend/elfin/examples/pendulum_units.elfin
+- alan_backend/elfin/examples/phase_spectral_demo.py
+  - koopman.snapshot_buffer
+  - koopman.spectral_analyzer
+  - stability.core.phase_engine
+- alan_backend/elfin/examples/projects/robotics/controllers/pid.elfin
+- alan_backend/elfin/examples/projects/robotics/math/matrix.elfin
+- alan_backend/elfin/examples/projects/robotics/math/vector.elfin
+- alan_backend/elfin/examples/projects/robotics/robot.elfin
+  - of
+- alan_backend/elfin/examples/run_direct_demo.py
+  - stability.verify.dep_graph
+  - stability.verify.parallel_verifier
+- alan_backend/elfin/examples/simple_system.elfin
+- alan_backend/elfin/examples/stability_agent_demo.py
+  - alan_backend.elfin.stability.training
+- alan_backend/elfin/examples/stability_sync_demo.py
+  - alan_backend.banksy.psi_sync_monitor
+- alan_backend/elfin/examples/stability_verification_demo.py
+  - alan_backend.elfin.stability
+  - alan_backend.elfin.stability.backends
+- alan_backend/elfin/examples/standalone_cli.py
+  - the
+- alan_backend/elfin/examples/standalone_demo_units.py
+- alan_backend/elfin/examples/standalone_stability_demo.py
+- alan_backend/elfin/examples/system_with_units.elfin
+- alan_backend/elfin/formatting/elffmt.py
+- alan_backend/elfin/import_processor.py
+  - filecmp
+- alan_backend/elfin/integration/alan_stability_bridge.py
+  - alan_backend.core.concept
+  - alan_backend.core.concept_network
+- alan_backend/elfin/koopman/__init__.py
+  - .dictionaries
+  - .edmd
+  - .koopman_bridge_agent
+  - .koopman_lyap
+- alan_backend/elfin/koopman/cli.py
+  - ..cli
+  - alan_backend.elfin.api
+  - alan_backend.elfin.examples.koopman_bridge_demo
+  - flask
+- alan_backend/elfin/koopman/dictionaries.py
+  - scipy.special
+  - sklearn.preprocessing
+- alan_backend/elfin/koopman/edmd.py
+  - data
+  - sklearn.model_selection
+- alan_backend/elfin/koopman/koopman_bridge_agent.py
+  - alan_backend.elfin.errors
+  - that
+- alan_backend/elfin/koopman/koopman_lyap.py
+- alan_backend/elfin/koopman/snapshot_buffer.py
+- alan_backend/elfin/koopman/spectral_analyzer.py
+  - .snapshot_buffer
+- alan_backend/elfin/koopman/tests/__init__.py
+- alan_backend/elfin/koopman/tests/test_koopman_lyap.py
+  - alan_backend.elfin.koopman.edmd
+  - alan_backend.elfin.koopman.koopman_lyap
+- alan_backend/elfin/koopman/tests/test_spectral_analysis.py
+- alan_backend/elfin/learning/__init__.py
+  - .integration
+  - .models
+  - .training
+- alan_backend/elfin/learning/examples/mobile_robot_example.py
+  - alan_backend.elfin.learning.integration.benchmark_integration
+  - alan_backend.elfin.learning.integration.export
+  - alan_backend.elfin.learning.integration.import_models
+  - alan_backend.elfin.learning.models.torch_models
+  - alan_backend.elfin.learning.training.barrier_trainer
+  - alan_backend.elfin.learning.training.data_generator
+  - alan_backend.elfin.learning.training.lyapunov_trainer
+- alan_backend/elfin/learning/integration/__init__.py
+  - .benchmark_integration
+  - .export
+  - .import_models
+  - .verification
+- alan_backend/elfin/learning/integration/benchmark_integration.py
+  - ...benchmarks
+  - ...benchmarks.benchmark
+  - ..models.jax_models
+  - ..models.neural_barrier
+  - ..models.neural_lyapunov
+  - ..models.torch_models
+  - jax
+  - jax.numpy
+- alan_backend/elfin/learning/integration/export.py
+  - flax.traverse_util
+  - sklearn.linear_model
+- alan_backend/elfin/learning/integration/import_models.py
+- alan_backend/elfin/learning/integration/verification.py
+  - networkx
+- alan_backend/elfin/learning/models/__init__.py
+  - .jax_models
+  - .neural_barrier
+  - .neural_lyapunov
+  - .torch_models
+- alan_backend/elfin/learning/models/jax_models.py
+  - flax.linen
+  - flax.serialization
+  - flax.training
+  - optax
+- alan_backend/elfin/learning/models/neural_barrier.py
+- alan_backend/elfin/learning/models/neural_lyapunov.py
+- alan_backend/elfin/learning/models/torch_models.py
+  - torch.nn.functional
+- alan_backend/elfin/learning/training/__init__.py
+  - .barrier_trainer
+  - .data_generator
+  - .losses
+  - .lyapunov_trainer
+- alan_backend/elfin/learning/training/barrier_trainer.py
+  - torch.optim
+  - torch.utils.data
+- alan_backend/elfin/learning/training/data_generator.py
+- alan_backend/elfin/learning/training/losses.py
+- alan_backend/elfin/learning/training/lyapunov_trainer.py
+- alan_backend/elfin/linting/elfclippy.py
+- alan_backend/elfin/lsp/__init__.py
+- alan_backend/elfin/lsp/server.py
+  - pygls.lsp.methods
+  - pygls.lsp.types
+  - pygls.server
+- alan_backend/elfin/modules/__init__.py
+  - alan_backend.elfin.modules.errors
+- alan_backend/elfin/modules/conditional.py
+- alan_backend/elfin/modules/errors.py
+- alan_backend/elfin/modules/grammar.py
+  - statements
+- alan_backend/elfin/modules/namespaces.py
+- alan_backend/elfin/modules/resolver.py
+- alan_backend/elfin/modules/symbols.py
+- alan_backend/elfin/modules/templates.py
+- alan_backend/elfin/modules/templates_ext.py
+- alan_backend/elfin/packages/package.py
+  - tarfile
+  - zipfile
+- alan_backend/elfin/packaging/__init__.py
+  - .lockfile
+  - .manifest
+  - .registry_client
+  - .resolver
+- alan_backend/elfin/packaging/auth.py
+  - base64
+  - getpass
+- alan_backend/elfin/packaging/lockfile.py
+  - toml
+- alan_backend/elfin/packaging/manifest.py
+- alan_backend/elfin/packaging/registry_client.py
+- alan_backend/elfin/packaging/resolver.py
+- alan_backend/elfin/packaging/setup.py
+- alan_backend/elfin/parser/__init__.py
+  - alan_backend.elfin.parser.lexer
+  - alan_backend.elfin.parser.parser
+- alan_backend/elfin/parser/ast.py
+- alan_backend/elfin/parser/lexer.py
+- alan_backend/elfin/parser/module_ast.py
+- alan_backend/elfin/parser/module_parser.py
+- alan_backend/elfin/parser/parser.py
+- alan_backend/elfin/parser/stability_parser.py
+- alan_backend/elfin/proto/__init__.py
+- alan_backend/elfin/run_constant_folding_demo.py
+- alan_backend/elfin/runtime/__init__.py
+  - alan_backend.elfin.runtime.runtime
+- alan_backend/elfin/runtime/runtime.py
+- alan_backend/elfin/scripts/test_constant_folding.py
+  - elfin.compiler.pipeline
+- alan_backend/elfin/setup.py
+  - setuptools
+- alan_backend/elfin/stability/__init__.py
+  - alan_backend.elfin.stability.constraint_ir
+  - alan_backend.elfin.stability.learn_neural_lyap
+- alan_backend/elfin/stability/agents/__init__.py
+  - .stability_agent
+- alan_backend/elfin/stability/agents/error_integration.py
+  - alan_backend.elfin.stability.agents.error_integration
+- alan_backend/elfin/stability/agents/stability_agent.py
+  - ..core.interactions
+  - ..verify
+  - alan_backend.elfin.events
+- alan_backend/elfin/stability/backends/__init__.py
+  - alan_backend.elfin.stability.backends.sos_backend
+- alan_backend/elfin/stability/backends/sos_backend.py
+  - matlab.engine
+- alan_backend/elfin/stability/config.py
+  - pydantic
+- alan_backend/elfin/stability/constraint_ir.py
+- alan_backend/elfin/stability/core/__init__.py
+  - .interactions
+- alan_backend/elfin/stability/core/interactions.py
+- alan_backend/elfin/stability/core/phase_engine.py
+- alan_backend/elfin/stability/core/vectorized_phase_engine.py
+  - cupyx.scipy.sparse
+- alan_backend/elfin/stability/demos/__init__.py
+  - .vdp_neural_lyap_demo
+- alan_backend/elfin/stability/demos/vdp_neural_lyap_demo.py
+  - ..samplers.trajectory_sampler
+  - ..training.neural_lyapunov_trainer
+  - ..verify.milp_verifier
+- alan_backend/elfin/stability/incremental_verifier.py
+- alan_backend/elfin/stability/jit_guard.py
+  - numba
+  - scipy.optimize
+- alan_backend/elfin/stability/koopman_bridge_poc.py
+- alan_backend/elfin/stability/learn_neural_lyap.py
+- alan_backend/elfin/stability/lyapunov.py
+- alan_backend/elfin/stability/phase_drift_monitor.py
+- alan_backend/elfin/stability/psi_bridge.py
+- alan_backend/elfin/stability/samplers/__init__.py
+  - .trajectory_sampler
+- alan_backend/elfin/stability/samplers/trajectory_sampler.py
+- alan_backend/elfin/stability/tests/__init__.py
+- alan_backend/elfin/stability/tests/run_sanity_checks.py
+  - standalone_sanity_checks
+- alan_backend/elfin/stability/tests/test_neural_lyapunov_trainer.py
+- alan_backend/elfin/stability/tests/test_phase_engine.py
+  - core.phase_engine
+- alan_backend/elfin/stability/tests/test_trajectory_sampler.py
+- alan_backend/elfin/stability/training/__init__.py
+  - .alpha_scheduler
+  - .neural_lyapunov_trainer
+- alan_backend/elfin/stability/training/alpha_scheduler.py
+- alan_backend/elfin/stability/training/neural_lyapunov_trainer.py
+  - torch.cuda.amp
+- alan_backend/elfin/stability/verifier.py
+- alan_backend/elfin/stability/verify/__init__.py
+  - .dep_graph
+  - .milp_verifier
+  - .parallel_verifier
+- alan_backend/elfin/stability/verify/dep_graph.py
+- alan_backend/elfin/stability/verify/milp_verifier.py
+- alan_backend/elfin/stability/verify/parallel_verifier.py
+- alan_backend/elfin/stability/verify/utils.py
+- alan_backend/elfin/standalone_demo.py
+- alan_backend/elfin/standalone_parser.py
+- alan_backend/elfin/std/constants.elfin
+- alan_backend/elfin/std/control.elfin
+  - derivative
+- alan_backend/elfin/std/transforms.elfin
+- alan_backend/elfin/templates/aerial/src/aerial_vehicle_controller.elfin
+- alan_backend/elfin/templates/hybrid/run_hybrid_demo.py
+  - elfin.parser
+  - elfin.simulation
+- alan_backend/elfin/templates/hybrid/src/hybrid_controller.elfin
+- alan_backend/elfin/templates/manipulator/analyze_manipulator.py
+  - jax.experimental.ode
+- alan_backend/elfin/templates/manipulator/run_analyzer.py
+  - analyze_manipulator
+- alan_backend/elfin/templates/manipulator/run_manipulator_sim.py
+  - sim_manipulator
+- alan_backend/elfin/templates/manipulator/sim_manipulator.py
+  - mpl_toolkits.mplot3d
+- alan_backend/elfin/templates/manipulator/src/manipulator_controller.elfin
+- alan_backend/elfin/templates/mobile/run_analyzer.py
+- alan_backend/elfin/templates/mobile/simple_analyzer.py
+- alan_backend/elfin/templates/mobile/src/mobile_robot_controller.elfin
+  - a
+  - min
+- alan_backend/elfin/templates/mobile/src/mobile_robot_controller_with_imports.elfin
+- alan_backend/elfin/templates/mobile/src/mobile_robot_controller_with_imports.processed.elfin
+- alan_backend/elfin/templates/quadrotor/src/quadrotor_controller.elfin
+- alan_backend/elfin/templates/std/helpers.elfin
+- alan_backend/elfin/test_import_processor.py
+  - difflib
+- alan_backend/elfin/tests/golden/formatter/formatted_output.elfin
+- alan_backend/elfin/tests/golden/formatter/unformatted_input.elfin
+- alan_backend/elfin/tests/golden/quadrotor.elfin
+- alan_backend/elfin/tests/golden/robot_arm.elfin
+- alan_backend/elfin/tests/modules/fixtures/controller.elfin
+- alan_backend/elfin/tests/modules/fixtures/main.elfin
+- alan_backend/elfin/tests/modules/fixtures/math/linear.elfin
+- alan_backend/elfin/tests/modules/fixtures/sensors/distance.elfin
+- alan_backend/elfin/tests/modules/test_end_to_end.py
+  - A
+  - B
+  - C
+  - Matrix3
+  - PIDController
+  - Transform
+  - Vector3
+- alan_backend/elfin/tests/modules/test_module_parser.py
+  - Controller
+  - Sensor
+- alan_backend/elfin/tests/modules/test_resolver.py
+- alan_backend/elfin/tests/modules/test_symbols.py
+- alan_backend/elfin/tests/modules/test_templates.py
+- alan_backend/elfin/tests/test_constant_folder.py
+- alan_backend/elfin/tests/test_error_docs.py
+- alan_backend/elfin/tests/test_fmt_golden.py
+- alan_backend/elfin/tests/test_formatter.py
+  - Helpers
+- alan_backend/elfin/tests/test_partial_evaluator.py
+  - alan_backend.elfin.compiler.passes.partial_evaluator
+- alan_backend/elfin/tests/test_unit_expr.py
+- alan_backend/elfin/tests/test_units.py
+  - standalone_parser
+- alan_backend/elfin/units/__init__.py
+  - .checker
+  - .unit_expr
+  - .units
+- alan_backend/elfin/units/checker.py
+- alan_backend/elfin/units/unit_expr.py
+- alan_backend/elfin/units/units.py
+- alan_backend/elfin/utils/__init__.py
+- alan_backend/elfin/utils/file_hash.py
+- alan_backend/elfin/validation/__init__.py
+  - .barrier_validator
+  - .lyapunov_validator
+  - .trajectory_validator
+  - .validation_result
+- alan_backend/elfin/validation/barrier_validator.py
+  - scipy.stats.qmc
+- alan_backend/elfin/validation/validation_result.py
+- alan_backend/elfin/visualization/api.py
+  - alan_backend.elfin.koopman.snapshot_buffer
+  - alan_backend.elfin.koopman.spectral_analyzer
+  - alan_backend.elfin.stability.core.phase_engine
+  - alan_backend.elfin.stability.core.vectorized_phase_engine
+  - alan_backend.elfin.visualization.barrier_stream
+  - alan_backend.elfin.visualization.isosurface_generator
+  - fastapi
+  - fastapi.middleware.cors
+  - fastapi.responses
+  - uvicorn
+- alan_backend/elfin/visualization/barrier_stream.py
+- alan_backend/elfin/visualization/dashboard.py
+- alan_backend/elfin/visualization/isosurface_generator.py
+  - skimage
+  - trimesh
+  - trimesh.creation
+  - trimesh.exchange
+- alan_backend/elfin/visualization/static/dashboard.js
+- alan_backend/elfin/visualization/static/model_health_widget.js
+- alan_backend/lyap_exporter.py
+  - python.core.bdg_solver
+- alan_backend/metacog/reflection_fixed_point.py
+  - chaos_channel_controller
+- alan_backend/migrate_to_nodb.py
+- alan_backend/migrate_to_nodb_ast.py
+  - astor
+- alan_backend/origin_sentry.py
+  - kha.meta_genome.critics.critic_hub
+- alan_backend/origin_sentry_modified.py
+- alan_backend/patch_braid_aggregator.py
+  - alan_backend.braid_aggregator
+- alan_backend/patch_braid_aggregator_advanced.py
+- alan_backend/planner/barrier_planner.py
+  - alan_backend.planner.goal_graph
+  - alan_backend.planner.guards
+- alan_backend/planner/cli.py
+  - alan_backend.planner.tests.test_goal_graph
+- alan_backend/planner/demo_barrier_planner.py
+  - alan_backend.planner.barrier_planner
+- alan_backend/planner/goal_graph.py
+  - heapq
+- alan_backend/planner/guards.py
+- alan_backend/planner/tests/test_goal_graph.py
+  - alan_backend.planner.tests.test_guards
+- alan_backend/planner/tests/test_guards.py
+- alan_backend/remove_alan_backend_db.py
+- alan_backend/routes/debate.py
+  - .llm_tools
+- alan_backend/routes/personas.py
+- alan_backend/routes/soliton.py
+  - concept_mesh
+  - core.soliton_engine
+  - core.soliton_types
+- alan_backend/scripts/add_header.py
+- alan_backend/scripts/check_avx512.py
+  - alan_backend.scripts.check_avx512
+- alan_backend/server/simulation_api.py
+- alan_backend/snapshot/__init__.py
+  - .snapshot_serializer
+- alan_backend/snapshot/compression.py
+  - zstandard
+- alan_backend/snapshot/snapshot_serializer.py
+  - .compression
+  - alan_backend.snapshot.generated
+  - flatbuffers
+  - zlib
+- alan_backend/test_nodb_migration.py
+  - alan_backend.eigensentry_guard
+- alan_backend/validate_nodb_final.py
+- alan_core.py
+- alpha_scheduler_test.py
+- analysis/alien.py
+  - aiohttp
+- analysis/braid_groupoid.py
+- analysis/nlp_service.py
+  - nltk
+  - nltk.corpus
+  - sentence_transformers
+  - spacy
+  - transformers
+- analysis/scaling.py
+  - scipy.cluster.hierarchy
+  - scipy.spatial.distance
+  - sklearn.cluster
+  - sklearn.manifold
+  - sklearn.metrics.pairwise
+- analysis/semantic_bridge.py
+- analysis/vision_service.py
+  - PIL
+  - cv2
+  - torchvision.transforms
+- api/prajna_tonka_coordinator.py
+- api/routes/hologram.py
+  - audio.spectral_oscillator_optimized
+  - contextlib
+  - redis.asyncio
+  - structlog
+- api/routes/oldholo.py
+  - audio.spectral_oscillator
+  - core.psiMemory.psiFrames
+- api/tonka_api.py
+  - tonka_minimal
+- api_diagnostic.py
+  - ingest_pdf.pipeline
+- app.d.ts
+- apply_beyond_patches.py
+  - python.core.creative_feedback
+- apply_final_review_fixes.py
+  - alan_backend.chaos_channel_controller_modified
+  - alan_backend.eigensentry_guard_modified
+- arxiv_downloader.py
+  - arxiv
+- arxiv_mega_strategy.py
+- audit/__init__.py
+  - .logger
+- audit/logger.py
+- auto_upload_pdfs.py
+  - aiofiles
+- av/setup_video_system.py
+  - ffmpeg
+  - urllib.request
+  - whisper
+- batch_process_pdfs.py
+  - cProfile
+  - ingest_pdf.extract_blocks
+  - ingest_pdf.features
+  - ingest_pdf.lyapunov
+- batch_process_pdfs_recursive.py
+- bdg_integration_patches.py
+  - python.core.adaptive_timestep
+- beyond_demo.py
+- beyond_deploy_bare_metal.py
+  - kha.alan_backend.braid_aggregator
+- beyond_deploy_tools.py
+- beyond_diagnostics.py
+- beyond_logging_config.py
+- beyond_metacognition_integration.py
+  - python.core.topology_tracker
+- beyond_prometheus_exporter.py
+  - http.server
+  - kha.beyond_prometheus_exporter
+  - prometheus_client.core
+- bridge_server.js
+  - cors
+  - express
+  - http
+  - ws
+- bulk_pdf_processor.py
+  - fnmatch
+- caps_migrate.py
+- capsbuild.py
+- capsvalidate.py
+- capture_crash.py
+- check-port.js
+  - child_process
+  - net
+  - readline
+- check_apis.py
+- check_dependencies.py
+- check_pdf_dependencies.py
+  - PyPDF2
+  - fitz
+- check_prajna_status.py
+- check_tori_status.py
+  - socket
+- cleanup-and-start.js
+  - ./mcp-monitor
+  - ./mcp-process-manager
+  - ./mcp-server-wrapper
+- cleanup_ports.py
+- cog/__init__.py
+  - .architecture
+  - .curiosity
+  - .dynamics
+  - .fixed_point
+  - .manifold
+  - .monitoring
+  - .reflective
+  - .self_modification
+  - .transfer
+  - .utils
+- cog/architecture.py
+- cog/curiosity.py
+  - sklearn.metrics
+- cog/dynamics.py
+- cog/fixed_point.py
+- cog/manifold.py
+- cog/monitoring.py
+- cog/reflective.py
+- cog/self_modification.py
+- cog/transfer.py
+  - gudhi
+- cog/utils.py
+  - scipy.stats
+- cognitive-bridge.js
+- cognitive_evolution_bridge.py
+  - concept_synthesizer
+  - mesh_mutator
+  - prajna.memory.concept_mesh_api
+  - prajna.memory.soliton_interface
+- combine_status_files.py
+  - gzip
+- combine_status_files_moderate.py
+- compare_tori_pigpen.py
+- concept_mesh_OLD/__init__.py
+- concept_mesh_detective.py
+- concept_store_maintenance.py
+  - ingest_pdf.koopman_phase_graph
+  - ingest_pdf.models
+- concept_synthesizer.py
+- continuous_prajna_feeder.py
+- core/ghosts/soliton_user.js
+  - ../psiMemory/psiFrames
+  - svelte/store
+- core/psiMemory/psiFrames.js
+- create_ghost_zip.py
+- create_init_files.py
+- create_user.py
+- darwin_godel_orchestrator.py
+  - cognitive_evolution_bridge
+  - json_serialization_fix
+  - pdf_evolution_integration
+  - prajna_cognitive_enhanced
+- debug_extraction.js
+- debug_menu.py
+- debug_prajna_process.py
+- debug_prajna_startup.py
+- debug_results.py
+- deep_prajna_analyzer.py
+  - prajna.api.prajna_api
+  - prajna.config.prajna_config
+- demo_alan.py
+  - ingest_pdf.canonical_ingestion
+  - ingest_pdf.expert_router
+  - ingest_pdf.reasoning_coherence
+- demo_clean_pipeline.py
+- demo_complete_system.py
+  - extractConceptsFromVideo
+- demo_enhanced_pipeline.py
+- demo_koopman_enhanced.py
+  - mpl_toolkits.axes_grid1.inset_locator
+- demo_phase_iv.py
+  - ingest_pdf.ghost_label_synthesizer
+  - ingest_pdf.memory_sculptor
+  - ingest_pdf.ontology_refactor_engine
+- demo_phase_reasoning.py
+  - ingest_pdf.phase_reasoning
+- demo_self_transformation.py
+  - goals.analogical_transfer
+  - meta.energy_budget
+  - meta_genome.critics.aggregation
+  - safety.constitution
+- demo_universal_extraction.py
+- diagnose_components.py
+- diagnose_stuck_upload.py
+- direct_crash_capture.py
+- docs-lint-fix.js
+  - eslint
+- docs/IDEMCP/fftOptimizations.ts
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/core/trust-kernel.ts
+  - events
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/core/types.ts
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/integration/mcp-gateway.ts
+  - ./concept-memory-graph
+  - ./monitoring
+  - ./phase-orchestrator
+  - ./trust-kernel
+  - ./types
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/integration/python-bridge.ts
+  - ../core/phase-orchestrator
+  - ../core/trust-kernel
+  - ../servers/mcp-celery
+  - ../servers/mcp-kaizen
+  - ./tori-filter
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/integration/tori-filter.ts
+  - ../core/types
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/main.ts
+  - ./core/phase-orchestrator
+  - ./core/trust-kernel
+  - ./integration/mcp-gateway
+  - ./integration/python-bridge
+  - ./integration/tori-filter
+  - ./memory/concept-memory-graph
+  - ./observability/monitoring
+  - ./resilience/auto-repair
+  - ./servers/mcp-celery
+  - ./servers/mcp-kaizen
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/servers/mcp-celery.ts
+  - ../observability/monitoring
+- docs/IDEMCP/solidownload/mcp-server-architecture/src/servers/mcp-kaizen.ts
+- docs/IDEMCP/solidownload/mcp_bridge_real_tori.py
+  - ingest_pdf.pipeline_validator
+  - ingest_pdf.source_validator
+- docs/IDEMCP/solidownload/run_stable_server.py
+  - atexit
+  - mcp_bridge_real_tori
+- docs/IDEMCP/solidownload/tori_ui_svelte/src/routes/api/soliton/[...path]/+server.ts
+- docs/conversations/3259/extract_conversation.js
+- docs/conversations/3259/extracted/cline_task_may-21-2025_9-55-43-am_code.js
+  - ../../components/PccStatus/PccStatus
+  - ../../hooks/useMcpSocket
+- download_massive_datasets.py
+- download_tier1_papers.py
+- efficient_pdf_server.py
+- elfin_init.py
+- elfin_lsp/__init__.py
+- elfin_lsp/adapters/__init__.py
+- elfin_lsp/adapters/ast_adapter.py
+- elfin_lsp/adapters/fs_watch.py
+  - watchdog.events
+  - watchdog.observers
+- elfin_lsp/cli.py
+  - elfin_lsp
+  - elfin_lsp.server
+- elfin_lsp/elfin files/aerial_vehicle_controller.elfin
+- elfin_lsp/elfin files/constant_folding_test.elfin
+- elfin_lsp/elfin files/constants.elfin
+- elfin_lsp/elfin files/control.elfin
+- elfin_lsp/elfin files/controller.elfin
+- elfin_lsp/elfin files/debug_test.elfin
+- elfin_lsp/elfin files/direct_circular.elfin
+- elfin_lsp/elfin files/direct_debug.elfin
+- elfin_lsp/elfin files/distance.elfin
+- elfin_lsp/elfin files/elfin_stability_example.elfin
+- elfin_lsp/elfin files/formatted_output.elfin
+- elfin_lsp/elfin files/helpers.elfin
+- elfin_lsp/elfin files/hybrid_controller.elfin
+- elfin_lsp/elfin files/indirect_circular.elfin
+- elfin_lsp/elfin files/linear.elfin
+- elfin_lsp/elfin files/main.elfin
+- elfin_lsp/elfin files/manipulator_controller.elfin
+- elfin_lsp/elfin files/matrix.elfin
+- elfin_lsp/elfin files/mobile_robot_controller.elfin
+- elfin_lsp/elfin files/mobile_robot_controller_with_imports.elfin
+- elfin_lsp/elfin files/mobile_robot_controller_with_imports.processed.elfin
+- elfin_lsp/elfin files/no_circular.elfin
+- elfin_lsp/elfin files/pendulum_units.elfin
+- elfin_lsp/elfin files/pid.elfin
+- elfin_lsp/elfin files/quadrotor.elfin
+- elfin_lsp/elfin files/quadrotor_controller.elfin
+- elfin_lsp/elfin files/robot.elfin
+- elfin_lsp/elfin files/robot_arm.elfin
+- elfin_lsp/elfin files/simple_debug.elfin
+- elfin_lsp/elfin files/simple_system.elfin
+- elfin_lsp/elfin files/system_with_missing_helper.elfin
+- elfin_lsp/elfin files/system_with_units.elfin
+- elfin_lsp/elfin files/test_hover.elfin
+- elfin_lsp/elfin files/test_with_errors.elfin
+- elfin_lsp/elfin files/test_without_errors.elfin
+- elfin_lsp/elfin files/transforms.elfin
+- elfin_lsp/elfin files/unformatted.elfin
+- elfin_lsp/elfin files/unformatted_input.elfin
+- elfin_lsp/elfin files/vector.elfin
+- elfin_lsp/protocol.py
+- elfin_lsp/providers/__init__.py
+- elfin_lsp/providers/code_action.py
+  - elfin_lsp.protocol
+  - elfin_lsp.providers.unit_conversion
+  - pygls.capabilities
+- elfin_lsp/providers/codelens.py
+- elfin_lsp/providers/definition.py
+  - elfin_lsp.adapters.ast_adapter
+  - pygls.workspace
+- elfin_lsp/providers/formatter.py
+- elfin_lsp/providers/hover.py
+- elfin_lsp/providers/inlay.py
+- elfin_lsp/providers/rename.py
+- elfin_lsp/providers/unit_conversion.py
+- elfin_lsp/server.py
+  - alan_backend.elfin.compiler.pipeline
+  - elfin_lsp.adapters.fs_watch
+  - elfin_lsp.providers
+- elfin_lsp/setup.py
+- elfin_lsp/tests/__init__.py
+- elfin_lsp/tests/conftest.py
+  - pygls.protocol
+- elfin_lsp/tests/test_code_action.py
+- elfin_lsp/tests/test_codelens.py
+- elfin_lsp/tests/test_inlay.py
+- elfin_lsp/tests/test_lsp_definition.py
+- elfin_lsp/tests/test_lsp_diag.py
+- elfin_lsp/tests/test_lsp_hover.py
+- elfin_verify.py
+  - stability_demo
+- enhanced_launcher.py
+  - codecs
+  - core.config
+  - locale
+  - python.core.CognitiveEngine
+  - python.core.cognitive_interface
+  - python.core.concept_mesh
+  - python.core.lattice_evolution_runner
+  - python.core.mcp_metacognitive
+  - python.core.memory_vault
+  - python.stability.eigenvalue_monitor
+  - python.stability.koopman_operator
+  - python.stability.lyapunov_analyzer
+  - server
+- enhanced_recursive_tier1_miner.py
+- enhanced_server.js
+  - ./tori_chat_frontend/src/soliton_user.js
+  - multer
+- evolution_metrics.py
+- examples/bridge_usage.ts
+  - ../bridges/PythonBridge
+  - ../stability/KoopmanOperator
+- examples/pcc_sample.py
+  - alan_backend.banksy.broadcast
+- examples/system_with_missing_helper.elfin
+- examples/test_hover.elfin
+- examples/unformatted.elfin
+- export-cline-cjs.js
+- export-cline.js
+- extract_conversation.js
+- extract_debug.py
+- extract_debug_universal.py
+- extraction-integration.js
+- extraction.py
+  - keybert
+  - spacy_entity_linker
+  - yake
+- fix-api-concepts.js
+- fix-api-pdf-concepts.js
+- fix-client-lint-errors.js
+- fix-pdf-concepts.js
+- fix-react-18-conflicts.js
+- fix-react-deps.js
+- fix_exports.py
+- fix_launcher_imports.py
+  - ingest_pdf.cognitive_interface
+- fix_page_split.py
+- fix_pdf_limit.js
+- fix_relative_imports.py
+- fixed_standalone_demo.py
+- frontend/lib/holographicEngine.ts
+  - ./webgpu/fftCompute
+  - ./webgpu/hologramPropagation
+  - ./webgpu/quiltGenerator
+- frontend/lib/performanceMonitor.ts
+- frontend/lib/webgpu/fftCompute.test.ts
+  - ./fftCompute
+- frontend/lib/webgpu/fftCompute.ts
+  - ./fftOptimizations
+  - ./generated/fftPrecomputed
+  - ./shaderLoader
+- frontend/lib/webgpu/fftOptimizations.ts
+- frontend/lib/webgpu/fftPrecomputed.ts
+- frontend/lib/webgpu/shaderLoader.ts
+  - ./generated/shaderSources
+- frontend/shaders/generate_shader_config.js
+  - ./shaderUniforms
+- frontend/svelte.config.js
+- frontend/vite-plugin-wgsl.ts
+  - vite
+- frontend/vite.config.js
+- frontend/vite.config.ts
+  - ./vite-plugin-wgsl
+- fully_standalone_demo.py
+- fully_standalone_koopman_demo.py
+- goals/__init__.py
+  - .analogical_transfer
+- goals/analogical_transfer.py
+  - scipy.sparse.linalg
+- governance.py
+- hooks.server.ts
+- ide_frontend/.eslintrc.js
+- ide_frontend/__mocks__/fileMock.js
+- ide_frontend/__mocks__/styleMock.js
+- ide_frontend/jest-transform.js
+  - babel-jest
+- ide_frontend/jest.config.js
+- ide_frontend/public/esm-test/math-utils.js
+- ide_frontend/public/esm-test/string-utils.js
+  - ./math-utils.js
+- ide_frontend/setupTests.js
+- ide_frontend/src/__tests__/__mocks__/editorSyncService.mock.js
+- ide_frontend/src/__tests__/__mocks__/exporterService.js
+- ide_frontend/src/__tests__/accessibility/accessibilityTestUtils.js
+- ide_frontend/src/__tests__/integration/ExecutionTracer_FieldMeditationMode/mockComponents.test.js
+- ide_frontend/src/__tests__/integration/ExecutionTracer_FieldMeditationMode/mockExecutionTracerService.js
+- ide_frontend/src/__tests__/integration/ExecutionTracer_FieldMeditationMode/mockExecutionTracerService.test.js
+- ide_frontend/src/__tests__/integration/Exporter_ConceptGraphService/Exporter_ConceptGraphService.test.js
+  - ../../../services/exporterService
+  - ./mockConceptGraphService
+- ide_frontend/src/__tests__/integration/Exporter_ConceptGraphService/mockConceptGraphService.js
+- ide_frontend/src/__tests__/integration/Exporter_ConceptGraphService/mockConceptGraphService.test.js
+- ide_frontend/src/__tests__/integration/MCPClient_DebugAgent/mockMcpClientService.mock.js
+- ide_frontend/src/__tests__/integration/MCPClient_DebugAgent/mockMcpClientService.test.js
+- ide_frontend/src/__tests__/integration/RefactorService_EditorSyncService/RefactorService_EditorSyncService.test.js
+  - ../../../services/conceptGraphService
+  - ../../../services/refactorService
+  - ./mockEditorSyncService
+- ide_frontend/src/__tests__/integration/RefactorService_EditorSyncService/mockEditorSyncService.js
+- ide_frontend/src/__tests__/integration/RefactorService_EditorSyncService/mockEditorSyncService.mock.js
+- ide_frontend/src/__tests__/integration/RefactorService_EditorSyncService/mockEditorSyncService.test.js
+- ide_frontend/src/__tests__/security/secretDetectionFlow.test.js
+  - ../../services/importWizardService
+  - ../../services/refactorService
+- ide_frontend/src/__tests__/services/featureFlagsService.test.js
+  - ../../services/featureFlagsService
+- ide_frontend/src/__tests__/test-utils.js
+- ide_frontend/src/agents/agentCollaborationEngine.ts
+  - ./agentRegistry
+- ide_frontend/src/agents/agentDialogueEngine.ts
+- ide_frontend/src/agents/agentFusionEngine.ts
+- ide_frontend/src/agents/agentGlyphs.ts
+- ide_frontend/src/agents/agentInfluenceLinker.ts
+  - ./AgentArchitect
+  - ./AgentFlow
+  - ./AgentHistorian
+  - ./AgentStylist
+- ide_frontend/src/agents/agentRegistry.ts
+- ide_frontend/src/agents/agentRitualRegistry.ts
+  - ../ghost/ghostMemoryOverlay
+- ide_frontend/src/agents/agentStateEvolver.ts
+- ide_frontend/src/agents/archetypeLoreGenerator.ts
+- ide_frontend/src/agents/archetypeLoreRegistry.ts
+- ide_frontend/src/agents/influenceGraphAnimator.ts
+- ide_frontend/src/agents/overlayInvocationEngine.ts
+- ide_frontend/src/agents/overlayLineageTracker.ts
+- ide_frontend/src/components/AgentPanel/index.js
+- ide_frontend/src/components/ConceptEditorPanel/GhostPersonaDemo.js
+  - ../../ghost/ambientEffects
+  - ../../ghost/interactionSignals
+  - ../../ghost/modeTrigger
+  - ../../ghost/reaperEffects
+  - ../../ghost/sessionMemory
+- ide_frontend/src/components/ConceptEditorPanel/GhostReaperDemo.js
+- ide_frontend/src/components/ConceptEditorPanel/GhostReaperIntegration.js
+- ide_frontend/src/components/ConceptFieldCanvas/index.js
+- ide_frontend/src/components/FieldMeditationMode/index.js
+- ide_frontend/src/components/PersonaSelector/persona-context.js
+- ide_frontend/src/components/PersonaSelector/persona-service.js
+- ide_frontend/src/components/SemanticCommitPanel/index.js
+  - ./SemanticCommitPanel
+- ide_frontend/src/diagnostics/recorder.ts
+  - jszip
+- ide_frontend/src/esModuleTestRunner.js
+  - ./utils/esModuleTest.js
+- ide_frontend/src/esmPackageTest.js
+  - url
+  - util
+- ide_frontend/src/ghost/ambientEffects.js
+- ide_frontend/src/ghost/ascendantState.ts
+  - ./agentSettings
+  - ./ghostChronicle
+  - ./ghostMemoryOverlay
+- ide_frontend/src/ghost/eggsConfig.js
+- ide_frontend/src/ghost/eggsEffects.js
+- ide_frontend/src/ghost/eggsEngine.js
+  - ./eggsConfig
+- ide_frontend/src/ghost/frustrationModel.js
+  - ../services/frustrationMonitor
+- ide_frontend/src/ghost/generateGhostLettersOfEcho.ts
+  - ./ghostReflect
+- ide_frontend/src/ghost/ghostArchiveBuilder.ts
+- ide_frontend/src/ghost/ghostLetterComposer.ts
+  - ../agents/agentDialogueEngine
+  - ../agents/agentRegistry
+- ide_frontend/src/ghost/ghostMemoryAgent.js
+  - ../memory/conceptGraph
+  - ../memory/eventLogger
+  - ../memory/spectralPhaseMemory
+  - ../zoning/NeighborhoodManager
+  - ../zoning/zoningLanguage
+- ide_frontend/src/ghost/ghostMemoryOverlay.js
+  - ./ghostToneTemplates
+- ide_frontend/src/ghost/ghostPersonaEngine.ts
+- ide_frontend/src/ghost/ghostRunesDecoder.ts
+- ide_frontend/src/ghost/growthLetterComposer.ts
+- ide_frontend/src/ghost/interactionSignals.js
+  - ../services/behavioralSignalEmitter
+- ide_frontend/src/ghost/modeTrigger.js
+  - ./frustrationModel
+  - ./sessionMemory
+- ide_frontend/src/ghost/overlayMemoirLookup.ts
+- ide_frontend/src/ghost/predictiveState.js
+- ide_frontend/src/ghost/psi_trajectory/demo/presets.ts
+  - ../export
+- ide_frontend/src/ghost/psi_trajectory/index.js
+  - ./bind_to_elfin
+  - ./lock_free_queue
+  - ./psi_archive_demo
+  - ./psiarc_prototype
+- ide_frontend/src/ghost/psi_trajectory/lock_free_queue.js
+- ide_frontend/src/ghost/psi_trajectory/psi_archive_demo.js
+- ide_frontend/src/ghost/psi_trajectory/tests/presets.test.ts
+  - ../demo/presets
+- ide_frontend/src/ghost/reaperEffects.js
+  - codemirror
+- ide_frontend/src/ghost/sessionMemory.js
+- ide_frontend/src/ghost/sessionSigilGenerator.ts
+- ide_frontend/src/ghost/symmetryWeaver.js
+- ide_frontend/src/hooks/useAffectiveEditorTracking.js
+  - ../utils/affective/editorEventTracker
+- ide_frontend/src/hooks/useAlanSocket.js
+  - ../types/websocket
+- ide_frontend/src/hooks/useMcpSocket.ts
+  - ../state/pccSlice
+- ide_frontend/src/memory/conceptGraph.js
+- ide_frontend/src/memory/eventLogger.js
+- ide_frontend/src/memory/memoryManager.js
+  - ./conceptGraph
+  - ./eventLogger
+  - ./spectralPhaseMemory
+- ide_frontend/src/memory/spectralPhaseMemory.js
+- ide_frontend/src/services/agentSuggestionsService.js
+  - ./socialImpactScorer.js
+- ide_frontend/src/services/agentSuggestionsService.test.js
+  - ./agentSuggestionsService
+- ide_frontend/src/services/audioFeatureExtractor.js
+- ide_frontend/src/services/behavioralSignalEmitter.js
+  - ./intentDetectionService
+- ide_frontend/src/services/dynamicalSystemsService.js
+- ide_frontend/src/services/editorSyncService.js
+  - ./conceptGraphService
+- ide_frontend/src/services/frustrationMonitor.js
+  - ./behavioralSignalEmitter
+- ide_frontend/src/services/semanticAuditTrail.js
+  - ./intentSpecificationTracker
+  - ./semanticAuditTrail
+- ide_frontend/src/services/socialImpactScorer.js
+- ide_frontend/src/services/vaultService.js
+- ide_frontend/src/services/voiceIntentSignal.js
+  - ./audioFeatureExtractor
+- ide_frontend/src/setupTests.js
+  - ./services/mcpClientService
+- ide_frontend/src/simple.test.js
+- ide_frontend/src/standalone.js
+- ide_frontend/src/state/pccSlice.ts
+- ide_frontend/src/telemetry/index.ts
+- ide_frontend/src/timecapsule/AgentNuggetGifting.ts
+  - ./CreativeTelemetryEngine
+  - ./PersonaArchetypeEngine
+  - ./ReflectionJournal
+- ide_frontend/src/timecapsule/AnticipatoryOverlay.ts
+- ide_frontend/src/timecapsule/ArchetypeFusionEngine.ts
+- ide_frontend/src/timecapsule/CreativeFieldFeedback.ts
+- ide_frontend/src/timecapsule/CreativeTelemetryEngine.ts
+- ide_frontend/src/timecapsule/EchoScriptComposer.ts
+  - ./AgentNuggetGifting
+  - ./OverlayResonanceLog
+- ide_frontend/src/timecapsule/GhostImproviser.ts
+- ide_frontend/src/timecapsule/GoldenNuggetReflection.ts
+- ide_frontend/src/timecapsule/MythicNarrator.ts
+- ide_frontend/src/timecapsule/OverlayResonanceLog.ts
+- ide_frontend/src/timecapsule/OverlayToneSelector.ts
+- ide_frontend/src/timecapsule/PersonaArchetypeEngine.ts
+- ide_frontend/src/timecapsule/PredictiveInsightEngine.ts
+- ide_frontend/src/timecapsule/ReflectionJournal.ts
+- ide_frontend/src/timecapsule/SessionPathPredictor.ts
+- ide_frontend/src/timecapsule/ceremonyTemplateLibrary.ts
+- ide_frontend/src/timecapsule/emergentCeremonyEngine.ts
+- ide_frontend/src/timecapsule/expandedCeremonyTemplateLibrary.ts
+- ide_frontend/src/timecapsule/fractalMathLibrary.ts
+- ide_frontend/src/timecapsule/fractalSignatureEngine.ts
+  - ./userTempoTracker
+- ide_frontend/src/timecapsule/functionFamiliarityIndex.ts
+- ide_frontend/src/timecapsule/ghostDelayMap.ts
+- ide_frontend/src/timecapsule/ghostToneReflector.ts
+- ide_frontend/src/timecapsule/intimacyWhisperComposer.ts
+- ide_frontend/src/timecapsule/lorebookEngine.ts
+- ide_frontend/src/timecapsule/namingEvolutionWatcher.ts
+- ide_frontend/src/timecapsule/narrativeLorebookEngine.ts
+- ide_frontend/src/timecapsule/narrativeOverlayEngine.ts
+  - ./narrativeLorebookEngine
+- ide_frontend/src/timecapsule/overlayCeremonyEngine.ts
+- ide_frontend/src/timecapsule/overlayRitualTriggerEngine.ts
+- ide_frontend/src/timecapsule/phraseCadenceModel.ts
+- ide_frontend/src/timecapsule/recursiveInsightRegistry.ts
+- ide_frontend/src/timecapsule/returnRitualRegistry.ts
+- ide_frontend/src/timecapsule/ritualRecursionRegistry.ts
+- ide_frontend/src/timecapsule/ritualSuggestionEngine.ts
+  - ./expandedCeremonyTemplateLibrary
+- ide_frontend/src/timecapsule/timedInsightEngine.ts
+  - ./intimacyWhisperComposer
+- ide_frontend/src/timecapsule/userTempoTracker.ts
+- ide_frontend/src/types/jszip.d.ts
+- ide_frontend/src/update-imports.js
+- ide_frontend/src/utils/affective/contextualUnderstanding.js
+- ide_frontend/src/utils/affective/editorEventTracker.js
+- ide_frontend/src/utils/affective/fuzzyLogic.js
+- ide_frontend/src/utils/esModuleTest.js
+- ide_frontend/src/utils/performance.js
+- ide_frontend/src/vis/shaderSources.ts
+- ide_frontend/src/zoning/NeighborhoodManager.ts
+- ide_frontend/src/zoning/zoningLanguage.js
+- ide_frontend/start-react.js
+- ide_frontend/test-intent-tracker.js
+  - ./src/services/intentSpecificationTracker.js
+- ide_frontend/tests/e2e/persona.cy.js
+- ide_frontend/tests/support/e2e.js
+- ide_frontend/vite.config.js
+  - vite-tsconfig-paths
+- ide_frontend/vite.standalone.config.js
+- import_fixer.py
+- ingest-bus/audio/emotion.py
+  - wave
+- ingest-bus/audio/ingest_audio.py
+  - ingest_bus.audio.emotion
+  - pydub
+  - torchaudio
+- ingest-bus/audio/oooldspectral_oscillator.py
+- ingest-bus/audio/oscillator_demo.py
+  - ingest_bus.audio.spectral_oscillator
+  - sounddevice
+- ingest-bus/audio/spectral_oscillator.py
+- ingest-bus/audio/worker.py
+  - .emotion
+  - .spectral_oscillator
+- ingest-bus/examples/simple_client.py
+- ingest-bus/examples/test_delta_encoder.py
+  - src.utils.delta_encoder
+- ingest-bus/examples/worker_extract.py
+  - magic
+  - urllib.parse
+- ingest-bus/examples/worker_extract_enhanced.py
+  - src.utils.math_aware_extractor
+- ingest-bus/main.py
+  - fastapi.staticfiles
+  - models
+  - routes
+  - utils
+  - workers
+- ingest-bus/main_complete.py
+  - docx
+  - mammoth
+  - openpyxl
+  - pandas
+  - pptx
+  - routes.enhanced_queue
+  - routes.metrics
+  - routes.queue
+  - routes.status
+  - workers.admin_psi_mesh_ui
+  - workers.integration_coordinator
+  - workers.live_reingest_manager
+  - workers.psi_mesh_integration
+  - workers.third_party_gateway
+- ingest-bus/main_enhanced.py
+- ingest-bus/main_video.py
+  - src.routes.realtime_video_streaming
+  - src.routes.video_ingestion
+  - src.services.realtime_video_processor
+  - src.services.video_ingestion_service
+  - src.services.video_memory_integration
+- ingest-bus/models/schemas.py
+- ingest-bus/routes/enhanced_queue.py
+  - models.schemas
+  - workers.enhanced_extract
+- ingest-bus/routes/metrics.py
+- ingest-bus/routes/queue.py
+- ingest-bus/routes/status.py
+- ingest-bus/scripts/queue_samples.py
+- ingest-bus/setup_video_system.py
+- ingest-bus/smoke_test.py
+- ingest-bus/src/__init__.py
+- ingest-bus/src/agents/ghostPersonaFeedbackRouter.py
+- ingest-bus/src/ghost_ops_phase2_integration.py
+  - .agents.ghostPersonaFeedbackRouter
+  - .lib.cognitive.memoryDivergenceWatcher
+  - .services.video_ingestion_service
+  - .services.video_memory_integration
+- ingest-bus/src/lib/cognitive/memoryDivergenceWatcher.py
+  - its
+- ingest-bus/src/main.py
+  - .mcp.tools
+  - .models.job
+  - .services.ingest_service
+  - .services.metrics_service
+  - .utils.delta_encoder
+- ingest-bus/src/mcp/__init__.py
+- ingest-bus/src/mcp/tools.py
+  - ..services.ingest_service
+  - ..services.metrics_service
+- ingest-bus/src/models/__init__.py
+- ingest-bus/src/models/job.py
+- ingest-bus/src/routes/ingestion.py
+  - ..models.job
+  - ..services.job_store
+  - ..utils.math_aware_extractor
+- ingest-bus/src/routes/realtime_video_streaming.py
+  - ..services.realtime_video_processor
+- ingest-bus/src/routes/video_ingestion.py
+  - ..services.video_ingestion_service
+- ingest-bus/src/services/__init__.py
+- ingest-bus/src/services/ingest_service.py
+  - clients.concept_mesh_client
+  - clients.soliton_client
+  - extractors.basic_extractor
+  - extractors.enhanced_extractor
+  - extractors.pdf_extractor
+  - models.extracted_concept
+  - models.ingest_session
+  - utils.metrics
+- ingest-bus/src/services/metrics_service.py
+- ingest-bus/src/services/realtime_video_processor.py
+  - .video_ingestion_service
+  - face_recognition
+  - pytesseract
+- ingest-bus/src/services/video_ingestion_service.py
+  - librosa
+  - mediapipe
+  - soundfile
+  - webrtcvad
+- ingest-bus/src/services/video_memory_integration.py
+- ingest-bus/src/utils/__init__.py
+- ingest-bus/src/utils/delta_encoder.py
+- ingest-bus/src/utils/math_aware_extractor.py
+- ingest-bus/tests/test_math_aware_chunking.py
+- ingest-bus/utils/config_loader.py
+- ingest-bus/utils/logger.py
+  - logging.handlers
+- ingest-bus/video/ingest_video.py
+  - multiprocessing
+- ingest-bus/workers/admin_psi_mesh_ui.py
+  - psi_mesh_verification_layer
+- ingest-bus/workers/dynamic_concept_extractor.py
+  - ingest_pdf.clustering
+  - ingest_pdf.keywords
+  - ingest_pdf.scoring
+  - ingest_pdf.spectral
+  - sklearn.feature_extraction.text
+- ingest-bus/workers/enhanced_extract.py
+  - clustering
+  - extract
+  - extract_blocks
+  - features
+  - keywords
+  - scoring
+  - spectral
+- ingest-bus/workers/extract.py
+  - ingest_pdf.concept_logger
+  - ingest_pdf.threshold_config
+  - pdf_reader
+- ingest-bus/workers/integration_coordinator.py
+  - enhanced_extract
+  - psi_mesh_integration
+- ingest-bus/workers/live_reingest_manager.py
+  - ingestRouter
+  - production_file_handlers
+- ingest-bus/workers/production_file_handlers.py
+- ingest-bus/workers/psi_mesh_integration.py
+- ingest-bus/workers/psi_mesh_verification_layer.py
+- ingest-bus/workers/third_party_gateway.py
+  - fastapi.security
+  - hmac
+  - live_reingest_manager
+- ingest_massive_data.py
+- ingest_pdf/MIGRATION_GUIDE.py
+  - pipeline.config
+  - pipeline.pruning
+  - pipeline.quality
+  - pipeline.utils
+- ingest_pdf/__init__.py
+- ingest_pdf/app_integrator.py
+  - .eigenfunction_labeler
+  - .memory_sculptor
+  - .phase_walk
+  - .pipeline
+  - eigenfunction_labeler
+  - phase_walk
+- ingest_pdf/canonical_ingestion.py
+  - .fft_privacy
+  - .fractality
+  - .koopman_phase_graph
+  - .memory_gating
+  - .source_validator
+  - .spectral_monitor
+  - fft_privacy
+  - fractality
+  - koopman_phase_graph
+  - memory_gating
+  - source_validator
+  - spectral_monitor
+- ingest_pdf/clusterBenchmark.ts
+  - perf_hooks
+- ingest_pdf/clustering.py
+- ingest_pdf/clustering_config.py
+- ingest_pdf/clustering_demo.py
+  - clustering_enhanced
+- ingest_pdf/clustering_enhanced.py
+  - hdbscan
+- ingest_pdf/clustering_integration_example.ts
+  - ./clusterBenchmark
+  - ./conceptScoring
+- ingest_pdf/clustering_monitor.py
+- ingest_pdf/clustering_pipeline.py
+  - clustering_config
+  - clustering_monitor
+  - csv
+- ingest_pdf/cognitive_interface.py
+  - .concept_diff
+  - prajna.core.psi_archive
+- ingest_pdf/conceptScoring.ts
+- ingest_pdf/concept_foundation_test.py
+  - .concept_logger
+  - .concept_metadata
+  - .time_context
+  - concept_logger
+  - concept_metadata
+  - time_context
+- ingest_pdf/concept_logger.py
+- ingest_pdf/concept_metadata.py
+- ingest_pdf/concept_scoring_integration.py
+- ingest_pdf/dynamic_concept_extractor.py
+  - .clustering
+  - .extract_blocks
+  - .features
+  - .keywords
+  - .scoring
+  - .spectral
+- ingest_pdf/eigen_alignment.py
+  - .koopman_estimator
+- ingest_pdf/eigen_alignment_fixed.py
+- ingest_pdf/eigenfunction_labeler.py
+- ingest_pdf/enhanced_clustering_integration.py
+  - clustering_pipeline
+- ingest_pdf/enhanced_memory_gating.py
+- ingest_pdf/entropy_config_fixed.py
+- ingest_pdf/entropy_prune.py
+- ingest_pdf/expert_router.py
+  - .introspection
+  - introspection
+- ingest_pdf/extractConceptsFromDocument.py
+- ingest_pdf/extractConceptsFromVideo.py
+  - detectron2
+  - detectron2.config
+  - detectron2.engine
+  - pytube
+- ingest_pdf/extract_blocks.py
+- ingest_pdf/features.py
+- ingest_pdf/fft_privacy.py
+- ingest_pdf/fractality.py
+  - scipy.fft
+  - statsmodels.tsa.stattools
+- ingest_pdf/ghost_label_synthesizer.py
+  - .ontology_refactor_engine
+  - ontology_refactor_engine
+- ingest_pdf/integration_example.py
+- ingest_pdf/introspection.py
+- ingest_pdf/keywords.py
+- ingest_pdf/knowledge_manager.py
+- ingest_pdf/koopman_estimator.py
+- ingest_pdf/koopman_estimator_completion.py
+- ingest_pdf/koopman_estimator_fix.py
+- ingest_pdf/koopman_fix.py
+- ingest_pdf/koopman_phase_graph.py
+- ingest_pdf/koopman_reasoning_demo.py
+  - .eigen_alignment
+  - .lyapunov_spike_detector
+  - eigen_alignment
+- ingest_pdf/lyapunov.py
+  - scipy.spatial
+- ingest_pdf/lyapunov_spike_detector.py
+  - matplotlib.lines
+- ingest_pdf/main.py
+  - alan_backend.routes.soliton
+  - ingest_pdf.knowledge_manager
+  - ingest_pdf.multi_tenant_manager
+  - ingest_pdf.user_manager
+  - openai
+- ingest_pdf/main_complex.py
+- ingest_pdf/main_simple.py
+- ingest_pdf/main_with_soliton.py
+- ingest_pdf/memory_gating.py
+- ingest_pdf/memory_sculptor.py
+  - ..core.soliton_client
+  - core.soliton_client
+  - mcp_metacognitive.core.soliton_memory
+  - nltk.sentiment
+  - nltk.tokenize
+- ingest_pdf/models.py
+- ingest_pdf/multi_tenant_manager.py
+- ingest_pdf/narrative_recap.py
+- ingest_pdf/ontology_refactor_engine.py
+- ingest_pdf/persistence.py
+  - alan_backend.concept_index.concept_store
+- ingest_pdf/phase_reasoning.py
+  - .ghost_label_synthesizer
+  - ghost_label_synthesizer
+- ingest_pdf/phase_walk.py
+- ingest_pdf/pipeline.py
+  - .cognitive_interface
+  - .entropy_prune
+  - .extractConceptsFromDocument
+  - cognitive_interface
+  - entropy_prune
+  - gc
+  - pdf2image
+- ingest_pdf/pipeline/__init__.py
+  - ..cognitive_interface
+  - ..entropy_prune
+  - ..extractConceptsFromDocument
+  - ..memory_sculptor
+  - .config
+  - .io
+  - .pruning
+  - .quality
+  - .storage
+- ingest_pdf/pipeline/config.py
+- ingest_pdf/pipeline/io.py
+  - ..extract_blocks
+- ingest_pdf/pipeline/pipeline.py
+  - nest_asyncio
+- ingest_pdf/pipeline/pruning.py
+- ingest_pdf/pipeline/quality.py
+- ingest_pdf/pipeline/storage.py
+- ingest_pdf/pipeline/utils.py
+- ingest_pdf/pipeline_backup.py
+  - .lyapunov
+  - .persistence
+  - .pipeline_validator
+  - .threshold_config
+  - lyapunov
+  - persistence
+  - pipeline_validator
+  - threshold_config
+- ingest_pdf/pipeline_minimal.py
+- ingest_pdf/pipeline_previous.py
+- ingest_pdf/pipeline_validator.py
+- ingest_pdf/pipeline_with_first_patch.py
+- ingest_pdf/reasoning_coherence.py
+- ingest_pdf/scoring.py
+- ingest_pdf/soliton_multi_tenant_manager.py
+- ingest_pdf/source_validator.py
+- ingest_pdf/spectral.py
+  - alan_backend.koopman
+- ingest_pdf/spectral_monitor.py
+- ingest_pdf/stability_reasoning.py
+- ingest_pdf/stability_reasoning_factory.py
+  - .stability_reasoning
+  - packages.runtime_bridge.python.stability_bridge
+  - stability_reasoning
+- ingest_pdf/test_enhancements.py
+  - soliton_multi_tenant_manager
+- ingest_pdf/test_lyapunov.py
+- ingest_pdf/threshold_config.py
+- ingest_pdf/time_context.py
+- ingest_pdf/user_manager.py
+  - jwt
+- ingest_pdfs_only.py
+- ingest_pdfs_only_FIXED.py
+- ingestion.py
+  - injection
+  - package_integration
+- init_advanced_memory.py
+  - ingest_pdf.spectral_monitor
+  - memory.manager
+- injection.py
+  - governance
+- integration_tests.py
+  - tori_master
+- jest.config.simple.js
+- json_serialization_fix.py
+  - darwin_godel_orchestrator
+  - evolution_metrics
+- kill-all-node-simple.js
+- lib/browser-elfin.ts
+- lib/client-init.ts
+- lib/cognitive/braidMemory.ts
+- lib/cognitive/closureGuard.ts
+  - ./cognitiveState
+  - ./contradictionMonitor
+  - ./loopRecord
+  - ./phaseController
+- lib/cognitive/cognitiveEngine.ts
+  - ./braidMemory
+  - ./closureGuard
+- lib/cognitive/cognitiveEngine_phase3.ts
+  - ./memoryMetrics
+  - ./paradoxAnalyzer
+- lib/cognitive/cognitiveState.ts
+- lib/cognitive/conceptClusteringBridge.js
+  - ./conceptClusteringBridge
+- lib/cognitive/conceptEvaluator.ts
+- lib/cognitive/conceptScoring.ts
+- lib/cognitive/conceptScoring_enhanced.ts
+  - ./conceptClusteringBridge.js
+- lib/cognitive/contradictionMonitor.ts
+- lib/cognitive/ghostCollective.ts
+- lib/cognitive/holographicMemory.ts
+- lib/cognitive/index.ts
+  - ./cognitiveEngine
+  - ./ghostCollective
+  - ./holographicMemory
+- lib/cognitive/index_phase3.ts
+- lib/cognitive/loopRecord.ts
+- lib/cognitive/memoryMetrics.ts
+- lib/cognitive/microservice/cognitive-microservice.ts
+  - ../index
+  - ../loopRecord
+- lib/cognitive/microservice/cognitive_bridge.py
+- lib/cognitive/microservice/deploy_production.py
+- lib/cognitive/microservice/examples.py
+- lib/cognitive/microservice/test_integration.py
+- lib/cognitive/paradoxAnalyzer.ts
+- lib/cognitive/phaseController.ts
+- lib/config.ts
+- lib/elfin/commands/ghost.ts
+  - ../types.js
+- lib/elfin/commands/project.ts
+- lib/elfin/commands/vault.ts
+- lib/elfin/ghostPersonaEngine.ts
+- lib/elfin/interpreter.ts
+  - ./scripts/onConceptChange
+  - ./scripts/onGhostStateChange
+  - ./scripts/onUpload
+- lib/elfin/scriptEngine.ts
+- lib/elfin/scripts/onConceptChange.ts
+- lib/elfin/scripts/onGhostStateChange.ts
+- lib/elfin/scripts/onUpload.ts
+- lib/elfin/types.ts
+- lib/services/api.ts
+- lib/services/enhancedApi.ts
+- lib/stores/conceptMesh.ts
+- lib/stores/ghostPersona.ts
+- lib/stores/index.ts
+- lib/stores/persistence.ts
+  - ./conceptMesh
+- lib/stores/types.ts
+- lib/stores/user.ts
+- lib/toriInit.ts
+- logging_fix.py
+- lyapunov_trainer_animate.py
+- main.py
+- maintenance/build_vector_index.py
+  - faiss
+- maintenance/tier_mover.py
+- master_nodb_fix.py
+  - alan_backend
+  - chaos_channel_controller_modified
+  - eigensentry_guard_modified
+- master_nodb_fix_v2.py
+- mcp-monitor.js
+- mcp-process-manager.js
+- mcp-server-manager.js
+- mcp-server-wrapper.js
+- mcp_bridge.py
+- mcp_bridge_real_tori.py
+- mcp_metacognitive/__init__.py
+- mcp_metacognitive/agents/__init__.py
+- mcp_metacognitive/agents/daniel/daniel.py
+  - ..core.agent_registry
+  - ..core.psi_archive
+  - ..core.state_manager
+  - anthropic
+- mcp_metacognitive/agents/dickbox/__init__.py
+  - .communication
+  - .dickbox
+  - .dickbox_config
+  - .dickbox_metrics
+  - .gpu_manager
+  - .signature_verification
+  - .soliton_mps
+  - .systemd_manager
+  - .zmq_key_rotation
+- mcp_metacognitive/agents/dickbox/communication.py
+  - zmq
+  - zmq.asyncio
+  - zmq_key_rotation
+- mcp_metacognitive/agents/dickbox/deployer.py
+  - minisign
+  - sigstore
+- mcp_metacognitive/agents/dickbox/dickbox.py
+- mcp_metacognitive/agents/dickbox/dickbox_config.py
+- mcp_metacognitive/agents/dickbox/dickbox_metrics.py
+- mcp_metacognitive/agents/dickbox/energy_budget.py
+  - dickbox_config
+- mcp_metacognitive/agents/dickbox/gpu_manager.py
+- mcp_metacognitive/agents/dickbox/scripts/rotate_zmq_keys.py
+  - communication
+- mcp_metacognitive/agents/dickbox/signature_verification.py
+- mcp_metacognitive/agents/dickbox/soliton_mps.py
+  - ctypes
+- mcp_metacognitive/agents/dickbox/soliton_mps_keeper.py
+  - pycuda.autoinit
+  - pycuda.compiler
+  - pycuda.driver
+- mcp_metacognitive/agents/dickbox/systemd_manager.py
+- mcp_metacognitive/agents/dickbox/tests/test_dickbox_security.py
+  - deployer
+  - unittest.mock
+- mcp_metacognitive/agents/dickbox/zmq_key_rotation.py
+  - cryptography.hazmat.backends
+  - cryptography.hazmat.primitives
+  - cryptography.hazmat.primitives.asymmetric
+  - zmq.auth
+  - zmq.auth.certs
+- mcp_metacognitive/agents/intent/__init__.py
+- mcp_metacognitive/agents/kaizen.py
+  - ..core.mcp_bridge
+  - .kaizen_config
+  - .kaizen_metrics
+  - backoff
+  - statistics
+- mcp_metacognitive/agents/kaizen_config.py
+- mcp_metacognitive/agents/kaizen_enhancements.py
+  - celery
+- mcp_metacognitive/agents/kaizen_metrics.py
+- mcp_metacognitive/core/__init__.py
+- mcp_metacognitive/core/agent_registry.py
+  - .psi_archive
+- mcp_metacognitive/core/config.py
+  - dotenv
+- mcp_metacognitive/core/dynamic_discovery.py
+  - inspect
+- mcp_metacognitive/core/psi_archive.py
+- mcp_metacognitive/core/real_tori_bridge.py
+- mcp_metacognitive/core/soliton_memory.py
+  - concept_mesh.interface
+  - concept_mesh.types
+- mcp_metacognitive/core/state_manager.py
+  - .real_tori_bridge
+  - .soliton_memory
+  - cog
+- mcp_metacognitive/core/tori_bridge.py
+  - mcp_server_arch.solidownload.mcp_bridge_real_tori
+- mcp_metacognitive/create/__init__.py
+- mcp_metacognitive/create/deploy_production.py
+  - create.registry_watchdog_patch
+  - enhanced_pdf_pipeline
+  - mk_server
+- mcp_metacognitive/create/enhanced_pdf_pipeline.py
+  - pdfminer.high_level
+  - pdfminer.layout
+  - pdfplumber
+- mcp_metacognitive/create/kaizen_fixes.py
+- mcp_metacognitive/create/mk_server.py
+  - pdf_utils
+- mcp_metacognitive/create/pdf_manager.py
+- mcp_metacognitive/create/pdf_utils.py
+- mcp_metacognitive/create/registry_watchdog_patch.py
+  - types
+- mcp_metacognitive/create/setup.py
+  - agents.test_server.test_server
+  - core.agent_registry
+  - create.mk_server
+- mcp_metacognitive/create/setup_v3.py
+  - create.enhanced_pdf_pipeline
+  - pdfminer
+  - sklearn
+- mcp_metacognitive/create/watchdog_enhancements.py
+  - create.watchdog_enhancements
+- mcp_metacognitive/examples/create_mcp_server.py
+  - kha.mcp_metacognitive.agents.kaizen_metrics
+  - kha.mcp_metacognitive.core.agent_registry
+  - kha.mcp_metacognitive.core.psi_archive
+- mcp_metacognitive/extensions/__init__.py
+- mcp_metacognitive/extensions/example_agent.py
+- mcp_metacognitive/install_dependencies.py
+- mcp_metacognitive/integration/__init__.py
+- mcp_metacognitive/integration/server_integration.py
+  - ..core.dynamic_discovery
+  - ..tasks.celery_tasks
+  - redis
+- mcp_metacognitive/prompts/__init__.py
+  - .cognitive_prompts
+- mcp_metacognitive/prompts/cognitive_prompts.py
+- mcp_metacognitive/resources/__init__.py
+  - .knowledge_resources
+  - .monitoring_resources
+  - .soliton_memory_resources
+  - .state_resources
+- mcp_metacognitive/resources/knowledge_resources.py
+  - mcp.types
+- mcp_metacognitive/resources/monitoring_resources.py
+- mcp_metacognitive/resources/soliton_memory_resources.py
+- mcp_metacognitive/resources/state_resources.py
+- mcp_metacognitive/run_production_server.py
+  - core.real_tori_bridge
+  - core.state_manager
+- mcp_metacognitive/server.py
+  - mcp.server.fastmcp
+  - prompts
+  - resources
+  - server_fallback
+  - tools
+- mcp_metacognitive/server_fallback.py
+  - integration.server_integration
+- mcp_metacognitive/start_complete_system.py
+- mcp_metacognitive/tasks/__init__.py
+- mcp_metacognitive/tasks/celery_tasks.py
+  - ..agents.daniel
+  - ..agents.kaizen
+  - celery.schedules
+  - kombu
+- mcp_metacognitive/tools/__init__.py
+  - .consciousness_tools
+  - .dynamics_tools
+  - .metacognitive_tools
+  - .reflection_tools
+  - .soliton_memory_tools
+- mcp_metacognitive/tools/consciousness_tools.py
+- mcp_metacognitive/tools/dynamics_tools.py
+- mcp_metacognitive/tools/metacognitive_tools.py
+- mcp_metacognitive/tools/reflection_tools.py
+  - cog.fixed_point
+- mcp_metacognitive/tools/soliton_memory_tools.py
+  - core.soliton_memory
+- mcp_metacognitive/webview/run_web.py
+  - ..agents.kaizen_metrics
+  - kha.mcp_metacognitive.agents.kaizen
+- mcp_metacognitive/webview/run_web_simple.py
+- memory/__init__.py
+  - .dw_sim
+  - .hopfield_to_ising
+- memory/dw_sim.py
+- memory/hopfield_to_ising.py
+- memory/manager.py
+- memory/test_memory.py
+  - dw_sim
+  - hopfield_to_ising
+- memory/traffic_replay.py
+  - .manager
+- memory_crash_capture.py
+- mesh_extraction_comparison_test.py
+- mesh_mutator.py
+- mesh_proposal_client.py
+- meta_genome/__init__.py
+- meta_genome/critics/__init__.py
+  - .aggregation
+- meta_genome/critics/aggregation.py
+- meta_genome/critics/critic_hub.py
+- meta_genome/introspection_loop.py
+  - audit.logger
+  - meta.temporal_self_model
+  - meta_genome.memory_bridge
+  - meta_genome.relationship_memory
+  - python.core.cognitive_dynamics_monitor
+- meta_genome/memory_bridge.py
+  - python.core.soliton_memory_integration
+- meta_genome/relationship_memory.py
+- migrate_to_metacognitive.py
+  - core.psi_archive
+  - core.tori_bridge
+- minimal_prajna_test.py
+- models/efficientnet/corpus_builder.py
+- models/efficientnet/saigon.py
+  - .saigon_utils
+  - saigon_utils
+- models/efficientnet/saigon_utils.py
+- models/efficientnet/test_saigon.py
+  - saigon
+- models/efficientnet/train_saigon.py
+- multi_agent/__init__.py
+  - .braid_fusion
+- multi_agent/braid_fusion.py
+- multi_agent_metacognition.py
+  - meta_genome.introspection_loop
+  - multi_agent.braid_fusion
+  - self_transformation_integrated
+- optimized_math_operations.py
+  - joblib
+- optional_bdg_check.py
+- package_integration.py
+  - ingest_pdf.extractConceptsFromDocument
+- packages/data-model/.eslintrc.js
+- packages/data-model/src/concept/Concept.ts
+- packages/data-model/src/concept/ConceptStoreWithStability.ts
+  - ./Concept
+- packages/data-model/src/persona/defaults.ts
+- packages/data-model/src/persona/index.ts
+- packages/ingest/.eslintrc.js
+- packages/ingest/src/config/index.ts
+- packages/ingest/src/index.ts
+- packages/runtime-bridge/.eslintrc.js
+- packages/runtime-bridge/python/cluster_stability.py
+- packages/runtime-bridge/python/forecast_loop.py
+  - .cluster_stability
+  - .trend_forecast
+  - backend
+- packages/runtime-bridge/python/stability_bridge.py
+  - ingest_pdf.concept_metadata
+  - ingest_pdf.stability_reasoning
+- packages/runtime-bridge/python/test_cluster_stability.py
+  - cluster_stability
+- packages/runtime-bridge/python/trend_forecast.py
+  - statsmodels.api
+  - statsmodels.tsa.holtwinters
+  - statsmodels.tsa.statespace.sarimax
+- packages/runtime-bridge/src/DeltaProtocol.ts
+- packages/runtime-bridge/src/PhaseEventBus.ts
+  - nanoid
+- packages/runtime-bridge/src/SpectralAlertSystem.ts
+  - ./SpectralMonitor
+- packages/runtime-bridge/src/SpectralMonitor.ts
+  - ./SpectralAlertSystem
+  - ./types/websocket
+- packages/runtime-bridge/src/SpectralStabilityBridge.ts
+  - ../../data-model/src/concept/ConceptStoreWithStability
+- packages/runtime-bridge/src/index.ts
+- packages/runtime-bridge/src/schema-versions.ts
+- packages/ui-kit/.eslintrc.js
+- packages/ui-kit/.storybook/main.ts
+- packages/ui-kit/.storybook/preview.ts
+- packages/ui-kit/scripts/run-storybook.js
+- packages/ui-kit/src/components/CodeWorkspace/index.ts
+- packages/ui-kit/src/components/ErrorBoundary/index.ts
+- packages/ui-kit/src/index.ts
+- pcc/__init__.py
+  - .q_reservoir
+- pcc/q_reservoir.py
+- pcc/test_q_reservoir.py
+  - q_reservoir
+- pdf_comparison_test.py
+- pdf_evolution_integration.py
+- pdf_processing_diagnostic.py
+- pdf_reader.py
+- pdf_upload_server.py
+- phase1_api_backend.py
+  - logging_fix
+  - phase1_conditional_trigger_engine
+  - phase1_integration_complete
+  - phase1_psi_lineage_ledger
+- phase1_conditional_trigger_engine.py
+- phase1_integration_complete.py
+- phase1_psi_lineage_ledger.py
+- phase2_advanced_psi_lineage_ledger_complete.py
+- phase2_advanced_trigger_engine_complete.py
+- phase2_alpha_integration_test.py
+  - phase2_advanced_psi_lineage_ledger_complete
+  - phase2_advanced_trigger_engine_complete
+  - phase2_interactive_evolution_dashboard
+- phase2_interactive_evolution_dashboard.py
+- phase2_ledger_fix.py
+- phase3_complete_production_system.py
+  - phase3_production_evolution_governance
+  - phase3_production_monitoring_system
+  - phase3_production_secure_dashboard_complete
+- phase3_dashboard_javascript_completion.js
+- phase3_production_evolution_governance.py
+- phase3_production_monitoring_system.py
+- phase3_production_secure_dashboard_complete.py
+  - ingestion
+- pipeline.py
+- port-check.js
+- prajna/__init__.py
+  - .audit.alien_overlay
+  - .config.prajna_config
+  - .core.prajna_mouth
+  - .memory.concept_mesh_api
+  - .memory.context_builder
+  - .memory.soliton_interface
+- prajna/api/prajna_api - Copy.py
+  - ..audit.alien_overlay
+  - ..config.prajna_config
+  - ..core.prajna_mouth
+  - ..core.reasoning_engine
+  - ..memory.concept_mesh_api
+  - ..memory.context_builder
+  - ..memory.soliton_interface
+- prajna/api/prajna_api.py
+  - api.tonka_api
+  - fastapi.concurrency
+  - prajna.core.prajna_mouth
+  - pydantic_settings
+  - sse_starlette.sse
+- prajna/audit/__init__.py
+- prajna/audit/alien_overlay.py
+- prajna/config/prajna_config.py
+- prajna/core/__init__.py
+- prajna/core/cognitive_agent.py
+- prajna/core/concept_synthesizer.py
+- prajna/core/ghost_forum.py
+- prajna/core/metacognitive_engine.py
+  - .cognitive_agent
+  - .concept_synthesizer
+  - .ghost_forum
+  - .reasoning_engine
+  - .self_reflector
+  - .world_model
+- prajna/core/prajna_mouth.py
+- prajna/core/psi_archive.py
+- prajna/core/reasoning_engine.py
+- prajna/core/self_reflector.py
+- prajna/core/world_model.py
+- prajna/memory/__init__.py
+- prajna/memory/concept_mesh_api.py
+- prajna/memory/context_builder.py
+- prajna/memory/soliton_interface.py
+- prajna/start_prajna.py
+- prajna/test_prajna.py
+  - prajna.audit.alien_overlay
+  - prajna.memory.context_builder
+- prajna_api.py
+  - starlette.responses
+- prajna_api_enhanced.py
+- prajna_bridge.py
+- prajna_cognitive_enhanced.py
+- prajna_port_diagnostic.py
+- prajna_port_scanner.py
+- prajna_startup_diagnostics.py
+  - prajna
+- pre-deployment-check.js
+- precise_change_analyzer.py
+- process_massive_datasets.py
+- process_massive_datasets_fixed.py
+- production/config/production.config.ts
+- production/src/webgpu-compatibility.ts
+- production_monitor.py
+- prometheus/alert_overlap_checker.py
+- protected_server.py
+- puppeteer-analyzer.js
+  - puppeteer
+- puppeteer-demo.js
+- puppeteer-recorder.js
+- puppeteer-test.js
+- python/__init__.py
+  - .
+- python/core/CognitiveEngine.py
+- python/core/__init__.py
+  - .CognitiveEngine
+  - .braid_buffers
+  - .concept_mesh
+  - .coupling_matrix
+  - .eigenvalue_monitor
+  - .koopman_operator
+  - .lyapunov_analyzer
+  - .mcp_metacognitive
+  - .memory_vault
+  - .observer_synthesis
+  - .oscillator_lattice
+  - .torus_cells
+  - .torus_registry
+- python/core/adaptive_timestep.py
+- python/core/apply_creative_sharp.py
+- python/core/apply_observer_walkthrough.py
+- python/core/bdg_solver.py
+- python/core/braid_buffers.py
+- python/core/chaos_control_layer.py
+  - python.core.eigensentry.core
+  - python.core.unified_metacognitive_integration
+- python/core/chaos_dashboard.py
+  - matplotlib.gridspec
+  - python.core.metacognitive_adapters
+  - python.core.tori_production
+- python/core/cognitive_dynamics_monitor.py
+  - python.core.reasoning_traversal
+- python/core/cognitive_interface.py
+- python/core/concept_mesh.py
+- python/core/coupling_matrix.py
+- python/core/creative_feedback.py
+- python/core/demo_creative_enhancements.py
+- python/core/eigensentry/__init__.py
+  - .core
+- python/core/eigensentry/core.py
+- python/core/enhance_creative_feedback_optional.py
+- python/core/enhance_observer_synthesis.py
+  - observer_synthesis
+- python/core/enhance_observer_synthesis_optional.py
+- python/core/enhanced_context_builder.py
+  - .context_builder
+  - .reasoning_traversal
+- python/core/example_applications.py
+- python/core/ghost_coherence_metrics.py
+  - python.core.oscillator_lattice
+- python/core/intent_driven_reasoning.py
+  - python.core.temporal_reasoning_integration
+- python/core/lattice_evolution_runner.py
+- python/core/mcp_metacognitive.py
+- python/core/memory_sculptor.py
+- python/core/memory_vault.py
+- python/core/metacognitive_adapters.py
+  - python.core.chaos_control_layer
+  - python.core.reflection_fixed_point_integration
+- python/core/migrate_observer_synthesis.py
+  - observer_synthesis_enhanced
+- python/core/observer_synthesis.py
+  - python.core.psi_archive
+- python/core/observer_synthesis_enhanced.py
+- python/core/oscillator_lattice.py
+- python/core/patch_beyond_integration.py
+  - creative_feedback
+  - origin_sentry
+  - spectral_cortex
+  - temporal_braiding
+- python/core/patch_creative_feedback_sharp.py
+- python/core/patch_observer_synthesis_walkthrough.py
+- python/core/pipeline.py
+- python/core/prajna_intent_integration.py
+  - python.core.intent_driven_reasoning
+- python/core/prajna_reasoning_integration.py
+  - prajna_reasoning_integration
+  - python.core.enhanced_context_builder
+- python/core/reasoning_traversal.py
+- python/core/reflection_fixed_point_integration.py
+- python/core/safety_calibration.py
+- python/core/soliton_memory_integration.py
+  - python.core.coupling_matrix
+- python/core/temporal_reasoning_integration.py
+  - reasoning_traversal
+- python/core/test_observer_synthesis_enhanced.py
+- python/core/tests/__init__.py
+- python/core/tests/test_chaos_integration.py
+  - python.core.safety_calibration
+- python/core/topology_tracker.py
+- python/core/tori_production.py
+- python/core/torus_cells.py
+  - ripser
+- python/core/torus_registry.py
+  - .topo_ops
+- python/core/unified_metacognitive_integration.py
+- python/stability/__init__.py
+- python/stability/eigenvalue_monitor.py
+- python/stability/koopman_operator.py
+- python/stability/lyapunov_analyzer.py
+- python_extraction_api.py
+- quick_demo_prajna.py
+- quick_pdf_test.py
+- rapid_code_learner.py
+  - pigpen_config
+- recursive_tier1_miner.py
+- registry/kaizen/alert_to_ticket.py
+- registry/kaizen/audit_resolved_tickets.py
+  - email.mime.multipart
+  - email.mime.text
+  - smtplib
+- registry/kaizen/auto_kaizen.py
+- registry/kaizen/cli.py
+- registry/kaizen/kaizen_hooks.py
+  - registry.kaizen.auto_kaizen
+- registry/kaizen/metrics.py
+- registry/kaizen/slack_digest.py
+- routes/+layout.server.ts
+- routes/+page.server.ts
+- routes/.well-known/+server.ts
+- routes/login/+page.server.ts
+- routes/logout/+server.ts
+- routes/upload/+server.ts
+- run-ci-tests.py
+  - alan_backend.elfin.stability.neural.neural_lyapunov
+  - alan_backend.elfin.stability.solvers.milp_solver
+- run-yarn-dev.js
+- run_dashboard.py
+  - alan_backend.elfin.visualization.api
+- run_elfin_demo.py
+  - fixed_standalone_demo
+- run_elfin_lsp.py
+- run_koopman_demo_standalone.py
+- run_oscillator_tests.py
+- run_stable_server.py
+- run_tests.py
+- safety/__init__.py
+  - .constitution
+- safety/constitution.py
+- scholarsphere_extraction_analyzer.py
+- scholarsphere_extraction_diagnostics.py
+  - ingest_pdf.main
+- scripts/benchmarkFFT.ts
+  - ../frontend/lib/webgpu/fftCompute
+- scripts/bundleShaders.ts
+- scripts/ci/run_barrier_tests.py
+- scripts/eslint-autofix.js
+- scripts/genFftPrecomputed.ts
+  - commander
+  - prettier
+- scripts/gen_tokens.py
+- scripts/generateFFTData.js
+- scripts/safe_write.py
+- scripts/update-imports.js
+- self_transformation_integrated.py
+  - mcp_metacognitive.agents.kaizen
+  - meta.sandbox.runner
+- serve-static.js
+- server.js
+- services/metrics_ws.py
+- setup-mcp-key.js
+  - crypto
+- setup.js
+- setup_and_launch_tori.py
+- setup_cognitive_and_mesh.py
+- setup_mesh_comparison_test.py
+  - mesh_extraction_comparison_test
+- setup_pdf_upload.py
+- setup_universal_extraction.py
+- setup_video_extraction.py
+  - ingest_pdf.extractConceptsFromVideo
+- shutdown_handlers.py
+- simple-monitor.js
+- simple_dynamic_api.py
+- simple_integration.py
+- simple_launcher.py
+- simple_pdf_processor.py
+  - ingest_pdf.pipeline.io
+- simple_prajna_diagnostic.py
+- smart_dataset_downloader.py
+- smart_merge_to_pigpen.py
+- smart_mirror.py
+- soliton_500_debugger.py
+- src/App.js
+- src/bridges/PythonBridge.ts
+- src/bridges/python_bridge_server.py
+- src/components/agents/DebuggerSentinel.ts
+- src/components/agents/RefactorerEngine.ts
+- src/components/banksy/BanksyApiClient.ts
+- src/components/banksy/index.ts
+- src/extension.js
+  - std/helpers.elfin
+  - vscode
+  - vscode-languageclient/node
+- src/import_wizard.py
+  - project_vault_service
+  - python_to_concept_graph
+  - rich.console
+  - rich.panel
+  - rich.progress
+  - rich.syntax
+  - rich.table
+- src/index.js
+  - ./App
+  - react-dom/client
+- src/project_vault_service.py
+  - cryptography.hazmat.primitives.ciphers.aead
+  - cryptography.hazmat.primitives.kdf.pbkdf2
+  - keyring
+  - secrets
+- src/python_to_concept_graph.py
+  - trufflehogsecrets
+- src/run_alan_ide.py
+  - import_wizard
+- src/services/GhostMemoryVault.ts
+- src/services/GhostSolitonIntegration.ts
+  - ./GhostMemoryVault
+- src/services/QuoteBank.ts
+- src/services/agentSuggestionsService.js
+- src/services/ingest_audio.py
+- src/services/ingest_video.py
+  - torchvision.models
+- stability_demo.py
+- standalone_amp_test.py
+- standalone_phase_spectral_demo.py
+- standalone_sanity_checks.py
+- standalone_test_clock.py
+- start-app.js
+- start-react.js
+- start_alan.py
+  - ingest_pdf.phase_walk
+- start_dynamic_api.py
+- start_prajna_3000.py
+- start_prajna_simple.py
+- start_project.js
+- start_tori.py
+- start_tori_sequenced.py
+- start_unified_tori.py
+- startup_self_transformation.py
+- step_by_step_diagnostic.py
+  - ingest_pdf.eigen_alignment
+  - ingest_pdf.lyapunov_spike_detector
+- surgical_diagnostics.py
+- svelte/src/lib/audioWorklet.ts
+- svelte/src/lib/ghostEngine.js
+  - ../../core/psiMemory/psiFrames
+  - ./stores/psiMemory
+- svelte/src/lib/holographicIntegration.ts
+  - ./ghostEngine
+  - ./stores/audio
+- svelte/src/lib/stores/audio.ts
+- system_health_monitor.py
+  - curses
+- teach_tonka_from_datasets.py
+- temp_manager.py
+- temporal_knowledge_demo.py
+- test-pdf-upload.py
+- test-tori-advanced-memory.py
+- test.js
+- test_100_percent_bulletproof.py
+- test_500_diagnostic.py
+  - ingest_pdf.entropy_prune
+- test_advanced.py
+  - advanced_integration
+- test_api_connectivity.py
+- test_api_integration.py
+- test_atomic_nonetype_fix.py
+- test_auth_python.py
+- test_backend_endpoints.py
+- test_beyond_integration.py
+- test_bulletproof_final.py
+- test_bulletproof_serialization.py
+- test_chat_api.py
+- test_clock_manual.py
+- test_code_action_minimal.py
+  - elfin_lsp.providers.code_action
+- test_cognitive_integration.py
+- test_collective_consciousness.py
+- test_concept_injection.py
+- test_config.py
+  - alan_backend.config
+- test_delta_protocol.js
+  - ./packages/runtime-bridge/src/DeltaProtocol
+- test_direct.py
+- test_entropy_pruning.py
+- test_error_docs_standalone.py
+- test_fastapi.py
+- test_formatter.py
+  - elfin_lsp.providers.formatter
+- test_import_helpers.py
+  - pygls
+- test_integration.py
+- test_json_fixes.py
+- test_koopman_standalone.py
+- test_mesh_lockdown.py
+- test_metacognitive_integration.py
+- test_minimal.py
+- test_multi_tenant_system.py
+- test_natural_filtering.py
+- test_nonetype_fix.py
+- test_optimized_math.py
+  - optimized_math_operations
+- test_oscillator_import.py
+- test_package.py
+- test_pcc_broadcast.py
+  - websockets.exceptions
+- test_pdf_extraction.py
+- test_pdf_fix.py
+- test_prajna_direct.py
+- test_prajna_health.py
+- test_prajna_imports.py
+- test_prajna_integration.py
+- test_prajna_quick.py
+- test_prajna_tonka_coordination.py
+  - api.prajna_tonka_coordinator
+- test_production_pipeline.py
+- test_python_api.py
+- test_python_extraction.py
+- test_quantum_paper_filtering.py
+- test_real_500_error.py
+- test_real_tori_filtering.py
+- test_reasoning_traversal.py
+- test_rename.py
+  - elfin_lsp.providers.rename
+- test_scholarsphere_progress.py
+- test_self_transformation.py
+- test_serialization_fix.py
+- test_simple.py
+  - simple_integration
+- test_syntax_fixes.py
+- test_temp.py
+  - temp_manager
+- test_tonka_integration.py
+- test_tori_standalone.py
+- test_true_metacognition.py
+- test_ultimate_nonetype_elimination.py
+- test_unified_mesh_parameterization.py
+- test_windows_timeout.py
+- test_with_real_pdf.py
+- testing/concept_fuzz.py
+- tests/audio/test_ingest_endpoint.py
+  - tori_backend.main
+- tests/conftest.py
+- tests/hologram/test_end_to_end.py
+  - api.routes.hologram_refactored
+  - ingest_bus.audio.spectral_oscillator_optimized
+- tests/performance_baseline.py
+- tests/run_tests.py
+- tests/test_bdg.py
+- tests/test_coupling_learning.py
+- tests/test_critic_hub.py
+- tests/test_darknet.py
+  - tools.simulate_darknet
+- tests/test_dickbox_integration.py
+  - kha.mcp_metacognitive.agents.dickbox
+- tests/test_dickbox_security.py
+  - kha.mcp_metacognitive.agents.dickbox.dickbox
+  - kha.mcp_metacognitive.agents.dickbox.signature_verification
+- tests/test_e2e.py
+- tests/test_elfin_roundtrip.py
+  - scripts.gen_tokens
+- tests/test_extraction.py
+- tests/test_ingestion.py
+- tests/test_injection.py
+- tests/test_kaizen.py
+- tests/test_mcp_tori_integration.py
+  - mcp_bridge
+- tests/test_oscillator.py
+- tests/test_oscillator_lattice.py
+- tests/test_websocket.py
+- tonka_education.py
+- tonka_learning_curriculum.py
+- tonka_migrator.py
+- tonka_pdf_learner.py
+  - ingest_pdf.pipeline.pipeline
+- tools/ci_runner.py
+- tools/ci_runner_legacy.py
+- tools/compare_ingestion_runs.py
+- tools/deps_tree.py
+- tools/diagnose_concepts.py
+- tools/dup_finder.py
+- tools/gen_map.py
+- tools/ingestion_health_monitor.py
+- tools/simulate_darknet.py
+- tools/test_ingestion_pipeline.py
+- tools/test_inspector.py
+- tools/vault_health_integration.py
+  - tools.vault_health_integration
+- tools/vault_inspector.py
+- tools/vscode-elfin/extension.js
+  - vscode-languageclient
+- tools/vscode-elfin/install.js
+- tori-advanced-memory-bridge.py
+- tori-mcp-bridge.js
+- tori-upload-proxy.js
+  - form-data
+  - node-fetch
+- tori_backend/main.py
+  - .routes
+  - fastapi.middleware.gzip
+- tori_backend/routes/ingest.py
+  - .schemas
+  - ingest_bus.audio.ingest_audio
+  - ingest_bus.audio.streaming
+  - ingest_bus.video.ingest_video
+  - mimetypes
+- tori_backend/routes/schemas.py
+- tori_backend/routes/ws_audio.py
+  - ingest_bus.audio.worker
+  - weakref
+- tori_chat_frontend/minimal-server.js
+- tori_chat_frontend/postcss.config.js
+- tori_chat_frontend/server.js
+  - ./src/services/conversationStorage.js
+  - ./src/services/pdfIngestionPipeline.js
+  - ./src/services/solitonMemory.js
+  - express-session
+  - google-auth-library
+- tori_chat_frontend/server_with_ghost_ai.js
+- tori_chat_frontend/src/api/conceptStorage.js
+- tori_chat_frontend/src/ghost/ghostMemoryAgent.js
+  - ./ghostPersonaEngine.js
+- tori_chat_frontend/src/ghost/ghostPersonaEngine.js
+- tori_chat_frontend/src/hooks/useClusterAlerts.js
+  - ../../../packages/runtime-bridge/src/useAlanSocket
+- tori_chat_frontend/src/hooks/useCoherenceForecast.js
+- tori_chat_frontend/src/hooks/useCoherenceForecast.ts
+- tori_chat_frontend/src/hooks/useMcpSocket.js
+  - react-redux
+- tori_chat_frontend/src/hooks/usePhaseEvent.js
+- tori_chat_frontend/src/hooks/usePhaseEvent.ts
+- tori_chat_frontend/src/hooks/useSpectral.ts
+  - ../../../packages/runtime-bridge/src/SpectralAlertSystem
+  - ../../../packages/runtime-bridge/src/SpectralMonitor
+- tori_chat_frontend/src/mcp-client.js
+- tori_chat_frontend/src/services/agentSuggestionsService.js
+- tori_chat_frontend/src/services/conversationStorage.js
+- tori_chat_frontend/src/services/lyapunovMonitor.js
+- tori_chat_frontend/src/services/pdfIngestionPipeline.js
+  - ./conversationStorage.js
+  - ./solitonMemory.js
+- tori_chat_frontend/src/services/psiarcTestEndpoints.js
+- tori_chat_frontend/src/services/solitonMemory.js
+  - module
+- tori_chat_frontend/src/state/pccSlice.js
+- tori_chat_frontend/standalone.js
+- tori_chat_frontend/start-demo.js
+- tori_chat_frontend/start-production.js
+- tori_chat_frontend/tailwind.config.js
+- tori_chat_frontend/vite.config.js
+- tori_comprehensive_diagnostic.py
+- tori_master.py
+  - alan_backend.chaos_channel_controller
+  - services.metrics_ws
+- tori_ui_svelte/.svelte-kit/ambient.d.ts
+- tori_ui_svelte/.svelte-kit/generated/client/app.js
+- tori_ui_svelte/.svelte-kit/generated/client/matchers.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/0.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/1.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/2.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/3.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/4.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/5.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/6.js
+- tori_ui_svelte/.svelte-kit/generated/client/nodes/7.js
+- tori_ui_svelte/.svelte-kit/generated/server/internal.js
+  - ../root.svelte
+  - __sveltekit/environment
+  - __sveltekit/paths
+  - __sveltekit/server
+- tori_ui_svelte/.svelte-kit/non-ambient.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/.well-known/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/chat/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/chat/export-all/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/chat/history/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/ghost-memory/all/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/list/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/memory/state/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/pdf/stats/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/api/soliton/[...path]/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/elfin/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/ghost-history/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/login/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/login/proxy+page.server.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/logout/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/proxy+layout.server.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/proxy+page.server.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/upload/$types.d.ts
+- tori_ui_svelte/.svelte-kit/types/src/routes/vault/$types.d.ts
+- tori_ui_svelte/PDF_CONCEPT_FIX.js
+- tori_ui_svelte/apply-pdf-fix.js
+- tori_ui_svelte/css-diagnostic.js
+- tori_ui_svelte/fix-pdf-content-usage.js
+- tori_ui_svelte/postcss.config.js
+- tori_ui_svelte/server.js
+  - socket.io
+- tori_ui_svelte/src/app.d.ts
+- tori_ui_svelte/src/hooks.server.ts
+- tori_ui_svelte/src/lib/browser-elfin.ts
+- tori_ui_svelte/src/lib/client-init.ts
+- tori_ui_svelte/src/lib/cognitive/braidMemory.ts
+- tori_ui_svelte/src/lib/cognitive/closureGuard.ts
+- tori_ui_svelte/src/lib/cognitive/cognitiveEngine.ts
+- tori_ui_svelte/src/lib/cognitive/cognitiveEngine_phase3.ts
+- tori_ui_svelte/src/lib/cognitive/cognitiveState.ts
+- tori_ui_svelte/src/lib/cognitive/conceptClusteringBridge.js
+- tori_ui_svelte/src/lib/cognitive/conceptEvaluator.ts
+- tori_ui_svelte/src/lib/cognitive/conceptScoring.ts
+- tori_ui_svelte/src/lib/cognitive/conceptScoring_enhanced.ts
+- tori_ui_svelte/src/lib/cognitive/contradictionMonitor.ts
+- tori_ui_svelte/src/lib/cognitive/dynamics.ts
+  - mathjs
+- tori_ui_svelte/src/lib/cognitive/ghostCollective.ts
+- tori_ui_svelte/src/lib/cognitive/holographicMemory.ts
+- tori_ui_svelte/src/lib/cognitive/index.ts
+- tori_ui_svelte/src/lib/cognitive/index_phase3.ts
+- tori_ui_svelte/src/lib/cognitive/ingestionHelpers.ts
+  - python-shell
+- tori_ui_svelte/src/lib/cognitive/loopRecord.ts
+- tori_ui_svelte/src/lib/cognitive/memoryMetrics.ts
+- tori_ui_svelte/src/lib/cognitive/paradoxAnalyzer.ts
+- tori_ui_svelte/src/lib/cognitive/phaseController.ts
+- tori_ui_svelte/src/lib/config.ts
+- tori_ui_svelte/src/lib/constants/ghost.ts
+- tori_ui_svelte/src/lib/dynamicApi.ts
+- tori_ui_svelte/src/lib/elfin/commands/ghost.ts
+- tori_ui_svelte/src/lib/elfin/commands/project.ts
+- tori_ui_svelte/src/lib/elfin/commands/vault.ts
+- tori_ui_svelte/src/lib/elfin/ghostPersonaEngine.ts
+- tori_ui_svelte/src/lib/elfin/interpreter.ts
+- tori_ui_svelte/src/lib/elfin/scriptEngine.ts
+- tori_ui_svelte/src/lib/elfin/scripts/onConceptChange.ts
+- tori_ui_svelte/src/lib/elfin/scripts/onGhostStateChange.ts
+- tori_ui_svelte/src/lib/elfin/scripts/onUpload.ts
+- tori_ui_svelte/src/lib/elfin/types.ts
+- tori_ui_svelte/src/lib/integrations/dynamicsIntegration.ts
+- tori_ui_svelte/src/lib/services/GhostMemoryVaultAdapter.ts
+  - ../constants/ghost
+  - ./solitonMemory
+- tori_ui_svelte/src/lib/services/api.ts
+- tori_ui_svelte/src/lib/services/enhancedApi.ts
+- tori_ui_svelte/src/lib/services/enhancedBraidConversation.ts
+- tori_ui_svelte/src/lib/services/ghostMemoryAnalytics.ts
+  - ./ghostMemoryVault
+- tori_ui_svelte/src/lib/services/ghostMemoryVault.ts
+  - ./GhostMemoryVaultAdapter
+- tori_ui_svelte/src/lib/services/masterIntegrationHub.ts
+  - ./enhancedBraidConversation
+  - ./ghostMemoryAnalytics
+- tori_ui_svelte/src/lib/services/solitonMemory.ts
+- tori_ui_svelte/src/lib/services/solitonMemory_WRONG_BACKUP.ts
+- tori_ui_svelte/src/lib/stores/conceptMesh.examples.ts
+  - svelte
+- tori_ui_svelte/src/lib/stores/conceptMesh.ts
+- tori_ui_svelte/src/lib/stores/ghostPersona.ts
+- tori_ui_svelte/src/lib/stores/index.ts
+- tori_ui_svelte/src/lib/stores/multiTenantConceptMesh.ts
+- tori_ui_svelte/src/lib/stores/persistence.ts
+- tori_ui_svelte/src/lib/stores/types.ts
+- tori_ui_svelte/src/lib/stores/user.ts
+- tori_ui_svelte/src/lib/toriInit.ts
+- tori_ui_svelte/src/routes/+layout.server.ts
+- tori_ui_svelte/src/routes/+page.server.ts
+- tori_ui_svelte/src/routes/.well-known/+server.ts
+- tori_ui_svelte/src/routes/api/chat/+server.ts
+- tori_ui_svelte/src/routes/api/chat/export-all/+server.ts
+- tori_ui_svelte/src/routes/api/chat/history/+server.ts
+- tori_ui_svelte/src/routes/api/ghost-memory/+server.ts
+- tori_ui_svelte/src/routes/api/ghost-memory/all/+server.ts
+- tori_ui_svelte/src/routes/api/list/+server.ts
+- tori_ui_svelte/src/routes/api/memory/state/+server.ts
+- tori_ui_svelte/src/routes/api/pdf/stats/+server.ts
+- tori_ui_svelte/src/routes/api/soliton/[...path]/+server.ts
+- tori_ui_svelte/src/routes/enhanced/holographicIntegration.ts
+- tori_ui_svelte/src/routes/login/+page.server.ts
+- tori_ui_svelte/src/routes/logout/+server.ts
+- tori_ui_svelte/src/routes/upload/+server.ts
+- tori_ui_svelte/svelte.config.js
+- tori_ui_svelte/tailwind.config.js
+- tori_ui_svelte/test_dynamics.js
+- tori_ui_svelte/vite.config.js
+- toricore/ingestRouter.py
+  - ingest_pdf.basic_processor
+  - ingest_pdf.enhanced_extraction
+  - ingest_pdf.processor
+- toricore/integration_test_complete.py
+- torictl.py
+  - beyond_demo
+- torictl_integration.py
+  - kha.torictl_integration
+- ui/BraidMemoryView.ts
+- ui/HierarchyView.ts
+- ui/WormholeView.ts
+- ultimate_consciousness_launcher.py
+  - ingest_pdfs_only_FIXED
+- ultimate_consciousness_launcher_windows.py
+- update_port.py
+- upload-fix.js
+- use_existing_pdfs.py
+- utils/logging.py
+- validate_entropy_integration.py
+- verify-extraction.js
+- verify-phase4.5-complete.py
+- verify-phase5-complete.py
+- verify-tori-build.js
+- verify_bdg_integration.py
+- verify_beyond_integration.py
+- verify_exports.py
+- verify_injection_import.py
+- verify_mesh_separation.py
+- verify_setup.py
+- visualize_alan.py
+  - alan_core
+- visualize_architecture.py
+  - graphviz
+- webpack.config.js
+- windows_protected_server.py

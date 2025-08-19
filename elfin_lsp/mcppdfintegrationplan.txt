@@ -1,0 +1,287 @@
+Asynchronous Distributed PDF Ingestion Architecture Plan
+Introduction and Current Challenges
+TORI’s current PDF ingestion pipeline runs synchronously on a single server and process. When a PDF is uploaded via SvelteKit, the FastAPI backend immediately calls ingest_pdf_clean() and returns the result. This design has several limitations for large-scale use (100,000+ PDFs):
+Blocking Requests: A user must wait for the entire PDF processing (which may involve heavy NLP model loads) to finish before getting a response. This ties up the web server for the duration of processing
+testdriven.io
+.
+Inefficient Model Loading: The NLP models are likely reloaded on each request, adding significant overhead to each job.
+Single Point of Failure & Bottleneck: All processing happens in one process on one node. If it crashes or slows down, the entire pipeline is affected.
+Lack of Scalability: There is no easy way to distribute workload across multiple machines or processes.
+Goal: Evolve this into an asynchronous, distributed system that can handle high throughput. The new design will offload PDF processing to background workers using Celery (task queue) and Redis (message broker), enabling non-blocking requests and horizontal scaling. Key requirements include a job queue API (for submission and status polling), persistent model instances in workers (to avoid re-loading per task), fault isolation between tasks, and a shared storage solution for PDFs accessible by all workers.
+Asynchronous Task Queue with Celery and Redis
+To decouple PDF processing from the web request cycle, we introduce Celery as a distributed task queue and Redis as the message broker (and result backend). Instead of processing immediately, the FastAPI server will enqueue a task to Celery and respond quickly with a job identifier. Celery workers, running in the background (possibly on separate machines or containers), will pick up the task from Redis and process the PDF asynchronously. This approach ensures the user isn’t stuck waiting on a long task — the request/response thread is freed promptly
+testdriven.io
+. Figure: A simplified Celery-based asynchronous architecture. The web application enqueues PDF ingestion tasks into a Redis broker. Dedicated Celery worker processes listen on the queue, pick up tasks, and execute ingest_pdf_clean() in the background. This decoupling allows the FastAPI server to respond immediately, improving user experience and throughput. How it works:
+Task Submission: The FastAPI API will send a message to the Redis broker describing the task (e.g. “ingest this PDF file at X location”). This is done via Celery’s client API (e.g. calling task.delay()).
+Broker (Redis): Acts as a queue. The task message stays in Redis until a worker is available to handle it
+patrick.cloke.us
+. Redis also can act as the result backend, storing task results and states.
+Workers: One or more Celery workers constantly poll Redis for new tasks
+patrick.cloke.us
+. When a worker gets the message, it executes the ingest_pdf_clean() logic on the given PDF. Multiple workers can run in parallel, across threads or machines, enabling concurrency.
+Immediate Response: As soon as the task is queued, the FastAPI server returns a response containing the task ID (a unique job identifier). The client (SvelteKit front-end) can use this ID to poll for status or results, while the heavy lifting happens in the background.
+Using Celery + Redis introduces horizontal scalability. We can run many worker processes or instances to consume from the queue. Celery is designed for distributed work – “A Celery system can consist of multiple workers and brokers, giving way to high availability and horizontal scaling.”
+parlak-deniss.medium.com
+ In practice, this means we can scale out by adding more worker containers or servers (all connecting to the same Redis broker). The workload (100k+ PDFs) will be load-balanced across the worker pool, removing the single-node bottleneck.
+Background Worker Pool and Model Warm-Up
+Worker Pool: In the new architecture, we will maintain a pool of Celery worker processes dedicated to PDF ingestion. Each Celery worker can spawn multiple child processes (or threads, depending on configuration) to handle tasks concurrently. It’s advisable to run one Celery worker service per host (or container) and configure an appropriate concurrency level (e.g. matching the number of CPU cores) so that each worker can process multiple PDFs in parallel
+serverfault.com
+. This pool of workers can be scaled up or down depending on load – e.g., launch more containers or machines running the worker process to handle spikes in PDF uploads. Model Warm-Up & Persistent Loading: A critical improvement is to avoid re-loading large NLP models on every task. Instead, models should be loaded once per worker and persisted in memory for reuse:
+When a worker starts, or upon the first task, it will warm up by loading the necessary NLP model(s) into memory. This could be done in the global scope of the Celery task module or via a Celery startup hook. For example, define a global model = load_model() in the tasks file so that when the worker process imports it, the model is loaded once and stays available.
+Each task execution can then reuse the already-loaded model. The Celery task function can refer to the global model object (or use a lazy singleton pattern to load it on first use). This ensures that ingest_pdf_clean() doesn’t spend time reinitializing the model for every PDF.
+We must ensure thread/process safety. Celery’s default concurrency (prefork) forks the worker process, so if the model is loaded at import time, each child process will get a copy. Alternatively, we can explicitly load the model in each child process’s context. The overhead of one load per worker (instead of per task) is a big win for throughput.
+By keeping models in memory within worker processes, we dramatically reduce per-task overhead. For instance, a heavy NLP model might take seconds or gigabytes to load; doing that for every PDF is untenable. Instead, the model is loaded once and subsequent tasks use the already-loaded model, making PDF processing CPU-bound (or GPU-bound) rather than I/O-bound on model loading. Persistent Memory Example: We might implement a helper in the task module:
+python
+Copy
+# tasks.py (Celery tasks definition)
+nlp_model = None
+
+@celery_app.task(name="pdf_ingestion")
+def ingest_pdf_task(file_path):
+    global nlp_model
+    if nlp_model is None:
+        nlp_model = load_heavy_nlp_model()   # warm-up on first use
+    result = ingest_pdf_clean(file_path, model=nlp_model)
+    return result
+In this sketch, the first time a worker executes ingest_pdf_task, it loads the model into the global nlp_model. Subsequent tasks reuse it. This approach ensures the Flask/FastAPI web app remains lean (it never loads the model itself), and only the workers hold the model in memory – aligning with production best practices for model serving.
+Job Queue API Endpoints (Submission & Status Polling)
+To integrate with TORI’s upload pipeline, we will expose new API endpoints for job management. The front-end will use these to submit PDFs for ingestion and to poll the status/result of each job by its ID. This decouples the upload from immediate processing results. 1. POST /jobs – Submit PDF for Ingestion:
+This endpoint replaces or augments the current synchronous upload. Clients (SvelteKit front-end) will upload the PDF file via this endpoint (e.g. as form-data or by reference) to initiate processing. Key steps in this handler:
+Receive the file: The FastAPI endpoint will accept the PDF (e.g., as UploadFile).
+Persist the file to a storage location accessible by workers. (If using a shared disk, save to a designated directory. If using S3 or cloud storage, upload the file there – see the Storage section below.)
+Enqueue Celery task: Call the Celery task to process this PDF. For example, task = ingest_pdf_task.delay(file_path_or_key). This sends a message to Redis with the task name and file reference.
+Return a Job ID: Immediately respond with a JSON containing the generated job_id (task ID). For example: {"job_id": "<uuid>"}. The client will use this ID to track the task.
+This request will not wait for the PDF to be processed. It only ensures the file is stored and the job is queued. The response indicates that processing has started asynchronously. 2. GET /jobs/{job_id} – Check Job Status (and Result):
+This endpoint allows clients to poll the status of a specific ingestion job. The FastAPI handler will:
+Receive a job ID (as a path parameter).
+Use Celery’s result backend (Redis) or AsyncResult API to fetch the task’s state and result. For example:
+python
+Copy
+from celery.result import AsyncResult
+@app.get("/jobs/{task_id}")
+def get_status(task_id: str):
+    res = AsyncResult(task_id, app=celery_app)
+    return {"task_id": task_id, "task_status": res.status, "task_result": res.result}
+This returns the state (PENDING, STARTED, SUCCESS, FAILURE, etc.) and the result (which could be the processed data or an error message)
+testdriven.io
+.
+The response JSON might look like: {"task_id": "...", "task_status": "SUCCESS", "task_result": "<some result or summary>"}. If not yet finished, task_status might be "PENDING" or "STARTED", and result could be null or partial.
+The front-end can call this GET endpoint periodically (e.g. every few seconds) to update the UI. For example, upon uploading, SvelteKit can store the returned job_id and use a timer or WebSocket to query /jobs/{job_id} until it sees a finished state. In code, this looks like calling fetch('/jobs/1234') repeatedly and checking res.data.task_status
+testdriven.io
+testdriven.io
+. When status is "SUCCESS" (or "FAILURE"), the polling stops. The final result (or error) can then be displayed to the user or further action can be taken (like enabling a “download processed data” button, etc.). API Response on Submission: We must decide what the client gets immediately after submission. Likely just a confirmation and the job ID. For better UX, we could also return an initial status (like queued) or an ETA if available, but initially just job ID is sufficient. API Response on Completion: The task_result could be:
+A success message or object (for example, if ingest_pdf_clean returns a processed text or stores data in a database, the result might be an ID or summary of that).
+In case of failure, task_result might contain an error message or stack trace, and task_status would be "FAILURE".
+Security & Persistence: We should ensure that job results are retained at least long enough for clients to fetch them. Using Redis as the result backend means results will be stored in memory; we might configure a result expiration (Celery’s result_expires) or store final results in a database if long-term retrieval is needed. Initially, polling soon after upload is expected, so Redis is fine.
+Fault Isolation and Error Handling
+In the new architecture, each PDF is processed in an isolated task context. This means a failure on one job will not crash the entire service or affect other jobs – a crucial improvement for robustness:
+Isolation by Process: Celery workers run tasks in separate processes (especially with prefork concurrency). If ingest_pdf_clean() throws an exception for one PDF (say the PDF is corrupt or the model fails on it), that exception will be captured by Celery and marked as a failure for that one task. Other tasks handled by other worker processes remain unaffected. The main FastAPI app also remains running since it’s not doing the work.
+Automatic Error Status: When a task fails, Celery marks its state as FAILURE and records the exception (and potentially traceback). This will be reflected in the task_status and task_result when the client checks the job status. For example, task_status: "FAILURE" and task_result: "Exception: PDF parsing error" (or a sanitized error message).
+No Crash Propagation: The Celery worker process may log the error or even restart that worker process if it crashed hard, but the Celery master will continue running. Celery’s design ensures the message broker can requeue tasks if a worker dies before acknowledging the task. Thus, one task’s failure does not bring down the queue or other workers. Each worker process handles one task at a time, so a segmentation fault or out-of-memory error on one PDF would terminate that process, but the Celery worker supervisor can spawn a new child process and continue with other tasks. This fault containment satisfies the requirement that one PDF failure must not crash others or the whole pipeline.
+Error Logging: We will implement robust logging for task execution:
+The Celery worker will be started with logging enabled (e.g. celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log as in some examples
+testdriven.io
+). This captures stdout/stderr from tasks. Any stack traces from ingest_pdf_clean exceptions will appear in the Celery log for developers to inspect.
+Additionally, within the ingest_pdf_task function, we can use try/except to catch exceptions and log a custom error message. For example:
+python
+Copy
+@celery_app.task(name="pdf_ingestion")
+def ingest_pdf_task(file_path):
+    try:
+        ... # processing
+    except Exception as e:
+        logger.exception(f"Failed to ingest PDF {file_path}: {e}")
+        # re-raise to mark task as failure
+        raise
+This ensures we log the error with context. The raise lets Celery know the task failed.
+Failure Information to Client: We should decide how much of the error to expose in task_result. In a production system, returning the entire traceback might be too much, but giving a message (“processing failed due to X”) is useful. Celery’s AsyncResult will have a .result (which for failures is often the Exception object or message) and possibly .traceback. We can include a safe portion of that in the API response. For example, task_result could be a string summary of the error.
+Recovery Strategy: In case of failure of a task:
+The failure is isolated and logged. The user can be informed via the status endpoint that that specific PDF failed. They could retry by re-uploading if appropriate.
+The system as a whole continues to process other queued jobs. There’s no domino effect.
+If a worker process crashes, Celery can be configured to restart workers. We ensure the broker will re-deliver any un-acknowledged task to another worker. Using Redis (which doesn’t support AMQP acknowledgments in the same way as RabbitMQ) with Celery typically means tasks are acknowledged after completion by default. If a worker crashes mid-task, that task will be marked as failed or pending (depending on result backend settings) and could be retried manually or by a retry policy. We can enable Celery’s retry mechanisms for tasks (e.g., max_retries and retry countdowns) if automatic retries on failure are desired for transient errors. This can be decided per use-case.
+We will also consider fault tolerance at the system level: Running multiple worker instances means if one worker machine goes down, others can pick up the slack. As long as the Redis broker is highly available, the tasks remain in the queue until handled.
+In summary, the asynchronous, multi-worker setup inherently provides fault isolation. We’ll further enforce this by coding defensively (try/except in tasks, validating inputs) so one bad PDF doesn’t crash the worker process outright when possible. The user will get a clear "FAILURE" status for any failed job, rather than the entire service hanging or crashing.
+Scalability with Distributed Workers
+The new design is built for scalability from the ground up. Scaling can be achieved in two dimensions:
+Vertical Scaling (per machine): Increase the concurrency of each Celery worker. For example, a single Celery worker process can spawn multiple child processes (--concurrency=N) to utilize multiple CPU cores. If the PDF processing is CPU-bound, concurrency might equal the number of cores. If I/O-bound (waiting on network or disk), we might even use threads or event loops, but in this case, likely CPU intensive (text parsing, ML inference), so multi-process is appropriate.
+Horizontal Scaling (multiple machines/containers): We can run multiple Celery worker instances on different hosts or in Docker containers, all connected to the same Redis broker. They will all pull from the same task queue, dividing the load. For example, we might deploy 5 worker servers, each with concurrency 4, to effectively handle 20 PDFs in parallel. Scaling out is as simple as starting another worker process with access to the broker and storage. Celery will distribute tasks to any available worker. This addresses the 100k+ PDF scenario: we can add workers to meet demand and throughput requirements. Celery’s design allows tasks to be processed on any worker – the client doesn’t need to know which one, it just enqueues to the broker
+parlak-deniss.medium.com
+.
+Containerization and Deployment: In practice, we will containerize the components:
+A container (or service) for the FastAPI app (the web API).
+A container for Redis (broker).
+One or more containers for Celery workers running the ingestion task. We might start with a single worker container (with multiple processes) and later add more replicas for scaling.
+These can be orchestrated via Docker Compose in development (with separate services for web, worker, and redis) and via Kubernetes or similar in production. For example, in Docker Compose:
+web: service running FastAPI (with Uvicorn).
+worker: service running something like celery -A app.celery_app worker --concurrency=4.
+redis: service for message brokering.
+If using Kubernetes, we could have a Deployment for the web app and another for workers. Using KEDA (Kubernetes Event-Driven Autoscaling) or Celery Flower monitoring can allow auto-scale based on queue length.
+High Availability: With multiple workers and a robust broker, the system can handle node failures gracefully. If one worker goes down, tasks will time out or be requeued to others. We should ensure Redis itself is HA (e.g., using Redis clusters or managed Redis) to avoid it being a single point of failure. Throughput Considerations:
+Celery will let us pipeline tasks. We should tune broker settings (like Redis bandwidth, Celery prefetch limits) if we handle bursts of tasks.
+We should also consider rate limiting or partitioning if needed (e.g., if model inference is GPU-bound, perhaps limit one GPU-intensive task per worker).
+The architecture can integrate a workflow for large jobs: e.g., if ingest_pdf_clean actually involves multiple steps (like text extraction, then embedding, then database insert), Celery supports task chains or multiple queues. For now, we assume it’s a single task per PDF.
+In summary, the system can scale to meet large volumes by simply adding more workers. This is a massive improvement over the single-process design, aligning with production standards for high-throughput document processing.
+Persistent File Storage for Distributed Processing
+One challenge in a distributed setup is ensuring all workers can access the PDF files. Currently, TORI uses a local filesystem (the FastAPI and workers on the same node) which won’t work transparently when workers run on different hosts or containers. We need a shared storage strategy for PDF files:
+Shared Network Disk (NAS/NFS): We could configure the FastAPI server and all workers to mount a common network drive. When a PDF is uploaded, it’s saved to this shared filesystem (e.g., /shared/pdfs/123.pdf). Any worker, even on another machine, can then read from /shared/pdfs/123.pdf. This requires network-attached storage or a distributed file system (e.g., NFS, SMB, or cloud file systems like EFS on AWS). The path (or filename) is passed to the Celery task, which then opens that file path.
+Object Storage (e.g. AWS S3): A more cloud-native approach is to upload PDFs to an object store. For example, when a PDF is submitted, the FastAPI service uses an S3 client (or Azure Blob, GCS, etc.) to upload the file to a bucket. The returned file key or URL (like s3://mybucket/uploads/123.pdf or a presigned URL) is given to the Celery task. Workers then download the file from S3 at processing time. This decouples storage from the application servers entirely. It adds a bit of latency for the worker to fetch the file, but ensures any worker anywhere can access the file given the correct credentials. This is highly scalable and durable.
+Database or Blob in Broker: Less common, but one could store the file in a database or even in Redis (as a byte blob). However, storing large PDF binaries in Redis is not ideal (memory bloat) and passing large data via Celery messages is discouraged. In fact, it’s recommended to pass references, not large objects, to Celery tasks
+stackoverflow.com
+. Therefore, we should not send the PDF bytes through Celery (which could overload the broker and network). Instead, we “pass a reference to wherever the Celery task can access that large object”
+stackoverflow.com
+. That reference can be a file path on a shared disk or a file ID/URL in external storage.
+Recommended Approach: Use a shared persistent store. For cloud deployments, S3 is a strong choice:
+Upon receiving the PDF, FastAPI streams it directly to S3 and gets back the object key (e.g., pdfs/job123.pdf). This is done before queuing the task (the user’s upload request may take a few seconds to upload to the server and to S3).
+The Celery task is enqueued with the S3 key as a parameter (or perhaps an HTTPS URL to the object if using presigned URLs).
+In the worker code, when processing starts, it will initialize an S3 client (or use boto3) to download the file to memory or a temp file, then run ingest_pdf_clean on it.
+After processing, if the result includes output files or large data, we could similarly store those in S3 or a database and perhaps return a reference.
+If on-prem or simpler setup is needed, mounting a NAS (e.g., all containers mount the host’s /data directory or use a Docker volume) can also work. In that case, FastAPI saves the file to /data/123.pdf and workers read the same path. Cleaning Up: We should consider lifecycle of stored files. With S3, we might keep them indefinitely or have a lifecycle rule to purge after some time if not needed. With local shared disk, perhaps a cleanup job is needed for old files. These are operational details, but important for a system processing 100k files to not run out of space. In summary, the plan is to pass only file references to Celery tasks – not the file content – to keep messages small and allow distributed file access. Whether via a shared filesystem or cloud storage, all workers will have access to the PDF by the time they start processing the task.
+Code Structure and Module Organization
+Refactoring TORI’s codebase to support this architecture will involve organizing code into clear modules for tasks, workers, and API routes. Below is a proposed structure and responsibility for each component:
+app/main.py (FastAPI Application): Initializes the FastAPI app and includes the API route handlers. For example:
+POST /jobs (or repurpose existing upload route) to handle file upload and task submission.
+GET /jobs/{job_id} for status polling.
+It will import the Celery app (from celery_app.py) and use the task definitions to dispatch jobs.
+Contains any startup events for FastAPI if needed (though model loading will be in Celery, not here).
+app/celery_app.py: Configuration and initialization of Celery.
+Create the Celery instance, e.g.:
+python
+Copy
+from celery import Celery
+celery_app = Celery('tori_worker', broker=REDIS_URL, backend=REDIS_URL)
+celery_app.conf.update(task_routes={...}, result_expires=3600, ...)  # any Celery config
+Optionally, auto-discover tasks or manually import the tasks module so Celery knows about them.
+This module might be pointed to by Celery command-line (celery -A app.celery_app worker ...).
+Could also include any Celery signal handlers for startup (if we want to do something when worker initializes, though a simple approach is fine).
+app/tasks.py: Definition of Celery task(s) for PDF ingestion.
+Import celery_app from celery_app.py.
+Define the task function with the @celery_app.task decorator. For instance:
+python
+Copy
+from app import celery_app
+@celery_app.task(name="ingest_pdf_clean_task")
+def ingest_pdf_task(file_location):
+    # (possibly initialize model here if global or lazy)
+    result = ingest_pdf_clean(file_location)
+    return result
+Handle exceptions as discussed (logging and re-raising).
+If multiple task types are needed (e.g., separate tasks for text extraction vs embedding), define them here as well.
+app/ingest_pdf_clean.py (or an existing module in TORI for PDF ingestion logic):
+This contains the core logic to process a PDF (text extraction, cleaning, NLP processing). We will refactor it if needed to accept a model instance (if not global) and perhaps to split steps if necessary.
+The Celery task simply calls this function. We ensure it’s idempotent or at least safe to call in isolation.
+app/models.py or app/utils.py: (Optional) If there are heavy NLP models, we might create a separate module to handle loading them (especially if multiple tasks or modules need it). For example, a function load_nlp_model() that returns a singleton instance. This can be used by tasks.py to set a global model on first use.
+app/storage.py: (Optional) Utility functions for file storage:
+If using S3: functions like save_file_to_s3(upload_file) -> str (returns the S3 key) and fetch_file_from_s3(key) -> bytes (to be used by worker if needed, though we can also stream directly in tasks).
+If using local: maybe a function to get the file path, etc.
+The FastAPI upload handler will use save_file_to_s3 and the Celery task might use fetch_file_from_s3 if not using direct file paths.
+Configuration & Environment: We’ll likely have a config (possibly using environment variables or a config file):
+Redis connection URL, e.g. REDIS_URL=redis://localhost:6379/0.
+If using S3: AWS credentials, bucket name.
+Model file paths or model names if needed for loading.
+These can be managed via a .env file and something like Pydantic’s BaseSettings (as seen in examples)
+parlak-deniss.medium.com
+ for convenience.
+worker.py (Celery entry point script): This could be simply:
+python
+Copy
+from app.celery_app import celery_app
+import app.tasks  # ensure tasks are registered
+Celery will load this module when starting workers. We might not need a separate worker.py if we use the celery_app.py and auto-discover tasks, but sometimes an explicit import is clearer.
+Testing & Scripts: We should include a way to run a development worker (maybe via docker or a script). Possibly a shell script or Makefile target to start the worker locally.
+Integration with SvelteKit Frontend: No changes are needed in the SvelteKit UI components aside from how it handles the response:
+The file upload form/action should now handle an asynchronous response. Instead of expecting the processed result immediately, it will get a job ID. The UI can show a message like “Processing... (Job ID: 1234)” and periodically poll the /jobs/{id} endpoint (using fetch or even WebSockets for push updates).
+A new page or component could display the job status and result when ready. For example, after upload, navigate to a “Job Status” page that takes the job_id and uses an onMount() hook to start polling, updating state as task_status changes. This improves user experience by not freezing the interface; the user could even navigate away and come back to check status.
+Overall, this code structure cleanly separates concerns: FastAPI handles API requests and delegating work, Celery handles background processing, and the ingestion logic is encapsulated and re-usable by the tasks. This is consistent with production architectures where web and worker codebases are separate but share common logic modules.
+Job Tracking and Result Retrieval
+Tracking jobs is crucial in an async system. Here’s how TORI’s pipeline will track and return results:
+Job IDs: Celery generates a unique ID for each task (usually a UUID). This ID is returned to the client on submission. We don’t need to generate our own, though we could map it to an internal ID if needed. The uniqueness of this ID across the system ensures we’re referencing the correct job.
+Task State Management: Celery keeps track of each task’s state in the result backend (Redis in this case). States include: PENDING (queued or not yet acknowledged by a worker), STARTED (currently running – this state is optional unless we enable task_track_started=True), SUCCESS (finished successfully), FAILURE (exception occurred), and others like RETRY if using retries. We don’t have to manage these manually; Celery transitions states automatically.
+Polling Mechanism: As described, the GET /jobs/{job_id} endpoint will retrieve the state. Under the hood, AsyncResult(task_id) is used to fetch from Redis:
+AsyncResult.status gives the state (e.g. "SUCCESS" or "FAILURE").
+AsyncResult.result gives the return value or exception info. (If the task isn’t finished, result might be None or a placeholder.)
+Result Contents: If ingest_pdf_clean produces a result (say, a summary of the PDF, or a database entry ID), that will be serialized by Celery and stored. Celery will by default pickle the result or use JSON (depending on config) to store in Redis. The FastAPI status endpoint will pass that through to the client. In many high-throughput systems, heavy results are not directly sent through the queue but stored externally similar to files. In our case, the result might just be a confirmation or small metadata, which is fine to return via Celery. If the result were large (like the entire extracted text of a huge PDF), we might instead store that in a file or DB and return a reference (similar logic to input files).
+Job Completion Notification: Our design uses polling by the client. Optionally, we could incorporate WebSockets or server-sent events for the server to push a notification when done, but that adds complexity. Polling each second or few seconds (perhaps with exponential backoff) is usually acceptable for such use cases.
+Cleaning Up Completed Jobs: Over time, 100k jobs will produce 100k records in Redis (task results). We should configure Celery’s backend to expire results after a certain time (via result_expires setting). For example, if we set result_expires=3600 (1 hour), Celery will automatically remove results older than an hour. This keeps Redis memory in check. The client is expected to fetch results soon after completion. If long-term tracking is needed (audit trail or history of processed files), we may implement a persistent log or database table of jobs:
+For instance, have a database where each job ID, file name, submission time, completion time, status, and any error message or output reference is recorded. The Celery task upon completion could update this DB entry. This would be a more persistent tracking mechanism beyond the ephemeral Redis cache. However, initially Redis-based tracking is sufficient.
+Fault Recovery: If the FastAPI server restarts, it doesn’t lose track of jobs because the state lives in Redis. The client just needs the job ID. Even if the web server is stateless and doesn’t remember what jobs it created, the client-driven polling with the job ID works as long as Redis still holds that task status. This stateless approach is scalable (any instance of the API service can handle a status request for any job by querying the central Redis). It’s important in a distributed system to avoid keeping state only in memory of one node. Example Flow Recap: A user uploads document42.pdf:
+POST /jobs is called with file data.
+FastAPI saves the file and queues task. Returns {"job_id": "abc123"}.
+Client starts polling /jobs/abc123 every 2 seconds.
+Celery worker picks up the task, processes PDF. Suppose it completes in 10 seconds with result {"summary": "...", "pages": 10}.
+Client’s next poll after 10s gets task_status: "SUCCESS", task_result: {...} and stops polling. The UI shows "Done" and possibly displays the summary or a link to more details.
+If the task failed, task_status: "FAILURE", task_result: "Error: OCR failed" might be returned. The UI can display an error state for that job.
+This clearly decouples submission from result retrieval, using the job ID as the bridge.
+Logging and Failure Recovery
+Logging has been partially covered, but to reiterate with production standards in mind:
+Centralized Logging: Each component (FastAPI app, Celery workers) will have logging configured. FastAPI can use logging module to log requests and any errors. Celery workers can direct logs to a file or stdout (which in container orchestration can be aggregated). We might integrate something like the ELK stack or a cloud logging service to collate logs if needed for a production environment handling 100k+ documents (observability becomes key).
+Task-Specific Logs: We will ensure ingest_pdf_clean uses logging to record important events (e.g., "Starting processing PDF X", "Completed processing PDF X in Y seconds", "Encountered issue with PDF X at page N"). These logs help debug and monitor performance bottlenecks. In a high-throughput scenario, we might sample or aggregate logs to not overwhelm with data, but initially, correctness is priority.
+Error Logging: As described, any exception will be logged with stack trace by logger.exception. We will include contextual info (file name or job ID) to trace problems. Using the job ID in logs is helpful to correlate with what the user sees.
+Failure Recovery: There are a few angles to recovery:
+Task Retry: If certain failures are transient (e.g., a network hiccup when downloading from S3), Celery can automatically retry a task. We can specify @celery_app.task(bind=True, max_retries=3, default_retry_delay=30) and in except, do self.retry(exc=e) to requeue the task up to 3 times. This is optional and depends on the failure modes expected.
+Idempotency: ingest_pdf_clean should be idempotent or safely re-runnable for retries to work well (e.g., if partial data was written to a DB, ensure it won’t duplicate entries on retry – perhaps by using the job ID as a unique key).
+Worker Crash: If a worker instance crashes or is killed, any uncompleted tasks will be detected by Celery. Typically, with Redis as broker, tasks might be lost if a worker dies mid-task (since Redis broker acknowledges immediately by default). To guard against that, we can configure task_acks_late=True and worker_prefetch_multiplier=1 so that tasks are acknowledged after completion, meaning a crash will leave the task un-acked and it can be redelivered to another worker. This way, another worker can recover tasks that were in progress on the crashed node. This is a configuration detail but important for resilience in large runs.
+Monitoring: We can deploy Flower (a Celery monitoring tool) or simply use Celery’s events to monitor the queue length and worker status. Flower provides a UI to see tasks, retry failed ones, etc., which is useful in production to manage stuck tasks or purge failed ones.
+In essence, error handling will ensure that a failed task is recorded and reported, but does not impede the overall pipeline. The system should require minimal manual intervention even if some tasks fail – those failures are expected and handled as part of normal operation, and other jobs continue to completion.
+Deployment and Integration Notes
+Finally, deploying this new architecture in a way that integrates with TORI’s existing pipeline and meets production standards:
+Deploying Celery and Redis: We will add Redis to the infrastructure (if not already present). In development, this could be a Docker container. In production, a managed Redis service or a self-hosted instance should be used. Ensure the network/firewall allows the FastAPI app and all workers to connect to Redis. Use a strong password or authentication for Redis in production.
+Celery Worker Deployment: Package the code such that the same codebase can be run in two modes: (1) API server, (2) Celery worker. This is often done by containerizing the app and using environment variables or command arguments to decide mode. For example:
+The Docker image might contain the code and a start command chosen by an env var, like MODE=web vs MODE=worker. If web, run Uvicorn server; if worker, run celery -A app.celery_app worker ....
+Alternatively, use two separate images or entry points.
+Both modes use the same code, ensuring they share model code, tasks, etc.
+Environment Configuration: Use environment variables for things like BROKER_URL, RESULT_BACKEND, and any credentials (S3 keys, etc.), rather than hardcoding. This makes scaling and config changes easier.
+Docker Compose Example: A snippet of a docker-compose.yml might look like:
+yaml
+Copy
+version: '3'
+services:
+  web:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - S3_BUCKET=...
+      # etc.
+    volumes:
+      - ./:/app  # if needed
+    depends_on:
+      - redis
+  worker:
+    build: .
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      # (same codebase, so uses app.celery_app)
+    depends_on:
+      - redis
+  redis:
+    image: redis:6-alpine
+    volumes:
+      - redis-data:/data
+volumes:
+  redis-data:
+This ensures the web and worker services both use the same code image and share the Redis broker.
+Scaling Out: To scale, one could simply run more worker services. In Kubernetes, set replicas of the worker deployment, or in Docker Swarm/Compose, run multiple instances of the worker service. All will consume tasks from Redis. We must monitor performance (CPU/RAM) and possibly partition tasks if needed (Celery supports routing tasks to different queues, which could be useful if we later have different types of tasks or priority levels).
+Integration with Existing Pipeline: The switch to asynchronous processing means the front-end behavior might change slightly (as discussed), but we can do it in a backwards-compatible way if needed:
+We could keep the old synchronous endpoint for certain uses or smaller files, but likely we want to migrate entirely to the async pipeline for scalability.
+We should communicate to users (if external) that uploads will be processed in background. Possibly provide user feedback like “Your file is being processed, you will see results shortly.”
+If TORI’s pipeline had subsequent steps (e.g., after ingest, maybe querying the processed data), ensure those now account for the asynchronous nature (e.g., a user can’t query the PDF’s content until processing is done).
+Testing in Staging: Before full production, test with a batch of PDFs in a staging environment to ensure the queueing, processing, and status tracking works as expected. This will also allow tuning of concurrency and resource usage.
+Production Considerations:
+Use time-outs or limits for tasks if necessary (Celery can enforce time limits so one bad PDF that hangs doesn’t tie up a worker forever).
+Use circuit breakers or backpressure if the queue grows too large (100k tasks queued is fine, but if it grows beyond processing capacity, maybe throttle incoming submissions or autoscale workers).
+Ensure idempotency in case of retries or duplicate submissions (maybe generate content hash of PDF to avoid reprocessing the exact same file twice, etc., if relevant).
+Set up monitoring (CPU, memory of workers, length of Redis queue, task throughput) to inform scaling decisions. High-throughput systems benefit from metrics and alerts (e.g., if average task time increases or error rate spikes).
+By implementing the above plan, TORI’s PDF ingestion pipeline will transform into a robust, asynchronous system. This system will handle large volumes by distributing work across a pool of workers, keep the web interface snappy for users, and adhere to production-grade practices (proper separation of services, fault tolerance, and scalability). It aligns with how high-throughput document processing systems are built in industry, ensuring TORI can grow to ingest 100,000+ PDFs reliably and efficiently. Sources:
+Herman, M. Asynchronous Tasks with FastAPI and Celery – Demonstrates using Celery with FastAPI for background tasks
+testdriven.io
+testdriven.io
+.
+Parlak, D. Python File Upload to S3 with Celery – Example of Celery architecture and file handling in a FastAPI context
+parlak-deniss.medium.com
+stackoverflow.com
+.
+Celery Project Documentation – Describes Celery’s distributed worker architecture and task execution model
+parlak-deniss.medium.com
+patrick.cloke.us
+.

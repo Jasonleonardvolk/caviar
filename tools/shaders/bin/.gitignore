@@ -1,0 +1,10 @@
+# Ignore downloaded binaries but keep scripts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# But keep the download scripts and docs
+!download_*.ps1
+!README.md
+!.gitkeep

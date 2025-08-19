@@ -1,0 +1,269 @@
+/**
+ * Vector Template
+ * 
+ * This template defines an n-dimensional vector with common vector operations.
+ */
+
+template Vector(dimensions=3) {
+    parameters {
+        dimensions: int = dimensions;  // Number of dimensions
+    }
+    
+    // Initialize with zeros
+    property elements = [0.0] * dimensions;
+    
+    // Set element values
+    function set(index, value) {
+        if (index < 0 || index >= dimensions) {
+            error "Index out of bounds";
+        }
+        elements[index] = value;
+    }
+    
+    // Get element value
+    function get(index) {
+        if (index < 0 || index >= dimensions) {
+            error "Index out of bounds";
+        }
+        return elements[index];
+    }
+    
+    // Vector magnitude
+    property magnitude {
+        sum_squares = 0.0;
+        for (i = 0; i < dimensions; i++) {
+            sum_squares += elements[i] * elements[i];
+        }
+        return sqrt(sum_squares);
+    }
+    
+    // Normalized vector
+    property normalized {
+        result = Vector(dimensions);
+        mag = magnitude;
+        
+        if (mag > 0) {
+            for (i = 0; i < dimensions; i++) {
+                result.set(i, elements[i] / mag);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Add two vectors
+    function add(other) {
+        if (other.dimensions != dimensions) {
+            error "Vector dimensions must match";
+        }
+        
+        result = Vector(dimensions);
+        for (i = 0; i < dimensions; i++) {
+            result.set(i, elements[i] + other.get(i));
+        }
+        
+        return result;
+    }
+    
+    // Subtract vector
+    function subtract(other) {
+        if (other.dimensions != dimensions) {
+            error "Vector dimensions must match";
+        }
+        
+        result = Vector(dimensions);
+        for (i = 0; i < dimensions; i++) {
+            result.set(i, elements[i] - other.get(i));
+        }
+        
+        return result;
+    }
+    
+    // Dot product
+    function dot(other) {
+        if (other.dimensions != dimensions) {
+            error "Vector dimensions must match";
+        }
+        
+        sum = 0.0;
+        for (i = 0; i < dimensions; i++) {
+            sum += elements[i] * other.get(i);
+        }
+        
+        return sum;
+    }
+    
+    // Scale vector by scalar
+    function scale(scalar) {
+        result = Vector(dimensions);
+        for (i = 0; i < dimensions; i++) {
+            result.set(i, elements[i] * scalar);
+        }
+        
+        return result;
+    }
+}
+
+// Specialized 2D vector
+template Vector2D() {
+    parameters {
+        // No parameters needed
+    }
+    
+    // Create an instance of the base Vector template
+    property base = Vector(2);
+    
+    // X component accessor
+    property x {
+        get {
+            return base.get(0);
+        }
+        set(value) {
+            base.set(0, value);
+        }
+    }
+    
+    // Y component accessor
+    property y {
+        get {
+            return base.get(1);
+        }
+        set(value) {
+            base.set(1, value);
+        }
+    }
+    
+    // Pass through to base vector methods
+    property magnitude {
+        return base.magnitude;
+    }
+    
+    property normalized {
+        normalizedBase = base.normalized;
+        result = Vector2D();
+        result.x = normalizedBase.get(0);
+        result.y = normalizedBase.get(1);
+        return result;
+    }
+    
+    function add(other) {
+        result = Vector2D();
+        resultBase = base.add(other.base);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        return result;
+    }
+    
+    function subtract(other) {
+        result = Vector2D();
+        resultBase = base.subtract(other.base);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        return result;
+    }
+    
+    function dot(other) {
+        return base.dot(other.base);
+    }
+    
+    function scale(scalar) {
+        result = Vector2D();
+        resultBase = base.scale(scalar);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        return result;
+    }
+}
+
+// Specialized 3D vector
+template Vector3D() {
+    parameters {
+        // No parameters needed
+    }
+    
+    // Create an instance of the base Vector template
+    property base = Vector(3);
+    
+    // X component accessor
+    property x {
+        get {
+            return base.get(0);
+        }
+        set(value) {
+            base.set(0, value);
+        }
+    }
+    
+    // Y component accessor
+    property y {
+        get {
+            return base.get(1);
+        }
+        set(value) {
+            base.set(1, value);
+        }
+    }
+    
+    // Z component accessor
+    property z {
+        get {
+            return base.get(2);
+        }
+        set(value) {
+            base.set(2, value);
+        }
+    }
+    
+    // Pass through to base vector methods
+    property magnitude {
+        return base.magnitude;
+    }
+    
+    property normalized {
+        normalizedBase = base.normalized;
+        result = Vector3D();
+        result.x = normalizedBase.get(0);
+        result.y = normalizedBase.get(1);
+        result.z = normalizedBase.get(2);
+        return result;
+    }
+    
+    function add(other) {
+        result = Vector3D();
+        resultBase = base.add(other.base);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        result.z = resultBase.get(2);
+        return result;
+    }
+    
+    function subtract(other) {
+        result = Vector3D();
+        resultBase = base.subtract(other.base);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        result.z = resultBase.get(2);
+        return result;
+    }
+    
+    function dot(other) {
+        return base.dot(other.base);
+    }
+    
+    function cross(other) {
+        result = Vector3D();
+        result.x = base.get(1) * other.z - base.get(2) * other.y;
+        result.y = base.get(2) * other.x - base.get(0) * other.z;
+        result.z = base.get(0) * other.y - base.get(1) * other.x;
+        return result;
+    }
+    
+    function scale(scalar) {
+        result = Vector3D();
+        resultBase = base.scale(scalar);
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        result.z = resultBase.get(2);
+        return result;
+    }
+}

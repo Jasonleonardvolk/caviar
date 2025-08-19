@@ -1,0 +1,35 @@
+## Default configuration for neural Lyapunov training and verification
+
+# Trainer configuration
+trainer:
+  lr: 1e-3                # Learning rate for optimizer
+  gamma: 0.1              # Margin for decrease condition: V̇(x) ≤ -gamma*||x||
+  weight_decay: 1e-5      # L2 regularization coefficient
+  max_norm: 1.0           # Maximum norm for gradient clipping
+  use_amp: true           # Whether to use Automatic Mixed Precision training
+
+# Alpha scheduler configuration
+alpha_scheduler:
+  type: "exponential"     # Scheduler type: "exponential", "step", or "warm_restart"
+  alpha0: 0.01            # Initial alpha value
+  min_alpha: 1e-4         # Minimum alpha value
+  decay_rate: 0.63        # Decay rate for exponential scheduler
+  step_size: 100          # Steps between alpha updates for exponential scheduler
+  decay_steps: 2000       # Number of steps to decay from initial to min alpha
+
+# Sampler configuration
+sampler:
+  batch_size: 1024        # Batch size for sampling
+  counterexample_buffer_size: 1000  # Maximum number of counterexamples to store
+
+# Verifier configuration
+verifier:
+  time_limit: 600.0       # Time limit for MILP solver in seconds
+  verbose: false          # Whether to show solver output
+  big_m_scale: 1.1        # Scaling factor for big-M constants
+  epsilon: 1e-6           # Small constant for numerical stability
+
+# Domain configuration
+domain:
+  dim: 2                  # State space dimension
+  bounds: [-3.0, 3.0]     # Domain bounds [low, high]

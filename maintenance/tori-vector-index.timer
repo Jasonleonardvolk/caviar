@@ -1,0 +1,19 @@
+[Unit]
+Description=Tori Vector Index Builder Timer - Runs weekly on Sunday at 02:00 CST
+Documentation=https://github.com/tori/maintenance
+Requires=tori-vector-index.service
+
+[Timer]
+# Run every Sunday at 02:00 CST (Central Standard Time)
+# CST is UTC-6, so 02:00 CST = 08:00 UTC
+OnCalendar=Sun *-*-* 08:00:00
+Persistent=true
+
+# Add some randomization to prevent thundering herd
+RandomizedDelaySec=600
+
+# If the system was powered down, run the job when it starts up
+Persistent=true
+
+[Install]
+WantedBy=timers.target

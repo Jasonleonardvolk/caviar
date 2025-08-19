@@ -1,0 +1,512 @@
+/**
+ * Matrix Template
+ * 
+ * This template defines a matrix with common matrix operations.
+ */
+
+import { Vector, Vector3D } from "vector.elfin";
+
+template Matrix(rows=3, cols=3) {
+    parameters {
+        rows: int = rows;  // Number of rows
+        cols: int = cols;  // Number of columns
+    }
+    
+    // Initialize with zeros
+    property elements = [[0.0 for c in range(cols)] for r in range(rows)];
+    
+    // Set element value
+    function set(row, col, value) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            error "Index out of bounds";
+        }
+        elements[row][col] = value;
+    }
+    
+    // Get element value
+    function get(row, col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            error "Index out of bounds";
+        }
+        return elements[row][col];
+    }
+    
+    // Set row vector
+    function set_row(row, vector) {
+        if (row < 0 || row >= rows) {
+            error "Row index out of bounds";
+        }
+        
+        for (col = 0; col < cols; col++) {
+            if (col < vector.dimensions) {
+                elements[row][col] = vector.get(col);
+            }
+        }
+    }
+    
+    // Get row as vector
+    function get_row(row) {
+        if (row < 0 || row >= rows) {
+            error "Row index out of bounds";
+        }
+        
+        result = Vector(cols);
+        for (col = 0; col < cols; col++) {
+            result.set(col, elements[row][col]);
+        }
+        
+        return result;
+    }
+    
+    // Set column vector
+    function set_col(col, vector) {
+        if (col < 0 || col >= cols) {
+            error "Column index out of bounds";
+        }
+        
+        for (row = 0; row < rows; row++) {
+            if (row < vector.dimensions) {
+                elements[row][col] = vector.get(row);
+            }
+        }
+    }
+    
+    // Get column as vector
+    function get_col(col) {
+        if (col < 0 || col >= cols) {
+            error "Column index out of bounds";
+        }
+        
+        result = Vector(rows);
+        for (row = 0; row < rows; row++) {
+            result.set(row, elements[row][col]);
+        }
+        
+        return result;
+    }
+    
+    // Matrix addition
+    function add(other) {
+        if (other.rows != rows || other.cols != cols) {
+            error "Matrix dimensions must match";
+        }
+        
+        result = Matrix(rows, cols);
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                result.set(r, c, elements[r][c] + other.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix subtraction
+    function subtract(other) {
+        if (other.rows != rows || other.cols != cols) {
+            error "Matrix dimensions must match";
+        }
+        
+        result = Matrix(rows, cols);
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                result.set(r, c, elements[r][c] - other.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix multiplication
+    function multiply(other) {
+        if (cols != other.rows) {
+            error "Matrix dimensions incompatible for multiplication";
+        }
+        
+        result = Matrix(rows, other.cols);
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < other.cols; c++) {
+                sum = 0.0;
+                for (k = 0; k < cols; k++) {
+                    sum += elements[r][k] * other.get(k, c);
+                }
+                result.set(r, c, sum);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Scale matrix by scalar
+    function scale(scalar) {
+        result = Matrix(rows, cols);
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                result.set(r, c, elements[r][c] * scalar);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix transpose
+    property transpose {
+        result = Matrix(cols, rows);
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                result.set(c, r, elements[r][c]);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Apply matrix to vector (matrix-vector multiplication)
+    function apply(vector) {
+        if (cols != vector.dimensions) {
+            error "Matrix and vector dimensions incompatible";
+        }
+        
+        result = Vector(rows);
+        for (r = 0; r < rows; r++) {
+            sum = 0.0;
+            for (c = 0; c < cols; c++) {
+                sum += elements[r][c] * vector.get(c);
+            }
+            result.set(r, sum);
+        }
+        
+        return result;
+    }
+    
+    // Determinant (only for square matrices)
+    property determinant {
+        if (rows != cols) {
+            error "Determinant only defined for square matrices";
+        }
+        
+        if (rows == 1) {
+            return elements[0][0];
+        } else if (rows == 2) {
+            return elements[0][0] * elements[1][1] - elements[0][1] * elements[1][0];
+        } else if (rows == 3) {
+            return (
+                elements[0][0] * (elements[1][1] * elements[2][2] - elements[1][2] * elements[2][1]) -
+                elements[0][1] * (elements[1][0] * elements[2][2] - elements[1][2] * elements[2][0]) +
+                elements[0][2] * (elements[1][0] * elements[2][1] - elements[1][1] * elements[2][0])
+            );
+        } else {
+            error "Determinant for matrices larger than 3x3 not implemented";
+        }
+    }
+    
+    // Matrix inverse (only for square matrices)
+    property inverse {
+        if (rows != cols) {
+            error "Inverse only defined for square matrices";
+        }
+        
+        det = determinant;
+        if (abs(det) < 1e-10) {
+            error "Matrix is singular, cannot compute inverse";
+        }
+        
+        if (rows == 1) {
+            result = Matrix(1, 1);
+            result.set(0, 0, 1.0 / elements[0][0]);
+            return result;
+        } else if (rows == 2) {
+            result = Matrix(2, 2);
+            inv_det = 1.0 / det;
+            result.set(0, 0, elements[1][1] * inv_det);
+            result.set(0, 1, -elements[0][1] * inv_det);
+            result.set(1, 0, -elements[1][0] * inv_det);
+            result.set(1, 1, elements[0][0] * inv_det);
+            return result;
+        } else if (rows == 3) {
+            result = Matrix(3, 3);
+            inv_det = 1.0 / det;
+            
+            // Compute cofactors
+            result.set(0, 0, (elements[1][1] * elements[2][2] - elements[1][2] * elements[2][1]) * inv_det);
+            result.set(0, 1, (elements[0][2] * elements[2][1] - elements[0][1] * elements[2][2]) * inv_det);
+            result.set(0, 2, (elements[0][1] * elements[1][2] - elements[0][2] * elements[1][1]) * inv_det);
+            
+            result.set(1, 0, (elements[1][2] * elements[2][0] - elements[1][0] * elements[2][2]) * inv_det);
+            result.set(1, 1, (elements[0][0] * elements[2][2] - elements[0][2] * elements[2][0]) * inv_det);
+            result.set(1, 2, (elements[0][2] * elements[1][0] - elements[0][0] * elements[1][2]) * inv_det);
+            
+            result.set(2, 0, (elements[1][0] * elements[2][1] - elements[1][1] * elements[2][0]) * inv_det);
+            result.set(2, 1, (elements[0][1] * elements[2][0] - elements[0][0] * elements[2][1]) * inv_det);
+            result.set(2, 2, (elements[0][0] * elements[1][1] - elements[0][1] * elements[1][0]) * inv_det);
+            
+            return result;
+        } else {
+            error "Inverse for matrices larger than 3x3 not implemented";
+        }
+    }
+    
+    // Check if matrix is identity
+    property is_identity {
+        if (rows != cols) {
+            return false;
+        }
+        
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                expected = (r == c) ? 1.0 : 0.0;
+                if (abs(elements[r][c] - expected) > 1e-10) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    // Create identity matrix
+    static function identity(size) {
+        result = Matrix(size, size);
+        for (i = 0; i < size; i++) {
+            result.set(i, i, 1.0);
+        }
+        return result;
+    }
+}
+
+// Specialized 3x3 matrix
+template Matrix3D() {
+    parameters {
+        // No parameters needed
+    }
+    
+    // Create an instance of the base Matrix template
+    property base = Matrix(3, 3);
+    
+    // Set individual elements
+    function set(row, col, value) {
+        base.set(row, col, value);
+    }
+    
+    function get(row, col) {
+        return base.get(row, col);
+    }
+    
+    // Set row with Vector3D
+    function set_row(row, vector) {
+        if (row < 0 || row >= 3) {
+            error "Row index out of bounds";
+        }
+        
+        base.set(row, 0, vector.x);
+        base.set(row, 1, vector.y);
+        base.set(row, 2, vector.z);
+    }
+    
+    // Get row as Vector3D
+    function get_row(row) {
+        if (row < 0 || row >= 3) {
+            error "Row index out of bounds";
+        }
+        
+        result = Vector3D();
+        result.x = base.get(row, 0);
+        result.y = base.get(row, 1);
+        result.z = base.get(row, 2);
+        
+        return result;
+    }
+    
+    // Set column with Vector3D
+    function set_col(col, vector) {
+        if (col < 0 || col >= 3) {
+            error "Column index out of bounds";
+        }
+        
+        base.set(0, col, vector.x);
+        base.set(1, col, vector.y);
+        base.set(2, col, vector.z);
+    }
+    
+    // Get column as Vector3D
+    function get_col(col) {
+        if (col < 0 || col >= 3) {
+            error "Column index out of bounds";
+        }
+        
+        result = Vector3D();
+        result.x = base.get(0, col);
+        result.y = base.get(1, col);
+        result.z = base.get(2, col);
+        
+        return result;
+    }
+    
+    // Matrix3D addition
+    function add(other) {
+        result = Matrix3D();
+        resultBase = base.add(other.base);
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, resultBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix3D subtraction
+    function subtract(other) {
+        result = Matrix3D();
+        resultBase = base.subtract(other.base);
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, resultBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix3D multiplication
+    function multiply(other) {
+        result = Matrix3D();
+        resultBase = base.multiply(other.base);
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, resultBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Scale matrix by scalar
+    function scale(scalar) {
+        result = Matrix3D();
+        resultBase = base.scale(scalar);
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, resultBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Matrix3D transpose
+    property transpose {
+        result = Matrix3D();
+        transposeBase = base.transpose;
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, transposeBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Apply matrix to Vector3D (matrix-vector multiplication)
+    function apply(vector) {
+        vectorBase = Vector(3);
+        vectorBase.set(0, vector.x);
+        vectorBase.set(1, vector.y);
+        vectorBase.set(2, vector.z);
+        
+        resultBase = base.apply(vectorBase);
+        
+        result = Vector3D();
+        result.x = resultBase.get(0);
+        result.y = resultBase.get(1);
+        result.z = resultBase.get(2);
+        
+        return result;
+    }
+    
+    // Matrix3D determinant
+    property determinant {
+        return base.determinant;
+    }
+    
+    // Matrix3D inverse
+    property inverse {
+        result = Matrix3D();
+        inverseBase = base.inverse;
+        
+        for (r = 0; r < 3; r++) {
+            for (c = 0; c < 3; c++) {
+                result.set(r, c, inverseBase.get(r, c));
+            }
+        }
+        
+        return result;
+    }
+    
+    // Check if matrix is identity
+    property is_identity {
+        return base.is_identity;
+    }
+    
+    // Create 3x3 identity matrix
+    static function identity() {
+        result = Matrix3D();
+        for (i = 0; i < 3; i++) {
+            result.set(i, i, 1.0);
+        }
+        return result;
+    }
+    
+    // Create rotation matrix around X axis
+    static function rotation_x(angle) {
+        result = Matrix3D();
+        
+        c = cos(angle);
+        s = sin(angle);
+        
+        result.set(0, 0, 1.0);
+        result.set(1, 1, c);
+        result.set(1, 2, -s);
+        result.set(2, 1, s);
+        result.set(2, 2, c);
+        
+        return result;
+    }
+    
+    // Create rotation matrix around Y axis
+    static function rotation_y(angle) {
+        result = Matrix3D();
+        
+        c = cos(angle);
+        s = sin(angle);
+        
+        result.set(0, 0, c);
+        result.set(0, 2, s);
+        result.set(1, 1, 1.0);
+        result.set(2, 0, -s);
+        result.set(2, 2, c);
+        
+        return result;
+    }
+    
+    // Create rotation matrix around Z axis
+    static function rotation_z(angle) {
+        result = Matrix3D();
+        
+        c = cos(angle);
+        s = sin(angle);
+        
+        result.set(0, 0, c);
+        result.set(0, 1, -s);
+        result.set(1, 0, s);
+        result.set(1, 1, c);
+        result.set(2, 2, 1.0);
+        
+        return result;
+    }
+}

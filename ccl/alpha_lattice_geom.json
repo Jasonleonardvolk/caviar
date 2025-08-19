@@ -1,0 +1,44 @@
+{
+  "lattice_type": "kagome_2d",
+  "description": "Topological Kagome lattice with Chern number = 1 bandgap",
+  "unit_cell": {
+    "sites": [
+      {"id": 0, "position": [0.0, 0.0], "type": "A"},
+      {"id": 1, "position": [0.5, 0.0], "type": "B"},
+      {"id": 2, "position": [0.25, 0.433], "type": "C"}
+    ],
+    "bonds": [
+      {"from": 0, "to": 1, "hopping": 1.0},
+      {"from": 1, "to": 2, "hopping": 1.0},
+      {"from": 2, "to": 0, "hopping": 1.0}
+    ]
+  },
+  "lattice_vectors": [
+    [1.0, 0.0],
+    [0.5, 0.866]
+  ],
+  "system_size": [20, 20],
+  "boundary_conditions": "periodic",
+  "topological_properties": {
+    "chern_number": 1,
+    "edge_modes": "chiral",
+    "bulk_gap": 0.5,
+    "flux_per_plaquette": 0.25
+  },
+  "disorder": {
+    "enabled": false,
+    "strength": 0.0,
+    "type": "anderson"
+  },
+  "interactions": {
+    "nearest_neighbor": 0.0,
+    "next_nearest_neighbor": 0.0,
+    "on_site": -1.0
+  },
+  "total_sites": 1200,
+  "energy_scales": {
+    "hopping": 1.0,
+    "gap": 0.5,
+    "interaction": -1.0
+  }
+}

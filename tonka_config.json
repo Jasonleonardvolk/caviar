@@ -1,0 +1,32 @@
+{
+  "name": "TONKA",
+  "version": "1.0",
+  "knowledge_base": {
+    "concept_mesh": "C:\\Users\\jason\\Desktop\\pigpen\\concept_mesh",
+    "datasets": "C:\\Users\\jason\\Desktop\\pigpen\\docs\\material\\dataset\\06_27",
+    "learning_complete": true
+  },
+  "capabilities": {
+    "programming": [
+      "python",
+      "rust",
+      "csharp"
+    ],
+    "mathematics": [
+      "algebra",
+      "calculus",
+      "geometry"
+    ],
+    "algorithms": [
+      "sorting",
+      "searching",
+      "dynamic_programming"
+    ],
+    "reasoning": [
+      "deductive",
+      "inductive",
+      "problem_solving"
+    ]
+  },
+  "ready_to_code": true
+}

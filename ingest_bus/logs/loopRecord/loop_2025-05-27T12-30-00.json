@@ -1,0 +1,44 @@
+{
+  "event": "video_segment_ingested",
+  "record_id": "loop_2025-05-27T12-30-00",
+  "segmentId": 3,
+  "video_id": "abc123",
+  "source_file": "ai_consciousness_discussion.mp4",
+  "concepts": [
+    "ai_consciousness",
+    "neural_architecture", 
+    "emergent_behavior",
+    "computational_theory_mind"
+  ],
+  "ghosts": [
+    "Ghost Collective",
+    "Creator", 
+    "Scholar",
+    "Critic"
+  ],
+  "timestamp": 1717234200,
+  "processing_time": 45.7,
+  "integrity_score": 0.76,
+  "trust_flags": [
+    "Speculative consciousness claims flagged by Critic",
+    "Missing source attribution noted by Scholar"
+  ],
+  "version_hash": "a1b2c3d4",
+  "ψTrajectory": "AI>Consciousness>Emergence",
+  "memory_integrations": {
+    "concept_mesh_updates": 4,
+    "braid_memory_links": 7,
+    "psi_anchors_created": 2,
+    "scholar_sphere_archived": true
+  },
+  "drift_detection": {
+    "concepts_monitored": 4,
+    "drift_alerts": 0,
+    "stability_score": 0.94
+  },
+  "ghost_feedback": {
+    "collaborative_exchanges": 3,
+    "consensus_level": 0.72,
+    "conflicting_assessments": 1
+  }
+}

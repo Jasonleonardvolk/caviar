@@ -1,0 +1,115 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run ingest-bus",
+      "type": "shell",
+      "command": "start-ingest-bus.bat",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": [{ "regexp":".*", "file":1, "line":1, "message":1 }],
+          "background": { "activeOnStart": true, "beginsPattern": "Starting ingest-bus", "endsPattern": ".*Application startup complete.*" }
+        }
+      ]
+    },
+    {
+      "label": "Run math-aware worker",
+      "type": "shell",
+      "command": "start-enhanced-worker.bat",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": [{ "regexp":".*", "file":1, "line":1, "message":1 }],
+          "background": { "activeOnStart": true, "beginsPattern": "Starting enhanced ingest worker", "endsPattern": ".*Worker loop.*" }
+        }
+      ]
+    },
+    {
+      "label": "Run math-aware worker (with MathPix)",
+      "type": "shell",
+      "command": "start-enhanced-worker.bat --mathpix",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": [{ "regexp":".*", "file":1, "line":1, "message":1 }],
+          "background": { "activeOnStart": true, "beginsPattern": "Starting enhanced ingest worker", "endsPattern": ".*Worker loop.*" }
+        }
+      ]
+    },
+    {
+      "label": "Queue sample PDFs",
+      "type": "shell",
+      "dependsOn": "Run ingest-bus",
+      "command": "python scripts/queue_samples.py docs/sample/*.pdf",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Queue math PDFs",
+      "type": "shell",
+      "dependsOn": "Run ingest-bus",
+      "command": "python scripts/queue_samples.py docs/math/*.pdf",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Queue programming PDFs",
+      "type": "shell",
+      "dependsOn": "Run ingest-bus",
+      "command": "python scripts/queue_samples.py docs/programming/*.pdf",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Tail metrics",
+      "type": "shell",
+      "command": "curl -s http://localhost:8081/metrics | grep ingest_",
+      "presentation": { "panel": "dedicated" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run math chunking tests",
+      "type": "shell",
+      "command": "python -m unittest tests/test_math_aware_chunking.py",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Process file with enhanced worker",
+      "type": "shell",
+      "command": "python examples/worker_extract_enhanced.py --mode file --file ${input:pdfPath}",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "pdfPath",
+      "type": "promptString",
+      "description": "Path to PDF file to process",
+      "default": "docs/sample/sample.pdf"
+    }
+  ]
+}

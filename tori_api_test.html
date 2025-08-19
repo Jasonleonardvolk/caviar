@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TORI API Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { margin: 5px; padding: 10px; cursor: pointer; }
+        #log { background: #f0f0f0; padding: 10px; margin-top: 20px; }
+        .log-entry { margin: 5px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>TORI API Direct Test Page</h1>
+    <p>This page tests the API endpoints directly without Svelte/Vite interference.</p>
+    
+    <div class="test">
+        <h3>1. Backend Health Check</h3>
+        <button onclick="testHealth()">Test Health</button>
+        <div id="health-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>2. Soliton Init Test</h3>
+        <button onclick="testSolitonInit()">Test Soliton Init</button>
+        <div id="soliton-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>3. Chat Test</h3>
+        <input type="text" id="chat-input" placeholder="Type a message..." value="Hello TORI">
+        <button onclick="testChat()">Send Message</button>
+        <div id="chat-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>4. Upload Test</h3>
+        <input type="file" id="file-input" accept=".pdf">
+        <button onclick="testUpload()">Test Upload</button>
+        <div id="upload-result"></div>
+    </div>
+    
+    <div id="log">
+        <h3>Log:</h3>
+        <div id="log-entries"></div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8002';
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log-entries');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            console.log(message);
+        }
+        
+        async function testHealth() {
+            log('Testing backend health...');
+            const resultDiv = document.getElementById('health-result');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                
+                resultDiv.className = 'success';
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                log('Health check successful!', 'success');
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `Error: ${error.message}`;
+                log(`Health check failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSolitonInit() {
+            log('Testing soliton init...');
+            const resultDiv = document.getElementById('soliton-result');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/soliton/init`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: 'test_user' })
+                });
+                const data = await response.json();
+                
+                resultDiv.className = response.ok ? 'success' : 'error';
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                log(`Soliton init: ${response.ok ? 'success' : 'failed'}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `Error: ${error.message}`;
+                log(`Soliton init error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testChat() {
+            log('Testing chat...');
+            const resultDiv = document.getElementById('chat-result');
+            const input = document.getElementById('chat-input').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_query: input,
+                        persona: {}
+                    })
+                });
+                const data = await response.json();
+                
+                resultDiv.className = response.ok ? 'success' : 'error';
+                resultDiv.innerHTML = `<strong>Response:</strong><br>${data.answer || data.error || 'No response'}`;
+                log(`Chat test: ${response.ok ? 'success' : 'failed'}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `Error: ${error.message}`;
+                log(`Chat error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testUpload() {
+            log('Testing upload...');
+            const resultDiv = document.getElementById('upload-result');
+            const fileInput = document.getElementById('file-input');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = 'Please select a file first';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const progressId = `test_${Date.now()}`;
+                const response = await fetch(`${API_BASE}/api/upload?progress_id=${progressId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                resultDiv.className = response.ok ? 'success' : 'error';
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                log(`Upload test: ${response.ok ? 'success' : 'failed'}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `Error: ${error.message}`;
+                log(`Upload error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test health on load
+        window.onload = () => {
+            log('Test page loaded. Click buttons to test each endpoint.');
+            testHealth();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+name: ELFIN Nightly Tests
+
+# Schedule: run every night at 2:00 AM
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  koopman-verification:
+    name: Koopman Verification Tests
+    runs-on: [self-hosted, cuda]
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install additional test dependencies
+          pip install pytest pytest-xdist pytest-timeout
+          
+      - name: Run Koopman tests
+        run: |
+          python -m pytest alan_backend/elfin/koopman/tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+      
+      - name: Cross-validation drift check
+        run: |
+          python -c "
+          from alan_backend.elfin.koopman.edmd import kfold_validation
+          from alan_backend.elfin.koopman.koopman_bridge_agent import create_pendulum_agent
+          import numpy as np
+          
+          # Create test agent
+          agent, lyap_fn = create_pendulum_agent(verify=False)
+          
+          # Get data and dictionary
+          result = agent.results['pendulum']
+          x = result['data']['x']
+          x_next = result['data']['x_next']
+          dictionary = result['dictionary']
+          
+          # Run 5-fold CV
+          cv_results = kfold_validation(
+              dictionary=dictionary,
+              x=x,
+              x_next=x_next,
+              n_splits=5
+          )
+          
+          # Calculate eigenvalue drift
+          eigenvalues = cv_results['eigenvalues']
+          eigenvalues_folds = cv_results['eigenvalues_folds'][0]
+          drift = np.abs(eigenvalues - eigenvalues_folds)
+          mean_drift = float(np.mean(drift))
+          max_drift = float(np.max(drift))
+          
+          print(f'Mean eigenvalue drift: {mean_drift:.6f}')
+          print(f'Max eigenvalue drift: {max_drift:.6f}')
+          
+          # Assert drift is below threshold
+          assert mean_drift < 1e-2, f'Mean eigenvalue drift {mean_drift} exceeds threshold 1e-2'
+          "
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          
+      - name: Verify decreasing percentage
+        run: |
+          python -c "
+          from alan_backend.elfin.koopman.koopman_bridge_agent import create_pendulum_agent
+          
+          # Create and verify pendulum agent
+          agent, lyap_fn = create_pendulum_agent(verify=True)
+          
+          # Get verification result
+          result = agent.results['pendulum'].get('verification', {})
+          
+          # Print and check decreasing percentage
+          decreasing_pct = result.get('decreasing_percentage', 0)
+          print(f'Decreasing percentage: {decreasing_pct:.2f}%')
+          
+          # Assert decreasing percentage is above threshold
+          assert decreasing_pct > 95.0, f'Decreasing percentage {decreasing_pct}% below threshold 95%'
+          "
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+      
+      - name: Counterexample resolution test
+        run: |
+          python -c "
+          from alan_backend.elfin.koopman.koopman_bridge_agent import create_pendulum_agent, pendulum_dynamics
+          import numpy as np
+          
+          # Create test agent
+          agent, lyap_fn = create_pendulum_agent(verify=False)
+          
+          # Generate counterexample (near unstable equilibrium)
+          ce = np.array([np.pi - 0.1, 0.5])
+          
+          # Refine with counterexample
+          refined_lyap_fn = agent.refine_once(
+              lyap_fn=lyap_fn,
+              system_name='pendulum',
+              counterexample=ce,
+              dynamics_fn=pendulum_dynamics
+          )
+          
+          # Check that the refined model performs better at the counterexample
+          v_before = lyap_fn(ce)
+          v_after = refined_lyap_fn(ce)
+          
+          print(f'Lyapunov value before: {v_before:.6f}')
+          print(f'Lyapunov value after: {v_after:.6f}')
+          
+          # For stability, we generally want the Lyapunov value to increase
+          # at problematic points after refinement
+          assert v_after > v_before, f'Refinement did not improve Lyapunov value at counterexample'
+          "
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  neural-verification:
+    name: Neural Lyapunov Tests
+    runs-on: [self-hosted, cuda]
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install additional dependencies for neural networks
+          pip install torch torchvision torchaudio
+          
+      - name: Test neural Lyapunov training
+        run: |
+          python alan_backend/elfin/stability/demos/vdp_neural_lyap_demo.py --test-mode
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          
+      - name: Test neural verification
+        run: |
+          python -c "
+          from alan_backend.elfin.stability.neural.neural_lyapunov import NeuralLyapunov
+          from alan_backend.elfin.stability.verify import verify_lyapunov
+          import numpy as np
+          import torch
+          
+          # Create a simple neural Lyapunov function for a linear system
+          model = torch.nn.Sequential(
+              torch.nn.Linear(2, 32),
+              torch.nn.ReLU(),
+              torch.nn.Linear(32, 32),
+              torch.nn.ReLU(),
+              torch.nn.Linear(32, 1)
+          )
+          
+          # Function that enforces positive definite output
+          def output_transform(x):
+              return torch.sum(x**2, dim=1, keepdim=True)
+          
+          # Create the neural Lyapunov function
+          lyap_fn = NeuralLyapunov(
+              model=model,
+              input_dim=2,
+              output_transform=output_transform
+          )
+          
+          # Define a simple linear system
+          def linear_system(x):
+              A = np.array([[-0.5, -0.1], [0.1, -0.5]])
+              return A @ x
+          
+          # Define verification domain
+          domain = (np.array([-1.0, -1.0]), np.array([1.0, 1.0]))
+          
+          # Verify the Lyapunov function
+          result = verify_lyapunov(
+              lyap_fn=lyap_fn,
+              domain=domain,
+              dynamics_fn=linear_system,
+              system_id='neural_test'
+          )
+          
+          # Print verification result
+          print(f'Verification result: {result}')
+          
+          # For a simple linear system, we should get at least some decreasing regions
+          assert result.get('decreasing_percentage', 0) > 50.0, 'Neural Lyapunov verification failed'
+          "
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  milp-solver-tests:
+    name: MILP Solver Tests
+    runs-on: [self-hosted, cuda]
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install Gurobi (requires license)
+          pip install gurobipy
+          
+      - name: Test MILP solver
+        run: |
+          python -c "
+          from alan_backend.elfin.stability.solvers.milp_solver import MILPSolver
+          import numpy as np
+          
+          # Create MILP solver
+          solver = MILPSolver()
+          
+          # Define a simple linear constraint
+          def constraint_fn(x):
+              # x[0] + x[1] <= 1
+              return x[0] + x[1] - 1
+          
+          # Define domain
+          domain = (np.array([-5.0, -5.0]), np.array([5.0, 5.0]))
+          
+          # Check if constraint is satisfied
+          result = solver.check_constraint(
+              constraint_fn=constraint_fn,
+              domain=domain,
+              strict=True,
+              timeout=60
+          )
+          
+          print(f'MILP result: {result}')
+          
+          # This constraint should not be satisfied in the given domain
+          assert not result['satisfied'], 'MILP solver incorrectly reported constraint as satisfied'
+          assert 'counterexample' in result, 'MILP solver did not provide a counterexample'
+          
+          # Verify counterexample
+          ce = result['counterexample']
+          ce_value = constraint_fn(ce)
+          print(f'Counterexample: {ce}, constraint value: {ce_value}')
+          assert ce_value > 0, f'Counterexample does not violate constraint: {ce_value} <= 0'
+          "
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  dashboard-widget-tests:
+    name: Dashboard Widget Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Install Node.js dependencies
+        run: npm ci
+        
+      - name: Lint dashboard JavaScript
+        run: npx eslint alan_backend/elfin/visualization/static/*.js
+        
+      - name: Run JavaScript tests
+        run: npx jest alan_backend/elfin/visualization/static/
+
+  report-metrics:
+    name: Report Metrics
+    needs: [koopman-verification, neural-verification, milp-solver-tests, dashboard-widget-tests]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Report summary
+        run: |
+          echo "ELFIN Nightly Tests Completed"
+          echo "=============================="
+          echo "All tests passed successfully!"
+          echo ""
+          echo "Summary of tests:"
+          echo "1. Koopman Verification: ✓"
+          echo "2. Neural Lyapunov Training: ✓"
+          echo "3. MILP Solver: ✓"
+          echo "4. Dashboard Widgets: ✓"
+      
+      # Additional steps to log metrics to a database or send notifications would go here

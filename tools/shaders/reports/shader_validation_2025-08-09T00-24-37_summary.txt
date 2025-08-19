@@ -1,0 +1,129 @@
+=== SHADER VALIDATION SUMMARY ===
+Timestamp: 2025-08-09T00-24-37
+Total Files: 17
+Status: 3 PASSED | 2 FAILED | 12 WARNING
+
+FAILED (2):
+  x frontend\lib\webgpu\shaders\wavefieldEncoder.wgsl
+    - Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+
+  x frontend\lib\webgpu\shaders\wavefieldEncoder_optimized.wgsl
+    - Could not parse WGSL:
+error: no definition in scope for identifier: `spatial_freqs`
+    ┌─ ${IRIS_ROOT}\frontend\lib\webgpu\shaders\.temp_wavefieldEncoder_optimized.wgsl:102:121
+    │
+102 │         shared_spatial_freqs[clamp_index_dyn(i, 256u)] = wavefield_params.spatial_freqs[clamp_index_dyn(i, arrayLength(&spatial_freqs))];
+    │                                                                                                                         ^^^^^^^^^^^^^ unknown identifier
+
+
+
+
+WARNING (12):
+  ! frontend\lib\webgpu\shaders\avatarShader.wgsl
+    - vec3 in storage buffer should be followed by padding or another vec3
+    - vec3 in storage buffer should be followed by padding or another vec3
+  ! frontend\lib\webgpu\shaders\bitReversal.wgsl
+    - Dynamic array access 'bit_reversal[i]' without apparent bounds checking
+    - Dynamic array access 'output[offset + j]' without apparent bounds checking
+    - Dynamic array access 'input[offset + i]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\butterflyStage.wgsl
+    - Dynamic array access 'twiddles[twiddle_idx]' without apparent bounds checking
+    - Dynamic array access 'input[idx_a]' without apparent bounds checking
+    - Dynamic array access 'input[idx_b]' without apparent bounds checking
+    - Dynamic array access 'output[idx_a]' without apparent bounds checking
+    - Dynamic array access 'output[idx_b]' without apparent bounds checking
+    - Dynamic array access 'shared_data[local_idx * 2u]' without apparent bounds checking
+    - Dynamic array access 'input[idx_a]' without apparent bounds checking
+    - Dynamic array access 'shared_data[local_idx * 2u + 1u]' without apparent bounds checking
+    - Dynamic array access 'input[idx_b]' without apparent bounds checking
+    - Dynamic array access 'shared_data[local_idx * 2u]' without apparent bounds checking
+    - Dynamic array access 'shared_data[local_idx * 2u + 1u]' without apparent bounds checking
+    - Dynamic array access 'twiddles[twiddle_idx]' without apparent bounds checking
+    - Dynamic array access 'output[idx_a]' without apparent bounds checking
+    - Dynamic array access 'output[idx_b]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\fftShift.wgsl
+    - Dynamic array access 'output[clamp_index_dyn(batch * N2 + j, arrayLength(&output))]' without apparent bounds checking
+    - Dynamic array access 'input[clamp_index_dyn(batch * N2 + i, arrayLength(&input))]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\multiDepthWaveSynth.wgsl
+    - Dynamic array access 'inputWave[idx]' without apparent bounds checking
+    - Dynamic array access 'inputWave[idx]' without apparent bounds checking
+    - Dynamic array access 'depths[i]' without apparent bounds checking
+    - Dynamic array access 'outputWave[idx]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\multiViewSynthesis.wgsl
+    - Dynamic array access 'shared_field_r[shared_idx]' without apparent bounds checking
+    - Dynamic array access 'shared_field_g[shared_idx]' without apparent bounds checking
+    - Dynamic array access 'shared_field_b[shared_idx]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\normalize.wgsl
+    - Dynamic array access 'input[clamp_index_dyn(idx, arrayLength(&input))]' without apparent bounds checking
+    - Dynamic array access 'output[clamp_index_dyn(idx, arrayLength(&output))]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\phaseOcclusion.wgsl
+    - Dynamic array access 'inputWave[idx]' without apparent bounds checking
+    - Dynamic array access 'inputWave[idx]' without apparent bounds checking
+    - Dynamic array access 'occlusion[idx]' without apparent bounds checking
+    - Dynamic array access 'occlusion[idx + 1u]' without apparent bounds checking
+    - Dynamic array access 'occlusion[idx - 1u]' without apparent bounds checking
+    - Dynamic array access 'occlusion[idx + w]' without apparent bounds checking
+    - Dynamic array access 'occlusion[idx - w]' without apparent bounds checking
+    - Dynamic array access 'outputWave[idx]' without apparent bounds checking
+    - Dynamic array access 'outputWave[idx]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\propagation.wgsl
+    - Dynamic array access 'shared_transfer[local_idx]' without apparent bounds checking
+    - Dynamic array access 'wavelengths[i]' without apparent bounds checking
+    - Dynamic array access 'spectral_weights[i]' without apparent bounds checking
+    - Dynamic array access 'wavelengths[i]' without apparent bounds checking
+    - Dynamic array access 'spectral_weights[i]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\topologicalOverlay.wgsl
+    - Dynamic array access 'charges[i]' without apparent bounds checking
+    - Dynamic array access 'charges[i]' without apparent bounds checking
+    - Dynamic array access 'charges[i]' without apparent bounds checking
+    - Dynamic array access 'charges[i]' without apparent bounds checking
+    - Dynamic array access 'charges[index]' without apparent bounds checking
+    - Dynamic array access 'charges[i]' without apparent bounds checking
+    - Dynamic array access 'charges[index]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\transpose.wgsl
+    - Dynamic array access 'tile[local_idx]' without apparent bounds checking
+    - Dynamic array access 'input[idx]' without apparent bounds checking
+    - Dynamic array access 'tile[local_idx]' without apparent bounds checking
+    - Dynamic array access 'output[transposed_idx]' without apparent bounds checking
+    - Dynamic array access 'tile[transposed_local]' without apparent bounds checking
+    - Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+    - Dynamic array access 'input[idx]' without apparent bounds checking
+    - Dynamic array access 'output[transposed_idx]' without apparent bounds checking
+    - Dynamic array access 'tile[shared_idx]' without apparent bounds checking
+    - Dynamic array access 'input[idx1]' without apparent bounds checking
+    - Dynamic array access 'output[idx1]' without apparent bounds checking
+    - Dynamic array access 'input[idx2]' without apparent bounds checking
+    - Dynamic array access 'output[idx2]' without apparent bounds checking
+  ! frontend\lib\webgpu\shaders\velocityField.wgsl
+    - Dynamic array access 'shared_wavefield[shared_idx]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx - 1u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx + 1u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx - 10u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx + 10u]' without apparent bounds checking
+    - Dynamic array access 'spatial_freqs[packed_idx0]' without apparent bounds checking
+    - Dynamic array access 'spatial_freqs[packed_idx1]' without apparent bounds checking
+    - Dynamic array access 'phases[i / 4u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx - 1u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx + 1u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx - 10u]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx]' without apparent bounds checking
+    - Dynamic array access 'shared_wavefield[idx + 10u]' without apparent bounds checking
+    - Dynamic array access 'particles[idx]' without apparent bounds checking
+    - Dynamic array access 'particles[idx]' without apparent bounds checking
+
+PASSED (3):
+  + frontend\lib\webgpu\shaders\hybridWavefieldBlend.wgsl
+  + frontend\lib\webgpu\shaders\lenticularInterlace.wgsl
+  + frontend\lib\webgpu\shaders\lightFieldComposer.wgsl
+
+=== TOP ISSUES TO FIX ===
+- Syntax/Semantic errors (14 files)

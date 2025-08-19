@@ -1,0 +1,319 @@
+frontend/hybrid/lib/index.ts(5,10): error TS2305: Module '"./parallaxController"' has no exported member 'ParallaxController'.
+frontend/hybrid/lib/index.ts(6,15): error TS2305: Module '"./parallaxController"' has no exported member 'ParallaxOptions'.
+frontend/hybrid/lib/integration/HolographicPipelineIntegrator.ts(106,7): error TS2345: Argument of type 'GPUTexture' is not assignable to parameter of type 'Float32Array<ArrayBufferLike>'.
+  Type 'GPUTexture' is missing the following properties from type 'Float32Array<ArrayBufferLike>': BYTES_PER_ELEMENT, buffer, byteLength, byteOffset, and 27 more.
+frontend/hybrid/lib/integration/HolographicPipelineIntegrator.ts(114,37): error TS2345: Argument of type '{ real: Float32Array<ArrayBufferLike>; imag: Float32Array<ArrayBufferLike>; }' is not assignable to parameter of type 'GPUTexture'.
+  Type '{ real: Float32Array<ArrayBufferLike>; imag: Float32Array<ArrayBufferLike>; }' is missing the following properties from type 'GPUTexture': __brand, createView, destroy, width, and 8 more.
+frontend/hybrid/lib/integration/quickStart.ts(8,36): error TS2307: Cannot find module '../../../standalone-holo/src/HolographicDisplay' or its corresponding type declarations.
+frontend/hybrid/lib/ktx2Loader.ts(13,67): error TS2339: Property 'offset' does not exist on type 'KTX2Level'.
+frontend/hybrid/lib/ktx2Loader.ts(13,77): error TS2339: Property 'length' does not exist on type 'KTX2Level'.
+frontend/hybrid/lib/ktx2Loader.ts(35,7): error TS2345: Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+frontend/hybrid/lib/memory/iosPressure.ts(55,24): error TS2341: Property 'onBudgetExceeded' is private and only accessible within class 'TexturePool'.
+frontend/hybrid/lib/post/applyPhaseLUT.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/post/phasePolisher.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/post/zernikeApply.ts(2,24): error TS2307: Cannot find module '@/lib/webgpu/context/device' or its corresponding type declarations.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(8,20): error TS2304: Cannot find name 'XRSession'.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(9,21): error TS2304: Cannot find name 'XRReferenceSpace'.
+frontend/hybrid/lib/sensors/WebXRHeadProvider.ts(25,59): error TS2304: Cannot find name 'XRFrame'.
+frontend/hybrid/main.ts(8,34): error TS2307: Cannot find module './webgpuRenderer' or its corresponding type declarations.
+frontend/hybrid/pipelines/render_select_example.ts(126,3): error TS1184: Modifiers cannot appear here.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(8,24): error TS2307: Cannot find module './albert/tensorSystem' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(9,33): error TS2307: Cannot find module './soliton/dynamics' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(10,30): error TS2307: Cannot find module './phase/encoder' or its corresponding type declarations.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(222,28): error TS2339: Property 'entries' does not exist on type 'GPUBindGroup'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(235,28): error TS2339: Property 'entries' does not exist on type 'GPUBindGroup'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(247,47): error TS2339: Property 'requestPermission' does not exist on type '{ new (type: string, eventInitDict?: DeviceOrientationEventInit): DeviceOrientationEvent; prototype: DeviceOrientationEvent; }'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(248,40): error TS2339: Property 'requestPermission' does not exist on type '{ new (type: string, eventInitDict?: DeviceOrientationEventInit): DeviceOrientationEvent; prototype: DeviceOrientationEvent; }'.
+frontend/hybrid/src/lightFieldComposerPipeline.ts(308,39): error TS2339: Property 'entries' does not exist on type 'GPUBindGroup'.
+frontend/hybrid/wavefrontReconstructor.ts(435,60): error TS2304: Cannot find name 'waveBufferSize'.
+frontend/hybrid/wavefrontReconstructor.ts(437,76): error TS2304: Cannot find name 'waveBufferSize'.
+frontend/lib/webgpu/capabilities.ts(22,42): error TS2339: Property 'maxComputeInvocationsPerWorkgroup' does not exist on type '{}'.
+frontend/lib/webgpu/capabilities.ts(23,33): error TS2339: Property 'maxComputeWorkgroupSizeX' does not exist on type '{}'.
+frontend/lib/webgpu/capabilities.ts(24,33): error TS2339: Property 'maxComputeWorkgroupSizeY' does not exist on type '{}'.
+frontend/lib/webgpu/capabilities.ts(25,33): error TS2339: Property 'maxComputeWorkgroupSizeZ' does not exist on type '{}'.
+frontend/lib/webgpu/capabilities.ts(27,41): error TS2339: Property 'maxSampledTexturesPerShaderStage' does not exist on type '{}'.
+frontend/lib/webgpu/capabilities.ts(28,34): error TS2339: Property 'maxSamplersPerShaderStage' does not exist on type '{}'.
+frontend/lib/webgpu/kernels/index.ts(32,10): error TS2459: Module '"./splitStepOrchestrator"' declares 'SplitStepConfig' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(33,10): error TS2459: Module '"./splitStepOrchestrator"' declares 'PerformanceTelemetry' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(34,5): error TS2459: Module '"./splitStepOrchestrator"' declares 'BoundaryType' locally, but it is not exported.
+frontend/lib/webgpu/kernels/index.ts(67,10): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+frontend/lib/webgpu/kernels/index.ts(147,16): error TS2304: Cannot find name 'SchrodingerEvolution'.
+frontend/lib/webgpu/kernels/index.ts(212,29): error TS2304: Cannot find name 'createSchrodingerEvolution'.
+frontend/lib/webgpu/kernels/index.ts(234,5): error TS18004: No value exists in scope for the shorthand property 'createSchrodingerEvolution'. Either declare one or provide an initializer.
+frontend/lib/webgpu/kernels/index.ts(235,5): error TS18004: No value exists in scope for the shorthand property 'SchrodingerRegistry'. Either declare one or provide an initializer.
+frontend/src/lib/featureFlags.ts(431,30): error TS2339: Property 'getExtension' does not exist on type 'RenderingContext'.
+  Property 'getExtension' does not exist on type 'CanvasRenderingContext2D'.
+frontend/src/lib/featureFlags.ts(433,21): error TS2339: Property 'getParameter' does not exist on type 'RenderingContext'.
+  Property 'getParameter' does not exist on type 'CanvasRenderingContext2D'.
+frontend/src/lib/featureFlags.ts(572,37): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+frontend/src/lib/stores/psiTelemetry.ts(88,17): error TS2367: This comparison appears to be unintentional because the types 'Writable<"disconnected" | "connected" | "connecting">' and 'string' have no overlap.
+standalone-holo/src/main.ts(99,29): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+standalone-holo/src/main.ts(100,28): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+standalone-holo/src/main.ts(120,3): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+standalone-holo/src/main.ts(120,22): error TS2304: Cannot find name 'canvas'.
+standalone-holo/src/main.ts(130,16): error TS2339: Property 'disabled' does not exist on type 'HTMLElement'.
+standalone-holo/src/pipelines/slm_export.ts(34,39): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/slm_export.ts(36,39): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/slm_export.ts(85,39): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/slm_export.ts(87,39): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/SLMEncoderPipeline.ts(97,49): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/SLMEncoderPipeline.ts(98,49): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/SLMEncoderPipeline.ts(180,49): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+standalone-holo/src/pipelines/SLMEncoderPipeline.ts(181,49): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+tori_ui_svelte/src/lib/bridgeConfig.ts(42,9): error TS2739: Type '{ host: string; port: number; health_endpoint: string; metrics_endpoint: string; name: string; status: "unknown"; }' is missing the following properties from type 'BridgeConfig': api, websocket, features
+tori_ui_svelte/src/lib/bridgeConfig.ts(50,9): error TS2739: Type '{ host: string; port: number; health_endpoint: string; metrics_endpoint: string; name: string; status: "unknown"; }' is missing the following properties from type 'BridgeConfig': api, websocket, features
+tori_ui_svelte/src/lib/bridgeConfig.ts(58,9): error TS2739: Type '{ host: string; port: number; health_endpoint: string; metrics_endpoint: string; name: string; status: "unknown"; }' is missing the following properties from type 'BridgeConfig': api, websocket, features
+tori_ui_svelte/src/lib/bridgeConfig.ts(85,14): error TS2451: Cannot redeclare block-scoped variable 'bridgeConfig'.
+tori_ui_svelte/src/lib/cognitive/cognitiveEngine_phase3.ts(1,1): error TS2304: Cannot find name 'write_file'.
+tori_ui_svelte/src/lib/cognitive/dynamics.ts(70,30): error TS2339: Property 'vectors' does not exist on type '{ values: MathCollection<MathNumericType>; eigenvectors: { value: number | BigNumber; vector: MathCollection<MathNumericType>; }[]; }'.
+tori_ui_svelte/src/lib/cognitive/dynamics.ts(71,30): error TS2345: Argument of type '(λ: math.Complex) => math.Complex' is not assignable to parameter of type '((value: MathNumericType, index: number, array: MathNumericType[]) => Complex) & ((value: MathArray<MathNumericType>, index: number, array: MathArray<...>[]) => Complex) & ((a: any, b: number[], c: Matrix<...>) => any)'.
+  Type '(λ: math.Complex) => math.Complex' is not assignable to type '(value: MathArray<MathNumericType>, index: number, array: MathArray<MathNumericType>[]) => Complex'.
+    Types of parameters 'λ' and 'value' are incompatible.
+      Type 'MathArray<MathNumericType>' is not assignable to type 'Complex'.
+        Type 'MathNumericType[]' is missing the following properties from type 'Complex': re, im, clone, equals, and 6 more.
+tori_ui_svelte/src/lib/cognitive/dynamics.ts(75,12): error TS2345: Argument of type '(λ: math.Complex, i: number) => { λ: math.Complex; vec: any; mag: any; }' is not assignable to parameter of type '((value: MathNumericType, index: number, array: MathNumericType[]) => { λ: Complex; vec: any; mag: any; }) & ((value: MathArray<MathNumericType>, index: number, array: MathArray<...>[]) => { ...; }) & ((a: any, b: number[], c: Matrix<...>) => any)'.
+  Type '(λ: math.Complex, i: number) => { λ: math.Complex; vec: any; mag: any; }' is not assignable to type '(value: MathArray<MathNumericType>, index: number, array: MathArray<MathNumericType>[]) => { λ: Complex; vec: any; mag: any; }'.
+    Types of parameters 'λ' and 'value' are incompatible.
+      Type 'MathArray<MathNumericType>' is not assignable to type 'Complex'.
+        Type 'MathNumericType[]' is missing the following properties from type 'Complex': re, im, clone, equals, and 6 more.
+tori_ui_svelte/src/lib/cognitive/dynamics.ts(80,8): error TS2339: Property 'sort' does not exist on type 'Matrix<MathNumericType> | { λ: Complex; vec: any; mag: any; }[]'.
+  Property 'sort' does not exist on type 'Matrix<MathNumericType>'.
+tori_ui_svelte/src/lib/cognitive/index.ts(3,3): error TS2451: Cannot redeclare block-scoped variable 'cognitiveState'.
+tori_ui_svelte/src/lib/cognitive/index.ts(15,3): error TS2451: Cannot redeclare block-scoped variable 'contradictionMonitor'.
+tori_ui_svelte/src/lib/cognitive/index.ts(20,3): error TS2451: Cannot redeclare block-scoped variable 'phaseController'.
+tori_ui_svelte/src/lib/cognitive/index.ts(25,3): error TS2451: Cannot redeclare block-scoped variable 'closureGuard'.
+tori_ui_svelte/src/lib/cognitive/index.ts(32,3): error TS2451: Cannot redeclare block-scoped variable 'cognitiveEngine'.
+tori_ui_svelte/src/lib/cognitive/index.ts(39,3): error TS2451: Cannot redeclare block-scoped variable 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(11,8): error TS2305: Module '"./cognitiveState"' has no exported member 'LoopRecord'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(57,3): error TS2305: Module '"./memoryMetrics"' has no exported member 'MemoryMetricsMonitor'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(58,3): error TS2451: Cannot redeclare block-scoped variable 'memoryMetrics'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(65,3): error TS2451: Cannot redeclare block-scoped variable 'paradoxAnalyzer'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(74,11): error TS2304: Cannot find name 'cognitiveEngine'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(75,10): error TS2304: Cannot find name 'cognitiveState'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(76,18): error TS2304: Cannot find name 'contradictionMonitor'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(77,10): error TS2304: Cannot find name 'phaseController'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(78,12): error TS2304: Cannot find name 'closureGuard'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(79,11): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(281,9): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(282,26): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(323,22): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(323,36): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(327,29): error TS2304: Cannot find name 'cognitiveEngine'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(327,47): error TS2304: Cannot find name 'cognitiveEngine'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(350,4): error TS2304: Cannot find name 'AssociatorResult'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(363,11): error TS2304: Cannot find name 'MemoryHealth'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(373,18): error TS2304: Cannot find name 'MemoryHealth'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(373,54): error TS2304: Cannot find name 'MemoryHealth'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(393,23): error TS2304: Cannot find name 'cognitiveEngine'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(394,24): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/cognitive/index_phase3.ts(413,19): error TS2304: Cannot find name 'braidMemory'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(3,10): error TS2305: Module '"$lib/stores"' has no exported member 'ghostState'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(3,22): error TS2305: Module '"$lib/stores"' has no exported member 'activeAgents'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(3,36): error TS2305: Module '"$lib/stores"' has no exported member 'conversationLog'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(12,23): error TS2323: Cannot redeclare exported variable 'runGhostCommand'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(61,7): error TS2739: Type '{ type: "ghost"; raw: string; params: GhostCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(71,7): error TS2739: Type '{ type: "ghost"; raw: string; params: GhostCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(86,23): error TS2322: Type 'string' is not assignable to type '"focus" | "project" | "search" | "emerge" | "morph" | "dismiss"'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(122,5): error TS2740: Type '{}' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(165,7): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'GhostTrigger'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(251,33): error TS2339: Property 'activateConcept' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(251,50): error TS2339: Property 'focusConcept' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(374,7): error TS2740: Type '{}' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(396,33): error TS2339: Property 'activePersona' does not exist on type 'unknown'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(404,29): error TS2339: Property 'activePersona' does not exist on type 'unknown'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(449,10): error TS2323: Cannot redeclare exported variable 'runGhostCommand'.
+tori_ui_svelte/src/lib/elfin/commands/ghost.ts(449,10): error TS2484: Export declaration conflicts with exported declaration of 'runGhostCommand'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(4,23): error TS2323: Cannot redeclare exported variable 'runProjectionCommand'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(21,7): error TS2739: Type '{ type: "project"; raw: string; params: ProjectionCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/project.ts(31,7): error TS2739: Type '{ type: "project"; raw: string; params: ProjectionCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/project.ts(158,25): error TS2339: Property 'activateConcept' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(158,42): error TS2339: Property 'focusConcept' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(161,16): error TS2345: Argument of type '{ id: string; label: string; position: { x: number; y: number; z: number; }; wavelength: number; intensity: number; connections: undefined[]; entangled: boolean; stability: number; conceptType: string; }' is not assignable to parameter of type 'string'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(373,10): error TS2323: Cannot redeclare exported variable 'runProjectionCommand'.
+tori_ui_svelte/src/lib/elfin/commands/project.ts(373,10): error TS2484: Export declaration conflicts with exported declaration of 'runProjectionCommand'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(3,10): error TS2305: Module '"$lib/stores"' has no exported member 'vaultEntries'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(3,24): error TS2305: Module '"$lib/stores"' has no exported member 'sealedArcs'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(5,23): error TS2323: Cannot redeclare exported variable 'runVaultCommand'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(51,7): error TS2739: Type '{ type: "vault"; raw: string; params: VaultCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(61,7): error TS2739: Type '{ type: "vault"; raw: string; params: VaultCommand; timestamp: Date; }' is missing the following properties from type 'ElfinCommand': name, execute
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(241,35): error TS2339: Property 'vaultEntries' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(412,37): error TS2339: Property 'linkConcepts' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(425,35): error TS2339: Property 'linkConcepts' does not exist on type 'typeof import("D:/Dev/kha/tori_ui_svelte/src/lib/stores/index")'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(531,10): error TS2323: Cannot redeclare exported variable 'runVaultCommand'.
+tori_ui_svelte/src/lib/elfin/commands/vault.ts(531,10): error TS2484: Export declaration conflicts with exported declaration of 'runVaultCommand'.
+tori_ui_svelte/src/lib/elfin/scriptEngine.ts(108,28): error TS2339: Property 'papersRead' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/elfin/scripts/onConceptChange.ts(38,33): error TS2345: Argument of type '{ name: string; strength: any; type: any; }[]' is not assignable to parameter of type 'string[]'.
+  Type '{ name: string; strength: any; type: any; }' is not assignable to type 'string'.
+tori_ui_svelte/src/lib/elfin/scripts/onUpload.ts(69,31): error TS2339: Property 'text' does not exist on type '{ concepts: any[]; summary?: string; processingTime?: number; }'.
+tori_ui_svelte/src/lib/elfin/types.ts(228,3): error TS2484: Export declaration conflicts with exported declaration of 'ElfinCommand'.
+tori_ui_svelte/src/lib/elfin/types.ts(229,3): error TS2484: Export declaration conflicts with exported declaration of 'ElfinContext'.
+tori_ui_svelte/src/lib/elfin/types.ts(230,3): error TS2484: Export declaration conflicts with exported declaration of 'ElfinResult'.
+tori_ui_svelte/src/lib/elfin/types.ts(231,3): error TS2484: Export declaration conflicts with exported declaration of 'SystemState'.
+tori_ui_svelte/src/lib/elfin/types.ts(232,3): error TS2484: Export declaration conflicts with exported declaration of 'ToriEvent'.
+tori_ui_svelte/src/lib/elfin/types.ts(233,3): error TS2484: Export declaration conflicts with exported declaration of 'ElfinVariable'.
+tori_ui_svelte/src/lib/personas/enola.ts(110,3): error TS2353: Object literal may only specify known properties, and 'voice' does not exist in type 'GhostPersona'.
+tori_ui_svelte/src/lib/services/ghostMemoryAnalytics.ts(316,25): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(iterable: Iterable<PersonaPrediction> | ArrayLike<PersonaPrediction>): PersonaPrediction[]', gave the following error.
+    Argument of type 'PersonaPrediction' is not assignable to parameter of type 'Iterable<PersonaPrediction> | ArrayLike<PersonaPrediction>'.
+  Overload 2 of 4, '(arrayLike: ArrayLike<PersonaPrediction>): PersonaPrediction[]', gave the following error.
+    Argument of type 'PersonaPrediction' is not assignable to parameter of type 'ArrayLike<PersonaPrediction>'.
+      Property 'length' is missing in type 'PersonaPrediction' but required in type 'ArrayLike<PersonaPrediction>'.
+tori_ui_svelte/src/lib/services/ghostMemoryAnalytics.ts(379,40): error TS2345: Argument of type '{ persona: string; probability: number; confidence: number; triggerFactors: { phaseAlignment: number; userFrustration: any; conceptualComplexity: number; temporalPattern: number; }; optimalInterventionWindow: number; }[]' is not assignable to parameter of type 'PersonaPrediction'.
+  Type '{ persona: string; probability: number; confidence: number; triggerFactors: { phaseAlignment: number; userFrustration: any; conceptualComplexity: number; temporalPattern: number; }; optimalInterventionWindow: number; }[]' is missing the following properties from type 'PersonaPrediction': persona, probability, confidence, triggerFactors, optimalInterventionWindow
+tori_ui_svelte/src/lib/services/intentTracking.ts(494,15): error TS2484: Export declaration conflicts with exported declaration of 'Intent'.
+tori_ui_svelte/src/lib/services/intentTracking.ts(494,23): error TS2484: Export declaration conflicts with exported declaration of 'IntentContext'.
+tori_ui_svelte/src/lib/services/intentTracking.ts(494,38): error TS2484: Export declaration conflicts with exported declaration of 'ConversationInsight'.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(12,23): error TS2305: Module '"$lib/stores/conceptMesh"' has no exported member 'systemCoherence'.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(184,11): error TS2365: Operator '>' cannot be applied to types 'unknown' and 'number'.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(394,7): error TS2322: Type 'unknown' is not assignable to type 'number'.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(538,11): error TS2393: Duplicate function implementation.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(652,10): error TS2393: Duplicate function implementation.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(703,24): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+tori_ui_svelte/src/lib/services/masterIntegrationHub.ts(869,21): error TS2341: Property 'getSystemHealth' is private and only accessible within class 'MasterIntegrationHub'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(16,29): error TS2305: Module '"$lib/stores/ghostPersona"' has no exported member 'GhostPersonaDefinition'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(17,55): error TS2307: Cannot find module '$lib/personas/registry' or its corresponding type declarations.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(171,36): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(175,24): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(206,18): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(206,57): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(209,28): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(210,28): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(211,28): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(216,16): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(258,7): error TS2353: Object literal may only specify known properties, and 'epsilon' does not exist in type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(297,7): error TS2353: Object literal may only specify known properties, and 'epsilon' does not exist in type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(316,26): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(318,26): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(320,26): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(337,26): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(343,26): error TS2339: Property 'tau' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(354,20): error TS2339: Property 'avatar' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(360,20): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(361,20): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(363,20): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(364,20): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(373,42): error TS2339: Property 'conversationLength' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(373,82): error TS2339: Property 'conversationLength' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(377,48): error TS2353: Object literal may only specify known properties, and 'time' does not exist in type '{ stability: number; timestamp: Date; ghost: string; }'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(383,18): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(384,42): error TS2339: Property 'epsilon' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(393,13): error TS2339: Property 'primaryColor' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(393,48): error TS2339: Property 'psi' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(396,15): error TS2339: Property 'secondaryColor' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(398,15): error TS2339: Property 'secondaryColor' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(400,15): error TS2339: Property 'secondaryColor' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/PersonaEmergenceEngine.ts(402,15): error TS2339: Property 'secondaryColor' does not exist on type 'GhostPersonaState'.
+tori_ui_svelte/src/lib/services/toriStorage.ts(367,15): error TS2304: Cannot find name 'StorageConfig'.
+tori_ui_svelte/src/lib/services/typingProsody.ts(384,15): error TS2484: Export declaration conflicts with exported declaration of 'ProsodyMetrics'.
+tori_ui_svelte/src/lib/services/typingProsody.ts(384,31): error TS2484: Export declaration conflicts with exported declaration of 'ProsodyInsight'.
+tori_ui_svelte/src/lib/stores/conceptMesh.ts(813,14): error TS2451: Cannot redeclare block-scoped variable 'conceptMesh'.
+tori_ui_svelte/src/lib/stores/conceptMesh.ts(918,20): error TS2341: Property 'conceptNodes' is private and only accessible within class 'ConceptMeshStore'.
+tori_ui_svelte/src/lib/stores/ghostPersona.ts(37,14): error TS2451: Cannot redeclare block-scoped variable 'ghostPersona'.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(16,43): error TS2304: Cannot find name 'GhostPersona'.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(24,18): error TS2339: Property 'name' does not exist on type 'GhostPersonaExtended'.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(54,18): error TS2339: Property 'name' does not exist on type 'GhostPersonaExtended'.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(229,38): error TS2554: Expected 0 arguments, but got 1.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(230,39): error TS2554: Expected 0 arguments, but got 1.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(231,40): error TS2554: Expected 0 arguments, but got 1.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(232,41): error TS2554: Expected 0 arguments, but got 1.
+tori_ui_svelte/src/lib/stores/ghostPersonaImageExtension.ts(233,39): error TS2554: Expected 0 arguments, but got 1.
+tori_ui_svelte/src/lib/stores/index.ts(5,1): error TS2308: Module './conceptMesh' has already exported a member named 'setLastTriggeredGhost'. Consider explicitly re-exporting to resolve the ambiguity.
+tori_ui_svelte/src/lib/stores/multiTenantConceptMesh.ts(708,5): error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+tori_ui_svelte/src/lib/stores/persistence.ts(68,17): error TS2339: Property 'set' does not exist on type 'Readable<ConceptDiff[]>'.
+tori_ui_svelte/src/lib/stores/persistence.ts(117,16): error TS2339: Property 'set' does not exist on type 'Readable<Map<string, ConceptNode>>'.
+tori_ui_svelte/src/lib/stores/session.ts(77,24): error TS2339: Property 'update' does not exist on type '{ subscribe: { (this: void, run: Subscriber<string>, invalidate?: Invalidator<string>): Unsubscriber; (this: void, run: Subscriber<string>, invalidate?: () => void): Unsubscriber; }; set: (value: string) => void; clear: () => void; }'.
+tori_ui_svelte/src/lib/stores/toriStorage.ts(55,24): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(this: void, value: StorageState): void', gave the following error.
+    Type 'Map<unknown, unknown>' is not assignable to type 'Map<string, any>'.
+      Type 'unknown' is not assignable to type 'string'.
+  Overload 2 of 2, '(this: void, value: StorageState): void', gave the following error.
+    Type 'Map<unknown, unknown>' is not assignable to type 'Map<string, any>'.
+      Type 'unknown' is not assignable to type 'string'.
+tori_ui_svelte/src/lib/stores/types.ts(236,3): error TS2693: 'ConceptDiff' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(237,3): error TS2693: 'SystemState' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(238,3): error TS2693: 'ConceptNode' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(239,3): error TS2693: 'EnhancedConcept' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(240,3): error TS2693: 'CoherenceMetrics' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(241,3): error TS2693: 'EntropyMetrics' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(242,3): error TS2693: 'ConceptMeshEvent' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(243,3): error TS2693: 'ConceptMeshStorage' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(244,3): error TS2693: 'NetworkStats' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(245,3): error TS2693: 'GhostInteraction' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(246,3): error TS2693: 'ThoughtspaceState' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/stores/types.ts(248,3): error TS2693: 'ConceptMeshConfig' only refers to a type, but is being used as a value here.
+tori_ui_svelte/src/lib/webgpu/photoMorphPipeline.fixed.ts(440,46): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'.
+  Type 'Float32Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+tori_ui_svelte/src/routes/+layout.server.ts(1,39): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/+page.server.ts(1,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/chat/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/chat/export-all/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/chat/history/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/ghost-memory/all/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/list/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/memory/state/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/pdf/stats/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/api/soliton/[...path]/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/health/+server.ts(1,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/login/+page.server.ts(2,30): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/logout/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.
+tori_ui_svelte/src/routes/upload/+server.ts(2,37): error TS2307: Cannot find module './$types' or its corresponding type declarations.

@@ -1,0 +1,39 @@
+Testing ConceptMesh Singleton Pattern 
+============================================== 
+Test run at Sat 07/19/2025 13:17:08.84 
+ 
+Testing singleton behavior... 
+2025-07-19 13:17:11,815 - python.core - INFO - Python core components loaded: CognitiveEngine, UnifiedMemoryVault, MCPMetacognitiveServer, CognitiveInterface, ConceptMesh, TorusRegistry, ObserverSynthesis, OscillatorLattice, CouplingMatrix
+2025-07-19 13:17:11,815 - python.core - WARNING - \u26a0\ufe0f Missing No-DB components: TorusCells
+2025-07-19 13:17:11,830 - python.core.concept_mesh - INFO - Loaded 0 concepts
+2025-07-19 13:17:11,830 - python.core.concept_mesh - INFO - Loaded 0 relations
+2025-07-19 13:17:11,830 - python.core.concept_mesh - INFO - Loaded indices
+2025-07-19 13:17:11,830 - python.core.concept_mesh - INFO - ConceptMesh initialized with 0 concepts
+2025-07-19 13:17:11,830 - python.core.concept_mesh - INFO - Loaded 5 concepts from concept_mesh\data.json with preserved IDs
+Same instance: True
+Instance 1 concepts: 5
+Instance 2 concepts: 5
+ 
+Testing API concept loading... 
+  File "<string>", line 1
+    import sys; sys.path.insert(0, '.'); from api.concept_mesh import mesh, _concepts_view; concepts = _concepts_view(); print(f'API mesh has {len(concepts)} concepts'); if concepts: first_id = list(concepts.keys())[0]; print(f'First concept ID: {first_id}'); print(f'Checking ID stability...')
+                                                                                                                                                                          ^^
+SyntaxError: invalid syntax
+ 
+Testing lattice rebuild with singleton... 
+2025-07-19 13:17:17,245 - python.core - INFO - Python core components loaded: CognitiveEngine, UnifiedMemoryVault, MCPMetacognitiveServer, CognitiveInterface, ConceptMesh, TorusRegistry, ObserverSynthesis, OscillatorLattice, CouplingMatrix
+2025-07-19 13:17:17,245 - python.core - WARNING - \u26a0\ufe0f Missing No-DB components: TorusCells
+2025-07-19 13:17:17,254 - api.lattice_routes - INFO - Lattice routes initialized
+2025-07-19 13:17:17,261 - api.lattice_routes - INFO - Cleared lattice for full rebuild
+2025-07-19 13:17:17,277 - python.core.concept_mesh - INFO - Loaded 0 concepts
+2025-07-19 13:17:17,277 - python.core.concept_mesh - INFO - Loaded 0 relations
+2025-07-19 13:17:17,277 - python.core.concept_mesh - INFO - Loaded indices
+2025-07-19 13:17:17,277 - python.core.concept_mesh - INFO - ConceptMesh initialized with 0 concepts
+2025-07-19 13:17:17,292 - python.core.concept_mesh - INFO - Loaded 5 concepts from concept_mesh\data.json with preserved IDs
+2025-07-19 13:17:17,292 - api.concept_mesh - INFO - Using ConceptMesh singleton with 5 concepts
+2025-07-19 13:17:17,292 - api.concept_mesh - INFO - Concept Mesh routes initialized
+2025-07-19 13:17:17,292 - api.lattice_routes - INFO - Got 5 concepts from concept mesh
+2025-07-19 13:17:17,292 - api.lattice_routes - INFO - Rebuilt lattice with 5 oscillators from 5 concepts
+Lattice rebuild: oscillators_created=5
+ 
+Test complete. 

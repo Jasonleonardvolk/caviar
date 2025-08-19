@@ -1,0 +1,102 @@
+"""
+Fix concept_mesh import issue for MCP server
+"""
+import os
+from pathlib import Path
+
+print("🔧 Fixing concept_mesh module import")
+print("=" * 40)
+
+# 1. Create concept_mesh package structure
+concept_mesh_dir = Path(r"C:\Users\jason\Desktop\tori\kha\concept_mesh")
+concept_mesh_dir.mkdir(exist_ok=True)
+
+# 2. Create __init__.py
+init_file = concept_mesh_dir / "__init__.py"
+if not init_file.exists():
+    init_file.write_text("# concept mesh package\n")
+    print("✅ Created __init__.py")
+else:
+    print("✅ __init__.py already exists")
+
+# 3. Create a minimal interface.py if it doesn't exist
+interface_file = concept_mesh_dir / "interface.py"
+if not interface_file.exists():
+    interface_content = '''"""
+Concept Mesh Interface
+"""
+import json
+from pathlib import Path
+
+class ConceptMesh:
+    def __init__(self):
+        self.data_file = Path(__file__).parent / "concept_mesh_data.json"
+        self.concepts = []
+        self.load_data()
+    
+    def load_data(self):
+        """Load concept data from file"""
+        if self.data_file.exists():
+            try:
+                with open(self.data_file, 'r') as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        self.concepts = data
+                    elif isinstance(data, dict):
+                        self.concepts = data.get('concepts', [])
+                print(f"✅ Concept Mesh loaded {len(self.concepts)} concepts")
+            except Exception as e:
+                print(f"⚠️ Error loading concept mesh: {e}")
+                self.concepts = []
+        else:
+            print("⚠️ No concept mesh data file found")
+            self.concepts = []
+    
+    def health(self):
+        """Health check"""
+        return {
+            "status": "ok",
+            "concepts": len(self.concepts),
+            "version": "1.0"
+        }
+    
+    def get_concepts(self):
+        """Get all concepts"""
+        return self.concepts
+
+# Create singleton instance
+_mesh = ConceptMesh()
+
+# Export convenience functions
+def get_mesh():
+    return _mesh
+
+def health():
+    return _mesh.health()
+'''
+    interface_file.write_text(interface_content)
+    print("✅ Created interface.py")
+else:
+    print("✅ interface.py already exists")
+
+# 4. Create setup.py for editable install
+setup_file = concept_mesh_dir / "setup.py"
+setup_content = '''from setuptools import setup, find_packages
+
+setup(
+    name="concept_mesh",
+    version="0.1.0",
+    packages=find_packages(),
+    install_requires=[],
+)
+'''
+setup_file.write_text(setup_content)
+print("✅ Created setup.py")
+
+print("\n✅ Package structure ready!")
+print("\n📌 NEXT STEPS:")
+print("1. Run in PowerShell:")
+print("   cd C:\\Users\\jason\\Desktop\\tori\\kha\\concept_mesh")
+print("   pip install -e .")
+print("\n2. Then run: python enhanced_launcher.py")
+print("\nThe warnings should disappear!")

@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-08-15T10:35:34.999982",
+  "files_modified": [
+    "D:\\Dev\\kha\\frontend\\hybrid\\pipelines\\render_select_example.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\ktx2Loader.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\phasePolisher.ts",
+    "D:\\Dev\\kha\\frontend\\lib\\webgpu\\capabilities.ts",
+    "D:\\Dev\\kha\\frontend\\lib\\webgpu\\minimalGPUTest.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\src\\main.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\src\\lightFieldComposerPipeline.ts",
+    "D:\\Dev\\kha\\standalone-holo\\src\\pipelines\\SLMEncoderPipeline.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\applyPhaseLUT.ts",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\zernikeApply.ts"
+  ],
+  "fixes_applied": [
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\ktx2Loader.ts: Fixed KTX2Level property access",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\applyPhaseLUT.ts: Fixed ArrayBuffer type issues",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\phasePolisher.ts: Fixed ArrayBuffer type issues",
+    "D:\\Dev\\kha\\frontend\\hybrid\\lib\\post\\zernikeApply.ts: Fixed ArrayBuffer type issues",
+    "D:\\Dev\\kha\\frontend\\hybrid\\pipelines\\render_select_example.ts: Fixed 'static let' syntax",
+    "D:\\Dev\\kha\\frontend\\hybrid\\src\\lightFieldComposerPipeline.ts: Fixed ArrayBuffer type issues",
+    "D:\\Dev\\kha\\frontend\\hybrid\\src\\lightFieldComposerPipeline.ts: Added DeviceOrientationEvent type augmentation",
+    "D:\\Dev\\kha\\frontend\\hybrid\\src\\main.ts: Fixed module import paths",
+    "D:\\Dev\\kha\\frontend\\lib\\webgpu\\capabilities.ts: Fixed GPU limits access with type assertions",
+    "D:\\Dev\\kha\\frontend\\lib\\webgpu\\minimalGPUTest.ts: Fixed ArrayBuffer type issues",
+    "D:\\Dev\\kha\\standalone-holo\\src\\pipelines\\SLMEncoderPipeline.ts: Fixed ArrayBuffer type issues"
+  ],
+  "backup_directory": "D:\\Dev\\kha\\backup_20250815_103534"
+}

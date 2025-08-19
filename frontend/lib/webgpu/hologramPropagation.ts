@@ -1,0 +1,366 @@
+/**
+ * Hologram Propagation Module
+ * Wraps the propagation.wgsl shader for FFT-based wave propagation
+ */
+
+import { ShaderLoader } from './shaderLoader';
+
+export enum PropagationMethod {
+    ANGULAR_SPECTRUM = 0,
+    FRESNEL = 1,
+    FRAUNHOFER = 2,
+    AUTO = 3
+}
+
+export interface PropagationConfig {
+    distance: number;              // mm
+    wavelength: number;            // mm
+    pixelSize: number;            // mm
+    amplitudeScale?: number;
+    method?: PropagationMethod;
+    applyAperture?: boolean;
+    apertureRadius?: number;       // mm
+    edgeSmoothness?: number;
+    useBandLimiting?: boolean;
+    noiseAmount?: number;
+    coherenceLength?: number;
+}
+
+export class HologramPropagation {
+    private device: GPUDevice;
+    private pipeline?: GPUComputePipeline;
+    private bindGroupLayout?: GPUBindGroupLayout;
+    private uniformBuffer?: GPUBuffer;
+    
+    // Cached values
+    private currentConfig?: PropagationConfig;
+    private fresnelNumber: number = 0;
+    
+    constructor(device: GPUDevice, private size: number) {
+        this.device = device;
+    }
+    
+    async initialize(): Promise<void> {
+        let shaderCode: string;
+        
+        try {
+            // Try to load from ShaderLoader (returns source code string)
+            shaderCode = await ShaderLoader.load('shaders/propagation.wgsl');
+        } catch (error) {
+            // Fallback to minimal shader for testing
+            console.warn('Failed to load propagation shader, using fallback:', error);
+            shaderCode = `
+                struct PropagationParams {
+                    distance: f32,
+                    wavelength: f32,
+                    pixel_size: f32,
+                    amplitude_scale: f32,
+                    method: f32,
+                    apply_aperture: f32,
+                    fresnel_number: f32,
+                    use_band_limiting: f32,
+                    k: f32,
+                    inv_wavelength: f32,
+                    aperture_radius: f32,
+                    edge_smoothness: f32,
+                    noise_amount: f32,
+                    coherence_length: f32,
+                    _padding: vec2<f32>,
+                }
+                
+                @group(0) @binding(0) var<uniform> params: PropagationParams;
+                @group(0) @binding(1) var input_texture: texture_2d<f32>;
+                @group(0) @binding(2) var output_texture: texture_storage_2d<rg32float, write>;
+                @group(0) @binding(3) var<storage, read> precomputed: array<vec2<f32>>;
+                
+                @compute @workgroup_size(8, 8, 1)
+                fn propagate_wavefield(@builtin(global_invocation_id) id: vec3<u32>) {
+                    let dims = textureDimensions(input_texture);
+                    if (id.x >= dims.x || id.y >= dims.y) {
+                        return;
+                    }
+                    
+                    // Simple pass-through for testing
+                    let input_value = textureLoad(input_texture, vec2<i32>(id.xy), 0);
+                    textureStore(output_texture, vec2<i32>(id.xy), input_value);
+                }
+            `;
+        }
+        
+        // Create shader module from the loaded or fallback code
+        const shaderModule = this.device.createShaderModule({
+            label: 'Propagation Shader',
+            code: shaderCode
+        });
+        
+        // Create bind group layout
+        this.bindGroupLayout = this.device.createBindGroupLayout({
+            label: 'Propagation Bind Group Layout',
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'uniform'
+                    }
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.COMPUTE,
+                    texture: {
+                        sampleType: 'unfilterable-float',
+                        viewDimension: '2d'
+                    }
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.COMPUTE,
+                    storageTexture: {
+                        access: 'write-only',
+                        format: 'rg32float',
+                        viewDimension: '2d'
+                    }
+                },
+                {
+                    binding: 3,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'read-only-storage'
+                    }
+                }
+            ]
+        });
+        
+        // Create pipeline
+        const pipelineLayout = this.device.createPipelineLayout({
+            label: 'Propagation Pipeline Layout',
+            bindGroupLayouts: [this.bindGroupLayout]
+        });
+        
+        this.pipeline = this.device.createComputePipeline({
+            label: 'Hologram Propagation Pipeline',
+            layout: pipelineLayout,
+            compute: {
+                module: shaderModule,
+                entryPoint: 'propagate_wavefield'
+            }
+        });
+        
+        // Create uniform buffer
+        this.uniformBuffer = this.device.createBuffer({
+            size: 256, // Aligned to 256 bytes as per shader
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+    }
+    
+    /**
+     * Propagate wavefield using specified method
+     */
+    async propagate(
+        commandEncoder: GPUCommandEncoder,
+        inputTexture: GPUTexture,
+        outputTexture: GPUTexture,
+        distance: number,
+        wavelength: number,
+        config?: Partial<PropagationConfig>
+    ): Promise<void> {
+        if (!this.pipeline || !this.bindGroupLayout || !this.uniformBuffer) {
+            throw new Error('HologramPropagation not initialized');
+        }
+        
+        // Merge with default config
+        const fullConfig: PropagationConfig = {
+            distance,
+            wavelength,
+            pixelSize: 0.01, // 10 micron default
+            amplitudeScale: 1.0,
+            method: PropagationMethod.AUTO,
+            applyAperture: true,
+            apertureRadius: 10.0, // 10mm default
+            edgeSmoothness: 0.05,
+            useBandLimiting: true,
+            noiseAmount: 0.0,
+            coherenceLength: 1000.0,
+            ...config
+        };
+        
+        // Calculate derived parameters
+        const k = 2 * Math.PI / fullConfig.wavelength;
+        const invWavelength = 1.0 / fullConfig.wavelength;
+        
+        // Calculate Fresnel number for method selection
+        this.fresnelNumber = this.calculateFresnelNumber(
+            fullConfig.apertureRadius!,
+            fullConfig.distance,
+            fullConfig.wavelength
+        );
+        
+        // Auto-select method if needed
+        let method = fullConfig.method!;
+        if (method === PropagationMethod.AUTO) {
+            method = this.selectPropagationMethod(this.fresnelNumber);
+        }
+        
+        // Update uniform buffer
+        const uniformData = new Float32Array(64); // 256 bytes / 4 bytes per float
+        uniformData[0] = fullConfig.distance;
+        uniformData[1] = fullConfig.wavelength;
+        uniformData[2] = fullConfig.pixelSize;
+        uniformData[3] = fullConfig.amplitudeScale!;
+        uniformData[4] = method;
+        uniformData[5] = fullConfig.applyAperture ? 1 : 0;
+        uniformData[6] = this.fresnelNumber;
+        uniformData[7] = fullConfig.useBandLimiting ? 1 : 0;
+        uniformData[8] = k;
+        uniformData[9] = invWavelength;
+        uniformData[10] = fullConfig.apertureRadius!;
+        uniformData[11] = fullConfig.edgeSmoothness!;
+        uniformData[12] = fullConfig.noiseAmount!;
+        uniformData[13] = fullConfig.coherenceLength!;
+        // Padding for alignment
+        
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData.buffer);
+        
+        // Create precomputed values buffer
+        const precomputedBuffer = this.createPrecomputedBuffer(fullConfig);
+        
+        // Create bind group
+        const bindGroup = this.device.createBindGroup({
+            label: 'Propagation Bind Group',
+            layout: this.bindGroupLayout,
+            entries: [
+                {
+                    binding: 0,
+                    resource: { buffer: this.uniformBuffer }
+                },
+                {
+                    binding: 1,
+                    resource: inputTexture.createView()
+                },
+                {
+                    binding: 2,
+                    resource: outputTexture.createView()
+                },
+                {
+                    binding: 3,
+                    resource: { buffer: precomputedBuffer }
+                }
+            ]
+        });
+        
+        // Dispatch compute pass
+        const passEncoder = commandEncoder.beginComputePass({
+            label: 'Hologram Propagation Pass'
+        });
+        
+        passEncoder.setPipeline(this.pipeline);
+        passEncoder.setBindGroup(0, bindGroup);
+        
+        const workgroupSize = 8;
+        const numWorkgroupsX = Math.ceil(this.size / workgroupSize);
+        const numWorkgroupsY = Math.ceil(this.size / workgroupSize);
+        
+        passEncoder.dispatchWorkgroups(numWorkgroupsX, numWorkgroupsY);
+        passEncoder.end();
+        
+        // Clean up temporary buffer
+        precomputedBuffer.destroy();
+    }
+    
+    /**
+     * Calculate Fresnel number for method selection
+     */
+    private calculateFresnelNumber(
+        apertureRadius: number,
+        distance: number,
+        wavelength: number
+    ): number {
+        return (apertureRadius * apertureRadius) / (distance * wavelength);
+    }
+    
+    /**
+     * Auto-select propagation method based on Fresnel number
+     */
+    private selectPropagationMethod(fresnelNumber: number): PropagationMethod {
+        if (fresnelNumber > 100) {
+            // Near field - use Angular Spectrum
+            return PropagationMethod.ANGULAR_SPECTRUM;
+        } else if (fresnelNumber > 1) {
+            // Fresnel region
+            return PropagationMethod.FRESNEL;
+        } else {
+            // Far field - Fraunhofer
+            return PropagationMethod.FRAUNHOFER;
+        }
+    }
+    
+    /**
+     * Create buffer with precomputed values for performance
+     */
+    private createPrecomputedBuffer(config: PropagationConfig): GPUBuffer {
+        const size = this.size;
+        const data = new Float32Array(size * size * 2); // Complex values
+        
+        // Precompute frequency coordinates
+        const dx = config.pixelSize;
+        const fx_max = 1.0 / (2.0 * dx);
+        const dfx = 2.0 * fx_max / size;
+        
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const idx = (y * size + x) * 2;
+                
+                // Shifted frequency coordinates
+                const fx = (x < size / 2 ? x : x - size) * dfx;
+                const fy = (y < size / 2 ? y : y - size) * dfx;
+                
+                // Store frequency coordinates
+                data[idx] = fx;
+                data[idx + 1] = fy;
+            }
+        }
+        
+        const buffer = this.device.createBuffer({
+            label: 'Propagation Precomputed Buffer',
+            size: data.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        
+        this.device.queue.writeBuffer(buffer, 0, data);
+        
+        return buffer;
+    }
+    
+    /**
+     * Get current propagation statistics
+     */
+    getStats(): {
+        fresnelNumber: number;
+        selectedMethod: string;
+        config: PropagationConfig | undefined;
+    } {
+        const methodNames = [
+            'Angular Spectrum',
+            'Fresnel',
+            'Fraunhofer',
+            'Auto'
+        ];
+        
+        return {
+            fresnelNumber: this.fresnelNumber,
+            selectedMethod: this.currentConfig 
+                ? methodNames[this.currentConfig.method!] 
+                : 'None',
+            config: this.currentConfig
+        };
+    }
+    
+    /**
+     * Clean up GPU resources
+     */
+    destroy(): void {
+        if (this.uniformBuffer) {
+            this.uniformBuffer.destroy();
+        }
+    }
+}

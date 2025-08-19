@@ -1,0 +1,23 @@
+{
+  "label": "iphone11_conservative",
+  "capturedAt": "2025-08-15T21:58:34.476129Z",
+  "features": {
+    "shader-f16": false,
+    "subgroups": false,
+    "timestamp-query": false,
+    "texture-compression-bc": false
+  },
+  "limits": {
+    "maxUniformBufferBindingSize": 65536,
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 268435456,
+    "maxComputeWorkgroupSizeX": 256,
+    "maxComputeWorkgroupSizeY": 256,
+    "maxComputeWorkgroupSizeZ": 64,
+    "maxComputeInvocationsPerWorkgroup": 256,
+    "maxComputeWorkgroupsPerDimension": 65535,
+    "maxTextureDimension2D": 8192,
+    "maxTextureArrayLayers": 256
+  },
+  "notes": "Conservative baseline for iPhone 11-class devices. Replace with real probe when available."
+}

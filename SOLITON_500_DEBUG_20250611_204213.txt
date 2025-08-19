@@ -1,0 +1,100 @@
+[2025-06-11 20:42:13.593] 🐛 SOLITON 500 ERROR DEBUGGING SESSION
+[2025-06-11 20:42:13.593] ============================================================
+[2025-06-11 20:42:13.593] Session started: 2025-06-11 20:42:13.593590
+[2025-06-11 20:42:13.599] Debug file: SOLITON_500_DEBUG_20250611_204213.txt
+[2025-06-11 20:42:13.600] 
+[2025-06-11 20:42:13.600] 
+🧪 TEST #1: Empty JSON Body
+[2025-06-11 20:42:13.605] ==================================================
+[2025-06-11 20:42:13.609] URL: http://localhost:8002/api/soliton/init
+[2025-06-11 20:42:13.612] Headers: {'Content-Type': 'application/json'}
+[2025-06-11 20:42:13.639] JSON Data: {}
+[2025-06-11 20:42:15.721] Response Status: 200
+[2025-06-11 20:42:15.721] Response Headers: {'date': 'Thu, 12 Jun 2025 01:42:14 GMT', 'server': 'uvicorn', 'content-length': '139', 'content-type': 'application/json'}
+[2025-06-11 20:42:15.726] ✅ Success! Status: 200
+[2025-06-11 20:42:15.733] Success Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "default_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[2025-06-11 20:42:16.752] 
+🧪 TEST #2: Valid JSON Body
+[2025-06-11 20:42:16.758] ==================================================
+[2025-06-11 20:42:16.760] URL: http://localhost:8002/api/soliton/init
+[2025-06-11 20:42:16.763] Headers: {'Content-Type': 'application/json'}
+[2025-06-11 20:42:16.764] JSON Data: {"userId": "test_user"}
+[2025-06-11 20:42:18.809] Response Status: 200
+[2025-06-11 20:42:18.815] Response Headers: {'date': 'Thu, 12 Jun 2025 01:42:18 GMT', 'server': 'uvicorn', 'content-length': '136', 'content-type': 'application/json'}
+[2025-06-11 20:42:18.821] ✅ Success! Status: 200
+[2025-06-11 20:42:18.823] Success Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "test_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[2025-06-11 20:42:19.832] 
+🧪 TEST #3: No Body
+[2025-06-11 20:42:19.839] ==================================================
+[2025-06-11 20:42:19.840] URL: http://localhost:8002/api/soliton/init
+[2025-06-11 20:42:19.842] Headers: {'Content-Type': 'application/json'}
+[2025-06-11 20:42:19.846] JSON Data: null
+[2025-06-11 20:42:21.901] Response Status: 200
+[2025-06-11 20:42:21.906] Response Headers: {'date': 'Thu, 12 Jun 2025 01:42:21 GMT', 'server': 'uvicorn', 'content-length': '139', 'content-type': 'application/json'}
+[2025-06-11 20:42:21.907] ✅ Success! Status: 200
+[2025-06-11 20:42:21.914] Success Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "default_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[2025-06-11 20:42:22.930] 
+🧪 TEST #4: Invalid JSON
+[2025-06-11 20:42:22.936] ==================================================
+[2025-06-11 20:42:22.939] URL: http://localhost:8002/api/soliton/init
+[2025-06-11 20:42:22.941] Headers: {'Content-Type': 'application/json'}
+[2025-06-11 20:42:22.946] Raw Data: invalid json
+[2025-06-11 20:42:24.992] Response Status: 200
+[2025-06-11 20:42:24.999] Response Headers: {'date': 'Thu, 12 Jun 2025 01:42:24 GMT', 'server': 'uvicorn', 'content-length': '139', 'content-type': 'application/json'}
+[2025-06-11 20:42:25.008] ✅ Success! Status: 200
+[2025-06-11 20:42:25.010] Success Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "default_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[2025-06-11 20:42:26.028] 
+🧪 TEST #5: No Content-Type
+[2025-06-11 20:42:26.033] ==================================================
+[2025-06-11 20:42:26.036] URL: http://localhost:8002/api/soliton/init
+[2025-06-11 20:42:26.038] Headers: {}
+[2025-06-11 20:42:26.040] JSON Data: {"userId": "test_user"}
+[2025-06-11 20:42:28.086] Response Status: 200
+[2025-06-11 20:42:28.088] Response Headers: {'date': 'Thu, 12 Jun 2025 01:42:27 GMT', 'server': 'uvicorn', 'content-length': '136', 'content-type': 'application/json'}
+[2025-06-11 20:42:28.094] ✅ Success! Status: 200
+[2025-06-11 20:42:28.094] Success Response: {
+  "success": true,
+  "engine": "fallback",
+  "user_id": "test_user",
+  "message": "Soliton lattice initialized in fallback mode",
+  "lattice_ready": true
+}
+[2025-06-11 20:42:29.116] 
+📋 BACKEND LOG ANALYSIS
+[2025-06-11 20:42:29.130] ==================================================
+[2025-06-11 20:42:29.137] ❌ Log file not found: prajna_api.log
+[2025-06-11 20:42:29.142] ❌ Log file not found: logs/prajna.log
+[2025-06-11 20:42:29.146] ❌ Log file not found: logs/api.log
+[2025-06-11 20:42:29.160] ❌ Log file not found: tori.log
+[2025-06-11 20:42:29.162] 
+📊 DEBUGGING SUMMARY
+[2025-06-11 20:42:29.162] ==================================================
+[2025-06-11 20:42:29.162] Total 500 errors detected: 0
+[2025-06-11 20:42:29.162] ✅ No 500 errors detected - endpoints working properly!
+[2025-06-11 20:42:29.162] 
+Session completed: 2025-06-11 20:42:29.162550
+[2025-06-11 20:42:29.178] Check this file for detailed error analysis.

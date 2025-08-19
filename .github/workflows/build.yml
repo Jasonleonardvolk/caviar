@@ -1,0 +1,57 @@
+name: TORI Chat Build Verification
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and verify TORI Chat
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Fix React dependency conflicts non-interactive
+      run: |
+        # Check if we have react-diff-viewer installed (conflict with React 18)
+        if npm ls react-diff-viewer; then
+          echo "Found react-diff-viewer - replacing with React 18 compatible version"
+          npm uninstall react-diff-viewer
+          npm install react-diff-viewer-continued@4.0.0 --save-exact
+        else
+          echo "No conflicts found - proceeding with build"
+        fi
+    
+    - name: Install dependencies
+      working-directory: ./tori_chat_frontend
+      run: npm ci --omit dev
+      
+    - name: Build application
+      working-directory: ./tori_chat_frontend
+      run: npm run build
+    
+    - name: Verify build is correct React UI (not redirect)
+      run: |
+        grep -q "ReactDOM" tori_chat_frontend/dist/index.html || 
+        (echo "ERROR: Built UI is the redirect placeholder, not the actual TORI Chat interface!" && exit 1)
+      
+    - name: Check build output size
+      run: |
+        size=$(stat -c %s tori_chat_frontend/dist/index.html)
+        echo "Build index.html size: $size bytes"
+        if [ "$size" -lt 1000 ]; then
+          echo "ERROR: index.html is suspiciously small ($size bytes), likely a redirect page"
+          exit 1
+        else
+          echo "Build verified: index.html size indicates proper React build"
+        fi

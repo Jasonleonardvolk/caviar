@@ -1,0 +1,1 @@
+#!/bin/bash\n# Quick fix for missing mathjs dependency\n\necho \"🔧 Installing missing mathjs dependency...\"\ncd tori_ui_svelte\nnpm install mathjs @types/mathjs\necho \"✅ Dependencies installed!\"\necho \"🚀 Now try: npm run dev\"\n"

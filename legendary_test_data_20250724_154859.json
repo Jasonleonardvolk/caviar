@@ -1,0 +1,10 @@
+[
+  {
+    "level": "WARMUP",
+    "success": false,
+    "duration": 1.666569709777832,
+    "error": "invalid syntax (extreme_soliton_stress_test.py, line 2)",
+    "grade": "FAILED",
+    "grade_score": 0
+  }
+]
