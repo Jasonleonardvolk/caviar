@@ -1,205 +1,93 @@
-// exportVideo.ts
-// Video export utilities for iRis holographic recordings
-// Supports watermarking, resolution adjustment, and format conversion
+type RecordOpts = {
+  sourceCanvas: HTMLCanvasElement;
+  fps?: number;
+  durationMs: number;
+  watermark?: { text: string; font?: string; alpha?: number; x?: number; y?: number };
+  includeMic?: boolean;
+  mimeCandidates?: string[];
+};
 
-export interface ExportOptions {
-  watermark?: boolean;
-  watermarkText?: string;
-  resolution?: '1920x1080' | '1080x1920' | '3840x2160';
-  format?: 'mp4' | 'webm';
-  quality?: number; // 0-1
-}
+const DEFAULT_MIME = [
+  'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+  'video/mp4',
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm'
+];
 
-/**
- * Process and export video blob with options
- */
-export async function exportVideo(
-  inputBlob: Blob,
-  options: ExportOptions = {}
-): Promise<Blob> {
-  const {
-    watermark = false,
-    watermarkText = 'iRis',
-    resolution = '1080x1920',
-    format = 'mp4',
-    quality = 0.9
-  } = options;
-  
-  // For now, return the input blob with potential watermark overlay
-  // In production, this would use WebCodecs or ffmpeg.wasm for full processing
-  
-  if (watermark) {
-    return addWatermark(inputBlob, watermarkText);
+function pickMime(candidates: string[] = DEFAULT_MIME): string {
+  for (const m of candidates) {
+    try { if ((window as any).MediaRecorder?.isTypeSupported?.(m)) return m; } catch {}
   }
-  
-  return inputBlob;
+  return '';
 }
 
 /**
- * Add watermark to video using canvas overlay
+ * Composites source canvas + watermark every RAF into an offscreen "compositor" canvas,
+ * records its captureStream, and returns a Blob+URL. Mic track optional.
  */
-async function addWatermark(blob: Blob, text: string): Promise<Blob> {
-  // Create video element
-  const video = document.createElement('video');
-  video.src = URL.createObjectURL(blob);
-  video.muted = true;
-  
-  // Wait for video metadata
-  await new Promise((resolve) => {
-    video.onloadedmetadata = resolve;
-  });
-  
-  // Create canvas for watermark
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Failed to get canvas context');
-  
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  
-  // Create output stream
-  const stream = canvas.captureStream(30);
-  const mediaRecorder = new MediaRecorder(stream, {
-    mimeType: 'video/webm;codecs=h264',
-    videoBitsPerSecond: 8_000_000
-  });
-  
-  const chunks: Blob[] = [];
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunks.push(e.data);
-  };
-  
-  // Process video frame by frame
-  const processFrame = () => {
-    if (video.paused || video.ended) return;
-    
-    // Draw video frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Add watermark
-    ctx.font = 'bold 48px SF Pro Display, Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.lineWidth = 2;
-    
-    const textMetrics = ctx.measureText(text);
-    const x = canvas.width - textMetrics.width - 40;
-    const y = canvas.height - 40;
-    
-    ctx.strokeText(text, x, y);
-    ctx.fillText(text, x, y);
-    
-    requestAnimationFrame(processFrame);
-  };
-  
-  // Start processing
-  return new Promise((resolve) => {
-    mediaRecorder.onstop = () => {
-      const outputBlob = new Blob(chunks, { type: 'video/mp4' });
-      URL.revokeObjectURL(video.src);
-      resolve(outputBlob);
-    };
-    
-    mediaRecorder.start();
-    video.play();
-    processFrame();
-    
-    video.onended = () => {
-      mediaRecorder.stop();
-    };
-  });
-}
+export async function recordCanvasToVideo(opts: RecordOpts): Promise<{ blob: Blob; url: string }> {
+  const fps = opts.fps ?? 30;
+  const mime = pickMime(opts.mimeCandidates);
+  const compositor = document.createElement('canvas');
+  compositor.width = opts.sourceCanvas.width;
+  compositor.height = opts.sourceCanvas.height;
+  const ctx = compositor.getContext('2d', { alpha: false })!;
 
-/**
- * Convert video to vertical format (9:16 for TikTok/Snap)
- */
-export async function convertToVertical(blob: Blob): Promise<Blob> {
-  // This would use ffmpeg.wasm or server-side processing
-  // For now, return the original
-  console.log('Vertical conversion not yet implemented');
-  return blob;
-}
-
-/**
- * Extract thumbnail from video at specific timestamp
- */
-export async function extractThumbnail(
-  blob: Blob,
-  timestamp: number = 0
-): Promise<Blob> {
-  const video = document.createElement('video');
-  video.src = URL.createObjectURL(blob);
-  video.currentTime = timestamp;
-  
-  await new Promise((resolve) => {
-    video.onseeked = resolve;
-  });
-  
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Failed to get canvas context');
-  
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0);
-  
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      URL.revokeObjectURL(video.src);
-      resolve(blob || new Blob());
-    }, 'image/jpeg', 0.9);
-  });
-}
-
-/**
- * Check if MediaRecorder is supported with required codecs
- */
-export function checkRecordingSupport(): {
-  supported: boolean;
-  codecs: string[];
-} {
-  if (!window.MediaRecorder) {
-    return { supported: false, codecs: [] };
+  let audioStream: MediaStream | null = null;
+  if (opts.includeMic) {
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    } catch {}
   }
-  
-  const codecs = [
-    'video/webm;codecs=h264',
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
-    'video/mp4'
-  ];
-  
-  const supported = codecs.filter(codec => 
-    MediaRecorder.isTypeSupported(codec)
-  );
-  
-  return {
-    supported: supported.length > 0,
-    codecs: supported
-  };
-}
 
-/**
- * Get optimal recording settings based on device capabilities
- */
-export function getOptimalSettings(tier: number = 0): MediaRecorderOptions {
-  const support = checkRecordingSupport();
-  
-  // Prefer H.264 for compatibility
-  const mimeType = support.codecs.find(c => c.includes('h264')) 
-    || support.codecs[0] 
-    || 'video/webm';
-  
-  // Bitrate based on tier
-  const bitrates = {
-    0: 4_000_000,  // Free: 4 Mbps
-    1: 8_000_000,  // Plus: 8 Mbps
-    2: 12_000_000  // Pro: 12 Mbps
-  };
-  
-  return {
-    mimeType,
-    videoBitsPerSecond: bitrates[tier] || bitrates[0],
-    audioBitsPerSecond: 128_000
-  };
+  const videoStream = (compositor as HTMLCanvasElement).captureStream(fps);
+  const combined = new MediaStream([
+    ...videoStream.getVideoTracks(),
+    ...(audioStream ? audioStream.getAudioTracks() : [])
+  ]);
+
+  const chunks: BlobPart[] = [];
+  const rec = new (window as any).MediaRecorder(combined, { mimeType: mime || undefined });
+  rec.ondataavailable = (e: BlobEvent) => { if (e.data?.size) chunks.push(e.data); };
+
+  let running = true;
+  const start = performance.now();
+
+  function drawFrame() {
+    if (!running) return;
+    ctx.drawImage(opts.sourceCanvas, 0, 0, compositor.width, compositor.height);
+
+    // Watermark overlay
+    if (opts.watermark?.text) {
+      ctx.save();
+      ctx.globalAlpha = opts.watermark.alpha ?? 0.35;
+      ctx.font = opts.watermark.font ?? 'bold 36px system-ui, Arial';
+      ctx.fillStyle = '#ffffff';
+      const x = opts.watermark.x ?? 24;
+      const y = opts.watermark.y ?? (compositor.height - 24);
+      // subtle shadow for visibility
+      ctx.shadowColor = 'black'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+      ctx.fillText(opts.watermark.text, x, y);
+      ctx.restore();
+    }
+
+    if (performance.now() - start < opts.durationMs) {
+      requestAnimationFrame(drawFrame);
+    } else {
+      running = false;
+      rec.stop();
+      videoStream.getVideoTracks().forEach((t) => t.stop());
+      audioStream?.getTracks().forEach((t) => t.stop());
+    }
+  }
+
+  rec.start();
+  requestAnimationFrame(drawFrame);
+
+  const blob: Blob = await new Promise((resolve) => {
+    rec.onstop = () => resolve(new Blob(chunks, { type: mime || 'application/octet-stream' }));
+  });
+  const url = URL.createObjectURL(blob);
+  return { blob, url };
 }
