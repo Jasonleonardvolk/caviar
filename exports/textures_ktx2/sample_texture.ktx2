@@ -1,0 +1,7 @@
+KTX2_PLACEHOLDER_FILE_FOR_HEALTH_CHECK
+This is a placeholder KTX2 texture file for the health check.
+In production, this would be a compressed texture file.
+Format: KTX2
+Compression: BASIS_UASTC
+Dimensions: 1024x1024
+Channels: RGBA
