@@ -53,7 +53,7 @@
       <div style="opacity:.8">Size: {fmtBytes(x.size)} • Updated: {x.mtime}</div>
       {#if x.meta?.description}<div style="margin-top:.5rem">{x.meta.description}</div>{/if}
       {#if x.meta?.tags?.length}
-        <div style="margin-top:.5rem; opacity:.8">Tags: {(x.meta.tags as string[]).join(', ')}</div>
+        <div style="margin-top:.5rem; opacity:.8">Tags: {(x.meta?.tags ?? []).join(', ')}</div>
       {/if}
       <!-- note: GLB lives under exports; we serve bundles via the export API -->
     </div>

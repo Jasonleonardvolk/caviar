@@ -3,9 +3,6 @@
   import { recordCanvasToVideo } from '$lib/utils/exportVideo';
   import { onMount, onDestroy } from 'svelte';
 
-  let $plan; plan.subscribe(v => $plan = v);
-  let $limits; limits.subscribe(v => $limits = v);
-
   export let hologramCanvasSelector: string = '#hologram-canvas';
   export let fps: number = 30;
   export let defaultWatermark = 'Created with CAVIAR';
@@ -30,7 +27,6 @@
     countdown = $limits.maxMs;
     elapsed = 0;
 
-    // tick
     clearInterval(timer);
     const t0 = performance.now();
     timer = setInterval(() => {
@@ -44,24 +40,19 @@
       fps,
       durationMs: $limits.maxMs,
       includeMic: true,
-      watermark: $limits.watermark
-        ? { text: defaultWatermark, alpha: 0.35 }
-        : undefined
+      watermark: $limits.watermark ? { text: defaultWatermark, alpha: 0.35 } : undefined
     });
 
     url = outUrl;
-    // auto-download file
     const a = document.createElement('a');
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     a.href = url; a.download = `caviar-${$plan}-${stamp}.mp4`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url!), 10_000);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => url && URL.revokeObjectURL(url), 10_000);
     recording = false;
   }
 
-  function stop() {
-    // The utility stops automatically at duration; here we just stop UI timers.
-    clearInterval(timer); recording = false;
-  }
+  function stop() { clearInterval(timer); recording = false; }
 
   onMount(() => {
     targetCanvas = document.querySelector(hologramCanvasSelector) as HTMLCanvasElement | null;
@@ -82,7 +73,6 @@
     <div class="badge">Plan: {$plan.toUpperCase()}</div>
     <div class="badge">Limit: {mmss($limits.maxMs)} { $limits.watermark ? '• Watermark' : '' }</div>
   </div>
-
   <button on:click={start} disabled={recording || !targetCanvas}>🎬 Start</button>
   <button on:click={stop}  disabled={!recording}>⏹ Stop</button>
 </div>
