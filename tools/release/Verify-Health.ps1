@@ -54,4 +54,4 @@ try {
 
 $o | ConvertTo-Json -Depth 8 | Set-Content $Report
 Ok "Report → $Report"
-exit ($o.ok ? 0 : 1)
+if ($o.ok) { exit 0 } else { exit 1 }

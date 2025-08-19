@@ -51,4 +51,4 @@ $res | % { if($_.ok){ Ok "$($_.path) 200" } else { Fail "$($_.path) failed" } }
 $o=@{ok=($res|?{$_.ok}).Count -eq $routes.Count; server=("http://127.0.0.1:{0}" -f $port); routes=$res }
 $o|ConvertTo-Json -Depth 8 | Set-Content $Report
 Ok "Report → $Report"
-exit ($o.ok ? 0 : 1)
+if ($o.ok) { exit 0 } else { exit 1 }
