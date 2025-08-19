@@ -1,0 +1,84 @@
+{
+    "timestamp":  "2025-08-19 18:51:20",
+    "ok":  false,
+    "server":  "http://127.0.0.1:5173",
+    "health":  {
+                   "ok":  true,
+                   "timestamp":  "2025-08-19T23:51:20.676Z",
+                   "env":  {
+                               "node":  "v20.11.1",
+                               "platform":  "win32",
+                               "arch":  "x64",
+                               "cwd":  "D:\\Dev\\kha\\frontend",
+                               "frontendPackageVersion":  "0.1.0",
+                               "projectPackageVersion":  "1.0.0"
+                           },
+                   "files":  {
+                                 "requiredTotal":  22,
+                                 "presentCount":  22,
+                                 "missing":  [
+
+                                             ]
+                             },
+                   "plans":  {
+                                 "src":  "D:\\Dev\\kha\\config\\plans.json",
+                                 "dst":  "D:\\Dev\\kha\\frontend\\static\\config\\plans.json",
+                                 "synced":  true
+                             },
+                   "monetization":  {
+                                        "stripeKeyPresent":  true,
+                                        "pricingRouteExists":  true,
+                                        "billingEndpointsExist":  true
+                                    },
+                   "hologram":  {
+                                    "routeExists":  true,
+                                    "recorderExists":  true
+                                },
+                   "exporters":  {
+                                     "glbExporterExists":  true,
+                                     "ktx2ScriptExists":  true
+                                 },
+                   "templates":  {
+                                     "routes":  {
+                                                    "catalog":  true,
+                                                    "upload":  true
+                                                },
+                                     "counts":  {
+                                                    "glb":  1,
+                                                    "ktx2":  1
+                                                }
+                                 },
+                   "guides":  {
+                                  "snap":  1,
+                                  "tiktok":  1
+                              },
+                   "readiness":  {
+                                     "demo":  true,
+                                     "publishSnap":  true,
+                                     "publishTikTok":  true
+                                 },
+                   "artifacts":  {
+                                     "templatesDir":  "D:\\Dev\\kha\\exports\\templates",
+                                     "texturesDir":  "D:\\Dev\\kha\\exports\\textures_ktx2",
+                                     "glb":  [
+                                                 {
+                                                     "name":  "sample_hologram.glb",
+                                                     "path":  "D:\\Dev\\kha\\exports\\templates\\sample_hologram.glb",
+                                                     "size":  763,
+                                                     "mtime":  "2025-08-19T23:46:50.636Z"
+                                                 }
+                                             ],
+                                     "ktx2":  [
+                                                  {
+                                                      "name":  "sample_texture.ktx2",
+                                                      "path":  "D:\\Dev\\kha\\exports\\textures_ktx2\\sample_texture.ktx2",
+                                                      "size":  231,
+                                                      "mtime":  "2025-08-19T23:46:56.486Z"
+                                                  }
+                                              ]
+                                 },
+                   "advice":  [
+
+                              ]
+               }
+}
