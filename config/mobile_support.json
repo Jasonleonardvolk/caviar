@@ -1,0 +1,11 @@
+{
+  "iosMajor": 26,
+  "preferredBeta": "Beta 7+",
+  "minIphoneModel": "iPhone 13",
+  "recommendedIpads": [
+    "iPad Pro (M1|M2|M4)",
+    "iPad Air (M2)"
+  ],
+  "preferWebGPU": true,
+  "requiredRoutes": ["/hologram", "/pricing", "/templates"]
+}
