@@ -1,0 +1,780 @@
+**You:**
+
+For my caviar git...Since you can't access my repo directly and you can't browse the files. if commit and push the branch?  What if i had code in there i needed you to look at?
+
+
+
+* * *
+
+**ChatGPT:**
+
+Short answer: yes—if you push a branch and (ideally) open a Draft PR, I can read the code directly via the GitHub connector and do a line-by-line review here. If it’s not in a PR, I can still search commits or specific files in the repo you’ve connected, but a PR is the cleanest path because diffs, comments, and file paths are all indexed.
+
+Here are your best options (pick one):
+
+#1 — Recommended: Push a branch and open a Draft PR
+From your repo root (e.g., D:\Dev\kha if this is the Jasonleonardvolk/Tori repo):
+
+powershell
+# Create and push a feature branch
+git switch -c feat/caviar-bootstrap
+git add docs\caviar\README.md `
+        tools\release\Verify-Caviar.ps1 `
+        tori_ui_svelte\src\routes\caviar\+page.svelte `
+        tori_ui_svelte\src\lib\caviar\*.ts `
+        backend\api\caviar_controller.py
+git commit -m "caviar: bootstrap + docs + release verifier"
+git push -u origin feat/caviar-bootstrap
+
+
+Open a Draft PR against main:
+
+Web: GitHub → Compare & pull request → mark as Draft → title caviar: bootstrap (draft)
+
+Or with gh:
+
+powershell
+gh pr create --title "caviar: bootstrap (draft)" --body "Includes docs\caviar\README.md, tools\release\Verify-Caviar.ps1, UI under tori_ui_svelte\src\routes\caviar and lib\caviar." --base main --head feat/caviar-bootstrap --draft
+
+
+Then tell me the PR number (e.g., #123). I’ll pull the diff and review everything under:
+
+docs\caviar\README.md
+
+tools\release\Verify-Caviar.ps1
+
+tori_ui_svelte\src\routes\caviar\+page.svelte
+
+tori_ui_svelte\src\lib\caviar\ (TS/Svelte utilities)
+
+backend\api\caviar_controller.py (if applicable)
+
+If caviar lives in a separate repo (e.g., Jasonleonardvolk/caviar), add that repo to Connectors and do the same Draft PR flow.
+
+#2 — If you don’t want a PR yet: share a patch/diff
+Create a reviewable patch from your working branch versus main:
+
+powershell
+# From your caviar branch
+git diff main...HEAD > D:\Dev\kha\patches\caviar.diff
+
+
+Upload D:\Dev\kha\patches\caviar.diff here. I’ll annotate the patch and reference exact paths like
+tori_ui_svelte/src/lib/caviar/pipeline.ts, tools/release/Verify-Caviar.ps1, etc.
+
+#3 — Ship a zip of specific directories (no history)
+If you only want me to see certain folders/files:
+
+powershell
+# Create a zip containing just the caviar surfaces
+git archive -o D:\Dev\kha\caviar_review.zip HEAD `
+  docs/caviar README.md `
+  tools/release/Verify-Caviar.ps1 `
+  tori_ui_svelte/src/routes/caviar `
+  tori_ui_svelte/src/lib/caviar `
+  backend/api/caviar_controller.py
+
+
+Upload D:\Dev\kha\caviar_review.zip and I’ll walk through file-by-file.
+
+#4 — Quick snippet path (fastest for a single file)
+Paste the content inline with its full path on the first line, like:
+
+css
+--- tori_ui_svelte/src/lib/caviar/pipeline.ts
+<code here>
+
+
+I’ll review and suggest exact patches (e.g., edits to pipeline.ts, new caviar.types.d.ts, or changes in tools\release\Verify-Caviar.ps1).
+
+Practical tips so I can find things instantly
+
+Use a branch name like feat/caviar-bootstrap and commit messages prefixed with caviar:.
+
+Put a short map in docs\caviar\REVIEW_PLAN.md listing files to review (paths like tori_ui_svelte\src\lib\caviar\composeWowPack.ts).
+
+If it’s a separate repo, ensure Connectors → GitHub includes that repo; tell me the repo name, branch, and PR #.
+
+You choose the path; as soon as it’s up (PR, diff, or zip), I’ll dive in and reference exact directories and filenames in the review.
+
+* * *
+
+**You:**
+
+COLLABORATION_GUIDE.md
+File
+Watch-And-Pull.ps1
+File
+Watch-And-Push.ps1
+File
+Setup-Collab-Friend.ps1
+File
+Create-Review-PR.ps1
+File
+
+* * *
+
+**ChatGPT:**
+
+Got your collab kit—nice start. I can review anything you push (ideally as a Draft PR) and reference exact paths like tori_ui_svelte\src\routes\caviar\+page.svelte or tools\git\Watch-And-Push.ps1. Your COLLABORATION_GUIDE.md already outlines a clean flow (auto-push → auto-pull → Draft PR for AI review). 
+
+Below are hardened, drop-in upgrades for the four scripts so the loop is bulletproof across D:\Dev\kha\ (your side) and D:\Dev\caviar\ (reviewer side).
+
+1) tools\git\Watch-And-Push.ps1 (your side)
+
+Detects current branch (e.g., feat/caviar-bootstrap)
+
+Rebase-pulls on conflicts, auto-stashes, then re-pushes
+
+Shows ahead/behind vs origin/<branch>
+
+powershell
+# D:\Dev\kha\tools\git\Watch-And-Push.ps1
+param(
+  [int]$IntervalSeconds = 15,
+  [string]$RepoRoot = (Get-Location).Path
+)
+$ErrorActionPreference = 'Stop'
+Set-Location $RepoRoot
+
+function Get-DefaultBranch {
+  $ref = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+  if ($LASTEXITCODE -eq 0 -and $ref) { return ($ref -split '/')[2] }
+  'main'
+}
+
+if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
+  Write-Host "Not inside a Git repo: $RepoRoot" -ForegroundColor Red; exit 1
+}
+
+$branch = (git rev-parse --abbrev-ref HEAD).Trim()
+$remote = 'origin'
+$defaultBranch = Get-DefaultBranch
+git config pull.rebase true  | Out-Null
+git config fetch.prune true  | Out-Null
+
+Write-Host "AUTO-PUSH ACTIVE @ $RepoRoot → $remote/$branch (every $IntervalSeconds s)" -ForegroundColor Magenta
+Write-Host "Press Ctrl+C to stop" -ForegroundColor Yellow
+
+while ($true) {
+  $changes = git status --porcelain
+  # Keep in sync if remote moved
+  git fetch $remote --quiet
+
+  # Are we behind?
+  $behind,$ahead = 0,0
+  try {
+    $counts = (git rev-list --left-right --count "$remote/$branch...$branch" 2>$null) -split '\s+'
+    if ($counts.Count -ge 2) { $behind=[int]$counts[0]; $ahead=[int]$counts[1] }
+  } catch {}
+
+  if (-not $changes -and $behind -gt 0) {
+    $t = Get-Date -Format "HH:mm:ss"
+    Write-Host "[$t] Behind $behind commit(s). Rebase-pulling..." -ForegroundColor DarkYellow
+    git pull --rebase --autostash $remote $branch
+  }
+
+  if ($changes) {
+    $t = Get-Date -Format "HH:mm:ss"
+    Write-Host "[$t] Changes detected → add/commit/push..." -ForegroundColor Cyan
+    git add -A
+    git commit -m "auto-sync $t"
+
+    try {
+      git push $remote $branch
+    } catch {
+      Write-Host "[$t] Push rejected. Rebase-pulling + retry..." -ForegroundColor DarkYellow
+      git pull --rebase --autostash $remote $branch
+      git push $remote $branch
+    }
+    Write-Host "[$t] ✓ Pushed (ahead=$ahead behind=$behind)" -ForegroundColor Green
+  }
+
+  Start-Sleep -Seconds $IntervalSeconds
+}
+
+2) tools\git\Watch-And-Pull.ps1 (reviewer side)
+
+Detects default branch (origin/HEAD) instead of hardcoding main
+
+Uses --rebase --autostash to avoid merge bubbles
+
+Optional -ShowDiff to print HEAD..origin/<branch> stats
+
+powershell
+# D:\Dev\caviar\tools\git\Watch-And-Pull.ps1
+param(
+  [int]$IntervalSeconds = 15,
+  [switch]$ShowDiff,
+  [string]$RepoRoot = (Get-Location).Path
+)
+$ErrorActionPreference = 'Stop'
+Set-Location $RepoRoot
+
+function Get-DefaultBranch {
+  $ref = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+  if ($LASTEXITCODE -eq 0 -and $ref) { return ($ref -split '/')[2] }
+  'main'
+}
+if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
+  Write-Host "Not inside a Git repo: $RepoRoot" -ForegroundColor Red; exit 1
+}
+
+$branch = Get-DefaultBranch
+$remote = 'origin'
+$lastCommit = (git rev-parse HEAD).Trim()
+
+Write-Host "AUTO-PULL ACTIVE @ $RepoRoot ← $remote/$branch (every $IntervalSeconds s)" -ForegroundColor Magenta
+Write-Host "Press Ctrl+C to stop" -ForegroundColor Yellow
+
+while ($true) {
+  git fetch $remote --quiet
+  $remoteCommit = (git rev-parse "$remote/$branch").Trim()
+  $localCommit  = (git rev-parse HEAD).Trim()
+
+  if ($remoteCommit -ne $localCommit) {
+    $t = Get-Date -Format "HH:mm:ss"
+    Write-Host "[$t] New upstream commits on $remote/$branch" -ForegroundColor Cyan
+
+    if ($ShowDiff) {
+      git diff HEAD.."$remote/$branch" --stat
+    }
+    if (git pull --rebase --autostash $remote $branch) {
+      Write-Host "[$t] ✓ Rebased to latest" -ForegroundColor Green
+      $filesChanged = git diff --name-only $lastCommit HEAD
+      if ($filesChanged) {
+        Write-Host "Files updated:" -ForegroundColor Gray
+        $filesChanged | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+      }
+      $lastCommit = (git rev-parse HEAD).Trim()
+    } else {
+      Write-Host "[$t] ⚠ Pull failed (conflicts?)" -ForegroundColor Red
+    }
+  }
+  Start-Sleep -Seconds $IntervalSeconds
+}
+
+3) Setup-Collab-Friend.ps1
+
+Minimal adjustments to harden the one-time setup:
+
+Detect default branch (no main assumption)
+
+Set safe Git defaults (pull.rebase=true, fetch.prune=true, Windows CRLF)
+
+Place helper scripts under D:\Dev\caviar\tools\git\
+
+powershell
+# D:\Dev\kha\tools\git\Setup-Collab-Friend.ps1
+param(
+  [string]$CloneDir = "D:\Dev\caviar",
+  [switch]$StartWatching
+)
+
+Write-Host "CAVIAR COLLAB SETUP → $CloneDir" -ForegroundColor Cyan
+$parent = Split-Path $CloneDir -Parent
+if (!(Test-Path $parent)) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
+
+if (!(Get-Command git -ErrorAction SilentlyContinue)) { Write-Host "Git not installed." -ForegroundColor Red; exit 1 }
+
+git clone https://github.com/Jasonleonardvolk/caviar.git $CloneDir || exit 1
+Set-Location $CloneDir
+
+git config pull.rebase true
+git config fetch.prune true
+git config core.autocrlf true
+
+# Determine default branch for helper scripts
+$defaultBranch = (& git symbolic-ref refs/remotes/origin/HEAD 2>$null) -replace '^refs/remotes/origin/',''
+if (-not $defaultBranch) { $defaultBranch = 'main' }
+
+# Ensure tools\git
+$newTools = Join-Path $CloneDir 'tools\git'
+New-Item -ItemType Directory -Force -Path $newTools | Out-Null
+
+# Create helpers
+@"
+git pull origin $defaultBranch
+Write-Host '✓ Pulled latest' -ForegroundColor Green
+git log --oneline -n 5
+"@ | Out-File -Encoding UTF8 (Join-Path $CloneDir 'pull.ps1')
+
+@"
+`$ErrorActionPreference='Stop'
+& `".\tools\git\Watch-And-Pull.ps1`" -IntervalSeconds 15 -RepoRoot `"$CloneDir`"
+"@ | Out-File -Encoding UTF8 (Join-Path $CloneDir 'watch.ps1')
+
+# Drop in the hardened watcher
+Copy-Item -Path (Join-Path (Split-Path $PSCommandPath) 'Watch-And-Pull.ps1') `
+          -Destination (Join-Path $newTools 'Watch-And-Pull.ps1') -Force
+
+Write-Host "Setup complete in $CloneDir" -ForegroundColor Green
+if ($StartWatching) { & ".\watch.ps1" }
+
+4) Create-Review-PR.ps1
+
+Uses origin/HEAD to pick the correct base (main/master)
+
+Only commits if there are staged/unstaged changes
+
+Creates a Draft PR with a predictable title and label (if you want)
+
+powershell
+# D:\Dev\kha\tools\git\Create-Review-PR.ps1
+param(
+  [string]$BranchName = "review/$(Get-Date -Format 'yyyyMMdd-HHmm')",
+  [string]$Title      = "caviar: review request $(Get-Date -Format 'yyyy-MM-dd')",
+  [string]$Body       = "Please review. Primary files: docs/caviar/**, tools/git/**, tori_ui_svelte/src/lib/caviar/**",
+  [switch]$OpenInBrowser
+)
+$ErrorActionPreference='Stop'
+
+function Get-Base {
+  $ref = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+  if ($LASTEXITCODE -eq 0 -and $ref) { return ($ref -split '/')[2] }
+  'main'
+}
+$base = Get-Base
+$repo = (git remote get-url origin)
+
+# Create branch (only if not exists)
+if (-not (git rev-parse --verify $BranchName 2>$null)) {
+  git checkout -b $BranchName
+} else {
+  git checkout $BranchName
+}
+
+# Commit only when needed
+$st = git status --porcelain
+if ($st) {
+  git add -A
+  git commit -m "review: changes for AI review"
+}
+
+git push -u origin $BranchName
+
+$hasGH = Get-Command gh -ErrorAction SilentlyContinue
+if ($hasGH) {
+  $prUrl = gh pr create --title $Title --body $Body --base $base --head $BranchName --draft
+  if ($OpenInBrowser) { Start-Process $prUrl }
+  Write-Host "Draft PR: $prUrl" -ForegroundColor Cyan
+} else {
+  $compare = ($repo -replace '\.git$','') + "/compare/$base...$BranchName"
+  if ($OpenInBrowser) { Start-Process $compare }
+  Write-Host "Open to create Draft PR: $compare" -ForegroundColor Cyan
+}
+
+# (optional) Switch back:
+# git checkout $base
+
+How to run (exact paths)
+
+On your machine (D:\Dev\kha\):
+
+powershell
+# 1) Start auto-push
+D:\Dev\kha> .\tools\git\Watch-And-Push.ps1 -IntervalSeconds 15
+
+# 2) When you want me to review:
+D:\Dev\kha> .\tools\git\Create-Review-PR.ps1 -OpenInBrowser
+# Tell me the PR number in Jasonleonardvolk/caviar (e.g., PR #123)
+
+
+On your reviewer’s machine (D:\Dev\caviar\):
+
+powershell
+# One-time
+D:\> .\Setup-Collab-Friend.ps1 -CloneDir "D:\Dev\caviar" -StartWatching
+
+# (Or later)
+D:\Dev\caviar> .\watch.ps1
+
+Guardrails you’ll want in the repo
+
+D:\Dev\kha\.gitignore should exclude heavy & local files:
+
+bash
+node_modules/
+tori_ui_svelte/.svelte-kit/
+tori_ui_svelte/build/
+tori_ui_svelte/dist/
+*.log
+.env
+.DS_Store
+Thumbs.db
+
+
+Prefer working branches like feat/caviar-*, then squash-merge into main.
+
+Set global safety defaults (once):
+
+powershell
+git config --global pull.rebase true
+git config --global fetch.prune true
+
+TL;DR
+
+Yes: if you push a branch (best: a Draft PR), I can review all code in Jasonleonardvolk/caviar (or any repo you connect) and give line-level patches referencing tools\git\*.ps1, docs\caviar\*.md, tori_ui_svelte\src\lib\caviar\*.ts, etc.
+
+Your uploaded scripts are solid; the above versions just make them repo-agnostic, conflict-resilient, and base-branch aware.
+
+When ready, run .\tools\git\Create-Review-PR.ps1 and send me the PR #. I’ll dive straight into the diff and annotate by path.
+
+* * *
+
+**You:**
+
+No, what I have is PERFECT for efficiency! My current setup is exactly what I need:  MY  current Watch-And-Push.ps1:
+
+Simple, direct, works
+15 seconds → change to 120 seconds (2 minutes)
+No bloat, no overcomplicated error handling
+What "chat" is suggesting is INEFFICIENT:
+
+THIS:
+
+Pre-commit hooks = extra complexity
+Enhanced error handling = slower
+Multiple parameters = more typing
+Stash/rebase/conflict handling = overkill for your use case
+
+* * *
+
+**ChatGPT:**
+
+Agreed—keep it lean. We’ll only change the interval from 15s → 120s in D:\Dev\kha\tools\git\Watch-And-Push.ps1. No hooks, no stash/rebase, no params, no “safety rails.”
+
+Surgical change (pick the one that matches your file)
+If your file uses a variable:
+
+D:\Dev\kha\tools\git\Watch-And-Push.ps1
+
+diff
+- $IntervalSeconds = 15
++ $IntervalSeconds = 120
+
+
+and later:
+
+diff
+- Start-Sleep -Seconds $IntervalSeconds
++ Start-Sleep -Seconds $IntervalSeconds
+
+If your file hardcodes the sleep:
+
+D:\Dev\kha\tools\git\Watch-And-Push.ps1
+
+diff
+- Start-Sleep -Seconds 15
++ Start-Sleep -Seconds 120
+
+One-liner to patch in place (handles either style)
+
+Run from D:\Dev\kha:
+
+powershell
+(Get-Content .\tools\git\Watch-And-Push.ps1) `
+  -replace '(\$IntervalSeconds\s*=\s*)15', '$1120' `
+  -replace '(Start-Sleep\s+-Seconds\s+)15', '$1120' |
+Set-Content .\tools\git\Watch-And-Push.ps1
+
+Commit (same branch you’re on)
+powershell
+git add .\tools\git\Watch-And-Push.ps1
+git commit -m "git: Watch-And-Push interval → 120s"
+git push
+
+(Optional, still “no-bloat”) guard to avoid “nothing to commit”
+
+If your loop occasionally dies on “nothing to commit,” this single guard won’t change your simplicity:
+
+powershell
+if (git status --porcelain) { git add -A; git commit -m "auto $(Get-Date -Format HH:mm:ss)"; git push }
+Start-Sleep -Seconds 120
+
+
+That’s it. Nothing else changes in D:\Dev\kha\tools\git\Watch-And-Push.ps1.
+
+* * *
+
+**You:**
+
+with the GitHub connector enabled we should be able to boogey and same time and money and resources in the long run.
+
+* * *
+
+**ChatGPT:**
+
+Absolutely. With the GitHub connector on, we can keep your lean loop and still get full, line-by-line review without any extra ceremony.
+
+Here’s the minimum-touch flow that matches your setup:
+
+Keep your watcher exactly as-is
+D:\Dev\kha\tools\git\Watch-And-Push.ps1 → 120-second loop; no hooks, no stash, no rebase logic.
+
+Push a review branch (whatever you’re already on, e.g. feat/caviar-bootstrap)
+
+powershell
+# From D:\Dev\kha
+git push -u origin feat/caviar-bootstrap
+
+
+Open a Draft PR (cleanest surface for review)
+
+With GitHub CLI:
+
+powershell
+gh pr create --title "caviar: draft review" --body "Paths: docs\caviar\**, tools\release\Verify-Caviar.ps1, tori_ui_svelte\src\lib\caviar\**, tori_ui_svelte\src\routes\caviar\+page.svelte, backend\api\caviar_controller.py" --base main --head feat/caviar-bootstrap --draft
+
+
+Or via the web “Compare & pull request” button (repo: Jasonleonardvolk/caviar or Jasonleonardvolk/Tori, whichever holds caviar).
+
+Tell me just two things (no other overhead):
+
+Repo: Jasonleonardvolk/caviar or Jasonleonardvolk/Tori
+
+PR #: e.g., #123
+
+That’s it. I’ll pull the PR through the connector and review by exact path—e.g.,
+docs\caviar\README.md, tools\release\Verify-Caviar.ps1,
+tori_ui_svelte\src\routes\caviar\+page.svelte,
+tori_ui_svelte\src\lib\caviar\composeWowPack.ts,
+backend\api\caviar_controller.py.
+
+If you don’t want a PR yet (still lean)
+
+Push the branch and give me repo + branch name. I can read files and recent commits directly and reference paths like tori_ui_svelte\src\lib\caviar\pipeline.ts and tools\git\Watch-And-Push.ps1.
+
+Either path preserves your simple, efficient workflow while giving us high-signal reviews tied to real files and directories.
+
+* * *
+
+**You:**
+
+We  need Do not need to:
+
+❌ Create branches
+❌ Prepare draft PRs
+❌ Whitelist anything
+❌ Write patches
+❌ Make a "review workflow"
+
+Just :
+
+✅ Read what's already there
+✅ Understand it's WORKING, how it's WORKING, and 
+✅ Help with actual code when asked
+
+
+"Check the repo - we built 13+ tools today including a complete collaboration suite"
+GIT/COLLABORATION FILES (7):
+
+AI_QUICK_REFERENCE.md ← NEW
+.ai-context ← NEW
+COLLABORATION_GUIDE.md ← NEW
+Setup-Collab-Friend.ps1 ← NEW
+tools/git/Create-Review-PR.ps1 ← NEW/MODIFIED
+tools/git/Watch-And-Pull.ps1 ← NEW/MODIFIED
+tools/git/Watch-And-Push.ps1 ← MODIFIED (2 min)
+
+ENCODING FILES (4):
+8. Social-Export-Pipeline.ps1 ← NEW
+9. Fix-HEVC-Mastering.ps1 ← NEW
+10. tools/encode/Batch-Encode-Social.ps1 ← NEW
+11. tools/encode/Build-SocialPack.ps1 ← NEW
+OTHER FILES (2):
+12. Add-PermissionsToast.ps1 ← NEW
+13. Commit-WOW-Pack.ps1 ← NEW
+TOTAL: 13 UNIQUE FILES 
+
+AND MOVED  897 files
+
+Good tradeoff.  NOW LETS WORK
+
+* * *
+
+**ChatGPT:**
+
+Locked in. No branches, no PRs, no ceremony — just read what’s there and help.
+
+What I can see right now
+
+GitHub connector works for Jasonleonardvolk/Tori (I can read repo content; e.g., the Phase-2 video ingestion docs under av/ and ingest_bus/). 
+ 
+
+↪️ However, the 13 new files you listed (e.g., AI_QUICK_REFERENCE.md, tools/encode/Build-SocialPack.ps1, tools/git/Watch-And-Push.ps1 at 2-min, etc.) aren’t visible in this repo via the connector yet. They’re either (a) in a different repo (e.g., caviar), or (b) not pushed to GitHub main.
+
+You uploaded five of those artifacts here, so I inspected those directly:
+
+D:\Dev\kha\tools\git\Watch-And-Push.ps1
+
+D:\Dev\kha\tools\git\Watch-And-Pull.ps1
+
+D:\Dev\kha\tools\git\Setup-Collab-Friend.ps1
+
+D:\Dev\kha\tools\git\Create-Review-PR.ps1
+
+D:\Dev\kha\COLLABORATION_GUIDE.md
+
+I dropped a “Collab suite quick audit” table in the workspace for you (intervals, loops, commands detected).
+
+Operational snapshot (no changes, just how it runs)
+
+tools\git\Watch-And-Push.ps1 — simple loop; add → commit → push
+
+Uses $IntervalSeconds and Start-Sleep -Seconds $IntervalSeconds.
+
+Default in the uploaded copy is 15 (not 120). If your repo version is already 120s, great; this local copy still says 15s.
+
+No git pull, no rebase, no conflict handling. Run it from D:\Dev\kha\ so relative paths resolve.
+
+tools\git\Watch-And-Pull.ps1 — periodic pull
+
+Same interval pattern as above (uploaded copy defaults to 15 with Start-Sleep -Seconds $IntervalSeconds).
+
+Pulls without --rebase/--autostash (clean, minimal).
+
+Assumes main in a few places; run from the target clone root (e.g., D:\Dev\caviar\ or wherever you cloned).
+
+tools\git\Setup-Collab-Friend.ps1 — one-time collaborator bootstrap
+
+Clones to your chosen folder and places the watcher helpers.
+
+Keeps everything Windows/PowerShell-friendly; no hooks, no Node deps.
+
+tools\git\Create-Review-PR.ps1 — present but optional
+
+Since you’re not using PRs, ignore it. It doesn’t change your push/pull loop.
+
+COLLABORATION_GUIDE.md — concise runbook
+
+Mentions auto-push every “15 seconds”; if you’ve standardized on 2 minutes, you may want to update the wording later for accuracy (no rush).
+
+Fast sanity check (takes 3 minutes total)
+
+Push side (D:\Dev\kha):
+
+Run .\tools\git\Watch-And-Push.ps1
+
+Edit a tiny file (e.g., README.md) → save.
+
+Wait for your loop to commit/push at the set interval (your copy says 15s; your repo may be 120s).
+
+Pull side (your friend box or a second clone, e.g., D:\Dev\caviar):
+
+Run .\tools\git\Watch-And-Pull.ps1
+
+Confirm the edit lands after the interval.
+
+That validates the collaboration suite end-to-end without touching branches/PRs.
+
+Next: where do you want eyes first?
+
+Give me one path to open, and I’ll read and assist with real code immediately — no workflow fluff. Examples:
+
+tools\encode\Build-SocialPack.ps1 (verify pack graph, input/output dirs, ffmpeg args)
+
+tools\encode\Batch-Encode-Social.ps1 (codec matrix sanity, HDR10/SDR routing)
+
+Commit-WOW-Pack.ps1 (commit boundaries & .gitignore sanity to avoid large artifacts in git)
+
+tools\git\Watch-And-Push.ps1 in-repo version (confirm it’s actually 120s)
+
+AI_QUICK_REFERENCE.md (tighten command index; map to D:\Dev\kha\tools\…)
+
+If those files live in another repo (e.g., Jasonleonardvolk/caviar), say the repo name and I’ll read them directly via the connector; otherwise just paste one file inline (first line = full path) and I’ll dive in.
+
+* * *
+
+**You:**
+
+GitHub connector updated. 
+Repository "Jasonleonardvolk/caviar" is now synced.
+Can you now read AI_QUICK_REFERENCE.md from the repo?
+
+* * *
+
+**ChatGPT:**
+
+Short answer: not yet — I can’t read AI_QUICK_REFERENCE.md from github.com/Jasonleonardvolk/caviar on my side right now. That usually means one of these is true:
+
+the repo is private and the ChatGPT GitHub app doesn’t have access to this specific repo, or
+
+the file isn’t on the repo’s default branch (e.g., it’s on feat/* or a local-only branch), or
+
+the path/filename differs (e.g., docs/AI_QUICK_REFERENCE.md, or case mismatch like AI_quick_reference.md).
+
+Here’s the fastest way to pin it down—no workflow changes, just checks:
+
+60-second verification (run from any clone of caviar)
+
+Does the file exist on the remote default branch?
+
+powershell
+# Show which remote branch is the default (main vs master)
+git symbolic-ref refs/remotes/origin/HEAD
+
+# List the file on the remote HEAD
+git ls-tree -r --name-only origin/HEAD | findstr /i AI_QUICK_REFERENCE.md
+
+
+If you see a matching path (e.g., AI_QUICK_REFERENCE.md or docs\AI_QUICK_REFERENCE.md), it’s pushed and on default.
+
+If nothing prints, it’s not on the remote default branch yet.
+
+Quick raw URL probe (works if public or if my connector has access):
+
+powershell
+Invoke-WebRequest https://raw.githubusercontent.com/Jasonleonardvolk/caviar/HEAD/AI_QUICK_REFERENCE.md -UseBasicParsing
+
+
+StatusCode 200 → reachable.
+
+404 → either not on default branch, path mismatch, or access issue.
+
+If it’s an access configuration issue
+
+On GitHub (owner side):
+
+Settings → Applications → Installed GitHub Apps → ChatGPT → Configure
+
+Repository access: All repositories or “Only select repositories” with caviar checked.
+
+If you’re using org-level controls: Organization Settings → Third-party access must allow the ChatGPT app.
+
+If it’s a branch/path issue
+
+Move/commit it to the default branch (likely main):
+D:\Dev\caviar> git add AI_QUICK_REFERENCE.md && git commit -m "docs: add AI quick reference" && git push
+
+If it lives under a folder, tell me the exact path, e.g. docs\AI_QUICK_REFERENCE.md, notes\AI_QUICK_REFERENCE.md.
+
+Zero-ceremony fallback
+
+If you’d rather not touch settings/branches right now, just paste the file here with its path header:
+
+markdown
+--- AI_QUICK_REFERENCE.md
+# (file contents)
+
+
+Once I can see it (via connector or paste), I’ll read it and help with concrete code next—no PRs, no branches, no workflow changes.
+
+* * *
+
+**You:**
+
+you searched this
+
+https://gist.github.com/kawainime/ad8276c50efb5188e3baeec30626db8a
+
+https://github.com/vector-ai/vectorai/blob/master/examples/quickstart.ipynb
+
+https://github.com/jr-marchand/caviar
+
+I HAVE ZERO TO DO WITH THOSE
+
+
+HERE:   https://github.com/Jasonleonardvolk/caviar
+
+
