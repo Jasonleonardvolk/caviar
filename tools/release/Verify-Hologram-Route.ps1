@@ -1,86 +1,54 @@
-param(
-    [string]$ProjectRoot = "D:\Dev\kha",
-    [string]$TestUrl = "http://localhost:5173/hologram"
-)
+param([switch]$StartServerIfNeeded = $true, [int]$TimeoutSec = 90, [string]$ProjectRoot = "D:\Dev\kha")
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference="Stop"
+function Ok($m){Write-Host "[OK] $m" -f Green}
+function Warn($m){Write-Host "[!] $m" -f Yellow}
+function Fail($m){Write-Host "[X] $m" -f Red}
 
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  Hologram Route Verification            " -ForegroundColor Cyan
-Write-Host "==========================================" -ForegroundColor Cyan
+$Frontend = Join-Path $ProjectRoot "frontend"
+$ReportDir = Join-Path $ProjectRoot "verification_reports"; New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
+$Report = Join-Path $ReportDir ("verify_hologram_route_{0}.json" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 
-# Check if critical files exist
-$requiredFiles = @(
-    "$ProjectRoot\frontend\src\routes\hologram\+page.svelte",
-    "$ProjectRoot\frontend\src\lib\hologram\engineShim.ts",
-    "$ProjectRoot\frontend\src\lib\device\capabilities.ts",
-    "$ProjectRoot\frontend\src\lib\components\HologramRecorder.svelte",
-    "$ProjectRoot\frontend\src\lib\utils\exportVideo.ts"
-)
+$Must=@(
+"frontend\src\routes\hologram\+page.svelte",
+"frontend\src\lib\hologram\engineShim.ts",
+"frontend\src\lib\device\capabilities.ts",
+"frontend\src\lib\stores\userPlan.ts",
+"frontend\src\lib\utils\exportVideo.ts",
+"frontend\src\lib\components\HologramRecorder.svelte",
+"frontend\src\routes\pricing\+page.svelte",
+"frontend\src\lib\components\PricingTable.svelte"
+) | ForEach-Object { Join-Path $ProjectRoot $_ }
 
-$missingFiles = @()
-foreach ($file in $requiredFiles) {
-    if (-not (Test-Path $file)) {
-        $missingFiles += $file
-    }
+$missing=@()
+foreach($p in $Must){ if(Test-Path $p){ Ok $p } else { Fail "Missing: $p"; $missing += $p } }
+if($missing.Count){ $o=@{ok=$false; reason="missing_files"; missing=$missing}; $o|ConvertTo-Json -Depth 8|Set-Content $Report; exit 2 }
+
+# find dev port
+function Up($port){ try { (Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$port/health/ping" -TimeoutSec 3).StatusCode -eq 200 } catch { $false } }
+$ports=@($env:IRIS_DEV_PORT,5173,3000,3310) | ? { $_ }
+$port=$null; foreach($p in $ports){ if(Up $p){ $port=$p; break } }
+
+if(-not $port -and $StartServerIfNeeded){
+  Warn "Starting dev server…"
+  $p=Start-Process -FilePath "pnpm" -ArgumentList "dev" -WorkingDirectory $Frontend -WindowStyle Hidden -PassThru
+  $deadline=(Get-Date).AddSeconds($TimeoutSec)
+  while(-not $port -and (Get-Date) -lt $deadline){ Start-Sleep -Milliseconds 500; foreach($q in $ports){ if(Up $q){ $port=$q; break } } }
 }
 
-if ($missingFiles.Count -gt 0) {
-    Write-Host "[X] Missing critical files:" -ForegroundColor Red
-    $missingFiles | ForEach-Object { Write-Host "    - $_" -ForegroundColor Red }
-    exit 1
+if(-not $port){ Fail "Dev server not reachable"; $o=@{ok=$false; reason="server_unreachable"}; $o|ConvertTo-Json|Set-Content $Report; exit 3 }
+Ok "Dev server on http://127.0.0.1:$port"
+
+function Ping($path){
+  try{ $r=Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:{0}{1}" -f $port,$path) -TimeoutSec 10; @{path=$path; ok=$true; status=$r.StatusCode} }
+  catch{ @{path=$path; ok=$false; status=0; error="$($_.Exception.Message)"} }
 }
 
-Write-Host "[✓] All critical files present" -ForegroundColor Green
+$routes=@("/hologram","/pricing")
+$res=@(); foreach($r in $routes){ $res += Ping $r }
+$res | % { if($_.ok){ Ok "$($_.path) 200" } else { Fail "$($_.path) failed" } }
 
-# Check capabilities.ts for WebGPU support
-$capsContent = Get-Content "$ProjectRoot\frontend\src\lib\device\capabilities.ts" -Raw
-if ($capsContent -match "navigator\.gpu" -and $capsContent -match "prefersWebGPUHint") {
-    Write-Host "[✓] WebGPU capability detection present" -ForegroundColor Green
-} else {
-    Write-Host "[!] WebGPU capability detection may be missing" -ForegroundColor Yellow
-}
-
-# Check hologram page for canvas
-$holoContent = Get-Content "$ProjectRoot\frontend\src\routes\hologram\+page.svelte" -Raw
-if ($holoContent -match "#hologram-canvas") {
-    Write-Host "[✓] Hologram canvas target found" -ForegroundColor Green
-} else {
-    Write-Host "[X] Hologram canvas target missing" -ForegroundColor Red
-    exit 1
-}
-
-# Check if dev server is running (optional)
-try {
-    $response = Invoke-WebRequest -Uri $TestUrl -TimeoutSec 5 -UseBasicParsing
-    if ($response.StatusCode -eq 200) {
-        Write-Host "[✓] Hologram route accessible at $TestUrl" -ForegroundColor Green
-    }
-} catch {
-    Write-Host "[!] Dev server not running or hologram route not accessible" -ForegroundColor Yellow
-    Write-Host "    Start with: pnpm dev -- --host 0.0.0.0" -ForegroundColor Gray
-}
-
-# Mobile support check
-$mobileConfig = "$ProjectRoot\config\mobile_support.json"
-if (Test-Path $mobileConfig) {
-    $config = Get-Content $mobileConfig | ConvertFrom-Json
-    Write-Host ""
-    Write-Host "Mobile Support Configuration:" -ForegroundColor Cyan
-    Write-Host "  iOS Version: $($config.iosMajor) $($config.preferredBeta)" -ForegroundColor White
-    Write-Host "  Minimum Device: $($config.minIphoneModel)" -ForegroundColor White
-    Write-Host "  WebGPU Preferred: $($config.preferWebGPU)" -ForegroundColor White
-}
-
-Write-Host ""
-Write-Host "==========================================" -ForegroundColor Green
-Write-Host "  Hologram Route: VERIFIED               " -ForegroundColor Green
-Write-Host "==========================================" -ForegroundColor Green
-Write-Host ""
-Write-Host "Next steps for mobile testing:" -ForegroundColor Yellow
-Write-Host "1. Start dev server: pnpm dev -- --host 0.0.0.0" -ForegroundColor Gray
-Write-Host "2. Open on iOS 26 Beta 7+ device" -ForegroundColor Gray
-Write-Host "3. Navigate to http://<YOUR-IP>:5173/hologram" -ForegroundColor Gray
-Write-Host "4. Verify WebGPU capabilities in UI" -ForegroundColor Gray
-
-exit 0
+$o=@{ok=($res|?{$_.ok}).Count -eq $routes.Count; server=("http://127.0.0.1:{0}" -f $port); routes=$res }
+$o|ConvertTo-Json -Depth 8 | Set-Content $Report
+Ok "Report → $Report"
+exit ($o.ok ? 0 : 1)
