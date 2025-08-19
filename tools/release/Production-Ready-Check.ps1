@@ -34,5 +34,3 @@ if ($allGood) {
 } else {
     Write-Host "❌ NOT READY - Fix the issues above" -ForegroundColor Red
 }
-
-Write-Host "
