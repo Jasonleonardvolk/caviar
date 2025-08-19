@@ -36,7 +36,9 @@ $HitlistMoves = @{
     )
     "_archive/2024/emergency" = @(
         "CRITICAL_*.ps1",
-        "CRITICAL_*.py"
+        "CRITICAL_*.py",
+        "force_*.py",
+        "emergency_*.py"
     )
     "_archive/2024/final_scripts" = @(
         "complete_*.py",
@@ -44,6 +46,43 @@ $HitlistMoves = @{
         "final_*.ps1",
         "final_*.cjs",
         "FINAL_*.bat"
+    )
+    "_archive/2024/migration" = @(
+        "migrate_*.py",
+        "migration_*.py",
+        "update_*.py"
+    )
+    "_archive/2024/temp_files" = @(
+        "temp_*.py",
+        "tmp_*.py",
+        "*.tmp",
+        "*.temp"
+    )
+    "_archive/2024/test_files" = @(
+        "test_*.bat",
+        "test_*.py",
+        "TEST_*.bat"
+    )
+    "_archive/2024/build_setup" = @(
+        "create_*.py",
+        "CREATE_*.bat",
+        "generate_*.py",
+        "make_*.py",
+        "init_*.py"
+    )
+    "_archive/2024/cleanup" = @(
+        "cleanup_*.py",
+        "clean_*.py",
+        "flush_*.py",
+        "kill_*.py",
+        "remove_*.py"
+    )
+    "_archive/2024/backup" = @(
+        "*_backup.py",
+        "*_original_backup.py",
+        "copy_*.py",
+        "*.bak",
+        "*.backup"
     )
 }
 
