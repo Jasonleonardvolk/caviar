@@ -1,10 +1,10 @@
 # Watch-And-Push.ps1
 # FULLY AUTOMATED - Watches for changes and pushes every 15 seconds
 param(
-    [int]$IntervalSeconds = 15
+    [int]$IntervalSeconds = 120
 )
 
-Write-Host "AUTO-PUSH ACTIVE - Pushing every $IntervalSeconds seconds" -ForegroundColor Magenta
+Write-Host "AUTO-PUSH ACTIVE - Pushing every 2 minutes" -ForegroundColor Magenta
 Write-Host "Press Ctrl+C to stop" -ForegroundColor Yellow
 
 while ($true) {

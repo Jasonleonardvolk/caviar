@@ -1,0 +1,17 @@
+# .ai-context
+# Paste this at the start of any conversation with an AI assistant
+
+PROJECT: caviar
+LOCATION: D:\Dev\kha
+AUTO-SYNC: Every 2 minutes via Watch-And-Push.ps1
+REVIEW METHOD: Create-Review-PR.ps1 creates draft PRs
+
+WORKING SETUP:
+- Scripts in .\tools\git\
+- Auto-push/pull every 2 minutes
+- Simple commit messages ("auto-sync HH:mm:ss")
+- No hooks, no complexity
+
+USER PREFERENCE: Keep it simple and working. Don't suggest complications.
+
+HELP WITH: Code review, not infrastructure changes.
