@@ -1,0 +1,17 @@
+name: Docs Mobile Claims
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  check-docs-claims:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify docs vs code
+        run: node tools/release/check-mobile-claims.mjs

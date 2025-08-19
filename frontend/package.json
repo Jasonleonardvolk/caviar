@@ -4,6 +4,11 @@
   "description": "TORI Hybrid Holographic System - WebGPU Light Field Renderer",
   "type": "module",
   "scripts": {
+    "predoccheck": "node ../tools/release/check-mobile-claims.mjs",
+    "predev": "node ../tools/release/sync-plans.mjs && node ../tools/release/build-templates-index.mjs && node ../tools/release/check-mobile-claims.mjs || powershell -ExecutionPolicy Bypass -File ../tools/release/Build-Templates-Index.ps1",
+    "prebuild": "node ../tools/release/sync-plans.mjs && node ../tools/release/build-templates-index.mjs && node ../tools/release/check-mobile-claims.mjs || powershell -ExecutionPolicy Bypass -File ../tools/release/Build-Templates-Index.ps1",
+    "verify:docs": "node ../tools/release/check-mobile-claims.mjs",
+    "verify:health": "powershell -ExecutionPolicy Bypass -File ../tools/release/Verify-Health.ps1",
     "dev": "concurrently \"vite\" \"python ../devtools/watch_backend_tests.py\"",
     "dev:mock": "vite --mode mock",
     "build": "npm run build:all",
