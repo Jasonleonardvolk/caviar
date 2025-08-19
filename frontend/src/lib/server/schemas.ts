@@ -2,25 +2,23 @@
 import { z } from 'zod';
 
 // Billing schemas
-export const checkoutSchema = z.object({
-  planId: z.enum(['free', 'plus', 'pro']),
-  successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional()
+export const CheckoutSchema = z.object({
+  planId: z.enum(['free', 'plus', 'pro'])
 });
 
-export const portalSchema = z.object({
+export const PortalSchema = z.object({
   customerId: z.string().min(1)
 });
 
 // Template schemas
-export const exportSchema = z.object({
-  input: z.string().min(1),
+export const ExportSchema = z.object({
+  input: z.string().min(3),
   layout: z.enum(['grid', 'xyz']).default('grid'),
-  scale: z.string().default('0.12'),
-  zip: z.boolean().default(false)
+  scale: z.coerce.number().min(0.01).max(10).default(0.12),
+  zip: z.boolean().optional()
 });
 
-export const uploadSchema = z.object({
+export const UploadSchema = z.object({
   mode: z.enum(['auto', 'glb', 'concept']).optional(),
   name: z.string().max(255).optional(),
   description: z.string().max(1000).optional(),

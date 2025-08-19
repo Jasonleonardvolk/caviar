@@ -8,11 +8,17 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // SvelteKit-native src mapping
       '@': path.resolve(__dirname, './src'),
-      '@lib': path.resolve(__dirname, './src/lib'),
-      '@components': path.resolve(__dirname, './src/lib/components'),
-      '@shaders': path.resolve(__dirname, './src/lib/shaders'),
-      '@wgsl': path.resolve(__dirname, './src/lib/wgsl')
+      '@app': path.resolve(__dirname, './src'),
+      // Support legacy roots that exist in your repo
+      '@lib': path.resolve(__dirname, './lib'),
+      '@components': path.resolve(__dirname, './components'),
+      '@shaders': path.resolve(__dirname, './shaders'),
+      '@wgsl': path.resolve(__dirname, './hybrid/wgsl'),
+      '@hybrid': path.resolve(__dirname, './hybrid'),
+      // Also map src/lib for SvelteKit convention
+      '$lib': path.resolve(__dirname, './src/lib')
     }
   },
   server: {
