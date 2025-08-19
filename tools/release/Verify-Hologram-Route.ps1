@@ -31,7 +31,18 @@ $port=$null; foreach($p in $ports){ if(Up $p){ $port=$p; break } }
 
 if(-not $port -and $StartServerIfNeeded){
   Warn "Starting dev server…"
-  $p=Start-Process -FilePath "pnpm" -ArgumentList "dev" -WorkingDirectory $Frontend -WindowStyle Hidden -PassThru
+  # Try to find the right command to use
+  $pnpmCmd = Get-Command pnpm.cmd -ErrorAction SilentlyContinue
+  if ($pnpmCmd) {
+    $p=Start-Process -FilePath "pnpm.cmd" -ArgumentList "dev" -WorkingDirectory $Frontend -WindowStyle Hidden -PassThru
+  } else {
+    $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if ($npmCmd) {
+      $p=Start-Process -FilePath "npm.cmd" -ArgumentList "run","dev" -WorkingDirectory $Frontend -WindowStyle Hidden -PassThru
+    } else {
+      $p=Start-Process -FilePath "npm" -ArgumentList "run","dev" -WorkingDirectory $Frontend -WindowStyle Hidden -PassThru
+    }
+  }
   $deadline=(Get-Date).AddSeconds($TimeoutSec)
   while(-not $port -and (Get-Date) -lt $deadline){ Start-Sleep -Milliseconds 500; foreach($q in $ports){ if(Up $q){ $port=$q; break } } }
 }
