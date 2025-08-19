@@ -1,10 +1,22 @@
 import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import path from 'path';
+// Uncomment if you have the autoPrecache plugin
+// import autoPrecache from './plugins/autoPrecache';
 
 export default defineConfig({
   plugins: [
-    sveltekit()
+    sveltekit(),
+    // Uncomment to enable precaching
+    // autoPrecache({
+    //   include: [
+    //     'static/wasm/**/*.{wasm,js}',
+    //     'static/hybrid/wgsl/**/*.wgsl',
+    //     'static/assets/**/*.{ktx2,ktx,png,jpg,jpeg,webp,bin,json,mp4,webm,av1,ivf}'
+    //   ],
+    //   extra: ['/'],
+    //   manifestName: 'precache.manifest.json'
+    // })
   ],
   resolve: {
     alias: {
