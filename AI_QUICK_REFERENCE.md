@@ -63,11 +63,7 @@ This is a SIMPLE git automation setup. It works perfectly. Don't suggest complic
 
 ## EXAMPLE INTERACTIONS
 
-### Good Response:
-"I see PR #123. Your hologram component looks good. The state management in +page.svelte is clean."
 
-### Bad Response:
-"You should add error handling and use pre-commit hooks with 10 parameters for safety..."
 
 ---
 **Remember**: This setup is INTENTIONALLY SIMPLE. It works. Don't fix what isn't broken.
