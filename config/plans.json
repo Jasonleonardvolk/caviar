@@ -1,0 +1,174 @@
+{
+  "plans": [
+    {
+      "id": "basic",
+      "name": "Basic",
+      "tagline": "Try iRis for free",
+      "tierLevel": 0,
+      "priceMonthlyUSD": 0.00,
+      "priceAnnualUSD": 0.00,
+      "stripePriceId": null,
+      "features": {
+        "watermark": true,
+        "maxResolution": "1080p",
+        "maxVideoLengthSec": 10,
+        "cloudRender": false,
+        "cloudRenderLimit": 0,
+        "exportARkit": false,
+        "premiumTemplates": false,
+        "supportLevel": "community",
+        "storageGB": 1,
+        "exportsPerMonth": 10
+      },
+      "benefits": [
+        "Core holographic HUD features",
+        "Basic templates & effects",
+        "10-second video exports",
+        "Community support",
+        "1 GB storage"
+      ],
+      "limitations": [
+        "iRis watermark on exports",
+        "Limited to 10 exports/month",
+        "No cloud rendering",
+        "Basic effects only"
+      ]
+    },
+    {
+      "id": "plus",
+      "name": "Plus",
+      "tagline": "Level up your creativity",
+      "tierLevel": 1,
+      "priceMonthlyUSD": 9.99,
+      "priceAnnualUSD": 99.99,
+      "stripePriceId": "price_iris_plus_monthly",
+      "stripePriceIdAnnual": "price_iris_plus_annual",
+      "popular": true,
+      "features": {
+        "watermark": false,
+        "maxResolution": "4K",
+        "maxVideoLengthSec": 60,
+        "cloudRender": true,
+        "cloudRenderLimit": 20,
+        "exportARkit": false,
+        "premiumTemplates": true,
+        "supportLevel": "standard",
+        "storageGB": 10,
+        "exportsPerMonth": 100
+      },
+      "benefits": [
+        "No watermark on exports",
+        "60-second videos",
+        "4K resolution support",
+        "Premium template library",
+        "20 min/month cloud rendering",
+        "Priority email support",
+        "10 GB storage",
+        "100 exports/month"
+      ],
+      "limitations": [
+        "No AR kit exports",
+        "Limited cloud rendering"
+      ]
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "tagline": "All the power iRis offers",
+      "tierLevel": 2,
+      "priceMonthlyUSD": 19.99,
+      "priceAnnualUSD": 199.99,
+      "stripePriceId": "price_iris_pro_monthly",
+      "stripePriceIdAnnual": "price_iris_pro_annual",
+      "features": {
+        "watermark": false,
+        "maxResolution": "4K",
+        "maxVideoLengthSec": null,
+        "cloudRender": true,
+        "cloudRenderLimit": null,
+        "exportARkit": true,
+        "premiumTemplates": true,
+        "supportLevel": "priority",
+        "storageGB": 100,
+        "exportsPerMonth": null,
+        "exclusiveEffects": true,
+        "betaAccess": true
+      },
+      "benefits": [
+        "Everything in Plus",
+        "Unlimited video length",
+        "Unlimited cloud rendering",
+        "Snap/TikTok AR kit exports",
+        "Exclusive effects & templates",
+        "Priority support & feedback",
+        "100 GB storage",
+        "Unlimited exports",
+        "Early access to beta features",
+        "Direct team feedback channel"
+      ],
+      "limitations": []
+    }
+  ],
+  "discounts": {
+    "annual": {
+      "percentOff": 17,
+      "message": "Save 2 months with annual billing"
+    },
+    "firstTime": {
+      "trial": {
+        "enabled": true,
+        "days": 7,
+        "tiers": ["plus", "pro"],
+        "message": "Start with a 7-day free trial"
+      }
+    },
+    "retention": {
+      "enabled": true,
+      "offers": [
+        {
+          "trigger": "cancellation",
+          "percentOff": 50,
+          "months": 2,
+          "message": "Stay and get 50% off for 2 months"
+        }
+      ]
+    },
+    "seasonal": {
+      "blackFriday": {
+        "percentOff": 30,
+        "validFrom": "2025-11-25",
+        "validTo": "2025-11-30"
+      }
+    }
+  },
+  "currency": {
+    "USD": {
+      "symbol": "$",
+      "position": "before"
+    },
+    "EUR": {
+      "symbol": "€",
+      "position": "before",
+      "multiplier": 0.92
+    },
+    "GBP": {
+      "symbol": "£",
+      "position": "before",
+      "multiplier": 0.79
+    }
+  },
+  "compliance": {
+    "autoRenew": {
+      "disclosure": "Auto-renews until cancelled",
+      "reminderDays": 30
+    },
+    "cancellation": {
+      "method": "one-click",
+      "refundPolicy": "Pro-rated refund for unused time"
+    },
+    "dataRetention": {
+      "consentYears": 3,
+      "auditLogYears": 7
+    }
+  }
+}
