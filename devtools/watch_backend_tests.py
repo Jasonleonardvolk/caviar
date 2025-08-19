@@ -18,7 +18,7 @@ class TestRunnerHandler(FileSystemEventHandler):
             return
         path = Path(event.src_path)
         if path.suffix == ".py":
-            print(f"\n🔄 Detected change in {path}, running pytest...\n")
+            print(f"\nDetected change in {path}, running pytest...\n")
             run_tests()
 
 def run_tests():
@@ -28,7 +28,7 @@ def run_tests():
             check=False
         )
     except Exception as e:
-        print(f"❌ Error running pytest: {e}")
+        print(f"Error running pytest: {e}")
 
 if __name__ == "__main__":
     observers = []
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         observer.schedule(TestRunnerHandler(), str(d), recursive=True)
         observer.start()
         observers.append(observer)
-        print(f"👀 Watching {d} for changes...")
+        print(f"Watching {d} for changes...")
 
     try:
         while True:

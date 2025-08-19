@@ -1,0 +1,53 @@
+{
+  "ok": false,
+  "timestamp": "2025-08-19T22:47:47.744Z",
+  "config": {
+    "iosMajor": 26,
+    "preferredBeta": "Beta 7+",
+    "minIphoneModel": "iPhone 13",
+    "recommendedIpads": [
+      "iPad Pro (M1|M2|M4)",
+      "iPad Air (M2)"
+    ],
+    "preferWebGPU": true,
+    "requiredRoutes": [
+      "/hologram",
+      "/pricing",
+      "/templates"
+    ]
+  },
+  "files": {
+    "CONFIG": "D:\\Dev\\kha\\config\\mobile_support.json",
+    "README": "D:\\Dev\\kha\\README.md",
+    "MATRIX": "D:\\Dev\\kha\\docs\\MOBILE_SUPPORT_MATRIX.md",
+    "CAPS": "D:\\Dev\\kha\\frontend\\src\\lib\\device\\capabilities.ts",
+    "HOLO": "D:\\Dev\\kha\\frontend\\src\\routes\\hologram\\+page.svelte"
+  },
+  "issues": [
+    {
+      "ok": false,
+      "msg": "Recommended iPad missing",
+      "need": "iPad Pro (M1|M2|M4)"
+    },
+    {
+      "ok": false,
+      "msg": "Recommended iPad missing",
+      "need": "iPad Air (M2)"
+    },
+    {
+      "ok": false,
+      "msg": "Route reference not found in README (soft)",
+      "route": "/pricing"
+    },
+    {
+      "ok": false,
+      "msg": "Route reference not found in README (soft)",
+      "route": "/templates"
+    }
+  ],
+  "artifacts": {
+    "readmeHash": "c64c8aa4d89a2d7a48c38164672985e127290d2411797d09cb1a5b2b9a419428",
+    "matrixHash": "473aa469292db91425c7ce2c0c413719f5aec86dbc726d7fac445f4fc85ba958",
+    "capabilitiesHash": "dc020d77121d318ca7313db2c50a477fa1279ec5f96ea7b0538721aa5b7946b8"
+  }
+}

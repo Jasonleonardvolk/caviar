@@ -61,10 +61,13 @@ function Test-API {
             headers = $response.Headers
         }
     } catch {
-        $statusCode = $_.Exception.Response.StatusCode.Value__
+        $statusCode = $null
+        if ($_.Exception.Response) {
+            $statusCode = $_.Exception.Response.StatusCode.Value__
+        }
         
         # Some status codes are expected (e.g., 400 for bad request)
-        if ($statusCode -in @(400, 401, 403, 422)) {
+        if ($statusCode -and $statusCode -in @(400, 401, 403, 422)) {
             Write-Host "  [✓] Expected error: HTTP $statusCode" -ForegroundColor Yellow
             return @{
                 success = $true
