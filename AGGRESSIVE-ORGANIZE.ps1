@@ -144,23 +144,20 @@ if ($FileCount -eq 0) {
     exit 0
 }
 
-# Show categories with counts
-$categoryCounts = @{}
-foreach ($folder in $FilesToMove.Keys) {
-    $categoryCounts[$folder] = $FilesToMove[$folder].Count
-}
-
-Write-Host "`nCategories:" -ForegroundColor Cyan
-foreach ($category in $categoryCounts.Keys | Sort-Object) {
-    Write-Host "  $category : $($categoryCounts[$category]) files" -ForegroundColor Gray
-}
-
-Write-Host "`nSample files to move:" -ForegroundColor Yellow
-foreach ($folder in $FilesToMove.Keys | Sort-Object | Select-Object -First 5) {
+# Show what will be moved - DETAILED VIEW
+foreach ($folder in $FilesToMove.Keys | Sort-Object) {
     $files = $FilesToMove[$folder]
-    Write-Host "  $folder/" -ForegroundColor Cyan
-    $files | Select-Object -First 2 | ForEach-Object { 
-        Write-Host "    - $($_.Name)" -ForegroundColor Gray 
+    Write-Host "`n-> $folder ($($files.Count) files)" -ForegroundColor Cyan
+    
+    # Show first 3 files explicitly
+    $showCount = [Math]::Min(3, $files.Count)
+    for ($i = 0; $i -lt $showCount; $i++) {
+        Write-Host "    $($files[$i].Name)" -ForegroundColor Gray
+    }
+    
+    # Show remaining count if more than 3
+    if ($files.Count -gt 3) {
+        Write-Host "    ... and $($files.Count - 3) more" -ForegroundColor DarkGray
     }
 }
 
