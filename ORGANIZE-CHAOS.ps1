@@ -8,12 +8,10 @@ param(
 )
 
 $StartTime = Get-Date
-Write-Host @"
-╔════════════════════════════════════════════════╗
-║        REPO CHAOS ORGANIZER                    ║
-║        1,662+ files → Organized Structure      ║
-╚════════════════════════════════════════════════╝
-"@ -ForegroundColor Cyan
+Write-Host "================================================" -ForegroundColor Cyan
+Write-Host "        REPO CHAOS ORGANIZER                   " -ForegroundColor Cyan
+Write-Host "        1,662+ files -> Organized Structure    " -ForegroundColor Cyan
+Write-Host "================================================" -ForegroundColor Cyan
 
 # Create organized structure
 $Folders = @{
@@ -79,7 +77,7 @@ foreach ($folder in $Folders.Keys) {
     if (-not (Test-Path $targetPath)) {
         if (-not $WhatIf) {
             New-Item -ItemType Directory -Force -Path $targetPath | Out-Null
-            Write-Host "✓ Created: $folder" -ForegroundColor Green
+            Write-Host "Created: $folder" -ForegroundColor Green
         } else {
             Write-Host "[WhatIf] Would create: $folder" -ForegroundColor Gray
         }
@@ -158,7 +156,7 @@ if ($FileCount -eq 0) {
 # Show the plan
 foreach ($folder in $FilesToMove.Keys | Sort-Object) {
     $files = $FilesToMove[$folder]
-    Write-Host "`n→ $folder ($($files.Count) files)" -ForegroundColor Cyan
+    Write-Host "`n-> $folder ($($files.Count) files)" -ForegroundColor Cyan
     if ($files.Count -le 5) {
         $files | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
     } else {
@@ -203,7 +201,7 @@ foreach ($folder in $FilesToMove.Keys | Sort-Object) {
         $destination = Join-Path $targetPath $file.Name
         try {
             Move-Item -Path $file.FullName -Destination $destination -Force
-            Write-Host "  ✓ $($file.Name)" -ForegroundColor Green
+            Write-Host "  Moved: $($file.Name)" -ForegroundColor Green
             $movedCount++
             
             # Add to undo script
@@ -215,7 +213,7 @@ foreach ($folder in $FilesToMove.Keys | Sort-Object) {
                 git add $destination 2>$null
             }
         } catch {
-            Write-Host "  ✗ Failed: $($file.Name) - $_" -ForegroundColor Red
+            Write-Host "  Failed: $($file.Name) - $_" -ForegroundColor Red
         }
     }
 }
@@ -223,7 +221,7 @@ foreach ($folder in $FilesToMove.Keys | Sort-Object) {
 # Save undo script
 $undoScript += "`nWrite-Host 'Restore complete!' -ForegroundColor Green"
 $undoScript | Out-File -FilePath ".\UNDO-ORGANIZE.ps1" -Encoding UTF8
-Write-Host "`n✓ Created UNDO-ORGANIZE.ps1 (in case you need to revert)" -ForegroundColor Cyan
+Write-Host "`nCreated UNDO-ORGANIZE.ps1 (in case you need to revert)" -ForegroundColor Cyan
 
 # Create new README for archive
 $archiveReadme = @"
@@ -248,7 +246,7 @@ This archive contains files that were moved from the root directory to improve n
 - **docs/reports/** - Analysis reports and checklists
 
 ### To Restore:
-Run `.\UNDO-ORGANIZE.ps1` from the root directory.
+Run .\UNDO-ORGANIZE.ps1 from the root directory.
 
 ### Files Kept in Root:
 - Critical configuration files (package.json, pyproject.toml, etc.)
@@ -263,23 +261,20 @@ $archiveReadme | Out-File -FilePath ".\_archive\README.md" -Encoding UTF8
 
 $Duration = (Get-Date) - $StartTime
 
-Write-Host @"
-
-╔════════════════════════════════════════════════╗
-║            ORGANIZATION COMPLETE!               ║
-╚════════════════════════════════════════════════╝
-
-  Files moved:      $movedCount
-  Files kept:       $SkippedCount  
-  Time taken:       $($Duration.TotalSeconds) seconds
-  
-  Undo script:      .\UNDO-ORGANIZE.ps1
-  Archive info:     .\_archive\README.md
-  
-  Next step:        Commit the organized structure
-  Command:          .\p.ps1 "organized: 1662 files into logical folders"
-
-"@ -ForegroundColor Green
+Write-Host "`n================================================" -ForegroundColor Green
+Write-Host "            ORGANIZATION COMPLETE!              " -ForegroundColor Green
+Write-Host "================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "  Files moved:      $movedCount" -ForegroundColor White
+Write-Host "  Files kept:       $SkippedCount" -ForegroundColor White
+Write-Host "  Time taken:       $($Duration.TotalSeconds) seconds" -ForegroundColor White
+Write-Host ""
+Write-Host "  Undo script:      .\UNDO-ORGANIZE.ps1" -ForegroundColor Cyan
+Write-Host "  Archive info:     .\_archive\README.md" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Next step:        Commit the organized structure" -ForegroundColor Yellow
+Write-Host "  Command:          .\p.ps1 'organized: 1662 files into logical folders'" -ForegroundColor Yellow
+Write-Host ""
 
 if (-not $SkipGitAdd) {
     Write-Host "Git tracking updated. Ready to commit!" -ForegroundColor Cyan
