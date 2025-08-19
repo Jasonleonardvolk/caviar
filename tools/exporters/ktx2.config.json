@@ -1,0 +1,8 @@
+{
+  "basisu": "tools\\\\bin\\\\basisu.exe",
+  "uastc_level": 2,
+  "rdo_lambda": 1.5,
+  "y_flip": false,
+  "mipmap": true,
+  "jobs": 8
+}
