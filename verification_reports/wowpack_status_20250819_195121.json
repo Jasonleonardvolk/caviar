@@ -1,0 +1,47 @@
+{
+    "summary":  {
+                    "ffmpeg_ready":  true,
+                    "encoded_files":  {
+                                          "sdr":  3,
+                                          "av1":  3,
+                                          "hdr10":  3
+                                      },
+                    "scripts_ready":  true,
+                    "masters_ready":  true,
+                    "total_master_size_gb":  5.55,
+                    "outputs_ready":  true
+                },
+    "timestamp":  "2025-08-19 19:51:15",
+    "checks":  {
+                   "outputs":  {
+                                   "sdr":  3,
+                                   "av1":  3,
+                                   "hdr10":  3
+                               },
+                   "masters":  {
+                                   "total":  3,
+                                   "files":  [
+                                                 {
+                                                     "status":  "OK",
+                                                     "name":  "holo_flux_loop.mov",
+                                                     "size":  2487100256
+                                                 },
+                                                 {
+                                                     "status":  "OK",
+                                                     "name":  "mach_lightfield.mov",
+                                                     "size":  3161120584
+                                                 },
+                                                 {
+                                                     "status":  "OK",
+                                                     "name":  "kinetic_logo_parade.mov",
+                                                     "size":  312479120
+                                                 }
+                                             ],
+                                   "count":  3
+                               },
+                   "ffmpeg":  {
+                                  "version":  "ffmpeg version N-120759-g11a89bfe7b-20250818 Copyright (c) 2000-2025 the FFmpeg developers",
+                                  "status":  "OK"
+                              }
+               }
+}

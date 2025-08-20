@@ -4,19 +4,19 @@ param([string]$ProjectRoot = "D:\Dev\kha")
 # This script validates EVERYTHING for tonight's launch
 
 Write-Host "`n" -NoNewline
-Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║     🚀 CAVIAR/KHA ULTIMATE LAUNCH READINESS CHECK 🚀     ║" -ForegroundColor Cyan
-Write-Host "║            Checking ALL systems for production            ║" -ForegroundColor Yellow
-Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+Write-Host "============================================================" -ForegroundColor Magenta
+Write-Host "     CAVIAR/KHA ULTIMATE LAUNCH READINESS CHECK" -ForegroundColor Cyan
+Write-Host "            Checking ALL systems for production" -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Magenta
 
-function Ok($m){Write-Host "[✅] $m" -f Green}
-function Info($m){Write-Host "[ℹ️] $m" -f Cyan}
-function Warn($m){Write-Host "[⚠️] $m" -f Yellow}
-function Fail($m){Write-Host "[❌] $m" -f Red}
+function Ok($m){Write-Host "[OK] $m" -f Green}
+function Info($m){Write-Host "[INFO] $m" -f Cyan}
+function Warn($m){Write-Host "[WARN] $m" -f Yellow}
+function Fail($m){Write-Host "[FAIL] $m" -f Red}
 function Header($m){
-    Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -f DarkMagenta
+    Write-Host "`n------------------------------------------------------------" -f DarkMagenta
     Write-Host "  $m" -f Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -f DarkMagenta
+    Write-Host "------------------------------------------------------------" -f DarkMagenta
 }
 
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -36,7 +36,7 @@ $masterReport = @{
 Header "SECTION 1: CORE HEALTH CHECK"
 
 # 1.1 Dev Server Check
-Write-Host "`n🌐 Dev Server Status:" -ForegroundColor Yellow
+Write-Host "`nDev Server Status:" -ForegroundColor Yellow
 function TestPort($port) { 
     try { 
         $result = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$port/health/ping" -TimeoutSec 2 -ErrorAction SilentlyContinue
@@ -96,13 +96,13 @@ if($activePort) {
         $criticalCount++
     }
 } else {
-    Fail "Dev server NOT RUNNING - start with: cd frontend && pnpm dev"
+    Fail "Dev server NOT RUNNING - start with: cd frontend; pnpm dev"
     $criticalCount++
     $allSystemsGo = $false
 }
 
 # 1.2 Environment Configuration
-Write-Host "`n🔧 Environment Configuration:" -ForegroundColor Yellow
+Write-Host "`nEnvironment Configuration:" -ForegroundColor Yellow
 $envPath = "D:\Dev\kha\frontend\.env"
 if(Test-Path $envPath) {
     Ok ".env file exists"
@@ -130,14 +130,15 @@ if(Test-Path $envPath) {
 Header "SECTION 2: EXPORT ASSETS"
 
 # 2.1 GLB Files
-Write-Host "`n📦 3D Assets (GLB):" -ForegroundColor Yellow
+Write-Host "`nGLB 3D Assets:" -ForegroundColor Yellow
 $glbDir = "D:\Dev\kha\exports\templates"
 if(Test-Path $glbDir) {
     $glbFiles = Get-ChildItem "$glbDir\*.glb" -ErrorAction SilentlyContinue
     if($glbFiles) {
         Ok "GLB files: $($glbFiles.Count) found"
         foreach($glb in $glbFiles) {
-            Info "  • $($glb.Name) ($('{0:N2}' -f ($glb.Length/1KB)) KB)"
+            $sizeKB = [math]::Round($glb.Length/1KB, 2)
+            Info "  * $($glb.Name) ($sizeKB KB)"
         }
         $successCount++
     } else {
@@ -150,14 +151,15 @@ if(Test-Path $glbDir) {
 }
 
 # 2.2 KTX2 Textures
-Write-Host "`n🎨 Textures (KTX2):" -ForegroundColor Yellow
+Write-Host "`nKTX2 Textures:" -ForegroundColor Yellow
 $ktx2Dir = "D:\Dev\kha\exports\textures_ktx2"
 if(Test-Path $ktx2Dir) {
     $ktx2Files = Get-ChildItem "$ktx2Dir\*.ktx2" -ErrorAction SilentlyContinue
     if($ktx2Files) {
         Ok "KTX2 files: $($ktx2Files.Count) found"
         foreach($ktx in $ktx2Files) {
-            Info "  • $($ktx.Name) ($('{0:N2}' -f ($ktx.Length/1KB)) KB)"
+            $sizeKB = [math]::Round($ktx.Length/1KB, 2)
+            Info "  * $($ktx.Name) ($sizeKB KB)"
         }
         $successCount++
     } else {
@@ -172,7 +174,7 @@ if(Test-Path $ktx2Dir) {
 Header "SECTION 3: WOW PACK PIPELINE"
 
 # 3.1 FFmpeg Installation
-Write-Host "`n🎬 Video Processing (FFmpeg):" -ForegroundColor Yellow
+Write-Host "`nVideo Processing (FFmpeg):" -ForegroundColor Yellow
 $ffmpegPath = "D:\Dev\kha\tools\ffmpeg\ffmpeg.exe"
 if(Test-Path $ffmpegPath) {
     Ok "FFmpeg installed"
@@ -194,7 +196,7 @@ if(Test-Path $ffmpegPath) {
 }
 
 # 3.2 ProRes Masters
-Write-Host "`n🎥 ProRes Master Files:" -ForegroundColor Yellow
+Write-Host "`nProRes Master Files:" -ForegroundColor Yellow
 $mastersReady = $true
 $masterFiles = @(
     "holo_flux_loop.mov",
@@ -209,7 +211,8 @@ foreach($file in $masterFiles) {
     if(Test-Path $path) {
         $size = (Get-Item $path).Length
         $totalSize += $size
-        Ok "$file ($('{0:N2}' -f ($size/1GB)) GB)"
+        $sizeGB = [math]::Round($size/1GB, 2)
+        Ok "$file ($sizeGB GB)"
         $masterCount++
     } else {
         Fail "$file MISSING"
@@ -217,8 +220,9 @@ foreach($file in $masterFiles) {
     }
 }
 
+$totalSizeGB = [math]::Round($totalSize/1GB, 2)
 if($masterCount -eq 3) {
-    Ok "All ProRes masters present ($('{0:N2}' -f ($totalSize/1GB)) GB total)"
+    Ok "All ProRes masters present ($totalSizeGB GB total)"
     $successCount++
 } else {
     Fail "Only $masterCount/3 masters present"
@@ -226,7 +230,7 @@ if($masterCount -eq 3) {
 }
 
 # 3.3 Encoded Outputs
-Write-Host "`n🎞️ Encoded Video Outputs:" -ForegroundColor Yellow
+Write-Host "`nEncoded Video Outputs:" -ForegroundColor Yellow
 $av1Count = 0
 $hdrCount = 0
 $sdrCount = 0
@@ -270,7 +274,7 @@ if($totalEncoded -gt 0) {
 
 Header "SECTION 4: INTEGRATION GUIDES"
 
-Write-Host "`n📚 Documentation:" -ForegroundColor Yellow
+Write-Host "`nDocumentation:" -ForegroundColor Yellow
 $snapGuides = @(Get-ChildItem "D:\Dev\kha\docs\guides\snap\*.md" -ErrorAction SilentlyContinue).Count
 $tiktokGuides = @(Get-ChildItem "D:\Dev\kha\docs\guides\tiktok\*.md" -ErrorAction SilentlyContinue).Count
 
@@ -326,58 +330,61 @@ if(-not (Test-Path $reportDir)) {
 $reportFile = Join-Path $reportDir "master_launch_report_$(Get-Date -Format 'yyyyMMdd_HHmmss').json"
 $masterReport | ConvertTo-Json -Depth 10 | Set-Content $reportFile
 
-Write-Host "`n╔══════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║                    FINAL VERDICT                          ║" -ForegroundColor Cyan
-Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+Write-Host "`n============================================================" -ForegroundColor Magenta
+Write-Host "                    FINAL VERDICT" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Magenta
 
-Write-Host "`n📊 Readiness Metrics:" -ForegroundColor Cyan
-Write-Host "  ✅ Successful checks: $successCount" -ForegroundColor Green
-Write-Host "  ⚠️  Warnings: $warningCount" -ForegroundColor Yellow
-Write-Host "  ❌ Critical issues: $criticalCount" -ForegroundColor Red
-Write-Host "  📈 Readiness Score: $readinessScore%" -ForegroundColor Cyan
+Write-Host "`nReadiness Metrics:" -ForegroundColor Cyan
+Write-Host "  OK: Successful checks: $successCount" -ForegroundColor Green
+Write-Host "  WARN: Warnings: $warningCount" -ForegroundColor Yellow
+Write-Host "  FAIL: Critical issues: $criticalCount" -ForegroundColor Red
+Write-Host "  Score: Readiness Score: $readinessScore%" -ForegroundColor Cyan
 
-Write-Host "`n🎯 System Status:" -ForegroundColor Cyan
+Write-Host "`nSystem Status:" -ForegroundColor Cyan
 if($coreReady) {
-    Write-Host "  ✅ Core Systems: READY" -ForegroundColor Green
+    Write-Host "  OK: Core Systems: READY" -ForegroundColor Green
 } else {
-    Write-Host "  ❌ Core Systems: NOT READY" -ForegroundColor Red
+    Write-Host "  FAIL: Core Systems: NOT READY" -ForegroundColor Red
 }
 
 if($wowPackReady) {
-    Write-Host "  ✅ WOW Pack: READY" -ForegroundColor Green
+    Write-Host "  OK: WOW Pack: READY" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️  WOW Pack: PARTIAL" -ForegroundColor Yellow
+    Write-Host "  WARN: WOW Pack: PARTIAL" -ForegroundColor Yellow
 }
 
 if($outputsReady) {
-    Write-Host "  ✅ Video Outputs: ENCODED" -ForegroundColor Green
+    Write-Host "  OK: Video Outputs: ENCODED" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️  Video Outputs: PENDING" -ForegroundColor Yellow
+    Write-Host "  WARN: Video Outputs: PENDING" -ForegroundColor Yellow
 }
 
-Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
+Write-Host "`n------------------------------------------------------------" -ForegroundColor Magenta
 
 if($criticalCount -eq 0 -and $readinessScore -ge 80) {
-    Write-Host "`n🚀🚀🚀 SYSTEM IS GO FOR LAUNCH! 🚀🚀🚀" -ForegroundColor Green
+    Write-Host "`nSYSTEM IS GO FOR LAUNCH!" -ForegroundColor Green
     Write-Host "You are $readinessScore% ready for production!" -ForegroundColor Green
     
     if($warningCount -gt 0) {
-        Write-Host "`n📝 Minor items to address (non-blocking):" -ForegroundColor Yellow
+        Write-Host "`nMinor items to address (non-blocking):" -ForegroundColor Yellow
         if($totalEncoded -eq 0) {
-            Write-Host "  • Generate video encodes: cd tools\encode && .\Batch-Encode-Simple.ps1" -ForegroundColor White
+            Write-Host "  * Generate video encodes:" -ForegroundColor White
+            Write-Host "    cd tools\encode" -ForegroundColor Gray
+            Write-Host "    .\Batch-Encode-Simple.ps1" -ForegroundColor Gray
         }
     }
     
-    Write-Host "`n✨ Demo highlights for tonight:" -ForegroundColor Cyan
-    Write-Host "  • /hologram - Live 3D recording with watermark" -ForegroundColor White
-    Write-Host "  • /templates - Export GLB/KTX2 pipeline" -ForegroundColor White
-    Write-Host "  • /publish - Social publishing readiness" -ForegroundColor White
+    Write-Host "`nDemo highlights for tonight:" -ForegroundColor Cyan
+    Write-Host "  * /hologram - Live 3D recording with watermark" -ForegroundColor White
+    Write-Host "  * /templates - Export GLB/KTX2 pipeline" -ForegroundColor White
+    Write-Host "  * /publish - Social publishing readiness" -ForegroundColor White
+    Write-Host "  * /dashboard - Master launch dashboard" -ForegroundColor White
     if($totalEncoded -gt 0) {
-        Write-Host "  • Show $totalEncoded encoded video variants (AV1/HDR/SDR)" -ForegroundColor White
+        Write-Host "  * Show $totalEncoded encoded video variants (AV1/HDR/SDR)" -ForegroundColor White
     }
     
 } elseif($criticalCount -gt 0) {
-    Write-Host "`n⚠️ CRITICAL ISSUES MUST BE FIXED! ⚠️" -ForegroundColor Red
+    Write-Host "`nCRITICAL ISSUES MUST BE FIXED!" -ForegroundColor Red
     Write-Host "Address $criticalCount critical issues before launch" -ForegroundColor Red
     
     if(-not $activePort) {
@@ -386,12 +393,12 @@ if($criticalCount -eq 0 -and $readinessScore -ge 80) {
         Write-Host "  pnpm dev" -ForegroundColor White
     }
 } else {
-    Write-Host "`n⚠️ SYSTEM NEEDS ATTENTION ⚠️" -ForegroundColor Yellow
+    Write-Host "`nSYSTEM NEEDS ATTENTION" -ForegroundColor Yellow
     Write-Host "Readiness at $readinessScore% - some components need work" -ForegroundColor Yellow
 }
 
-Write-Host "`n📄 Full report saved: $reportFile" -ForegroundColor Cyan
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
+Write-Host "`nFull report saved: $reportFile" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Magenta
 Write-Host ""
 
 # Return appropriate exit code
