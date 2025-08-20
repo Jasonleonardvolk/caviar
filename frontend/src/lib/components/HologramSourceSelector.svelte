@@ -64,8 +64,8 @@
     collapsed = !collapsed;
   }
 
-  onMount(() => {
-    load();
+  onMount(async () => {
+    await load();
   });
 </script>
 
