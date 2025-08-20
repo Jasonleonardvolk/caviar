@@ -2,847 +2,519 @@
 """
 🚀 ENHANCED UNIFIED TORI LAUNCHER - BULLETPROOF EDITION v3.0
 Advanced logging, bulletproof error handling, concept mesh fixes, and scalable architecture
-🏆 NOW WITH TORI MCP PRODUCTION SERVER INTEGRATION 🌊
-🌟 NOW WITH CONCEPT MESH HOLOGRAPHIC VISUALIZATION! 🧠➡️🌟
-✨ NOW WITH TORI/SAIGON v5 COMPLETE INTEGRATION! 🚀
+🌐 NOW WITH TORI MCP PRODUCTION SERVER INTEGRATION 🌊
+🌟 NOW WITH CONCEPT MESH HOLOGRAPHIC VISUALIZATION! ⚡🌟
 """
 
-import socket
-import json
 import os
 import sys
-import time
 import subprocess
-import requests
-import asyncio
+import json
+import time
+import signal
 import atexit
 import logging
-import threading
-import traceback
-import signal
-import psutil
+import argparse
+import socket
 from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, Any, List
-import uvicorn
+from typing import Optional, List, Dict, Any
+from dataclasses import dataclass
+from contextlib import closing
 
-# ============================================================================
-# TORI/SAIGON v5 COMPONENTS - NEW!
-# ============================================================================
-try:
-    from python.core.saigon_inference_v5 import SaigonInference
-    from python.core.adapter_loader_v5 import MetadataManager
-    from python.core.concept_mesh_v5 import MeshManager
-    from python.core.user_context import UserContextManager
-    from python.core.conversation_manager import ConversationManager
-    from python.core.lattice_morphing import LatticeMorpher
-    TORI_V5_AVAILABLE = True
-    print("✅ TORI/Saigon v5 components loaded successfully")
-except ImportError as e:
-    TORI_V5_AVAILABLE = False
-    SaigonInference = None
-    MetadataManager = None
-    MeshManager = None
-    UserContextManager = None
-    ConversationManager = None
-    LatticeMorpher = None
-    print(f"ℹ️ TORI v5 components not available (optional): {e}")
+# Suppress startup warnings (centralize)
+import warnings
+for _pat in (".*already exists.*", ".*shadows an attribute.*", ".*0 concepts.*"):
+    warnings.filterwarnings("ignore", message=_pat)
 
-# HoTT Integration (Advanced)
-try:
-    from hott_integration.psi_morphon import ConceptSynthesizer, PsiMorphonField
-    HOTT_AVAILABLE = True
-    print("✅ HoTT/Psi-Morphon synthesis available")
-except ImportError:
-    HOTT_AVAILABLE = False
-    ConceptSynthesizer = None
-    PsiMorphonField = None
-
-# Training Components (Optional)
-try:
-    from python.training.synthetic_data_generator import SyntheticDataGenerator
-    from python.training.validate_adapter import AdapterValidator
-    from python.training.rollback_adapter import RollbackManager
-    TRAINING_AVAILABLE = True
-except ImportError:
-    TRAINING_AVAILABLE = False
-    SyntheticDataGenerator = None
-    AdapterValidator = None
-    RollbackManager = None
-
-# ============================================================================
-# EXISTING COMPONENTS (Preserved for backward compatibility)
-# ============================================================================
-
-# BPS Soliton Support
-try:
-    from python.core.bps_config_enhanced import BPS_CONFIG, SolitonPolarity
-    from python.core.bps_oscillator_enhanced import BPSEnhancedLattice
-    from python.core.bps_soliton_memory_enhanced import BPSEnhancedSolitonMemory
-    from python.monitoring.bps_diagnostics import BPSDiagnostics
-    BPS_AVAILABLE = True
-except ImportError:
-    BPS_AVAILABLE = False
-    BPS_CONFIG = None
-    BPSEnhancedLattice = None
-    BPSEnhancedSolitonMemory = None
-    BPSDiagnostics = None
+# Logging setup (single place)
+LOG = logging.getLogger("launcher")
+logging.getLogger("mcp.server.fastmcp").setLevel(logging.ERROR)
+logging.getLogger("server_proper").setLevel(logging.ERROR)
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO, 
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+    )
 
 # Import port manager for dynamic port allocation
 try:
     from port_manager import port_manager
-    PORT_MANAGER_AVAILABLE = True
     atexit.register(port_manager.cleanup_all_ports)
+    PORT_MANAGER_AVAILABLE = True
 except ImportError:
     PORT_MANAGER_AVAILABLE = False
-    port_manager = None
+    LOG.warning("Port manager not available, using fallback port allocation")
 
-# Suppress startup warnings
-import warnings
-warnings.filterwarnings("ignore", message=".*already exists.*")
-warnings.filterwarnings("ignore", message=".*shadows an attribute.*")
-warnings.filterwarnings("ignore", message=".*0 concepts.*")
-
-# Reduce logging noise
-logging.getLogger("mcp.server.fastmcp").setLevel(logging.ERROR)
-logging.getLogger("server_proper").setLevel(logging.ERROR)
-
-# Import graceful shutdown support
+# Try importing optional TORI/Saigon v5 components
+TORI_V5_AVAILABLE = False
 try:
-    from utils.graceful_shutdown import GracefulShutdownHandler, AsyncioGracefulShutdown, delayed_keyboard_interrupt
-    GRACEFUL_SHUTDOWN_AVAILABLE = True
-except ImportError:
-    try:
-        from core.graceful_shutdown import shutdown_manager, register_shutdown_handler, install_shutdown_handlers
-        GRACEFUL_SHUTDOWN_AVAILABLE = True
-    except ImportError:
-        GRACEFUL_SHUTDOWN_AVAILABLE = False
-
-# Enhanced error handling and encoding
-import locale
-import codecs
-
-# Set UTF-8 encoding globally
-if sys.platform.startswith('win'):
-    # Windows UTF-8 setup
-    os.environ['PYTHONIOENCODING'] = 'utf-8'
-    sys.stdout.reconfigure(encoding='utf-8')
-    sys.stderr.reconfigure(encoding='utf-8')
-
-# Enable entropy pruning for proper concept flow
-os.environ['TORI_ENABLE_ENTROPY_PRUNING'] = '1'
-
-# Suppress Python warnings
-os.environ['PYTHONWARNINGS'] = 'ignore::UserWarning'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
-# Optional MCP bridge import
-try:
-    from mcp_bridge_real_tori import create_real_mcp_bridge, RealMCPBridge
-    MCP_BRIDGE_AVAILABLE = True
-except ImportError:
-    MCP_BRIDGE_AVAILABLE = False
-    create_real_mcp_bridge = None
-    RealMCPBridge = None
-
-# MCP Server Integration
-try:
-    mcp_path = Path(__file__).parent / "mcp_metacognitive"
-    if mcp_path.exists():
-        sys.path.insert(0, str(mcp_path))
-    
-    try:
-        from mcp.types import Tool, TextContent
-        MCP_TYPES_AVAILABLE = True
-    except ImportError:
-        MCP_TYPES_AVAILABLE = False
-    
-    try:
-        import server_proper as mcp_server_module
-    except ImportError:
-        try:
-            import server_simple as mcp_server_module
-        except ImportError:
-            mcp_server_module = None
-    
-    MCP_METACOGNITIVE_AVAILABLE = mcp_server_module is not None
-except ImportError:
-    MCP_METACOGNITIVE_AVAILABLE = False
-    MCP_TYPES_AVAILABLE = False
-    mcp_server_module = None
-
-# Core Python Components Integration
-try:
-    python_core_path = Path(__file__).parent / "python" / "core"
-    sys.path.insert(0, str(python_core_path.parent))
-    
-    from python.core.CognitiveEngine import CognitiveEngine
-    from python.core.memory_vault import UnifiedMemoryVault
+    from python.core.saigon_inference_v5 import SaigonInference
+    from python.core.concept_mesh_holographic import ConceptMeshHolographic
+    from python.services.mcp_production_server import MCPProductionServer
     from python.core.concept_mesh import ConceptMesh
-    
-    try:
-        from python.core.mcp_metacognitive import MCPMetacognitiveServer
-    except ImportError:
-        MCPMetacognitiveServer = None
-    
-    try:
-        from python.core.cognitive_interface import CognitiveInterface
-    except ImportError:
-        CognitiveInterface = None
-    
-    CORE_COMPONENTS_AVAILABLE = True
-except ImportError:
-    CORE_COMPONENTS_AVAILABLE = False
-    CognitiveEngine = None
-    UnifiedMemoryVault = None
-    MCPMetacognitiveServer = None
-    CognitiveInterface = None
-    ConceptMesh = None
+    from python.services.bridge_audio import AudioBridge
+    from python.services.bridge_concept_mesh import ConceptMeshBridge
+    TORI_V5_AVAILABLE = True
+    LOG.info("TORI/Saigon v5 components loaded successfully")
+except ImportError as e:
+    TORI_V5_AVAILABLE = False
+    LOG.warning("TORI v5 components not available (optional): %s", e)
 
-# Stability Components Integration
+# Try importing psutil for better process management
 try:
-    from python.stability.eigenvalue_monitor import EigenvalueMonitor
-    from python.stability.lyapunov_analyzer import LyapunovAnalyzer
-    from python.stability.koopman_operator import KoopmanOperator
-    STABILITY_COMPONENTS_AVAILABLE = True
+    import psutil
+    PSUTIL_AVAILABLE = True
 except ImportError:
-    STABILITY_COMPONENTS_AVAILABLE = False
-    EigenvalueMonitor = None
-    LyapunovAnalyzer = None
-    KoopmanOperator = None
+    PSUTIL_AVAILABLE = False
+    LOG.info("psutil not available, using basic process management")
 
-# Add argument parsing
-import argparse
-parser = argparse.ArgumentParser(description='Enhanced TORI Launcher v3.0 with v5 Integration')
-parser.add_argument('--require-penrose', action='store_true', help='Require Rust Penrose engine')
-parser.add_argument('--no-require-penrose', dest='require_penrose', action='store_false')
-parser.add_argument('--no-browser', action='store_true', help='Do not open browser automatically')
-parser.add_argument('--enable-hologram', action='store_true', help='Enable holographic visualization')
-parser.add_argument('--hologram-audio', action='store_true', help='Enable audio-to-hologram bridge')
-parser.add_argument('--api', choices=['quick', 'full', 'v5'], default='v5',
-                   help='API mode: quick (minimal), full (all endpoints), v5 (new Saigon API)')
-parser.add_argument('--api-port', type=int, default=None, help='Override API port')
-parser.add_argument('--enable-v5', action='store_true', default=True, 
-                   help='Enable TORI v5 components (default: True)')
-parser.add_argument('--no-v5', dest='enable_v5', action='store_false',
-                   help='Disable v5 components for compatibility')
-args = parser.parse_args()
 
-# Force-enable hologram for bulletproof AV mode
-args.enable_hologram = True
-args.hologram_audio = True
+@dataclass
+class ServiceConfig:
+    """Configuration for a service"""
+    name: str
+    port: int
+    health_endpoint: str = "/health"
+    startup_timeout: float = 30.0
+    ready_interval: float = 0.5
 
-# Default ports based on mode
-if args.api == 'v5':
-    DEFAULT_API_PORT = 8001  # v5 uses 8001
-elif args.api == 'quick':
-    DEFAULT_API_PORT = 8002
-else:
-    DEFAULT_API_PORT = 8001
 
-# Override if specified
-if args.api_port:
-    DEFAULT_API_PORT = args.api_port
-
-# Import the full path display function for diagnostics
-try:
-    from core.tori_pathfinder import display_module_paths
-except ImportError:
-    def display_module_paths():
-        print("📦 Module path display not available")
-
-class EnhancedLogger:
-    """Enhanced logging with session management"""
+class EnhancedLauncher:
+    """
+    Enhanced TORI Launcher with bulletproof error handling, 
+    graceful shutdown, and comprehensive health checking
+    """
+    
     def __init__(self):
-        self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.session_dir = Path("logs") / f"session_{self.session_id}"
-        self.session_dir.mkdir(parents=True, exist_ok=True)
+        self.processes: List[subprocess.Popen] = []
+        self.api_port = 8002
+        self.ui_port = 3000
+        self.mcp_port = 6660
+        self.bridge_audio_port = 8501
+        self.bridge_concept_mesh_port = 8502
+        self.concept_mesh_visualization_port = 8503
         
-        # Configure enhanced logging
-        self.setup_logging()
+        # Load or create bridge config
+        self.bridge_config_path = Path("D:/Dev/kha/bridge_config.json")
+        self.load_bridge_config()
         
-    def setup_logging(self):
-        """Setup comprehensive logging"""
-        log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        # Service configurations
+        self.services = {
+            "api": ServiceConfig(
+                name="API Server",
+                port=self.api_port,
+                health_endpoint="/health",
+                startup_timeout=30.0
+            ),
+            "ui": ServiceConfig(
+                name="UI Server",
+                port=self.ui_port,
+                health_endpoint="/",
+                startup_timeout=20.0
+            ),
+            "mcp": ServiceConfig(
+                name="MCP Server",
+                port=self.mcp_port,
+                health_endpoint="/health",
+                startup_timeout=15.0
+            )
+        }
         
-        # File handler
-        file_handler = logging.FileHandler(
-            self.session_dir / "launcher.log",
-            encoding='utf-8'
+    def load_bridge_config(self):
+        """Load bridge configuration from file or create default"""
+        if self.bridge_config_path.exists():
+            try:
+                with open(self.bridge_config_path, 'r') as f:
+                    config = json.load(f)
+                    self.api_port = config.get("api_port", self.api_port)
+                    self.ui_port = config.get("ui_port", self.ui_port)
+                    self.mcp_port = config.get("mcp_port", self.mcp_port)
+                    self.bridge_audio_port = config.get("bridge_audio_port", self.bridge_audio_port)
+                    self.bridge_concept_mesh_port = config.get("bridge_concept_mesh_port", self.bridge_concept_mesh_port)
+                    LOG.info("Loaded bridge config from %s", self.bridge_config_path)
+            except Exception as e:
+                LOG.warning("Failed to load bridge config: %s", e)
+                self.save_bridge_config()
+        else:
+            self.save_bridge_config()
+            
+    def save_bridge_config(self):
+        """Save current bridge configuration"""
+        config = {
+            "api_port": self.api_port,
+            "ui_port": self.ui_port,
+            "mcp_port": self.mcp_port,
+            "bridge_audio_port": self.bridge_audio_port,
+            "bridge_concept_mesh_port": self.bridge_concept_mesh_port,
+            "concept_mesh_visualization_port": self.concept_mesh_visualization_port
+        }
+        try:
+            self.bridge_config_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.bridge_config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            LOG.info("Saved bridge config to %s", self.bridge_config_path)
+        except Exception as e:
+            LOG.error("Failed to save bridge config: %s", e)
+            
+    def find_free_port(self, start_port: int = 8000, max_tries: int = 100) -> int:
+        """Find a free port starting from start_port"""
+        for port in range(start_port, start_port + max_tries):
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                try:
+                    sock.bind(('', port))
+                    return port
+                except OSError:
+                    continue
+        raise RuntimeError(f"No free ports found in range {start_port}-{start_port + max_tries}")
+        
+    def _wait_http_ready(self, url: str, timeout: float = 30.0, interval: float = 0.5):
+        """Wait for HTTP service to become ready"""
+        import time
+        try:
+            import requests
+        except ImportError:
+            LOG.warning("requests not available, skipping health check for %s", url)
+            time.sleep(2)  # Basic wait
+            return
+            
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            try:
+                r = requests.get(url, timeout=2.0)
+                if r.ok:
+                    return
+            except Exception:
+                pass
+            time.sleep(interval)
+        raise RuntimeError(f"Service did not become healthy: {url}")
+        
+    def start_api(self, api_only: bool = False):
+        """Start the FastAPI server"""
+        LOG.info("Starting API server on port %s...", self.api_port)
+        
+        cmd = [
+            sys.executable, "-m", "uvicorn", "api.main:app",
+            "--host", "0.0.0.0",
+            "--port", str(self.api_port),
+            "--reload"
+        ]
+        
+        env = os.environ.copy()
+        env["API_PORT"] = str(self.api_port)
+        env["MCP_PORT"] = str(self.mcp_port)
+        env["BRIDGE_AUDIO_PORT"] = str(self.bridge_audio_port)
+        env["BRIDGE_CONCEPT_MESH_PORT"] = str(self.bridge_concept_mesh_port)
+        
+        # Windows process group handling
+        creation = 0
+        if os.name == "nt":
+            creation = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            creationflags=creation,
+            stdout=subprocess.PIPE if not api_only else None,
+            stderr=subprocess.PIPE if not api_only else None
         )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(logging.Formatter(log_format))
+        self.processes.append(proc)
         
-        # Console handler (less verbose)
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        
-        # Root logger
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.DEBUG)
-        root_logger.handlers = []  # Clear existing handlers
-        root_logger.addHandler(file_handler)
-        root_logger.addHandler(console_handler)
-        
-        self.logger = logging.getLogger("EnhancedLauncher")
-        
-    def log_exception(self, exc_info=None):
-        """Log exception with full traceback"""
-        if exc_info is None:
-            exc_info = sys.exc_info()
-        self.logger.error("Exception occurred", exc_info=exc_info)
-        
-        # Also save to separate exception log
-        exc_file = self.session_dir / "exceptions.log"
-        with open(exc_file, 'a', encoding='utf-8') as f:
-            f.write(f"\n{'='*60}\n")
-            f.write(f"Timestamp: {datetime.now()}\n")
-            traceback.print_exc(file=f)
-
-class HealthChecker:
-    """System health monitoring"""
-    def __init__(self, logger):
-        self.logger = logger
-        
-    def check_system_resources(self):
-        """Check system resources"""
+        # Wait for API to be ready
         try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
-            
-            health = {
-                "cpu_percent": cpu_percent,
-                "memory_percent": memory.percent,
-                "disk_percent": disk.percent,
-                "healthy": cpu_percent < 90 and memory.percent < 90
-            }
-            
-            if not health["healthy"]:
-                self.logger.warning(f"System resources stressed: CPU {cpu_percent}%, Memory {memory.percent}%")
-                
-            return health
-        except Exception as e:
-            self.logger.error(f"Health check failed: {e}")
-            return {"healthy": False}
-
-class EnhancedUnifiedToriLauncher:
-    """Enhanced launcher with v5 integration"""
-    
-    def __init__(self):
-        self.enhanced_logger = EnhancedLogger()
-        self.logger = self.enhanced_logger.logger
-        self.health_checker = HealthChecker(self.logger)
-        self.processes = []
-        self.running = False
-        
-        # Port configuration
-        self.api_port = DEFAULT_API_PORT
-        self.frontend_port = None
-        self.prajna_port = None
-        self.bridge_port = 8765
-        self.audio_bridge_port = 8766
-        self.concept_mesh_bridge_port = 8767
-        self.mcp_metacognitive_port = 3456
-        
-        # Component references
-        self.cognitive_engine = None
-        self.memory_vault = None
-        self.concept_mesh = None
-        self.cognitive_interface = None
-        self.metacognitive_server = None
-        
-        # Stability components
-        self.eigenvalue_monitor = None
-        self.lyapunov_analyzer = None
-        self.koopman_operator = None
-        
-        # BPS Soliton components
-        self.bps_lattice = None
-        self.bps_memory = None
-        self.bps_diagnostics = None
-        self.bps_initialized = False
-        
-        # TORI v5 Components
-        self.saigon_inference = None
-        self.adapter_manager = None
-        self.mesh_manager_v5 = None
-        self.user_context_manager = None
-        self.conversation_manager = None
-        self.lattice_morpher = None
-        self.concept_synthesizer = None
-        self.v5_initialized = False
-        
-        # Training components
-        self.synthetic_generator = None
-        self.adapter_validator = None
-        self.rollback_manager = None
-        
-        # Setup signal handlers
-        signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
-        
-    def _signal_handler(self, signum, frame):
-        """Handle shutdown signals gracefully"""
-        self.logger.info("\n🛑 Shutdown signal received")
-        self.shutdown()
-        sys.exit(0)
-        
-    def check_port(self, port):
-        """Check if port is available"""
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('', port))
-                return True
-        except:
-            return False
-            
-    def find_available_port(self, preferred_port, max_attempts=10):
-        """Find available port starting from preferred"""
-        for i in range(max_attempts):
-            port = preferred_port + i
-            if self.check_port(port):
-                return port
-        raise RuntimeError(f"No available ports found starting from {preferred_port}")
-    
-    def initialize_v5_components(self):
-        """Initialize TORI/Saigon v5 components"""
-        if not TORI_V5_AVAILABLE or not args.enable_v5:
-            return False
-        
-        try:
-            self.logger.info("🚀 Initializing TORI/Saigon v5 components...")
-            
-            # Core v5 components
-            self.saigon_inference = SaigonInference()
-            self.adapter_manager = MetadataManager()
-            self.mesh_manager_v5 = MeshManager()
-            self.user_context_manager = UserContextManager()
-            
-            # Conversation manager with dependencies
-            self.conversation_manager = ConversationManager(
-                self.saigon_inference,
-                self.mesh_manager_v5
+            self._wait_http_ready(
+                f"http://127.0.0.1:{self.api_port}/health",
+                timeout=30.0
             )
-            
-            # Lattice morphing
-            self.lattice_morpher = LatticeMorpher()
-            
-            # HoTT synthesis if available
-            if HOTT_AVAILABLE:
-                self.concept_synthesizer = ConceptSynthesizer(
-                    self.mesh_manager_v5,
-                    self.lattice_morpher
-                )
-                self.logger.info("   ✅ HoTT/Psi-Morphon synthesis initialized")
-            
-            # Training components if available
-            if TRAINING_AVAILABLE:
-                self.synthetic_generator = SyntheticDataGenerator()
-                self.adapter_validator = AdapterValidator()
-                self.rollback_manager = RollbackManager()
-                self.logger.info("   ✅ Training pipeline initialized")
-            
-            # Get system statistics
-            stats = self.saigon_inference.get_statistics()
-            
-            self.logger.info("   ✅ Saigon Inference Engine v5 initialized")
-            self.logger.info("   ✅ Multi-user adapter management ready")
-            self.logger.info("   ✅ Concept mesh v5 evolution enabled")
-            self.logger.info("   ✅ Conversation manager with intent gaps ready")
-            self.logger.info("   ✅ Lattice morphing with AV sync ready")
-            self.logger.info(f"   📊 Device: {stats['device']}")
-            self.logger.info(f"   📊 Cache size: {stats['cache']['maxsize']}")
-            
-            self.v5_initialized = True
-            return True
-            
+            LOG.info("API is healthy on http://127.0.0.1:%s", self.api_port)
         except Exception as e:
-            self.logger.error(f"Failed to initialize v5 components: {e}")
-            self.enhanced_logger.log_exception()
-            return False
-    
-    def initialize_bps_soliton(self):
-        """Initialize BPS Soliton System"""
-        if not BPS_AVAILABLE:
-            return False
+            LOG.warning("API health check failed: %s", e)
             
+    def start_ui(self):
+        """Start the UI server"""
+        LOG.info("Starting UI server on port %s...", self.ui_port)
+        
+        ui_path = Path("tori_ui_svelte")
+        if not ui_path.exists():
+            ui_path = Path("D:/Dev/kha/tori_ui_svelte")
+            
+        if not ui_path.exists():
+            LOG.warning("UI directory not found, skipping UI startup")
+            return
+            
+        # Install dependencies if needed
+        node_modules = ui_path / "node_modules"
+        if not node_modules.exists():
+            LOG.info("Installing UI dependencies...")
+            subprocess.run(["npm", "install"], cwd=ui_path, check=False)
+            
+        cmd = ["npm", "run", "dev", "--", "--port", str(self.ui_port)]
+        
+        env = os.environ.copy()
+        env["VITE_API_URL"] = f"http://localhost:{self.api_port}"
+        
+        creation = 0
+        if os.name == "nt":
+            creation = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            
+        proc = subprocess.Popen(
+            cmd,
+            cwd=ui_path,
+            env=env,
+            creationflags=creation,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        self.processes.append(proc)
+        
+        # Wait for UI to be ready
+        time.sleep(3)  # Basic wait for UI
+        LOG.info("UI server started on http://localhost:%s", self.ui_port)
+        
+    def start_mcp_server(self):
+        """Start the MCP production server"""
+        if not TORI_V5_AVAILABLE:
+            LOG.info("MCP server components not available, skipping")
+            return
+            
+        LOG.info("Starting MCP production server on port %s...", self.mcp_port)
+        
+        cmd = [
+            sys.executable, "-m", "python.services.mcp_production_server",
+            "--port", str(self.mcp_port)
+        ]
+        
+        env = os.environ.copy()
+        env["MCP_PORT"] = str(self.mcp_port)
+        
+        creation = 0
+        if os.name == "nt":
+            creation = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            creationflags=creation,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        self.processes.append(proc)
+        
+        time.sleep(2)  # Basic wait
+        LOG.info("MCP server started on port %s", self.mcp_port)
+        
+    def start_bridges(self):
+        """Start bridge services"""
+        if not TORI_V5_AVAILABLE:
+            LOG.info("Bridge components not available, skipping")
+            return
+            
+        # Start audio bridge
+        LOG.info("Starting audio bridge on port %s...", self.bridge_audio_port)
+        cmd = [
+            sys.executable, "-m", "python.services.bridge_audio",
+            "--port", str(self.bridge_audio_port)
+        ]
+        
+        creation = 0
+        if os.name == "nt":
+            creation = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            
+        proc = subprocess.Popen(
+            cmd,
+            creationflags=creation,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        self.processes.append(proc)
+        
+        # Start concept mesh bridge
+        LOG.info("Starting concept mesh bridge on port %s...", self.bridge_concept_mesh_port)
+        cmd = [
+            sys.executable, "-m", "python.services.bridge_concept_mesh",
+            "--port", str(self.bridge_concept_mesh_port)
+        ]
+        
+        proc = subprocess.Popen(
+            cmd,
+            creationflags=creation,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        self.processes.append(proc)
+        
+        time.sleep(2)
+        LOG.info("Bridge services started")
+        
+    def start(self, api_only: bool = False):
+        """Start all services"""
+        LOG.info("=" * 60)
+        LOG.info("🚀 ENHANCED TORI LAUNCHER v3.0 - STARTING...")
+        LOG.info("=" * 60)
+        
         try:
-            self.logger.info("🌊 Initializing BPS Soliton System...")
+            # Always start API
+            self.start_api(api_only)
             
-            # Initialize lattice
-            self.bps_lattice = BPSEnhancedLattice(
-                size=BPS_CONFIG['LATTICE_SIZE'],
-                allow_mixed_polarity=BPS_CONFIG['ENABLE_MIXED_POLARITY']
-            )
-            
-            # Initialize memory
-            self.bps_memory = BPSEnhancedSolitonMemory(
-                self.bps_lattice,
-                max_solitons=100
-            )
-            
-            # Initialize diagnostics
-            self.bps_diagnostics = BPSDiagnostics(self.bps_lattice, self.bps_memory)
-            
-            self.logger.info("   ✅ BPS Enhanced Lattice initialized")
-            self.logger.info("   ✅ BPS Soliton Memory initialized")
-            self.logger.info("   ✅ BPS Diagnostics initialized")
-            
-            self.bps_initialized = True
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to initialize BPS: {e}")
-            return False
-    
-    def initialize_core_components(self):
-        """Initialize core Python components"""
-        if not CORE_COMPONENTS_AVAILABLE:
-            return False
-            
-        try:
-            self.logger.info("🧠 Initializing Core Python Components...")
-            
-            # Initialize cognitive engine
-            if CognitiveEngine:
-                self.cognitive_engine = CognitiveEngine()
-                self.logger.info("   ✅ CognitiveEngine initialized")
-            
-            # Initialize memory vault
-            if UnifiedMemoryVault:
-                self.memory_vault = UnifiedMemoryVault()
-                self.logger.info("   ✅ UnifiedMemoryVault initialized")
-            
-            # Initialize concept mesh
-            if ConceptMesh:
-                self.concept_mesh = ConceptMesh()
-                self.logger.info("   ✅ ConceptMesh initialized")
-            
-            # Initialize cognitive interface
-            if CognitiveInterface:
-                self.cognitive_interface = CognitiveInterface(
-                    cognitive_engine=self.cognitive_engine,
-                    memory_vault=self.memory_vault,
-                    concept_mesh=self.concept_mesh
-                )
-                self.logger.info("   ✅ CognitiveInterface initialized")
-            
-            # Initialize metacognitive server
-            if MCPMetacognitiveServer:
-                self.metacognitive_server = MCPMetacognitiveServer()
-                self.logger.info("   ✅ MCPMetacognitiveServer initialized")
+            if not api_only:
+                # Start UI
+                self.start_ui()
                 
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to initialize core components: {e}")
-            return False
-    
-    def initialize_stability_components(self):
-        """Initialize stability analysis components"""
-        if not STABILITY_COMPONENTS_AVAILABLE:
-            return False
-            
-        try:
-            self.logger.info("🔬 Initializing Stability Components...")
-            
-            if EigenvalueMonitor:
-                self.eigenvalue_monitor = EigenvalueMonitor()
-                self.logger.info("   ✅ EigenvalueMonitor initialized")
-            
-            if LyapunovAnalyzer:
-                self.lyapunov_analyzer = LyapunovAnalyzer()
-                self.logger.info("   ✅ LyapunovAnalyzer initialized")
-            
-            if KoopmanOperator:
-                self.koopman_operator = KoopmanOperator()
-                self.logger.info("   ✅ KoopmanOperator initialized")
+                # Start MCP server
+                self.start_mcp_server()
                 
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to initialize stability components: {e}")
-            return False
-    
-    def start_api_server(self):
-        """Start API server based on mode"""
-        try:
-            self.api_port = self.find_available_port(self.api_port)
-            
-            if args.api == 'v5':
-                # Start v5 API server
-                self.logger.info(f"🌐 Starting TORI v5 API server on port {self.api_port}...")
+                # Start bridges
+                self.start_bridges()
                 
-                if Path("api/saigon_inference_api_v5.py").exists():
-                    cmd = [sys.executable, "api/saigon_inference_api_v5.py"]
-                else:
-                    self.logger.warning("v5 API not found, falling back to standard API")
-                    cmd = [sys.executable, "-m", "uvicorn", "api.main:app", 
-                          "--host", "0.0.0.0", "--port", str(self.api_port)]
-            elif args.api == 'quick':
-                # Quick API mode
-                self.logger.info(f"🌐 Starting quick API server on port {self.api_port}...")
-                cmd = [sys.executable, "api/quick_api_server.py", "--port", str(self.api_port)]
-            else:
-                # Full API mode
-                self.logger.info(f"🌐 Starting full API server on port {self.api_port}...")
-                cmd = [sys.executable, "-m", "uvicorn", "api.main:app",
-                      "--host", "0.0.0.0", "--port", str(self.api_port)]
-            
-            env = os.environ.copy()
-            env['API_PORT'] = str(self.api_port)
-            
-            process = subprocess.Popen(cmd, env=env)
-            self.processes.append(process)
-            
-            # Wait for API to be ready
-            for i in range(30):
-                try:
-                    response = requests.get(f"http://localhost:{self.api_port}/api/health")
-                    if response.status_code == 200:
-                        self.logger.info(f"   ✅ API server ready on port {self.api_port}")
-                        return True
-                except:
-                    time.sleep(1)
-                    
-            self.logger.warning("   ⚠️ API server may not be fully ready")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to start API server: {e}")
-            return False
-    
-    def start_frontend(self):
-        """Start frontend development server"""
-        try:
-            frontend_path = Path("frontend")
-            if not frontend_path.exists():
-                self.logger.warning("Frontend directory not found")
-                return False
-                
-            self.frontend_port = self.find_available_port(3000)
-            self.logger.info(f"🎨 Starting frontend on port {self.frontend_port}...")
-            
-            cmd = ["npm", "run", "dev"]
-            process = subprocess.Popen(cmd, cwd=frontend_path)
-            self.processes.append(process)
-            
-            self.logger.info(f"   ✅ Frontend started on port {self.frontend_port}")
-            
-            if not args.no_browser:
-                time.sleep(3)
-                import webbrowser
-                webbrowser.open(f"http://localhost:{self.frontend_port}")
-                
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to start frontend: {e}")
-            return False
-    
-    def print_status_summary(self, api_started, frontend_started, prajna_configured,
-                            core_components_started, stability_components_started,
-                            mcp_metacognitive_started, concept_mesh_bridge_started,
-                            audio_bridge_started):
-        """Print comprehensive status summary"""
-        self.logger.info("\n" + "🎉 " * 25)
-        self.logger.info("🎉 TORI SYSTEM READY! 🎉")
-        self.logger.info("🎉 " * 25)
-        
-        # v5 Components status
-        if self.v5_initialized:
-            self.logger.info("\n🚀 TORI/SAIGON v5 COMPONENTS:")
-            if self.saigon_inference:
-                self.logger.info("   ✅ Saigon Inference Engine: Active (multi-user, LoRA adapters)")
-            if self.adapter_manager:
-                self.logger.info("   ✅ Adapter Manager: Active (hot-swapping enabled)")
-            if self.mesh_manager_v5:
-                self.logger.info("   ✅ Mesh Manager v5: Active (evolution tracking)")
-            if self.conversation_manager:
-                self.logger.info("   ✅ Conversation Manager: Active (intent gap detection)")
-            if self.lattice_morpher:
-                self.logger.info("   ✅ Lattice Morphing: Active (AV sync ready)")
-            if self.concept_synthesizer:
-                self.logger.info("   ✅ HoTT/Psi-Morphon: Active (concept synthesis)")
-            
-            # Show v5 API endpoints
-            self.logger.info("\n🌐 TORI v5 API ENDPOINTS:")
-            self.logger.info(f"   • POST http://localhost:{self.api_port}/api/saigon/infer - Multi-user inference")
-            self.logger.info(f"   • POST http://localhost:{self.api_port}/api/saigon/adapters/hot-swap - Hot-swap adapters")
-            self.logger.info(f"   • GET http://localhost:{self.api_port}/api/saigon/mesh/{{user_id}} - Get user mesh")
-            self.logger.info(f"   • POST http://localhost:{self.api_port}/api/saigon/conversation/chat - Chat with intent tracking")
-            self.logger.info(f"   • POST http://localhost:{self.api_port}/api/saigon/morph - Lattice morphing")
-        
-        # API Status
-        self.logger.info(f"\n🌐 API SERVER:")
-        if api_started:
-            self.logger.info(f"   ✅ Running on http://localhost:{self.api_port}")
-            self.logger.info(f"   📚 API Docs: http://localhost:{self.api_port}/docs")
-        else:
-            self.logger.info("   ❌ Not started")
-        
-        # Frontend Status
-        if frontend_started:
-            self.logger.info(f"\n🎨 FRONTEND:")
-            self.logger.info(f"   ✅ Running on http://localhost:{self.frontend_port}")
-        
-        # BPS Status
-        if self.bps_initialized:
-            self.logger.info("\n🌊 BPS SOLITON SYSTEM:")
-            self.logger.info("   ✅ BPSEnhancedLattice: Active")
-            self.logger.info("   ✅ BPSEnhancedSolitonMemory: Active")
-            self.logger.info("   ✅ BPSDiagnostics: Active")
-        
-        # Core Components Status
-        if core_components_started:
-            self.logger.info("\n🧠 CORE PYTHON COMPONENTS:")
-            if self.cognitive_engine:
-                self.logger.info("   ✅ CognitiveEngine: Active")
-            if self.memory_vault:
-                self.logger.info("   ✅ UnifiedMemoryVault: Active")
-            if self.concept_mesh:
-                self.logger.info("   ✅ ConceptMesh: Active")
-        
-        # Quick Tests
-        self.logger.info("\n🧪 QUICK TESTS:")
-        if self.v5_initialized:
-            self.logger.info(f"   # Test v5 inference:")
-            self.logger.info(f"   curl -X POST http://localhost:{self.api_port}/api/saigon/infer \\")
-            self.logger.info(f"     -H 'Content-Type: application/json' \\")
-            self.logger.info(f"     -d '{{\"user_id\": \"demo\", \"prompt\": \"Hello TORI v5!\"}}'")
-        else:
-            self.logger.info(f"   # Test API:")
-            self.logger.info(f"   curl http://localhost:{self.api_port}/api/health")
-        
-        # System Health
-        health = self.health_checker.check_system_resources()
-        health_status = "✅ Healthy" if health.get("healthy") else "⚠️ Stressed"
-        self.logger.info(f"\n💊 System Health: {health_status}")
-        
-        self.logger.info("\n" + "🎉 " * 25 + "\n")
-    
-    def launch(self):
-        """Main launch sequence"""
-        try:
-            self.logger.info("\n" + "🚀 " * 30)
-            self.logger.info("🚀 ENHANCED TORI LAUNCHER v3.0 - WITH SAIGON v5 INTEGRATION 🚀")
-            self.logger.info("🚀 " * 30)
-            
-            # Check system health
-            health = self.health_checker.check_system_resources()
-            if not health["healthy"]:
-                self.logger.warning("⚠️ System resources may be stressed")
-            
-            # Initialize v5 components (if enabled)
-            v5_initialized = False
-            if args.enable_v5:
-                v5_initialized = self.initialize_v5_components()
-            
-            # Initialize BPS Soliton System
-            bps_initialized = self.initialize_bps_soliton()
-            
-            # Initialize core components
-            core_components_started = self.initialize_core_components()
-            
-            # Initialize stability components
-            stability_components_started = self.initialize_stability_components()
-            
-            # Start API server
-            api_started = self.start_api_server()
-            
-            # Start frontend
-            frontend_started = False
-            if not args.no_browser:
-                frontend_started = self.start_frontend()
-            
-            # Initialize MCP if available
-            mcp_metacognitive_started = False
-            if MCP_METACOGNITIVE_AVAILABLE:
-                try:
-                    self.logger.info("🧬 Starting MCP Metacognitive Server...")
-                    # MCP initialization code here
-                    mcp_metacognitive_started = True
-                except Exception as e:
-                    self.logger.error(f"Failed to start MCP: {e}")
-            
-            # Initialize bridges if hologram enabled
-            concept_mesh_bridge_started = False
-            audio_bridge_started = False
-            if args.enable_hologram:
-                # Bridge initialization code here
-                concept_mesh_bridge_started = True
-                audio_bridge_started = args.hologram_audio
-            
-            # Print status summary
-            self.print_status_summary(
-                api_started, frontend_started, False,
-                core_components_started, stability_components_started,
-                mcp_metacognitive_started, concept_mesh_bridge_started,
-                audio_bridge_started
-            )
+            LOG.info("=" * 60)
+            LOG.info("✅ ALL SERVICES STARTED SUCCESSFULLY!")
+            LOG.info("🌐 API: http://localhost:%s", self.api_port)
+            if not api_only:
+                LOG.info("🎨 UI: http://localhost:%s", self.ui_port)
+                if TORI_V5_AVAILABLE:
+                    LOG.info("🔌 MCP: port %s", self.mcp_port)
+                    LOG.info("🎵 Audio Bridge: port %s", self.bridge_audio_port)
+                    LOG.info("🧠 Concept Mesh Bridge: port %s", self.bridge_concept_mesh_port)
+            LOG.info("=" * 60)
             
             # Keep running
-            self.running = True
-            self.logger.info("✅ System running. Press Ctrl+C to shutdown.\n")
-            
-            while self.running:
-                time.sleep(1)
-                
-        except KeyboardInterrupt:
-            self.logger.info("\n⌨️ Keyboard interrupt received")
+            if not api_only:
+                LOG.info("Press Ctrl+C to shutdown...")
+                try:
+                    while True:
+                        time.sleep(1)
+                        # Check if processes are still alive
+                        for proc in self.processes[:]:
+                            if proc.poll() is not None:
+                                self.processes.remove(proc)
+                                LOG.warning("Process terminated with code %s", proc.returncode)
+                except KeyboardInterrupt:
+                    pass
+                    
         except Exception as e:
-            self.logger.error(f"Launch failed: {e}")
-            self.enhanced_logger.log_exception()
-        finally:
+            LOG.error("Failed to start services: %s", e)
             self.shutdown()
-    
+            raise
+            
     def shutdown(self):
-        """Clean shutdown"""
-        self.running = False
-        self.logger.info("\n🛑 Shutting down TORI system...")
+        """Gracefully shutdown all services"""
+        LOG.info("Shutting down services...")
         
-        # Terminate all processes
-        for process in self.processes:
+        for p in self.processes:
             try:
-                process.terminate()
-                process.wait(timeout=5)
-            except:
-                process.kill()
-        
-        # Cleanup ports
-        if PORT_MANAGER_AVAILABLE and port_manager:
+                if os.name == "nt":
+                    try:
+                        # Try Windows process group signal
+                        p.send_signal(signal.CTRL_BREAK_EVENT)
+                    except Exception:
+                        p.terminate()
+                else:
+                    p.terminate()
+            except Exception:
+                pass
+                
+        # Wait for processes to terminate
+        for p in self.processes:
+            try:
+                p.wait(timeout=8)
+            except Exception:
+                try:
+                    p.kill()
+                except Exception:
+                    pass
+                    
+        # Clean up ports if port manager available
+        if PORT_MANAGER_AVAILABLE:
             port_manager.cleanup_all_ports()
-        
-        self.logger.info("✅ Shutdown complete")
+            
+        # Additional cleanup with psutil if available
+        if PSUTIL_AVAILABLE:
+            try:
+                current_process = psutil.Process()
+                children = current_process.children(recursive=True)
+                for child in children:
+                    try:
+                        child.terminate()
+                    except Exception:
+                        pass
+                        
+                # Give them time to terminate
+                gone, alive = psutil.wait_procs(children, timeout=5)
+                
+                # Kill any remaining
+                for p in alive:
+                    try:
+                        p.kill()
+                    except Exception:
+                        pass
+            except Exception as e:
+                LOG.debug("psutil cleanup error: %s", e)
+                
+        LOG.info("Launcher shutdown complete")
+
 
 def main():
-    """Bulletproof main entry point"""
+    """Main entry point with argument parsing"""
+    parser = argparse.ArgumentParser(
+        description="Enhanced TORI Launcher v3.0"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="API port override"
+    )
+    parser.add_argument(
+        "--api-only",
+        action="store_true",
+        help="Start API only (no UI/bridges)"
+    )
+    parser.add_argument(
+        "--ui-port",
+        type=int,
+        default=None,
+        help="UI port override"
+    )
+    parser.add_argument(
+        "--mcp-port",
+        type=int,
+        default=None,
+        help="MCP port override"
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging"
+    )
+    
+    args = parser.parse_args()
+    
+    # Configure logging level
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        
+    # Create launcher
+    launcher = EnhancedLauncher()
+    
+    # Apply port overrides
+    if args.port:
+        launcher.api_port = args.port
+    if args.ui_port:
+        launcher.ui_port = args.ui_port
+    if args.mcp_port:
+        launcher.mcp_port = args.mcp_port
+        
+    # Save updated config
+    launcher.save_bridge_config()
+    
     try:
-        # Check Python version
-        if sys.version_info < (3, 8):
-            print("❌ Python 3.8+ required")
-            return 1
-        
-        # Check critical dependencies
-        try:
-            import psutil
-            import requests
-            import uvicorn
-        except ImportError as e:
-            print(f"❌ Missing critical dependency: {e}")
-            print("💡 Run: pip install psutil requests uvicorn")
-            return 1
-        
-        launcher = EnhancedUnifiedToriLauncher()
-        launcher.launch()
-        return 0
-        
+        launcher.start(api_only=args.api_only)
+    except KeyboardInterrupt:
+        LOG.info("Ctrl+C received, shutting down...")
     except Exception as e:
-        print(f"❌ Critical startup failure: {e}")
-        print(f"📋 Traceback: {traceback.format_exc()}")
-        return 1
+        LOG.error("Launcher error: %s", e)
+    finally:
+        launcher.shutdown()
+
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
