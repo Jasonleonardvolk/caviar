@@ -1,13 +1,13 @@
 param([string]$ProjectRoot = "D:\Dev\kha")
 
 Write-Host "`n===============================================" -ForegroundColor Magenta
-Write-Host "    🚀 WOW PACK ULTIMATE PRODUCTION CHECK" -ForegroundColor Cyan
+Write-Host "    WOW PACK ULTIMATE PRODUCTION CHECK" -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Magenta
 
-function Ok($m){Write-Host "[✅] $m" -f Green}
-function Info($m){Write-Host "[ℹ️] $m" -f Cyan}
-function Warn($m){Write-Host "[⚠️] $m" -f Yellow}
-function Fail($m){Write-Host "[❌] $m" -f Red}
+function Ok($m){Write-Host "[OK] $m" -f Green}
+function Info($m){Write-Host "[INFO] $m" -f Cyan}
+function Warn($m){Write-Host "[WARN] $m" -f Yellow}
+function Fail($m){Write-Host "[FAIL] $m" -f Red}
 function Header($m){Write-Host "`n$m" -f Magenta; Write-Host ("=" * $m.Length) -f Magenta}
 
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -27,7 +27,7 @@ if (Test-Path $ffmpegPath) {
     
     # Add to PATH for this session if not already there
     if ($env:Path -notlike "*D:\Dev\kha\tools\ffmpeg*") {
-        $env:Path = "D:\Dev\kha\tools\ffmpeg;$env:Path"
+        $env:Path = "D:\Dev\kha\tools\ffmpeg;" + $env:Path
         Info "Added FFmpeg to PATH for this session"
     }
     
@@ -76,7 +76,8 @@ foreach ($fileInfo in $requiredFiles) {
         $totalMasterSize += $size
         
         if ($size -ge $fileInfo.minSize) {
-            Ok "$($fileInfo.name) - $('{0:N2}' -f ($size/1GB)) GB ✓"
+            $sizeGB = [math]::Round($size/1GB, 2)
+            Ok "$($fileInfo.name) - $sizeGB GB"
             $masterCount++
             
             # Get video properties using ffprobe
@@ -97,7 +98,8 @@ foreach ($fileInfo in $requiredFiles) {
                 status = "OK"
             }
         } else {
-            Warn "$($fileInfo.name) exists but seems small ($('{0:N2}' -f ($size/1MB)) MB)"
+            $sizeMB = [math]::Round($size/1MB, 2)
+            Warn "$($fileInfo.name) exists but seems small ($sizeMB MB)"
         }
     } else {
         Fail "$($fileInfo.name) missing"
@@ -105,8 +107,9 @@ foreach ($fileInfo in $requiredFiles) {
     }
 }
 
+$totalSizeGB = [math]::Round($totalMasterSize/1GB, 2)
 Info "`nMasters: $masterCount/3 present"
-Info "Total size: $('{0:N2}' -f ($totalMasterSize/1GB)) GB"
+Info "Total size: $totalSizeGB GB"
 $reportData.checks.masters = @{count=$masterCount; total=3; files=$masters}
 
 # Check for MP4 companions
@@ -114,7 +117,8 @@ $mp4Files = Get-ChildItem "$inputDir\*.mp4" -ErrorAction SilentlyContinue
 if ($mp4Files) {
     Ok "Bonus: $($mp4Files.Count) MP4 preview versions available"
     foreach ($mp4 in $mp4Files) {
-        Info "  • $($mp4.Name) ($('{0:N1}' -f ($mp4.Length/1MB)) MB)"
+        $sizeMB = [math]::Round($mp4.Length/1MB, 1)
+        Info "  * $($mp4.Name) ($sizeMB MB)"
     }
 }
 
@@ -128,7 +132,8 @@ if (Test-Path $av1Dir) {
     if ($av1Files) {
         Ok "AV1 Encodes: $($av1Files.Count) files"
         foreach ($av1 in $av1Files) {
-            Info "  • $($av1.Name) ($('{0:N1}' -f ($av1.Length/1MB)) MB)"
+            $sizeMB = [math]::Round($av1.Length/1MB, 1)
+            Info "  * $($av1.Name) ($sizeMB MB)"
             $av1Count++
         }
     }
@@ -147,7 +152,8 @@ if (Test-Path $hdr10Dir) {
     if ($hdrFiles) {
         Ok "HDR10 Encodes: $($hdrFiles.Count) files"
         foreach ($hdr in $hdrFiles) {
-            Info "  • $($hdr.Name) ($('{0:N1}' -f ($hdr.Length/1MB)) MB)"
+            $sizeMB = [math]::Round($hdr.Length/1MB, 1)
+            Info "  * $($hdr.Name) ($sizeMB MB)"
             $hdrCount++
         }
     }
@@ -155,7 +161,8 @@ if (Test-Path $hdr10Dir) {
     if ($sdrFiles) {
         Ok "SDR Encodes: $($sdrFiles.Count) files"
         foreach ($sdr in $sdrFiles) {
-            Info "  • $($sdr.Name) ($('{0:N1}' -f ($sdr.Length/1MB)) MB)"
+            $sizeMB = [math]::Round($sdr.Length/1MB, 1)
+            Info "  * $($sdr.Name) ($sizeMB MB)"
             $sdrCount++
         }
     }
@@ -231,7 +238,8 @@ try {
     
     if (Test-Path $testOutput) {
         $testSize = (Get-Item $testOutput).Length
-        Ok " Success! ($('{0:N2}' -f ($testSize/1KB)) KB test file)"
+        $testSizeKB = [math]::Round($testSize/1KB, 2)
+        Ok " Success! ($testSizeKB KB test file)"
         Remove-Item $testOutput -Force
     } else {
         Warn " Encode test failed"
@@ -246,7 +254,7 @@ $reportData.summary = @{
     masters_ready = ($masterCount -eq 3)
     outputs_ready = (($av1Count -gt 0) -or ($hdrCount -gt 0))
     scripts_ready = ($scriptCount -eq $encodeScripts.Count)
-    total_master_size_gb = [math]::Round($totalMasterSize/1GB, 2)
+    total_master_size_gb = $totalSizeGB
     encoded_files = @{
         av1 = $av1Count
         hdr10 = $hdrCount
@@ -267,28 +275,28 @@ Info "`nDetailed report saved: $reportPath"
 Write-Host "`n===============================================" -ForegroundColor Magenta
 if ($masterCount -eq 3 -and $scriptCount -eq $encodeScripts.Count) {
     if (($av1Count -gt 0) -or ($hdrCount -gt 0)) {
-        Write-Host "🎉 WOW PACK FULLY OPERATIONAL & ENCODED! 🎉" -ForegroundColor Green
-        Write-Host "`n✅ ALL SYSTEMS GO FOR PRODUCTION!" -ForegroundColor Green
+        Write-Host "WOW PACK FULLY OPERATIONAL & ENCODED!" -ForegroundColor Green
+        Write-Host "`nALL SYSTEMS GO FOR PRODUCTION!" -ForegroundColor Green
         Info "`nYour WOW Pack includes:"
-        Info "  • $masterCount ProRes masters ($('{0:N1}' -f ($totalMasterSize/1GB)) GB)"
-        Info "  • $av1Count AV1 encodes (next-gen codec)"
-        Info "  • $hdrCount HDR10 + $sdrCount SDR encodes"
-        Info "  • Ready for demo at /hologram"
+        Info "  * $masterCount ProRes masters ($totalSizeGB GB)"
+        Info "  * $av1Count AV1 encodes (next-gen codec)"
+        Info "  * $hdrCount HDR10 + $sdrCount SDR encodes"
+        Info "  * Ready for demo at /hologram"
     } else {
-        Write-Host "✅ WOW PACK READY - ENCODING NEEDED" -ForegroundColor Yellow
+        Write-Host "WOW PACK READY - ENCODING NEEDED" -ForegroundColor Yellow
         Write-Host "`nTo generate final outputs:" -ForegroundColor Yellow
         Write-Host "  cd D:\Dev\kha\tools\encode" -ForegroundColor White
         Write-Host "  .\Batch-Encode-Simple.ps1" -ForegroundColor White
     }
 } elseif ($masterCount -gt 0) {
-    Warn "⚠️ WOW Pack partially ready ($masterCount/3 masters)"
+    Warn "WOW Pack partially ready ($masterCount/3 masters)"
     if ($masterCount -lt 3) {
         Info "`nTo create missing masters, run:"
         Info "  cd D:\Dev\kha\tools\encode"
         Info "  .\Generate-Test-ProRes.ps1"
     }
 } else {
-    Fail "❌ WOW Pack not ready - setup required"
+    Fail "WOW Pack not ready - setup required"
     Info "`nQuick setup:"
     Info "  1. cd D:\Dev\kha\tools\encode"
     Info "  2. .\Install-FFmpeg.ps1"
