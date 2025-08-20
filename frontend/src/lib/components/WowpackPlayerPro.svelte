@@ -143,7 +143,8 @@
           box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
   .header { display:flex; justify-content:space-between; align-items:center; gap:0.5rem; }
   .chip { border:1px solid #444; border-radius:999px; padding:.15rem .5rem; background:#111;
-          cursor:pointer; font-size:0.75rem; transition: all 0.2s; }
+          cursor:pointer; font-size:0.75rem; transition: all 0.2s; 
+          color: #fff; font-family: inherit; }
   .chip:hover { transform: scale(1.05); border-color: #666; }
   .chip.active { border-color:#8ec5ff; color:#8ec5ff; background: rgba(142,197,255,0.1); }
   .chip.showcase { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; }
@@ -192,12 +193,12 @@
       <div class="pills">
         {#if catalog}
           {#each catalog.items as c}
-            <span class={"chip " + (chosen?.id===c.id ? 'active' : '')} on:click={() => pick(c.id)}>
+            <button type="button" class={"chip " + (chosen?.id===c.id ? 'active' : '')} on:click={() => pick(c.id)}>
               {c.title}
               {#if c.files.length > 0}
                 <span style="opacity:0.5; font-size:0.65rem;">({c.files.length})</span>
               {/if}
-            </span>
+            </button>
           {/each}
         {/if}
       </div>

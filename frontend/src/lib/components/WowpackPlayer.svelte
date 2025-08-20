@@ -58,7 +58,7 @@
 <style>
   .wrap { border:1px solid #2b2b2b; border-radius:16px; padding:.75rem; background:#0d0d0d; color:#fff; margin-top: 1rem; }
   .row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
-  .chip { border:1px solid #444; border-radius:999px; padding:.25rem .6rem; background:#111; cursor:pointer; transition: all 0.2s; }
+  .chip { border:1px solid #444; border-radius:999px; padding:.25rem .6rem; background:#111; cursor:pointer; transition: all 0.2s; color: #fff; font-family: inherit; font-size: inherit; }
   .chip:hover { border-color:#6ea5ff; }
   .chip.active { border-color:#8ec5ff; color:#8ec5ff; background:#1a2a3a; }
   video { width:100%; max-width:540px; border-radius:16px; background:#000; display:block; }
@@ -78,12 +78,12 @@
   <div class="row" style="margin-top:.5rem">
     {#if catalog}
       {#each catalog.items as c}
-        <div class={"chip " + (chosen?.id===c.id ? 'active' : '')} on:click={() => pick(c.id)}>
+        <button type="button" class={"chip " + (chosen?.id===c.id ? 'active' : '')} on:click={() => pick(c.id)}>
           {c.title}
           {#if c.files.length > 0}
             <span style="opacity:0.5">({c.files.length})</span>
           {/if}
-        </div>
+        </button>
       {/each}
     {/if}
   </div>
