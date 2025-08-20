@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import HologramRecorder from '$lib/components/HologramRecorder.svelte';
+  import WowpackPlayer from '$lib/components/WowpackPlayer.svelte';
   import { detectCapabilities, prefersWebGPUHint } from '$lib/device/capabilities';
   import { initHologram } from '$lib/hologram/engineShim';
 
@@ -52,4 +53,7 @@
 
   <!-- Recorder with plan-gated limits and watermarking -->
   <HologramRecorder hologramCanvasSelector="#hologram-canvas" />
+
+  <!-- WOW Pack Demo Loops Player -->
+  <WowpackPlayer />
 </div>
