@@ -1,0 +1,41 @@
+# Git Deployment Commands for Phase 3
+# Quick reference for deployment
+
+# Check current status
+git status
+
+# Stage all changes
+git add .
+
+# Commit with message
+git commit -m "iRis launch: recorder + pricing + stripe checkout"
+
+# Push to main branch
+git push origin main
+
+# Alternative: Push to feature branch
+git checkout -b feature/iris-paywall
+git add .
+git commit -m "feat: Add recording paywall and Stripe integration"
+git push origin feature/iris-paywall
+
+# If you need to update after initial push
+git add .
+git commit -m "fix: Update Stripe configuration for production"
+git push
+
+# Force push if needed (use with caution!)
+git push --force origin main
+
+# Check remote URL
+git remote -v
+
+# Add upstream if needed
+git remote add upstream https://github.com/Jasonleonardvolk/caviar.git
+
+# Useful git log to see recent commits
+git log --oneline -10
+
+# Create a tag for this release
+git tag -a v1.0.0-iris -m "iRis recording and paywall system"
+git push origin v1.0.0-iris
