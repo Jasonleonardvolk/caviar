@@ -1,30 +1,40 @@
-# WebM to MP4 converter for social media
+# WebM to MP4 Converter
+# For social media compatibility
+
 param(
     [Parameter(Mandatory=$true)]
     [string]$In,
     
-    [string]$Out = ""
+    [Parameter(Mandatory=$false)]
+    [string]$Out
 )
 
-if (-not $Out) {
-    $Out = $In -replace '\.webm$','.mp4'
+# Generate output filename if not provided
+if (-not $Out) { 
+    $Out = $In -replace '\.webm$','.mp4' 
 }
 
-Write-Host "Converting $In to $Out..." -ForegroundColor Cyan
-
-# Check if ffmpeg exists
-$ffmpegPath = (Get-Command ffmpeg -ErrorAction SilentlyContinue).Path
-if (-not $ffmpegPath) {
-    Write-Host "ERROR: ffmpeg not found. Please install ffmpeg first." -ForegroundColor Red
-    Write-Host "Download from: https://ffmpeg.org/download.html" -ForegroundColor Yellow
+# Check if input file exists
+if (-not (Test-Path $In)) {
+    Write-Host "Error: Input file not found: $In" -ForegroundColor Red
     exit 1
 }
 
-# Convert with optimized settings for social media
+# Check if ffmpeg is available
+if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: FFmpeg not found. Install from: https://ffmpeg.org/download.html" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Converting WebM to MP4..." -ForegroundColor Yellow
+Write-Host "Input:  $In" -ForegroundColor Cyan
+Write-Host "Output: $Out" -ForegroundColor Cyan
+
+# Convert with social media optimized settings
 ffmpeg -y -i "$In" `
     -c:v libx264 `
-    -preset fast `
-    -crf 23 `
+    -preset slow `
+    -crf 22 `
     -pix_fmt yuv420p `
     -movflags +faststart `
     -c:a aac `
@@ -32,12 +42,14 @@ ffmpeg -y -i "$In" `
     "$Out"
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Successfully converted to: $Out" -ForegroundColor Green
+    Write-Host "✓ Conversion complete!" -ForegroundColor Green
     
-    # Get file info
-    $fileInfo = Get-Item $Out
-    $sizeMB = [math]::Round($fileInfo.Length / 1MB, 2)
-    Write-Host "File size: ${sizeMB}MB" -ForegroundColor Cyan
+    # Show file sizes
+    $inSize = [math]::Round((Get-Item $In).Length / 1MB, 2)
+    $outSize = [math]::Round((Get-Item $Out).Length / 1MB, 2)
+    
+    Write-Host "Input size:  ${inSize}MB" -ForegroundColor Gray
+    Write-Host "Output size: ${outSize}MB" -ForegroundColor Gray
 } else {
-    Write-Host "❌ Conversion failed" -ForegroundColor Red
+    Write-Host "✗ Conversion failed" -ForegroundColor Red
 }
