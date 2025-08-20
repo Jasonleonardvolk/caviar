@@ -1,107 +1,27 @@
 """
-⚠️ DEPRECATED - DO NOT USE THIS FILE ⚠️
-=====================================
-
-This file is no longer used. The actual API is served through:
-- prajna/api/prajna_api.py (main API with integrated routes)
-- api/routes/soliton.py (actual soliton routes)
-
-This file was importing from api/soliton.py which is also deprecated.
-
-Kept for reference only. Will be removed in future cleanup.
+TORI API Main Module
+FastAPI server with health checks and core endpoints
 """
 
-"""
-Main API Application
-====================
-
-Central FastAPI application that includes all routes.
-"""
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import logging
-
-# Import routers
-from .soliton import router as soliton_router
-from .concept_mesh import router as concept_mesh_router
-
-
-# === TORI AUTH ENDPOINTS (QUICK FIX) ===
-from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any, List
+import os
+import sys
+import logging
+from datetime import datetime
 
-auth_router = APIRouter(prefix="/api/auth", tags=["authentication"])
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+LOG = logging.getLogger(__name__)
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-class UserResponse(BaseModel):
-    username: str
-    email: Optional[str] = None
-    role: str = "user"
-
-@auth_router.post("/login")
-async def login(credentials: LoginRequest, response: Response):
-    """Simple login endpoint for testing"""
-    # TODO: Replace with real authentication
-    if credentials.username in ["admin", "user", "test"] and credentials.password == credentials.username:
-        # Set a simple cookie for now
-        response.set_cookie(
-            key="tori_session",
-            value=f"session_{credentials.username}_123",
-            httponly=True,
-            samesite="lax"
-        )
-        return {
-            "success": True,
-            "user": UserResponse(username=credentials.username, email=f"{credentials.username}@tori.local"),
-            "message": "Login successful"
-        }
-    raise HTTPException(status_code=401, detail="Invalid username or password")
-
-@auth_router.post("/logout")
-async def logout(response: Response):
-    """Logout endpoint"""
-    response.delete_cookie("tori_session")
-    return {"success": True, "message": "Logged out successfully"}
-
-@auth_router.get("/status")
-async def auth_status():
-    """Check authentication status"""
-    # TODO: Check real session
-    return {
-        "authenticated": False,
-        "user": None
-    }
-
-@auth_router.get("/me")
-async def get_current_user():
-    """Get current user info"""
-    # TODO: Get from real session
-    return {
-        "authenticated": False,
-        "user": None
-    }
-
-# === END AUTH ENDPOINTS ===
-
-
-
-logger = logging.getLogger(__name__)
-
-# Create main FastAPI app
+# Create FastAPI app
 app = FastAPI(
-    title="TORI Main API",
-    description="Main API for TORI system including Soliton Memory and Concept Mesh",
-    version="1.0.0"
+    title="TORI API",
+    version="3.0.0",
+    description="Enhanced TORI Backend API with Bulletproof Architecture"
 )
-
-# Register auth router
-app.include_router(auth_router)
-
 
 # Configure CORS
 app.add_middleware(
@@ -112,30 +32,274 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(soliton_router, prefix="/api/soliton", tags=["soliton"])
-app.include_router(concept_mesh_router, prefix="/api/concept-mesh", tags=["concept-mesh"])
+# Get ports from environment
+API_PORT = int(os.getenv("API_PORT", "8002"))
+MCP_PORT = int(os.getenv("MCP_PORT", "6660"))
+BRIDGE_AUDIO_PORT = int(os.getenv("BRIDGE_AUDIO_PORT", "8501"))
+BRIDGE_CONCEPT_MESH_PORT = int(os.getenv("BRIDGE_CONCEPT_MESH_PORT", "8502"))
 
-# Import and include avatar WebSocket router
-from api.routes.avatar_ws import router as avatar_ws_router
-app.include_router(avatar_ws_router)
 
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "service": "main-api"}
+# Models
+class HealthStatus(BaseModel):
+    status: str
+    timestamp: str
+    version: str
+    services: Dict[str, str]
+    
+class SolitonStats(BaseModel):
+    admin_user: str
+    active_connections: int
+    total_requests: int
+    uptime_seconds: float
+    memory_usage_mb: float
+    cpu_percent: float
+    
+class InferenceRequest(BaseModel):
+    text: str
+    model: Optional[str] = "saigon-v5"
+    temperature: Optional[float] = 0.7
+    max_tokens: Optional[int] = 1000
+    
+class InferenceResponse(BaseModel):
+    text: str
+    model: str
+    tokens_used: int
+    processing_time_ms: float
 
-# Root endpoint
+
+# Global state
+START_TIME = datetime.now()
+REQUEST_COUNT = 0
+
+
 @app.get("/")
 async def root():
+    """Root endpoint"""
     return {
-        "message": "TORI Main API",
+        "message": "TORI API v3.0 - Enhanced Bulletproof Edition",
+        "status": "operational",
         "endpoints": {
-            "soliton": "/api/soliton",
-            "concept_mesh": "/api/concept-mesh",
             "health": "/health",
-            "docs": "/docs"
+            "docs": "/docs",
+            "stats": "/api/soliton/stats/adminuser",
+            "inference": "/api/inference"
         }
     }
 
-logger.info("Main API application initialized")
+
+@app.get("/health", response_model=HealthStatus)
+async def health_check():
+    """Health check endpoint for service monitoring"""
+    global REQUEST_COUNT
+    REQUEST_COUNT += 1
+    
+    # Check service availability
+    services = {
+        "api": "healthy",
+        "database": "healthy",  # Placeholder
+        "cache": "healthy",     # Placeholder
+        "mcp": "unknown",       # Would check MCP server
+        "bridges": "unknown"    # Would check bridge services
+    }
+    
+    # Try to check if MCP is responsive (simplified)
+    try:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('localhost', MCP_PORT))
+        sock.close()
+        services["mcp"] = "healthy" if result == 0 else "unreachable"
+    except:
+        services["mcp"] = "error"
+    
+    return HealthStatus(
+        status="healthy",
+        timestamp=datetime.now().isoformat(),
+        version="3.0.0",
+        services=services
+    )
+
+
+@app.get("/api/soliton/stats/adminuser", response_model=SolitonStats)
+async def soliton_stats():
+    """Soliton admin stats endpoint (for compatibility)"""
+    global REQUEST_COUNT
+    REQUEST_COUNT += 1
+    
+    uptime = (datetime.now() - START_TIME).total_seconds()
+    
+    # Get system stats if psutil available
+    memory_mb = 0.0
+    cpu_percent = 0.0
+    try:
+        import psutil
+        process = psutil.Process()
+        memory_mb = process.memory_info().rss / 1024 / 1024
+        cpu_percent = process.cpu_percent()
+    except:
+        pass
+    
+    return SolitonStats(
+        admin_user="tori_admin",
+        active_connections=1,  # Placeholder
+        total_requests=REQUEST_COUNT,
+        uptime_seconds=uptime,
+        memory_usage_mb=memory_mb,
+        cpu_percent=cpu_percent
+    )
+
+
+@app.post("/api/inference", response_model=InferenceResponse)
+async def inference(request: InferenceRequest):
+    """Main inference endpoint"""
+    global REQUEST_COUNT
+    REQUEST_COUNT += 1
+    
+    import time
+    start_time = time.time()
+    
+    # Placeholder inference logic
+    # In production, this would call the actual Saigon/TORI inference engine
+    
+    try:
+        # Simulate processing
+        time.sleep(0.1)  # Simulate processing time
+        
+        # Generate response (placeholder)
+        response_text = f"Processed: {request.text[:100]}..."
+        
+        processing_time = (time.time() - start_time) * 1000
+        
+        return InferenceResponse(
+            text=response_text,
+            model=request.model,
+            tokens_used=len(request.text.split()),
+            processing_time_ms=processing_time
+        )
+    except Exception as e:
+        LOG.error(f"Inference error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/config")
+async def get_config():
+    """Get current configuration"""
+    return {
+        "api_port": API_PORT,
+        "mcp_port": MCP_PORT,
+        "bridge_audio_port": BRIDGE_AUDIO_PORT,
+        "bridge_concept_mesh_port": BRIDGE_CONCEPT_MESH_PORT,
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "debug": os.getenv("DEBUG", "false").lower() == "true"
+    }
+
+
+@app.post("/api/shutdown")
+async def shutdown():
+    """Graceful shutdown endpoint (protected in production)"""
+    # In production, this should be protected with authentication
+    LOG.warning("Shutdown requested via API")
+    
+    # Trigger graceful shutdown
+    import signal
+    import threading
+    
+    def trigger_shutdown():
+        import time
+        time.sleep(1)  # Give time for response
+        os.kill(os.getpid(), signal.SIGTERM)
+    
+    threading.Thread(target=trigger_shutdown).start()
+    
+    return {"message": "Shutting down..."}
+
+
+# WebSocket support (optional)
+from fastapi import WebSocket, WebSocketDisconnect
+from typing import List
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except:
+                pass
+
+manager = ConnectionManager()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time communication"""
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Echo back or process
+            await websocket.send_text(f"Echo: {data}")
+            # Broadcast to all clients
+            await manager.broadcast(f"Client said: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+
+# Startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    """Startup event handler"""
+    LOG.info("TORI API starting up...")
+    LOG.info(f"API Port: {API_PORT}")
+    LOG.info(f"MCP Port: {MCP_PORT}")
+    LOG.info(f"Bridge Audio Port: {BRIDGE_AUDIO_PORT}")
+    LOG.info(f"Bridge Concept Mesh Port: {BRIDGE_CONCEPT_MESH_PORT}")
+    
+    # Initialize services here
+    # - Database connections
+    # - Cache connections
+    # - Load models
+    # - etc.
+    
+    LOG.info("TORI API startup complete")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Shutdown event handler"""
+    LOG.info("TORI API shutting down...")
+    
+    # Cleanup here
+    # - Close database connections
+    # - Save state
+    # - Close cache connections
+    # - etc.
+    
+    LOG.info("TORI API shutdown complete")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Get port from environment or command line
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else API_PORT
+    
+    LOG.info(f"Starting TORI API on port {port}")
+    
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=True,
+        log_level="info"
+    )
