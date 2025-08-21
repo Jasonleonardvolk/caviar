@@ -1,0 +1,15 @@
+{
+  "relations": [
+    {
+      "name": "example",
+      "edges": "D:\\Dev\\kha\\data\\concept_mesh\\edges.json",
+      "weight": 1.0,
+      "description": "Example relation for testing"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-08-21",
+    "description": "Example schema for typed Laplacian construction"
+  }
+}
