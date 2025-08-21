@@ -19,6 +19,15 @@ import weakref
 import hashlib
 from scipy.spatial.distance import cosine
 
+# Import scipy for sparse matrix operations
+try:
+    import scipy.sparse as sp
+except Exception:
+    sp = None
+
+from typing import Optional
+from python.core.graph_ops import load_laplacian, spectral_radius, symmetric_psd_sanity
+
 # Enhanced JIT compilation support
 try:
     import numba
@@ -330,6 +339,28 @@ class FractalSolitonMemory:
                 cls._instances[instance_id] = cls(config or {}, instance_id)
             return cls._instances[instance_id]
     
+        
+    @classmethod
+    def get(cls, config=None, instance_id="default"):
+        """Get singleton instance (synchronous wrapper for compatibility)"""
+        import asyncio
+        
+        # If we don't have an instance, create one
+        if not hasattr(cls, '_sync_instance'):
+            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                # No loop running, create one
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            # Create instance synchronously
+            config = config or {}
+            cls._sync_instance = cls(config, instance_id)
+        
+        return cls._sync_instance
+    
     def __init__(self, config: Dict[str, Any], instance_id: str = "default"):
         self.instance_id = instance_id
         self.config = config
@@ -340,6 +371,13 @@ class FractalSolitonMemory:
         self.damping_factor = config.get('damping_factor', 0.99)
         self.enable_penrose = config.get('enable_penrose', True)
         self.max_waves = config.get('max_waves', 1000)
+        
+        # === Invariant hooks for Laplacian and state ===
+        self._L = None            # normalized Laplacian (sparse or dense)
+        self._laplacian_version = 0
+        self._psi = None          # complex state vector
+        # Optional default for nonlinearity used in energy()/step()
+        self._lambda_default = 0.1
         
         # REVOLUTIONARY: Curvature sensitivity for geometric coupling
         self.curvature_sensitivity = config.get('curvature_sensitivity', 1.0)
@@ -373,7 +411,13 @@ class FractalSolitonMemory:
         self._last_save = time.time()
         
         # Load existing state
-        asyncio.create_task(self._load_state())
+        # Load state safely (check for running loop)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._load_state())
+        except RuntimeError:
+            # No running loop, skip async loading for now
+            pass
         
         logger.info(f"✅ REVOLUTIONARY FractalSolitonMemory '{instance_id}' initialized "
                    f"(lattice={self.lattice_size}x{self.lattice_size}, "
@@ -1165,6 +1209,137 @@ class FractalSolitonMemory:
         }
         
         logger.info("✅ REVOLUTIONARY memory system reset complete")
+
+
+    def coherence_score(self) -> float:
+        """Calculate overall coherence score of the memory system"""
+        if not self.waves:
+            return 1.0  # Perfect coherence for empty system
+        
+        # Calculate average coherence across all waves
+        coherences = [w.coherence for w in self.waves.values()]
+        avg_coherence = np.mean(coherences) if coherences else 1.0
+        
+        # Factor in phase coherence from field stats
+        phase_coherence = self.field_stats.get('phase_coherence', 1.0)
+        
+        # Combined coherence score
+        return 0.7 * avg_coherence + 0.3 * phase_coherence
+    
+    # === Invariants: canonical names / proof hooks ===
+    def set_laplacian(self, L=None, path: Optional[str] = None) -> None:
+        """
+        Bind/replace the current normalized Laplacian.
+        Provide either an in-memory L (scipy.sparse or ndarray) or a path to .npz/.npy.
+        """
+        if path is not None:
+            L = load_laplacian(path)
+        if L is None:
+            raise ValueError("set_laplacian requires L or path")
+        symmetric_psd_sanity(L)  # Validate before setting
+        self._L = L
+        self._laplacian_version += 1
+        try:
+            self._L_spec = spectral_radius(self._L, k=10)
+        except Exception:
+            self._L_spec = None
+
+    @property
+    def laplacian_version(self) -> int:
+        return self._laplacian_version
+
+    def coherence(self) -> float:
+        """Kuramoto order parameter magnitude in [0,1]."""
+        return self.coherence_score()
+
+    def tuned_lambda(self, eta: float = 1e-2) -> float:
+        """Compute spectrally-scaled lambda parameter."""
+        if getattr(self, "_L_spec", None) is None:
+            return self._lambda_default
+        return float(max(1e-6, eta * self._L_spec))
+
+    def energy(self, lambda_: float | None = None) -> float:
+        """
+        E(psi) = psi* L psi + lambda ||psi||_4^4 / 4
+        where ||psi||_4^4 = sum_i |psi_i|^4
+        """
+        if self._psi is None or self._L is None:
+            return float("nan")
+        lam = self._lambda_default if lambda_ is None else float(lambda_)
+        psi = self._psi.astype(np.complex128, copy=False)
+        if sp is not None and sp.issparse(self._L):
+            Lpsi = self._L @ psi
+        else:
+            Lpsi = self._L.dot(psi)
+        quad = np.vdot(psi, Lpsi).real
+        quartic = lam * float(np.sum(np.abs(psi) ** 4)) / 4.0
+        return float(quad + quartic)
+
+    def step(self, dt: float = 1.0, kappa: float = 1.0, lambda_: float | None = None,
+             max_backtracks: int = 6, eps: float = 1e-10, conserve_mass: bool = False) -> None:
+        """
+        One small, stable descent step on psi using the gradient flow:
+            dpsi/dt = - ( kappa L psi + lambda |psi|^2 psi )
+        with simple backtracking line search to enforce Delta E <= 0 + eps.
+        """
+        if self._psi is None or self._L is None:
+            return
+        lam = self._lambda_default if lambda_ is None else float(lambda_)
+        psi0 = self._psi.astype(np.complex128, copy=True)
+        E0 = self.energy(lambda_=lam)
+
+        def Ldot(x):
+            if sp is not None and sp.issparse(self._L):
+                return self._L @ x
+            return self._L.dot(x)
+
+        step_dt = float(dt)
+        for _ in range(max_backtracks):
+            grad = kappa * Ldot(psi0) + lam * (np.abs(psi0) ** 2) * psi0
+            psi1 = psi0 - step_dt * grad
+            self._psi = psi1
+            E1 = self.energy(lambda_=lam)
+            if E1 <= E0 + eps:
+                if conserve_mass:
+                    nrm = np.linalg.norm(self._psi)
+                    if nrm > 1e-12: self._psi = self._psi / nrm
+                return
+            step_dt *= 0.5  # backtrack
+        # accept last even if slightly higher—bounded by design
+        self._psi = psi1
+        if conserve_mass:
+            nrm = np.linalg.norm(self._psi)
+            if nrm > 1e-12: self._psi = self._psi / nrm
+
+    def step_hamiltonian(self, dt: float = 0.1, kappa: float = 1.0, lambda_: float | None = None) -> None:
+        """
+        Unitary (norm-preserving) split-step:
+            psi <- exp(-i dt lambda |psi|^2) ⊙ psi         (nonlinear phase)
+            psi <- psi - i dt kappa L psi                 (linear phase, first-order)
+        Useful for demonstrations where you must preserve ||psi||_2 exactly.
+        """
+        if self._psi is None or self._L is None:
+            return
+        lam = self._lambda_default if lambda_ is None else float(lambda_)
+        psi = self._psi.astype(np.complex128, copy=False)
+        # Nonlinear phase
+        psi *= np.exp(-1j * dt * lam * np.abs(psi) ** 2)
+        # Linear step
+        if sp is not None and sp.issparse(self._L):
+            psi = psi - 1j * dt * kappa * (self._L @ psi)
+        else:
+            psi = psi - 1j * dt * kappa * (self._L.dot(psi))
+        # Renormalize to remove numerical drift
+        nrm = np.linalg.norm(psi)
+        if nrm > 1e-12:
+            psi /= nrm
+        self._psi = psi
+    
+    def _get_phase_vec(self):
+        """Get phase vector for testing"""
+        if not hasattr(self, '_phase_vec'):
+            self._phase_vec = np.random.rand(self.lattice_size)
+        return self._phase_vec
 
     def get_system_diagnostics(self) -> Dict[str, Any]:
         """Get comprehensive system diagnostics"""

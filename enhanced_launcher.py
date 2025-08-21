@@ -2,6 +2,7 @@
 # D:\Dev\kha\enhanced_launcher.py
 import os, sys, logging, argparse, subprocess, signal, time, atexit
 from pathlib import Path
+import threading, json, urllib.request
 
 try:
     from port_manager import port_manager
@@ -12,6 +13,10 @@ except Exception as e:
             return int(os.environ.get(f"{service.upper()}_PORT", default_port or 8002))
         def cleanup_all_ports(self): pass
     port_manager = _DummyPM()
+
+# Set production memory vault intervals
+os.environ["TORI_VAULT_SNAPSHOT_INTERVAL_SEC"] = "300"   # 5 min snapshots
+os.environ["TORI_VAULT_SESSION_ROTATE_SEC"] = "3600"      # 1 hour rotation
 
 # Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -43,6 +48,27 @@ def wait_http(url: str, timeout: float = 45.0, interval: float = 0.5):
         time.sleep(interval)
     raise RuntimeError(f"Timeout waiting for {url}")
 
+def _poll_memory_health(host: str, api_port: int, user_id: str = "me", interval_s: float = 5.0):
+    """Poll memory health metrics and log status"""
+    url = f"http://{host}:{api_port}/api/memory/state/{user_id}"
+    while True:
+        try:
+            with urllib.request.urlopen(url, timeout=2.0) as r:
+                obj = json.loads(r.read().decode("utf-8"))
+                status = obj.get("status", "unknown")
+                reasons = ",".join(obj.get("status_reasons", []))
+                C = obj.get("coherence")
+                E = obj.get("energy")
+                Lver = obj.get("laplacian_version")
+                if C is not None and E is not None:
+                    print(f"[MEM] status={status} reasons={reasons} | C={C:.3f} E={E:.6f} Lver={Lver}")
+                else:
+                    print(f"[MEM] status={status} reasons={reasons} | Lver={Lver}")
+        except Exception:
+            # keep quiet but persistent in face of API restarts
+            pass
+        time.sleep(interval_s)
+
 class Launcher:
     def __init__(self, api_port=None, ui_port=None, mcp_port=None, api_only=False, debug=False):
         self.api_port = api_port or port_manager.get_service_port("api", 8002)
@@ -64,6 +90,17 @@ class Launcher:
         if not self.api_only:
             self.start_ui()
         LOG.info("All services launched.")
+        
+        # Start memory health polling after API is ready
+        try:
+            threading.Thread(
+                target=_poll_memory_health, 
+                args=("127.0.0.1", self.api_port, "me", 5.0), 
+                daemon=True
+            ).start()
+            LOG.info("Memory health monitoring started")
+        except Exception as e:
+            LOG.warning(f"Could not start memory health monitoring: {e}")
 
     def start_api(self):
         env = os.environ.copy()

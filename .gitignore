@@ -1,191 +1,45 @@
-# =========================
-# OS & Editor cruft
-# =========================
-.DS_Store
-Thumbs.db
-Desktop.ini
-*.swp
-*.swo
-*~
-
-# =========================
-# Git artifacts / backups
-# =========================
-.git_backup*
-*.git_backup
-
-# =========================
-# Non-code payload: keep repo code-only
-# =========================
-conversations/
-data/
-docs/
-
-# Uncomment to allow select docs back in:
-# !docs/README.md
-# !docs/SHIP_READY_CONFIRMATION.md
-# !docs/**/*.md
-
-# =========================
-# Environments (Python)
-# =========================
-.venv/
-venv/
-ENV/
+# --- Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.mypy_cache/
-.ruff_cache/
-.tox/
+*.so
+*.dll
 .pytest_cache/
-.Python
-
-# =========================
-# Node / JS tool caches
-# =========================
-node_modules/
-**/node_modules/
-.vite/
-.turbo/
-.tauri/
-.eslintcache
-.stylelintcache
-.parcel-cache/
-
-# =========================
-# Build outputs (generic)
-# =========================
-build/
-dist/
-.eggs/
+.mypy_cache/
+.cache/
+.venv/
+venv/
 *.egg-info/
-wheels/
-sdist/
-site/
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.log
-*.tmp
-*.temp
-/tmp/
+pip-wheel-metadata/
 
-# =========================
-# Project: SvelteKit app
-# =========================
+# --- Node/SvelteKit (frontend)
+tori_ui_svelte/node_modules/
 tori_ui_svelte/.svelte-kit/
 tori_ui_svelte/build/
 tori_ui_svelte/dist/
 tori_ui_svelte/.vite/
 
-# =========================
-# Project: env files
-# =========================
-.env
-.env.*
-.env.local
-.env.*.local
-tori_ui_svelte/.env
-tori_ui_svelte/.env.*
-tori_ui_svelte/.env.local
-tori_ui_svelte/.env.*.local
+# --- Logs & reports & temp
+logs/
+*.log
+reports/**         # generated; keep artifacts out of git
+!reports/.gitkeep  # keep the folder if you want
 
-# =========================
-# Docs & static site builds
-# =========================
-docs/_build/
+# --- Big local data that should never be versioned
+data/memory_vault/**     # live vault data, append-only logs
+data/scholarsphere/**    # upload staging
+# allow specific tracked assets:
+!data/concept_mesh/L_norm.npz
+!data/bench/**
 
-# =========================
-# Databases / services
-# =========================
-*.db
-*.sqlite
-*.sqlite3
-dump.rdb
-
-# =========================
-# Docker / Nginx / SSL
-# =========================
-docker-compose.override.yml
-nginx/ssl/*.pem
-nginx/ssl/*.key
-nginx/ssl/*.crt
-
-# =========================
-# Google Drive temp uploads
-# (prevents .git/objects corruption from sync temp files)
-# =========================
+# --- OS junk
+.DS_Store
+Thumbs.db
 .tmp.driveupload/
-.tmp.drivedownload*/
-~*
-
-# =========================
-# FFmpeg vendor binaries (keep local; never commit)
-# =========================
-tools/ffmpeg/*.exe
-tools/ffmpeg/*.dll
-
-# =========================
-# WOW Pack media policy
-# - keep small samples & manifest
-# - ignore heavy loops & HLS packs
-# =========================
-# Ignore wowpack build trees
-content/wowpack/input/
-content/wowpack/video/
-content/wowpack/stills/
-content/wowpack/grading/luts/
-
-# Ignore runtime media packs
-tori_ui_svelte/static/media/hls/
-tori_ui_svelte/static/media/wow/*.mp4
-
-# Allow manifest & tiny SDR samples back in
-!tori_ui_svelte/static/media/wow/wow.manifest.json
-!tori_ui_svelte/static/media/wow/*_sample_sdr.mp4
-
-# =========================
-# Jupyter (keep notebooks; ignore checkpoints)
-# =========================
-.ipynb_checkpoints/
-
-# =========================
-# Optional large-model/data areas
-# (scoped; keep .gitkeep/metadata if present)
-# =========================
-models/saigon_base/
-models/adapters/*.pt
-models/adapters/*.bin
-models/adapters/*.safetensors
-!models/adapters/.gitkeep
-!models/adapters/metadata.json
-
-data/mesh_contexts/*.json
-!data/mesh_contexts/.gitkeep
-data/training/*.jsonl
-!data/training/.gitkeep
-data/validation/*.jsonl
-!data/validation/.gitkeep
-data/intent_vault/*.jsonl
-!data/intent_vault/.gitkeep
-data/psi_archive/*.jsonl
-!data/psi_archive/.gitkeep
-logs/**/*.jsonl
-logs/**/*.log
-!logs/**/.gitkeep
-
-_NONREPO_LARGE/
-
-
-# Python virtual environments
-.venv/
-venv/
-venv_*/
-ENV/
-venv_tori_prod/
-__pycache__/
-*.pyc
-
+.git_backup_*/
+.tmp.driveupload/
+.git_backup_*/
+content/wowpack/output/
+content/wowpack/cache/
+content/wowpack/tmp/
