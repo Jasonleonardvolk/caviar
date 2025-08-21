@@ -45,3 +45,16 @@ content/wowpack/cache/
 content/wowpack/tmp/
 venv_tori_prod/
 tori_ui_svelte/node_modules/
+
+tools/vscode-elfin/node_modules/
+node_modules/
+*.pyc
+__pycache__/
+.env
+.env.*
+*.log
+*.tmp
+_TRASH*/
+_NONREPO*/
+tmp/
+.turbo/
