@@ -55,13 +55,13 @@ except ImportError as e:
     print(f"Warning: Could not import phase_visualization routes: {e}")
     phase_router = None
 
-# Hologram routes
-try:
-    from .hologram import router as hologram_router
-    routers_available['hologram'] = hologram_router
-except ImportError as e:
-    print(f"Warning: Could not import hologram routes: {e}")
-    hologram_router = None
+# Hologram routes - disabled due to missing dependencies
+# try:
+#     from .hologram import router as hologram_router
+#     routers_available['hologram'] = hologram_router
+# except ImportError as e:
+#     print(f"Warning: Could not import hologram routes: {e}")
+hologram_router = None
 
 # V1 aggregated routes
 try:

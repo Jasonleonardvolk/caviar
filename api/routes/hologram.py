@@ -13,6 +13,9 @@ import shutil
 import time
 import os
 
+# Setup logging first
+logger = logging.getLogger(__name__)
+
 # Import holographic components
 try:
     from hott_integration.holographic_orchestrator import get_orchestrator
