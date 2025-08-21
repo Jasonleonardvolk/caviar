@@ -1,0 +1,31 @@
+{
+    "export":  {
+                   "response":  {
+                                    "ok":  true,
+                                    "message":  "Export endpoint ready",
+                                    "input":  "D:\\Dev\\kha\\data\\concept_graph.json",
+                                    "exists":  true
+                                },
+                   "ok":  true
+               },
+    "ok":  true,
+    "server":  "http://127.0.0.1:5173",
+    "routes":  [
+                   {
+                       "ok":  true,
+                       "path":  "/hologram",
+                       "status":  200
+                   },
+                   {
+                       "ok":  true,
+                       "path":  "/templates",
+                       "status":  200
+                   },
+                   {
+                       "ok":  true,
+                       "path":  "/pricing",
+                       "status":  200
+                   }
+               ],
+    "timestamp":  "2025-08-19 18:42:03"
+}

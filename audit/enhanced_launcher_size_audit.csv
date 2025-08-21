@@ -1,0 +1,4 @@
+﻿"Label","Exists","Bytes","Lines","SHA256","Ref","When"
+"CURRENT (fs)","True","17628","520","1a5fe05862e4c9ff68c7b04774d4cc15011567a53040d5cb94900865caf581db","","8/20/2025 2:18:12 PM"
+"HEAD (git)","True","[int]17628","520","cf6a9c94912fc852f9c61aae1591a44cdd4f115b07c7e6f34b4bff1c901ce342","HEAD","2025-08-20 14:20:17 -0500"
+"origin/main (git)","True","[int]32799","848","70087183a66d4df517d59e5e22b3b37e0af2eef5e63e8a605ca53ccbb06f3c16","origin/main","2025-08-19 11:22:27 -0500"

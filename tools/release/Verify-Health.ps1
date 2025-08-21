@@ -34,7 +34,9 @@ try {
     timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
   }
   
-  if ($health.status -eq "healthy") {
+  if ($health.readiness.demo -eq $true) {
+    Ok "✅ System is PRODUCTION READY!"
+  } elseif ($health.status -eq "healthy") {
     Ok "System is healthy"
   } elseif ($health.status -eq "degraded") {
     Warn "System is degraded - check components"
