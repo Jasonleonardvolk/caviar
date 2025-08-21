@@ -1,0 +1,24 @@
+{
+  "lap": "D:\\Dev\\kha\\data\\concept_mesh\\L_norm.npz",
+  "mode": "auto",
+  "outdir": "D:\\Dev\\kha\\data\\curvature",
+  "saved": {
+    "ricci": "D:\\Dev\\kha\\data\\curvature\\ricci.npy",
+    "kretschmann": "D:\\Dev\\kha\\data\\curvature\\kretschmann.npy",
+    "mean_curvature": "D:\\Dev\\kha\\data\\curvature\\mean_curvature.npy"
+  },
+  "stats": {
+    "ricci": {
+      "mean": 1.1102230246251565e-16,
+      "std": 0.9999999999986643
+    },
+    "kretschmann": {
+      "mean": 7.549516567451064e-16,
+      "std": 0.9999999999998688
+    },
+    "mean_curvature": {
+      "mean": -2.2204460492503132e-17,
+      "std": 0.9999999999989484
+    }
+  }
+}

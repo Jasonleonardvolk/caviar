@@ -1,0 +1,28 @@
+{
+  "stamp": "20250821_175729",
+  "seconds": 120.0,
+  "dt": 0.0005,
+  "method": "auto",
+  "curvature_every": 400,
+  "phase_gain": 0.15,
+  "kcrit": 6.0,
+  "prefer": "kretschmann",
+  "potential_scale": 0.0,
+  "secs": 13.90391230583191,
+  "before": {
+    "mass": 0.9999999999994731,
+    "energy": 0.13105565489428445,
+    "coherence": 0.38610854477576656
+  },
+  "after": {
+    "mass": 1.0,
+    "energy": 0.11464723228829128,
+    "coherence": 0.44011049549032627
+  },
+  "drift": {
+    "mass": 5.269118474870993e-13,
+    "energy": -0.016408422605993164,
+    "coherence": 0.05400195071455971
+  },
+  "snapshot": "D:\\\\Dev\\\\kha\\\\artifacts\\fsm_2min_20250821_175729_ce400_pg0.15.npz"
+}

@@ -1,0 +1,60 @@
+{
+  "reverse_walk": [
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175825_220000.npz",
+      "d_norm": 0.0,
+      "d_coherence": 0.22180476568112326
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175824_200000.npz",
+      "d_norm": 2.220446049250313e-16,
+      "d_coherence": 0.03531540703522232
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175823_180000.npz",
+      "d_norm": -2.220446049250313e-16,
+      "d_coherence": -0.013085542607318756
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175822_160000.npz",
+      "d_norm": -1.1102230246251565e-16,
+      "d_coherence": -0.11883218641437421
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175820_140000.npz",
+      "d_norm": 3.3306690738754696e-16,
+      "d_coherence": 0.03590074819313091
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175819_120000.npz",
+      "d_norm": -2.220446049250313e-16,
+      "d_coherence": 0.12523201263881703
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175818_100000.npz",
+      "d_norm": 0.0,
+      "d_coherence": -0.24851638941357126
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175817_080000.npz",
+      "d_norm": 0.0,
+      "d_coherence": 0.32066196710549927
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175816_060000.npz",
+      "d_norm": 0.0,
+      "d_coherence": -0.041778047819745034
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175814_040000.npz",
+      "d_norm": 0.0,
+      "d_coherence": -0.09216076281278016
+    },
+    {
+      "snap": "D:\\\\Dev\\\\kha\\demos\\state_reversal\\checkpoints\\state_20250821_175813_020000.npz",
+      "d_norm": 0.0,
+      "d_coherence": -0.17865522804980943
+    }
+  ],
+  "count": 12
+}

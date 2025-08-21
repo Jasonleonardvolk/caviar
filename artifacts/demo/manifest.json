@@ -1,0 +1,120 @@
+{
+  "files": [
+    {
+      "path": "artifacts\\curvature_report.json",
+      "bytes": 671,
+      "sha256": "f58870305d5ade0d5a6bad96a95dfe041e307266232b12a97822b1deb99d4b80"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173523_ce100_pg0.15.json",
+      "bytes": 717,
+      "sha256": "c4c7b4aceae491f3f6a7ddbcb7afd3f3cb2d5c8c0442a50c771af20e7c08e492"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173523_ce100_pg0.15.npz",
+      "bytes": 1586,
+      "sha256": "5b0dc4841e7d5a4cea32aa4c5533209906a927ed8354f093fe87c1c85f387580"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173538_ce200_pg0.15.json",
+      "bytes": 717,
+      "sha256": "396f16a5fe043f6c1aa40f58e64113ec42e22b87584f38eee66b42136dc56f37"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173538_ce200_pg0.15.npz",
+      "bytes": 1586,
+      "sha256": "5b0dc4841e7d5a4cea32aa4c5533209906a927ed8354f093fe87c1c85f387580"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173554_ce400_pg0.15.json",
+      "bytes": 717,
+      "sha256": "5d8ab936cb4a47390b4435bf2de29c22b9142473b2f6c7a76aa3c6c19df1656e"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_173554_ce400_pg0.15.npz",
+      "bytes": 1586,
+      "sha256": "5b0dc4841e7d5a4cea32aa4c5533209906a927ed8354f093fe87c1c85f387580"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175658_ce100_pg0.15.json",
+      "bytes": 709,
+      "sha256": "a97ea45f2236560f7f95ff0cd81cde682edf7600b9637217c2eed9a3fb932dab"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175658_ce100_pg0.15.npz",
+      "bytes": 1586,
+      "sha256": "6e18c7c77bba6bb5d96c89d3b0646d653b9c5d3266936f2a98786ab4229a00e6"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175714_ce200_pg0.15.json",
+      "bytes": 724,
+      "sha256": "82eefdfddb6a64d73902f86dfce52eb1ca821bd49c42a88856a83ddcf3d90160"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175714_ce200_pg0.15.npz",
+      "bytes": 1587,
+      "sha256": "a3ed30b0936720a3f00cf02423b0f648849c3fd4b004ae233d71b77649761937"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175729_ce400_pg0.15.json",
+      "bytes": 708,
+      "sha256": "c7fa1631bd5d1304dd1ff80047f74ad36210a2e7fc2f5f0cce5fe89cedbedd8f"
+    },
+    {
+      "path": "artifacts\\fsm_2min_20250821_175729_ce400_pg0.15.npz",
+      "bytes": 1587,
+      "sha256": "f4142034e20571b6b756f42f4ebc2bf8f30717482cc9ea114af773c0f549646e"
+    },
+    {
+      "path": "artifacts\\fsm_curvature_smoke.json",
+      "bytes": 387,
+      "sha256": "4a92e013e4006a3ee4f0a1bc89efc8c9e9220dfe5dc383b73c13abb7874e9b5a"
+    },
+    {
+      "path": "artifacts\\fsm_final_20250821_171201.npz",
+      "bytes": 1587,
+      "sha256": "4e43c73ee5d26f0cc661bf1fabb25e1dd7b149c576c548d04d3a9692599903b6"
+    },
+    {
+      "path": "artifacts\\fsm_final_20250821_173356.npz",
+      "bytes": 1587,
+      "sha256": "4e43c73ee5d26f0cc661bf1fabb25e1dd7b149c576c548d04d3a9692599903b6"
+    },
+    {
+      "path": "artifacts\\fsm_preburn.json",
+      "bytes": 491,
+      "sha256": "4bdc232af697cfb32b04f4d051b62eec73a15785367b414923c66697563c9cb4"
+    },
+    {
+      "path": "artifacts\\fsm_preburn_mesh_50k.json",
+      "bytes": 489,
+      "sha256": "9b688503dcd573550a9977e8e4b63d194e23fe118bd91ee95bebac2c88d39e69"
+    },
+    {
+      "path": "artifacts\\ricci_burn_log.jsonl",
+      "bytes": 1004,
+      "sha256": "9bc37b2020e7767834d6e62a48cb443e1df16fb950d13854e4943b921524ada7"
+    },
+    {
+      "path": "artifacts\\demo\\bundle.zip",
+      "bytes": 17901,
+      "sha256": "230f579d871a7802165aaa762f903ab5ce039c30f515943b32af0cf2187a29ba"
+    },
+    {
+      "path": "artifacts\\demo\\manifest.json",
+      "bytes": 3964,
+      "sha256": "6d38a116ef9d36028652b05aa5946d27182169d162cea9c09b45c53464a34170"
+    },
+    {
+      "path": "artifacts\\demo\\state_reversal\\manifest.json",
+      "bytes": 2738,
+      "sha256": "1906d6f97d7e16e6070efd1da243253467db53f04409558ceafe3288d442042d"
+    },
+    {
+      "path": "artifacts\\demo\\state_reversal\\reverse_proof.json",
+      "bytes": 2172,
+      "sha256": "8ab30ad7411232c6b1c677715ba283ee3ae5caafd1475c8000bbd586701d3333"
+    }
+  ],
+  "bundle": "artifacts\\demo\\bundle.zip"
+}
