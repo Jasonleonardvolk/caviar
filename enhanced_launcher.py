@@ -101,6 +101,9 @@ class Launcher:
             LOG.info("Memory health monitoring started")
         except Exception as e:
             LOG.warning(f"Could not start memory health monitoring: {e}")
+        
+        # Keep the launcher running
+        self.wait_for_processes()
 
     def start_api(self):
         env = os.environ.copy()
@@ -130,6 +133,28 @@ class Launcher:
             proc = subprocess.Popen(cmd, creationflags=self._creationflags())
         self.processes.append(proc)
 
+    def wait_for_processes(self):
+        """Wait for all processes to complete or until interrupted"""
+        try:
+            while True:
+                # Check if any process has terminated
+                for proc in self.processes:
+                    if proc.poll() is not None:
+                        LOG.warning(f"Process {proc.pid} terminated with code {proc.returncode}")
+                        # Remove terminated process
+                        self.processes.remove(proc)
+                        
+                # If all processes are dead, exit
+                if not self.processes:
+                    LOG.warning("All processes have terminated")
+                    break
+                    
+                # Sleep a bit to avoid busy waiting
+                time.sleep(1)
+        except KeyboardInterrupt:
+            LOG.info("Interrupt received in wait loop")
+            raise
+    
     def shutdown(self):
         LOG.info("Shutting down launcher...")
         for p in self.processes:
@@ -165,5 +190,12 @@ if __name__ == "__main__":
     ap.add_argument("--api-only", action="store_true", help="Start API only (no UI)")
     ap.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = ap.parse_args()
-    Launcher(api_port=args.api_port, ui_port=args.ui_port, mcp_port=args.mcp_port,
-             api_only=args.api_only, debug=args.debug).start()
+    
+    launcher = Launcher(api_port=args.api_port, ui_port=args.ui_port, mcp_port=args.mcp_port,
+                       api_only=args.api_only, debug=args.debug)
+    try:
+        launcher.start()
+    except KeyboardInterrupt:
+        LOG.info("Received interrupt signal")
+    finally:
+        launcher.shutdown()

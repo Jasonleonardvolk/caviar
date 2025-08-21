@@ -1,25 +1,25 @@
 """
-Fractal Soliton Memory (FSM) — Canonical Ricci Burn Rewrite (v1.0)
+Fractal Soliton Memory (FSM) â€” Canonical Ricci Burn Rewrite (v1.0)
 ===================================================================
 File: python/core/fractal_soliton_memory.py
 
 Purpose
 -------
-Canonical, production‑grade FSM core for the Ricci burn. This module provides:
+Canonical, productionâ€‘grade FSM core for the Ricci burn. This module provides:
 
-1) Deterministic steppers (RK4 built‑in; Stormer‑Verlet split‑step) with optional JIT lanes
-2) Curvature→phase/amplitude coupling (Ricci / Kretschmann encoders) with tunable gain
+1) Deterministic steppers (RK4 builtâ€‘in; Stormerâ€‘Verlet splitâ€‘step) with optional JIT lanes
+2) Curvatureâ†’phase/amplitude coupling (Ricci / Kretschmann encoders) with tunable gain
 3) Invariants: mass, energy, and phase coherence monitors with drift accounting
 4) Laplacian validation (symmetry & PSD gate) and spectral radius retuning for stability
-5) Hot‑swap Laplacian with λ rescale, checkpoint ring‑buffer, and NPZ persistence
-6) Resonance finder and lightweight embedding cache for /api/soliton/query‑style lookups
+5) Hotâ€‘swap Laplacian with Î» rescale, checkpoint ringâ€‘buffer, and NPZ persistence
+6) Resonance finder and lightweight embedding cache for /api/soliton/queryâ€‘style lookups
 
-This file is **self‑contained** with conservative fallbacks.
+This file is **selfâ€‘contained** with conservative fallbacks.
 If `python/core/graph_ops.py` exists, we will prefer its `symmetric_psd_sanity` and
 `spectral_radius` functions automatically.
 
-Author: ChatGPT (GPT‑5 Thinking) with requirements from Jason (TORI)
-Version: 1.0 (2025‑08‑21)
+Author: ChatGPT (GPTâ€‘5 Thinking) with requirements from Jason (TORI)
+Version: 1.0 (2025â€‘08â€‘21)
 
 Dependencies
 ------------
@@ -43,7 +43,7 @@ Usage (Smoke Test)
 >>> stats1 = fsm.status()
 >>> print({k: (stats1[k]-stats0[k]) for k in ("mass","energy","coherence")})
 
-License: Proprietary — TORI Project
+License: Proprietary â€” TORI Project
 """
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ except Exception:
     HAS_NUMBA = False
 
 # --------------------------- External graph_ops hook --------------------------
-# If available, prefer project‑specific implementations for sanity & spectra.
+# If available, prefer projectâ€‘specific implementations for sanity & spectra.
 _spsd_ext = None
 _spr_ext = None
 try:  # local module in same package
@@ -138,7 +138,7 @@ def symmetric_psd_sanity(L: Any, atol: float = 1e-9) -> Tuple[bool, float, float
 
 
 def spectral_radius(L: Any) -> float:
-    """Spectral radius ρ(L). Prefer external implementation if present."""
+    """Spectral radius Ï(L). Prefer external implementation if present."""
     if _spr_ext is not None:
         try:
             return float(_spr_ext(L))  # type: ignore
@@ -226,10 +226,10 @@ class CurvatureField:
         kcrit: Optional[float] = None,
         prefer: Literal["kretschmann", "ricci", "mean"] = "kretschmann",
     ) -> np.ndarray:
-        """Produce a phase field φ in radians from curvature quantities.
-        - log_tanh: φ = gain * tanh(log(1 + |C|/e)) * sign(C)
-        - linear:   φ = gain * C (normalized)
-        - none:     φ = 0
+        """Produce a phase field Ï† in radians from curvature quantities.
+        - log_tanh: Ï† = gain * tanh(log(1 + |C|/e)) * sign(C)
+        - linear:   Ï† = gain * C (normalized)
+        - none:     Ï† = 0
         Where C is the chosen curvature signal.
         """
         self.ensure_shapes()
@@ -266,7 +266,7 @@ class CurvatureField:
 
 
 # ==============================================================================
-# Numba‑JIT optional kernels (vectorized complex RK4)
+# Numbaâ€‘JIT optional kernels (vectorized complex RK4)
 # ==============================================================================
 if HAS_NUMBA:
     @nb.njit(fastmath=True, cache=True)
@@ -283,7 +283,7 @@ if HAS_NUMBA:
         return psi + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 else:
     def _rk4_step_jit(psi: np.ndarray, dt: float, gamma: float, Hpsi: np.ndarray) -> np.ndarray:
-        # Pure‑python fallback (same signature)
+        # Pureâ€‘python fallback (same signature)
         i_const = 1j
         k1 = (-i_const * Hpsi) - (gamma * psi)
         y2 = psi + 0.5 * dt * k1
@@ -302,15 +302,15 @@ else:
 class FractalSolitonMemory:
     """Canonical FSM core with curvature coupling, invariants, and steppers.
 
-    Dynamics (Schrödinger‑like with nonlinear/curvature terms):
-        i dψ/dt = -λ L ψ + α |ψ|^2 ψ + V ⊙ ψ  - i γ ψ
+    Dynamics (SchrÃ¶dingerâ€‘like with nonlinear/curvature terms):
+        i dÏˆ/dt = -Î» L Ïˆ + Î± |Ïˆ|^2 Ïˆ + V âŠ™ Ïˆ  - i Î³ Ïˆ
 
     Where:
       - L: (normalized) graph Laplacian (symmetric PSD)
-      - λ: diffusion/dispersion gain, retuned by spectral radius ρ(L)
-      - α: cubic nonlinearity strength
+      - Î»: diffusion/dispersion gain, retuned by spectral radius Ï(L)
+      - Î±: cubic nonlinearity strength
       - V: potential (phase/amplitude offsets)
-      - γ: damping (non‑Hamiltonian)
+      - Î³: damping (nonâ€‘Hamiltonian)
     """
     # Lattice size and primary state
     n: int
@@ -381,7 +381,7 @@ class FractalSolitonMemory:
         rescale_lambda: bool = True,
         atol: float = 1e-9,
     ) -> None:
-        """Install new Laplacian, validate PSD, optionally normalize & retune λ."""
+        """Install new Laplacian, validate PSD, optionally normalize & retune Î»."""
         if HAS_SCIPY and sp.issparse(L):
             self.laplacian = L.tocsr().astype(np.float64)
         else:
@@ -411,7 +411,7 @@ class FractalSolitonMemory:
             self.tuned_lambda()
 
     def tuned_lambda(self, target: float = 0.25) -> None:
-        """Retune λ so that ||L|| ≈ 1 implies stable step sizes at dt_default.
+        """Retune Î» so that ||L|| â‰ˆ 1 implies stable step sizes at dt_default.
         target is an empirical dispersion gain; keep within [1e-6, 10].
         """
         self.lambda_ = float(np.clip(target, 1e-6, 10.0))
@@ -425,7 +425,7 @@ class FractalSolitonMemory:
         return float(np.vdot(self.psi, self.psi).real)
 
     def energy(self) -> float:
-        # H = λ ψ* L ψ + 0.5 α |ψ|^4 + V |ψ|^2
+        # H = Î» Ïˆ* L Ïˆ + 0.5 Î± |Ïˆ|^4 + V |Ïˆ|^2
         psi = self.psi
         if HAS_SCIPY and sp.issparse(self.laplacian):
             Lpsi = self.laplacian.dot(psi)
@@ -437,7 +437,7 @@ class FractalSolitonMemory:
         return term_L + term_nl + term_V
 
     def coherence(self) -> float:
-        # |sum ψ| / sum |ψ|
+        # |sum Ïˆ| / sum |Ïˆ|
         s = np.abs(np.sum(self.psi))
         d = np.sum(np.abs(self.psi)) + 1e-12
         return float(s / d)
@@ -459,7 +459,7 @@ class FractalSolitonMemory:
         return self.laplacian @ psi
 
     def _hamiltonian_matvec(self, psi: np.ndarray) -> np.ndarray:
-        # Hψ = -λ L ψ + α |ψ|^2 ψ + V0 ⊙ ψ
+        # HÏˆ = -Î» L Ïˆ + Î± |Ïˆ|^2 Ïˆ + V0 âŠ™ Ïˆ
         Lpsi = self._laplacian_apply(psi)
         Hpsi = (-self.lambda_) * Lpsi + self._nonlinear_term(psi)
         if self.V0 is not None:
@@ -478,7 +478,7 @@ class FractalSolitonMemory:
         prefer: Literal["kretschmann", "ricci", "mean"] = "kretschmann",
         inplace: bool = True,
     ) -> np.ndarray:
-        """Map curvature → {phase, amplitude}. Returns the new ψ (or preview if inplace=False)."""
+        """Map curvature â†’ {phase, amplitude}. Returns the new Ïˆ (or preview if inplace=False)."""
         if self.curvature is None:
             return self.psi.copy() if not inplace else self.psi
         phi = self.curvature.encode_curvature_to_phase(
@@ -499,7 +499,7 @@ class FractalSolitonMemory:
 
     # ------------------------------ Resonance API ------------------------------
     def find_resonant_memories(self, k: int = 8) -> Tuple[np.ndarray, np.ndarray]:
-        """Return indices of top‑k amplitude sites and their complex values."""
+        """Return indices of topâ€‘k amplitude sites and their complex values."""
         mag = np.abs(self.psi)
         if k >= self.n:
             idx = np.argsort(mag)[::-1]
@@ -509,7 +509,7 @@ class FractalSolitonMemory:
         return idx, self.psi[idx]
 
     def _ensure_embeddings(self) -> np.ndarray:
-        # Lightweight embedding: [Re(ψ), Im(ψ), |ψ|, phase]
+        # Lightweight embedding: [Re(Ïˆ), Im(Ïˆ), |Ïˆ|, phase]
         if self._embeddings is None or self._embeddings.shape != (self.n, 4):
             p = self.psi
             ph = np.angle(p)
@@ -526,14 +526,14 @@ class FractalSolitonMemory:
         conserve_mass: bool = True,
         curvature_every: Optional[int] = None,
     ) -> None:
-        """Advance ψ for `steps` with integrator selection.
+        """Advance Ïˆ for `steps` with integrator selection.
 
         method:
           - auto: prefer rk4-ext if python/core/fsm_lattice_integration is present; else rk4-builtin
           - rk4-builtin: pure Python RK4 in this file
           - rk4-ext: try to import python/core/fsm_lattice_integration.py (rk4_step)
-          - stormer: split‑step leapfrog (Hamiltonian then damping)
-          - jit: use numba‑accelerated RK4 lane
+          - stormer: splitâ€‘step leapfrog (Hamiltonian then damping)
+          - jit: use numbaâ€‘accelerated RK4 lane
         """
         if steps <= 0:
             return
@@ -574,7 +574,7 @@ class FractalSolitonMemory:
                 psi = self._rk4_step_builtin(psi, dt)
 
             if conserve_mass:
-                # Renormalize to maintain mass ≈ mass0
+                # Renormalize to maintain mass â‰ˆ mass0
                 m = np.linalg.norm(psi)
                 if m > 0:
                     psi = psi / m
@@ -585,7 +585,7 @@ class FractalSolitonMemory:
     def step_hamiltonian(self, *, steps: int = 1, dt: Optional[float] = None, method: str = "auto") -> None:
         self.step(steps=steps, dt=dt, method=method, conserve_mass=True, curvature_every=None)
 
-    # ---- Built‑in RK4 (uses _hamiltonian_matvec for the Hermitian part + damping)
+    # ---- Builtâ€‘in RK4 (uses _hamiltonian_matvec for the Hermitian part + damping)
     def _rk4_step_builtin(self, psi: np.ndarray, dt: float) -> np.ndarray:
         def f(y: np.ndarray) -> np.ndarray:
             return (-1j) * self._hamiltonian_matvec(y) - (self.gamma * y)
@@ -595,7 +595,7 @@ class FractalSolitonMemory:
         k4 = f(psi + dt * k3)
         return psi + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-    # ---- Split‑step Stormer‑Verlet (leapfrog). Not strictly symplectic here due to damping.
+    # ---- Splitâ€‘step Stormerâ€‘Verlet (leapfrog). Not strictly symplectic here due to damping.
     def _stormer_verlet_step(self, psi: np.ndarray, dt: float) -> np.ndarray:
         half = 0.5 * dt
         # Half Hamiltonian kick
@@ -678,7 +678,7 @@ class FractalSolitonMemory:
         scale: float = 0.05,
         offset: float = 0.0,
     ) -> None:
-        """Fold curvature field into V0 for longer‑horizon biasing."""
+        """Fold curvature field into V0 for longerâ€‘horizon biasing."""
         if self.curvature is None:
             return
         if prefer == "kretschmann" and self.curvature.kretschmann is not None:
@@ -753,4 +753,4 @@ if __name__ == "__main__":
     print("[FSM] After evolve:", fsm.status())
     out = os.path.join(os.getcwd(), "fsm_state_test.npz")
     fsm.to_npz(out)
-    print(f"[FSM] Saved → {out}")
+    print(f"[FSM] Saved â†’ {out}")

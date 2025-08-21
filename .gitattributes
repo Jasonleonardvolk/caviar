@@ -1,20 +1,30 @@
-* text=auto eol=lf
+# Git LFS configuration for large files
+*.npz filter=lfs diff=lfs merge=lfs -text
+*.pkl filter=lfs diff=lfs merge=lfs -text
+*.pkl.gz filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.ckpt filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.hdf5 filter=lfs diff=lfs merge=lfs -text
+*.jsonl filter=lfs diff=lfs merge=lfs -text
+*.zst filter=lfs diff=lfs merge=lfs -text
 
-# Windows scripts
-*.ps1 text eol=crlf
-*.bat text eol=crlf
+# Model directories
+models/** filter=lfs diff=lfs merge=lfs -text
+run/** filter=lfs diff=lfs merge=lfs -text
+data/concept_mesh/*.npz filter=lfs diff=lfs merge=lfs -text
+data/memory_vault/logs/*.jsonl filter=lfs diff=lfs merge=lfs -text
 
-# Code
-*.py text eol=lf
-*.ts text eol=lf
-*.svelte text eol=lf
-*.wgsl text eol=lf
-
-# Binary
-*.npz binary
-*.npy binary
-*.pdf binary
-*.png binary
-*.jpg binary
-*.webm binary
-*.wav binary
+# Keep source code as regular Git
+*.py -filter=lfs -diff=lfs -merge=lfs
+*.js -filter=lfs -diff=lfs -merge=lfs
+*.ts -filter=lfs -diff=lfs -merge=lfs
+*.svelte -filter=lfs -diff=lfs -merge=lfs
+*.md -filter=lfs -diff=lfs -merge=lfs
+*.txt -filter=lfs -diff=lfs -merge=lfs
+*.json -filter=lfs -diff=lfs -merge=lfs
+*.yaml -filter=lfs -diff=lfs -merge=lfs
+*.yml -filter=lfs -diff=lfs -merge=lfs

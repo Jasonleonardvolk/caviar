@@ -36,7 +36,7 @@ def infer_adjacency_from_laplacian(
 ) -> Array:
     """Infer adjacency A from Laplacian L.
     - combinatorial: L = D - A  =>  A = D - L
-    - normalized  : L = I - D^{-1/2} A D^{-1/2}  =>  Â = I - L (symmetric); degrees ≈ Â 1; return A = Â (scaled)
+    - normalized  : L = I - D^{-1/2} A D^{-1/2}  =>  Ã‚ = I - L (symmetric); degrees â‰ˆ Ã‚ 1; return A = Ã‚ (scaled)
     For mode="auto": if mean(diag(L)) ~ 1 -> assume normalized; else combinatorial.
     """
     M = _as_dense(L)
@@ -62,7 +62,7 @@ def compute_degrees(A: Array) -> Array:
 
 
 def compute_forman_ricci_node(A: Array) -> Array:
-    """Forman–Ricci curvature per node (unweighted/simple approximation).
+    """Formanâ€“Ricci curvature per node (unweighted/simple approximation).
     For an undirected simple graph, edge curvature: F(u,v) = 4 - deg(u) - deg(v).
     Node curvature: K(u) = sum_{v in N(u)} F(u,v).
     For weighted A, we weight edges by A[u,v]. This is a pragmatic estimator.
