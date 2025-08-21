@@ -43,3 +43,5 @@ Thumbs.db
 content/wowpack/output/
 content/wowpack/cache/
 content/wowpack/tmp/
+venv_tori_prod/
+tori_ui_svelte/node_modules/
