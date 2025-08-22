@@ -1,0 +1,811 @@
+<!-- Enhanced Memory Vault Dashboard Component -->
+<script lang="ts">
+  import { writable } from 'svelte/store';`nconst systemCoherence = writable(0.85);`nimport { onMount, onDestroy } from 'svelte';
+  import { writable, derived } from 'svelte/store';
+  import { page } from '$app/stores';
+  import { browser } from '$app/environment';
+  import { 
+    solitonMemory, 
+    memoryStats, 
+    currentPhase, 
+    phaseAmplitude, 
+    phaseFrequency,
+    phaseCoherence
+  } from '$lib/services/solitonMemory';
+  import { conceptMesh } from '$lib/stores/conceptMesh';
+  import { ghostPersona } from '$lib/stores/ghostPersona';
+  
+  // Props
+  export let userId: string = '';
+  export let userName: string = 'User';
+  
+  // Local state
+  let loading = writable(true);
+  let initialized = writable(false);
+  let memoryState = writable<any>(null);
+  let recentHistory = writable<any[]>([]);
+  let pdfStats = writable<any>(null);
+  let activeTab = writable<'overview' | 'history' | 'analytics' | 'vault'>('overview');
+  let showToripackViewer = writable(false);
+  let exportInProgress = writable(false);
+  let searchQuery = writable('');
+  let filterType = writable<'all' | 'documents' | 'conversations' | 'concepts'>('all');
+  
+  // Error handling
+  let error = writable<string | null>(null);
+  let retryCount = 0;
+  const MAX_RETRIES = 3;
+  
+  // Polling interval for real-time updates
+  let statsInterval: number | null = null;
+  let historyInterval: number | null = null;
+  
+  // Derived stores for UI
+  const isBackendConnected = derived(
+    [memoryState, error],
+    ([$memoryState, $error]) => {
+      return $memoryState?.engineHealth?.success && !$error;
+    }
+  );
+  
+  const filteredHistory = derived(
+    [recentHistory, searchQuery, filterType],
+    ([$recentHistory, $searchQuery, $filterType]) => {
+      let filtered = $recentHistory;
+      
+      // Apply search filter
+      if ($searchQuery) {
+        const query = $searchQuery.toLowerCase();
+        filtered = filtered.filter(session => 
+          session.concepts?.some((c: string) => c.toLowerCase().includes(query)) ||
+          session.persona?.toLowerCase().includes(query) ||
+          session.session_id?.toLowerCase().includes(query)
+        );
+      }
+      
+      // Apply type filter
+      if ($filterType !== 'all') {
+        filtered = filtered.filter(session => {
+          switch ($filterType) {
+            case 'documents':
+              return session.type === 'document' || session.has_documents;
+            case 'conversations':
+              return session.type === 'chat' || !session.has_documents;
+            case 'concepts':
+              return session.concepts && session.concepts.length > 0;
+            default:
+              return true;
+          }
+        });
+      }
+      
+      return filtered;
+    }
+  );
+  
+  // Initialize memory system on mount
+  onMount(async () => {
+    console.log('🧠 Memory Vault Dashboard mounting...');
+    
+    if (!userId) {
+      // Try to get userId from page store or session
+      const sessionUser = $page.data?.user;
+      if (sessionUser?.id) {
+        userId = sessionUser.id;
+        userName = sessionUser.name || userName;
+      } else {
+        error.set('No user ID available. Please log in.');
+        loading.set(false);
+        return;
+      }
+    }
+    
+    await initializeMemoryVault();
+    
+    // Set up real-time polling
+    if (browser) {
+      statsInterval = window.setInterval(() => {
+        loadMemoryState();
+      }, 10000); // Update stats every 10 seconds
+      
+      historyInterval = window.setInterval(() => {
+        loadRecentHistory();
+      }, 30000); // Update history every 30 seconds
+    }
+  });
+  
+  onDestroy(() => {
+    // Clean up intervals
+    if (statsInterval) clearInterval(statsInterval);
+    if (historyInterval) clearInterval(historyInterval);
+  });
+  
+  async function initializeMemoryVault() {
+    try {
+      loading.set(true);
+      error.set(null);
+      
+      // Initialize Soliton Memory for the user
+      const initSuccess = await solitonMemory.initializeUserMemory(userId);
+      
+      if (!initSuccess) {
+        throw new Error('Failed to initialize Soliton Memory system');
+      }
+      
+      initialized.set(true);
+      
+      // Load initial data
+      await Promise.all([
+        loadMemoryState(),
+        loadRecentHistory(),
+        loadPdfStats()
+      ]);
+      
+      loading.set(false);
+    } catch (err) {
+      console.error('🧠 Memory Vault initialization error:', err);
+      error.set(err instanceof Error ? err.message : 'Failed to initialize memory vault');
+      
+      // Retry logic
+      if (retryCount < MAX_RETRIES) {
+        retryCount++;
+        setTimeout(() => initializeMemoryVault(), 2000 * retryCount);
+      } else {
+        loading.set(false);
+      }
+    }
+  }
+  
+  async function loadMemoryState() {
+    try {
+      // Fetch memory stats from Soliton backend
+      const stats = await solitonMemory.fetchMemoryStats(userId);
+      
+      // Fetch additional vault state
+      const response = await fetch('/api/memory/state', {
+        credentials: 'include',
+        headers: {
+          'X-User-Id': userId
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Merge Soliton stats with general memory state
+        memoryState.set({
+          ...data.memoryState,
+          solitonMemory: stats,
+          engineHealth: {
+            success: true,
+            backend: 'soliton',
+            timestamp: new Date().toISOString()
+          },
+          capabilities: {
+            ...data.memoryState?.capabilities,
+            perfectRecall: true,
+            phaseBasedRetrieval: true,
+            memoryVaulting: true,
+            noDegradation: true,
+            infiniteContext: true,
+            pdfPhaseMapping: true
+          }
+        });
+      } else {
+        throw new Error(`Failed to load memory state: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('🧠 Error loading memory state:', err);
+      
+      // Set degraded state but don't fail completely
+      memoryState.update(state => ({
+        ...state,
+        engineHealth: {
+          success: false,
+          backend: 'degraded',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        }
+      }));
+    }
+  }
+  
+  async function loadRecentHistory() {
+    try {
+      const response = await fetch('/api/chat/history', {
+        credentials: 'include',
+        headers: {
+          'X-User-Id': userId
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        recentHistory.set(data.history || []);
+      } else {
+        throw new Error(`Failed to load history: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('🧠 Error loading recent history:', err);
+      recentHistory.set([]);
+    }
+  }
+  
+  async function loadPdfStats() {
+    try {
+      const response = await fetch('/api/pdf/stats', {
+        credentials: 'include',
+        headers: {
+          'X-User-Id': userId
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        pdfStats.set(data);
+      }
+    } catch (err) {
+      console.error('🧠 Error loading PDF stats:', err);
+    }
+  }
+  
+  async function exportAllSessions() {
+    try {
+      exportInProgress.set(true);
+      
+      const response = await fetch('/api/chat/export-all', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'X-User-Id': userId
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tori-memory-vault-${userId}-${Date.now()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Export failed');
+      }
+    } catch (err) {
+      console.error('🧠 Export error:', err);
+      alert('Failed to export memory vault. Please try again.');
+    } finally {
+      exportInProgress.set(false);
+    }
+  }
+  
+  async function exportSession(sessionId: string) {
+    try {
+      const response = await fetch(`/api/chat/export/${sessionId}`, {
+        credentials: 'include',
+        headers: {
+          'X-User-Id': userId
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `session-${sessionId}.toripack`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('🧠 Session export error:', err);
+      alert('Failed to export session.');
+    }
+  }
+  
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  
+  function formatDate(timestamp: string | Date): string {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  }
+  
+  function formatRelativeTime(timestamp: string | Date): string {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return formatDate(timestamp);
+  }
+</script>
+
+<div class="h-full flex flex-col bg-gray-50">
+  {#if $loading}
+    <!-- Loading state -->
+    <div class="h-full flex items-center justify-center">
+      <div class="text-center">
+        <div class="animate-spin text-4xl mb-4">⟳</div>
+        <div class="text-gray-600">Loading memory vault...</div>
+      </div>
+    </div>
+  {:else if $error && !$initialized}
+    <!-- Error state -->
+    <div class="h-full flex items-center justify-center">
+      <div class="text-center max-w-md">
+        <div class="text-4xl mb-4">⚠️</div>
+        <div class="text-xl font-semibold text-gray-900 mb-2">Memory Vault Error</div>
+        <div class="text-gray-600 mb-4">{$error}</div>
+        <button
+          on:click={() => {
+            retryCount = 0;
+            initializeMemoryVault();
+          }}
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Retry Connection
+        </button>
+      </div>
+    </div>
+  {:else}
+    <!-- Main content -->
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-200 bg-white shadow-sm">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+            <span class="mr-3">🧠</span>
+            Memory Vault Dashboard
+          </h1>
+          <p class="text-gray-600 mt-2">
+            Digital consciousness with perfect recall • {userName}'s cognitive archive
+          </p>
+        </div>
+        
+        <div class="flex gap-3">
+          <button
+            on:click={() => showToripackViewer.set(true)}
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <span>📦</span>
+            View Toripack
+          </button>
+          <button
+            on:click={exportAllSessions}
+            disabled={$exportInProgress}
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            {#if $exportInProgress}
+              <span class="animate-spin">⟳</span>
+              Exporting...
+            {:else}
+              <span>💾</span>
+              Export All
+            {/if}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Quick Stats -->
+      {#if $memoryState}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="text-sm text-gray-600">Total Memories</div>
+            <div class="text-xl font-bold text-blue-600">
+              {$memoryStats.totalMemories || 0}
+            </div>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="text-sm text-gray-600">Active Waves</div>
+            <div class="text-xl font-bold text-green-600">
+              {$memoryStats.activeWaves || 0}
+            </div>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="text-sm text-gray-600">Coherence</div>
+            <div class="text-xl font-bold text-purple-600">
+              {Math.round($systemCoherence * 100)}%
+            </div>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="text-sm text-gray-600">Current Phase</div>
+            <div class="text-xl font-bold text-orange-600 capitalize">
+              {$currentPhase || 'idle'}
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="p-4 border-b border-gray-200 bg-white">
+      <div class="flex gap-2">
+        {#each [
+          { id: 'overview', label: '📊 Overview', icon: '📊' },
+          { id: 'history', label: '🕒 Recent History', icon: '🕒' },
+          { id: 'vault', label: '🏛️ Concept Vault', icon: '🏛️' },
+          { id: 'analytics', label: '📈 Analytics', icon: '📈' }
+        ] as tab}
+          <button
+            on:click={() => activeTab.set(tab.id)}
+            class="px-4 py-2 text-sm rounded-lg transition-colors {$activeTab === tab.id
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
+          >
+            {tab.label}
+          </button>
+        {/each}
+      </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-6">
+      {#if $activeTab === 'overview'}
+        <!-- Overview Tab -->
+        <div class="space-y-6">
+          <!-- System Status -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h3 class="text-lg font-medium mb-4 flex items-center">
+                <span class="mr-2">🔧</span>
+                System Status
+              </h3>
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Soliton Memory Engine</span>
+                  <span class="px-2 py-1 text-xs rounded {$isBackendConnected
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'}">
+                    {$isBackendConnected ? 'Connected' : 'Degraded'}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Perfect Recall</span>
+                  <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+                    Enabled
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Phase Amplitude</span>
+                  <span class="text-gray-900">
+                    {$phaseAmplitude.toFixed(2)}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Phase Frequency</span>
+                  <span class="text-gray-900">
+                    {$phaseFrequency.toFixed(2)} Hz
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h3 class="text-lg font-medium mb-4 flex items-center">
+                <span class="mr-2">💾</span>
+                Storage Details
+              </h3>
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Architecture</span>
+                  <span class="text-gray-900 font-mono text-sm">
+                    ConceptMesh + Soliton
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Memory Clusters</span>
+                  <span class="text-gray-900">
+                    {$memoryStats.clusterCount || 0}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Average Strength</span>
+                  <span class="text-gray-900">
+                    {($memoryStats.averageStrength * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">Last Updated</span>
+                  <span class="text-gray-900">
+                    {$memoryStats.lastUpdated ? formatRelativeTime($memoryStats.lastUpdated) : 'Never'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- PDF Integration Stats -->
+          {#if $pdfStats}
+            <div class="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h3 class="text-lg font-medium mb-4 flex items-center">
+                <span class="mr-2">📄</span>
+                PDF Knowledge Integration
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-blue-600">
+                    {$pdfStats.totalDocuments || 0}
+                  </div>
+                  <div class="text-sm text-gray-600">Documents Processed</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-green-600">
+                    {$pdfStats.totalConcepts || 0}
+                  </div>
+                  <div class="text-sm text-gray-600">Concepts Extracted</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-purple-600">
+                    {$pdfStats.phaseMappings || 0}
+                  </div>
+                  <div class="text-sm text-gray-600">Phase Mappings</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-orange-600">
+                    {$pdfStats.avgConceptsPerDoc?.toFixed(1) || '0'}
+                  </div>
+                  <div class="text-sm text-gray-600">Avg per Document</div>
+                </div>
+              </div>
+            </div>
+          {/if}
+        </div>
+        
+      {:else if $activeTab === 'history'}
+        <!-- History Tab -->
+        <div class="space-y-4">
+          <!-- Search and Filters -->
+          <div class="flex gap-4 mb-6">
+            <input
+              type="text"
+              bind:value={$searchQuery}
+              placeholder="Search sessions, concepts, or IDs..."
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              bind:value={$filterType}
+              class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="documents">Documents</option>
+              <option value="conversations">Conversations</option>
+              <option value="concepts">With Concepts</option>
+            </select>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-medium">Recent Conversations</h3>
+            <div class="text-sm text-gray-600">
+              Showing {$filteredHistory.length} of {$recentHistory.length} sessions
+            </div>
+          </div>
+          
+          {#if $filteredHistory.length === 0}
+            <div class="text-center py-12">
+              <div class="text-4xl mb-4">💭</div>
+              <div class="text-lg text-gray-600">
+                {$searchQuery ? 'No matching sessions found' : 'No conversations yet'}
+              </div>
+              <div class="text-sm text-gray-500 mt-2">
+                {$searchQuery ? 'Try adjusting your search terms' : 'Start chatting to build your memory vault'}
+              </div>
+            </div>
+          {:else}
+            <div class="space-y-3">
+              {#each $filteredHistory as session}
+                <div class="p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                  <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 mb-2">
+                        <div class="text-sm font-medium">
+                          {formatDate(session.timestamp)}
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                          {session.persona || 'Default'}
+                        </span>
+                        {#if session.type === 'document'}
+                          <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                            📄 Document
+                          </span>
+                        {/if}
+                      </div>
+                      
+                      <div class="text-xs text-gray-600 flex items-center gap-4">
+                        <span>💬 {session.message_count || 0} messages</span>
+                        <span>🧬 {session.concepts?.length || 0} concepts</span>
+                        <span class="font-mono">#{session.session_id?.slice(-8) || 'unknown'}</span>
+                      </div>
+                      
+                      {#if session.concepts && session.concepts.length > 0}
+                        <div class="mt-3 flex flex-wrap gap-1">
+                          {#each session.concepts.slice(0, 5) as concept}
+                            <span class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">
+                              {concept}
+                            </span>
+                          {/each}
+                          {#if session.concepts.length > 5}
+                            <span class="px-2 py-1 text-xs text-gray-500">
+                              +{session.concepts.length - 5}
+                            </span>
+                          {/if}
+                        </div>
+                      {/if}
+                    </div>
+                    
+                    <div class="flex gap-2 ml-4">
+                      <button
+                        on:click={() => exportSession(session.session_id)}
+                        class="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                        title="Download .toripack"
+                      >
+                        📦
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+        
+      {:else if $activeTab === 'vault'}
+        <!-- Vault Tab - Shows the concept mesh contents -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium mb-4">Concept Mesh Contents</h3>
+          
+          {#if $conceptMesh.length === 0}
+            <div class="text-center py-12">
+              <div class="text-4xl mb-4">🏛️</div>
+              <div class="text-lg text-gray-600">Vault is empty</div>
+              <div class="text-sm text-gray-500 mt-2">
+                Upload documents or start conversations to populate your vault
+              </div>
+            </div>
+          {:else}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {#each $conceptMesh as entry}
+                <div class="p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                  <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-medium text-gray-900 truncate flex-1">
+                      {entry.title}
+                    </h4>
+                    <span class="text-2xl ml-2">
+                      {entry.type === 'document' ? '📄' : '💬'}
+                    </span>
+                  </div>
+                  
+                  {#if entry.summary}
+                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {entry.summary}
+                    </p>
+                  {/if}
+                  
+                  <div class="flex items-center justify-between text-xs text-gray-500">
+                    <span>{formatRelativeTime(entry.timestamp)}</span>
+                    <span>{entry.concepts.length} concepts</span>
+                  </div>
+                  
+                  {#if entry.concepts.length > 0}
+                    <div class="mt-2 flex flex-wrap gap-1">
+                      {#each entry.concepts.slice(0, 3) as concept}
+                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                          {concept}
+                        </span>
+                      {/each}
+                      {#if entry.concepts.length > 3}
+                        <span class="px-2 py-1 text-xs text-gray-500">
+                          +{entry.concepts.length - 3}
+                        </span>
+                      {/if}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+        
+      {:else if $activeTab === 'analytics'}
+        <!-- Analytics Tab -->
+        <div class="space-y-6">
+          <div class="text-center py-12">
+            <div class="text-4xl mb-4">📊</div>
+            <div class="text-lg text-gray-600 mb-2">Analytics Coming Soon</div>
+            <div class="text-sm text-gray-500 max-w-2xl mx-auto">
+              Advanced memory pattern analysis, concept relationship mapping,
+              phase dynamics visualization, and cognitive growth metrics will be available here.
+            </div>
+            
+            <!-- Preview of planned features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-4xl mx-auto">
+              <div class="p-4 bg-gray-100 rounded-lg">
+                <div class="text-2xl mb-2">🧬</div>
+                <div class="font-medium">Concept Evolution</div>
+                <div class="text-sm text-gray-600 mt-1">
+                  Track how concepts develop and interconnect over time
+                </div>
+              </div>
+              <div class="p-4 bg-gray-100 rounded-lg">
+                <div class="text-2xl mb-2">📈</div>
+                <div class="font-medium">Memory Patterns</div>
+                <div class="text-sm text-gray-600 mt-1">
+                  Visualize memory strength and recall patterns
+                </div>
+              </div>
+              <div class="p-4 bg-gray-100 rounded-lg">
+                <div class="text-2xl mb-2">🌊</div>
+                <div class="font-medium">Phase Dynamics</div>
+                <div class="text-sm text-gray-600 mt-1">
+                  Analyze phase transitions and resonance patterns
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+    
+    <!-- Footer -->
+    <div class="p-4 border-t border-gray-200 bg-white">
+      <div class="flex justify-between items-center text-xs text-gray-600">
+        <div>
+          TORI Memory Vault • Soliton Engine {$isBackendConnected ? 'Connected' : 'Offline'}
+        </div>
+        <div class="flex gap-4">
+          <span>Zero information loss</span>
+          <span>Infinite context</span>
+          <span>Phase-encoded storage</span>
+        </div>
+      </div>
+    </div>
+  {/if}
+  
+  <!-- Toripack Viewer Modal (placeholder) -->
+  {#if $showToripackViewer}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Toripack Viewer</h2>
+          <button
+            on:click={() => showToripackViewer.set(false)}
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="p-6">
+          <div class="text-center py-12">
+            <div class="text-4xl mb-4">📦</div>
+            <div class="text-lg text-gray-600">Toripack Viewer Coming Soon</div>
+            <div class="text-sm text-gray-500 mt-2">
+              View and manage exported memory packages
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

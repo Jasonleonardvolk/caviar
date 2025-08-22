@@ -1,0 +1,38 @@
+// Import types at top level
+import type { Writable, Readable } from 'svelte/store';
+
+// Module augmentations (no imports/exports inside)
+declare module '$lib/stores' {
+  export interface ConceptNode {
+    id: string;
+    label: string;
+    weight?: number;
+  }
+  
+  export interface ConceptDiff {
+    timestamp: number;
+    changes: any[];
+  }
+}
+
+declare module '$lib/cognitive/index' {
+  export interface MemoryMetrics {
+    totalMemories: number;
+    activePhases: number;
+    coherenceLevel: number;
+  }
+}
+
+declare module '$lib/cognitive/index_phase3' {
+  export type MemoryMetrics = import('$lib/cognitive/index').MemoryMetrics;
+}
+
+// Global augmentations
+declare global {
+  interface Window {
+    electronAPI?: any;
+    ghostEngine?: any;
+  }
+}
+
+export {};

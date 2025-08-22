@@ -1,0 +1,81 @@
+import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
+import { ENOLA } from '$lib/personas/ENOLA';
+
+// ENOLA is now the DEFAULT persona!
+const DEFAULT_PERSONA = ENOLA;
+
+// Version key to force reset when default changes
+const PERSONA_VERSION = 'v2_enola_default';
+
+// Create the store
+function createGhostPersonaStore() {
+  // Initialize with default or saved persona
+  let initialPersona = DEFAULT_PERSONA;
+  
+  if (browser) {
+    // Check if we need to force update to new default
+    const currentVersion = localStorage.getItem('personaVersion');
+    
+    if (currentVersion !== PERSONA_VERSION) {
+      // New version - clear old selection and use new default
+      console.log('🌟 Updating to new default persona: ENOLA');
+      localStorage.removeItem('selectedGhostPersona');
+      localStorage.setItem('personaVersion', PERSONA_VERSION);
+    } else {
+      // Same version - check for saved persona
+      const saved = localStorage.getItem('selectedGhostPersona');
+      if (saved) {
+        try {
+          const parsedPersona = JSON.parse(saved);
+          // Validate it's still a valid persona
+          if (parsedPersona && parsedPersona.id) {
+            initialPersona = parsedPersona;
+            console.log('📚 Restored saved persona:', parsedPersona.name);
+          }
+        } catch (e) {
+          console.error('Failed to parse saved persona:', e);
+          localStorage.removeItem('selectedGhostPersona');
+        }
+      }
+    }
+  }
+  
+  console.log('✨ Ghost Persona Store initialized with:', initialPersona.name);
+  
+  const { subscribe, set, update } = writable(initialPersona);
+  
+  return {
+    subscribe,
+    set: (persona) => {
+      // Save to localStorage when setting
+      if (browser && persona) {
+        localStorage.setItem('selectedGhostPersona', JSON.stringify(persona));
+        console.log('💾 Saved persona:', persona.name);
+      }
+      set(persona);
+    },
+    reset: () => {
+      if (browser) {
+        localStorage.removeItem('selectedGhostPersona');
+        localStorage.removeItem('personaVersion');
+      }
+      set(DEFAULT_PERSONA);
+      console.log('🔄 Reset to default persona: ENOLA');
+    },
+    // New method to get current persona without subscribing
+    getCurrent: () => {
+      let current = DEFAULT_PERSONA;
+      const unsubscribe = subscribe(value => {
+        current = value;
+      });
+      unsubscribe();
+      return current;
+    }
+  };
+}
+
+export const ghostPersona = createGhostPersonaStore();
+
+// Export default for other components to reference
+export { DEFAULT_PERSONA };

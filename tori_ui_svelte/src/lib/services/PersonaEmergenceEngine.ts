@@ -1,0 +1,463 @@
+/**
+ * PersonaEmergenceEngine.ts
+ * ==========================
+ * Engine for orchestrating AI Ghost personas emergence, adaptation, and coordination.
+ * - Supports dynamic persona emergence (default ENOLA or context-specific persona)
+ * - Adapts persona tone/traits in real-time based on user input and emotional signals
+ * - Handles synthesis of multiple personas into a unified response/state
+ * - Provides lifecycle hooks for other modules (UI, TTS, etc.) to react to persona events
+ * 
+ * This leverages TORI's advanced multi-modal analysis (text, voice, image) to compute 
+ * persona traits (ψ, ε, τ, φ coordinates) and integrates with concept mesh, holographic 
+ * renderer, and TTS systems:contentReference[oaicite:9]{index=9}:contentReference[oaicite:10]{index=10}.
+ */
+ 
+// Import necessary types (assuming these are defined elsewhere in the project)
+import type { GhostPersonaState } from '$lib/stores/ghostPersona';
+import { getPersonaDefinition, personaRegistry } from '$lib/personas/registry'; 
+
+type GhostPersonaDefinition = any;
+
+// Extended interface for internal use with additional properties
+interface ExtendedGhostPersonaState {
+  moodHistory: { mood: string; timestamp: Date; ghost: string; }[];
+  stabilityHistory: { stability: number; timestamp: Date; ghost: string; }[];
+  // From GhostPersonaState
+  persona: string;
+  activePersona: string;
+  mood: string;
+  stability: number;
+  auraIntensity: number;
+  isProcessing: boolean;
+  processingGhost: string | null;
+  processingStartTime: Date | null;
+  lastActiveTime: Date;
+  lastProcessingDuration: number | null;
+  papersRead?: number;
+  mentorKnowledgeBoost: number; // Required, not optional
+  
+  // Extended properties
+  epsilon?: any;
+  psi?: any;
+  tau?: any;
+  avatar?: any;
+  conversationLength?: number;
+  primaryColor?: string;
+  secondaryColor?: string;
+  [key: string]: any;
+}
+// ^ personaRegistry: central registry of persona definitions (id -> GhostPersonaDefinition)
+
+export interface UserInputPayload {
+  text: string;
+  audio?: ArrayBuffer;        // optional raw audio data of user's speech
+  image?: File;               // optional image (e.g. user photo or context image)
+  [key: string]: any;         // could include other modalities or metadata
+}
+
+export interface EmotionSignal {
+  // A simplified emotional signal structure for persona rendering updates
+  calm?: number;    // e.g. level of calmness (0 to 1)
+  warm?: number;    // level of warmth/positivity (0 to 1)
+  urgent?: number;  // level of urgency/intensity (0 to 1)
+  mood?: string;    // optional categorical mood (e.g. "angry", "happy")
+  [key: string]: any;
+}
+
+type LifecycleEvent = 'onEmergenceStart' | 'onPersonaSwitch' | 'onFeedbackUpdate' | 'onPersonaSynth';
+type LifecycleCallback = (data?: any) => void;
+
+export class PersonaEmergenceEngine {
+  private activePersona: ExtendedGhostPersonaState | null = null;           // currently active persona state
+  private activePersonaDef: GhostPersonaDefinition | null = null;   // metadata definition of active persona
+  private personaHistory: ExtendedGhostPersonaState[] = [];                // log of persona states for session
+  private lifecycleCallbacks: Record<LifecycleEvent, LifecycleCallback[]> = {
+    onEmergenceStart: [],
+    onPersonaSwitch: [],
+    onFeedbackUpdate: [],
+    onPersonaSynth: []
+  };
+
+  constructor() {
+    // Engine initialization logic if needed
+  }
+
+  /**
+   * Initialize the persona for a new session or context.
+   * If a context is provided (e.g. user preferences or prior session data), choose the persona accordingly.
+   * Otherwise, default to ENOLA (default ghost persona):contentReference[oaicite:11]{index=11}.
+   */
+  init(context?: any): ExtendedGhostPersonaState {
+    let personaId = 'ENOLA';
+    if (context && context.preferredPersona) {
+      personaId = context.preferredPersona;
+    }
+    // Load persona definition from registry
+    const personaDef = getPersonaDefinition(personaId) || 
+      (personaRegistry instanceof Map ? personaRegistry.get(personaId) : (personaRegistry as any)[personaId]);
+    if (!personaDef) {
+      throw new Error(`Persona definition for '${personaId}' not found.`);
+    }
+    this.activePersonaDef = personaDef;
+    // Instantiate initial persona state from definition
+    this.activePersona = this.createPersonaState(personaDef);
+    this.personaHistory = [this.activePersona];
+
+    // Trigger lifecycle event for emergence start (using default persona)
+    this.triggerEvent('onEmergenceStart', { persona: this.activePersona });
+    return this.activePersona;
+  }
+
+  /**
+   * Switch the active persona to a different one by ID.
+   * Transitions the persona state across all layers (cognitive context, visual, voice, etc.).
+   * An optional reason can be provided (e.g. context shift) for logging or analysis.
+   */
+  switchPersona(personaId: string, reason?: string): ExtendedGhostPersonaState {
+    if (!this.activePersona) {
+      throw new Error('Engine not initialized. Call init() first.');
+    }
+    if (this.activePersonaDef && (personaId === this.activePersonaDef.id || personaId === this.activePersonaDef.name)) {
+      // Already on this persona
+      return this.activePersona;
+    }
+    const newPersonaDef = getPersonaDefinition(personaId) || 
+      (personaRegistry instanceof Map ? personaRegistry.get(personaId) : (personaRegistry as any)[personaId]);
+    if (!newPersonaDef) {
+      throw new Error(`Persona definition for '${personaId}' not found.`);
+    }
+
+    // Log the switch reason if provided
+    console.info(`Switching persona from ${this.activePersonaDef?.id} to ${personaId}` + (reason ? ` (Reason: ${reason})` : ''));
+
+    // Update active persona definition and state
+    this.activePersonaDef = newPersonaDef;
+    const prevPersona = this.activePersona;
+    this.activePersona = this.createPersonaState(newPersonaDef);
+    this.personaHistory.push(this.activePersona);
+
+    // Notify all subsystems of persona change via event
+    this.triggerEvent('onPersonaSwitch', { newPersona: this.activePersona, prevPersona, reason });
+    return this.activePersona;
+  }
+
+  /**
+   * Handle user input (text, optional audio/image) and route it to the appropriate persona or persona synthesis.
+   * This function can decide if the current persona should handle it or if a new persona should emerge/switch in.
+   * It returns the active persona's response or state update.
+   */
+  async handleInput(input: UserInputPayload): Promise<GhostPersonaState> {
+    if (!this.activePersona) {
+      // If engine not initialized, do so with default persona
+      this.init();
+    }
+
+    // Analyze user input to possibly adjust persona or spawn new one
+    const { text, audio, image } = input;
+    if (image) {
+      // If an image is provided (e.g. user dropped a photo to create a persona), initiate emergence of a new persona
+      console.log("Image provided with input - starting persona emergence from image.");
+      const emerging = this.startEmergence(image);
+      // We might choose to immediately switch to the emerging persona or wait until it's fully formed
+      // For now, switch context to emerging persona (temporary state)
+      this.activePersona = emerging;
+      this.triggerEvent('onEmergenceStart', { persona: emerging, via: 'image' });
+    }
+
+    // If text/audio input pertains to persona switching (e.g. user explicitly requests a different persona)
+    // Here we could add logic to detect triggers in text like "Mentor, what do you think?" to switch persona.
+    if (text) {
+      const switchMatch = text.match(/^(?:switch to|change to)\s+(\w+)/i);
+      if (switchMatch) {
+        const targetPersona = switchMatch[1];
+        if (targetPersona && (targetPersona.toLowerCase() in personaRegistry || 
+          (personaRegistry instanceof Map ? personaRegistry.has(targetPersona) : (personaRegistry as any)[targetPersona]))) {
+          this.switchPersona(targetPersona);
+        }
+      }
+    }
+
+    // Process the input with the active persona (update its state based on input content)
+    if (text) {
+      await this.analyzeTextInput(text);
+    }
+    if (audio) {
+      await this.analyzeVoiceInput(audio);
+    }
+    // Optionally integrate concept mesh or knowledge base for deeper context (not shown here)
+
+    // After analysis, update the active persona's dynamic state (e.g. emotional palette, confidence, etc.)
+    this.updatePersonaDynamics();
+
+    // If multiple personas are simultaneously relevant (not a common scenario in this simple flow),
+    // we could synthesize a persona response. Here we assume a single active persona handles the input.
+    // Return the current active persona state after processing input.
+    return this.activePersona!;
+  }
+
+  /**
+   * Update persona's rendering (visual/audio) based on an emotion signal (e.g. from prosody or sentiment analysis).
+   * This adapts the persona's visible state (color, animation, posture) and can tweak voice tone.
+   */
+  updateRendering(emotion: EmotionSignal): void {
+    if (!this.activePersona || !this.activePersonaDef) return;
+    // Map emotion signal to persona's internal emotional state
+    const eps = this.activePersona?.epsilon || 0 || [0.5, 0.5, 0.5]; // [calm, warm, urgent]
+    if (typeof emotion.calm === 'number')   eps[0] = emotion.calm;
+    if (typeof emotion.warm === 'number')   eps[1] = emotion.warm;
+    if (typeof emotion.urgent === 'number') eps[2] = emotion.urgent;
+    if (this.activePersona && "epsilon" in this.activePersona) (this.activePersona as any).epsilon = eps;
+    if (emotion.mood) {
+      this.activePersona.mood = emotion.mood;
+    } else {
+      // Optionally derive a mood label from epsilon palette
+      this.activePersona.mood = this.getMoodFromPalette(eps);
+    }
+    // Update visual properties like colors or intensity based on new epsilon
+    this.applyVisualAdaptation(this.activePersona);
+
+    // Trigger feedback update event so UI or other modules can react (e.g. change hologram glow, alter voice tone)
+    this.triggerEvent('onFeedbackUpdate', { persona: this.activePersona, emotion });
+  }
+
+  /**
+   * If multiple personas are active/conflicting, synthesize a unified persona state or response.
+   * This can merge traits or choose the dominant aspects of each persona.
+   * Returns a GhostPersonaState representing the synthesized persona.
+   */
+  synthesizePersonas(activePersonas: ExtendedGhostPersonaState[]): ExtendedGhostPersonaState {
+    if (activePersonas.length === 0) {
+      throw new Error("No personas provided for synthesis.");
+    }
+    if (activePersonas.length === 1) {
+      return activePersonas[0];
+    }
+    console.log("Synthesizing personas:", activePersonas.map(p => p.persona));
+    // For demonstration: combine emotional palettes by averaging, and concatenate names.
+    const combined: ExtendedGhostPersonaState = { ...activePersonas[0] };
+    combined.persona = activePersonas.map(p => p.persona).join('-');  // e.g. "Mentor-Scholar" 
+    // Average epsilon (emotional state) if present
+    if (combined?.epsilon || 0 && activePersonas.every(p => p?.epsilon || 0)) {
+      const avgEpsilon = [0, 0, 0];
+      activePersonas.forEach(p => {
+        avgEpsilon[0] += (p?.epsilon?.[0] ?? 0);
+        avgEpsilon[1] += (p?.epsilon?.[1] ?? 0);
+        avgEpsilon[2] += (p?.epsilon?.[2] ?? 0);
+      });
+      avgEpsilon[0] /= activePersonas.length;
+      avgEpsilon[1] /= activePersonas.length;
+      avgEpsilon[2] /= activePersonas.length;
+      if (combined && "epsilon" in combined) (combined as any).epsilon = avgEpsilon as [number, number, number];
+    }
+    // Choose mood of the persona with highest intensity or just take first
+    combined.mood = activePersonas[0].mood || 'neutral';
+    // You could also merge other aspects (knowledge, style) as needed.
+    // For now, treat combined as a new persona state.
+    this.triggerEvent('onPersonaSynth', { personas: activePersonas, synthesized: combined });
+    return combined;
+  }
+
+  /**
+   * Subscribe to lifecycle events of the persona engine.
+   * @param event - The event name (e.g. "onPersonaSwitch", "onEmergenceStart", "onFeedbackUpdate", "onPersonaSynth").
+   * @param callback - Callback function to invoke when the event occurs.
+   */
+  subscribeToLifecycle(event: LifecycleEvent, callback: LifecycleCallback): void {
+    if (!this.lifecycleCallbacks[event]) {
+      console.warn(`Unknown lifecycle event: ${event}`);
+      return;
+    }
+    this.lifecycleCallbacks[event].push(callback);
+  }
+
+  // ---------- Internal helper methods below ---------- //
+
+  /** Create a fresh GhostPersonaState from a persona definition (metadata). */
+  private createPersonaState(def: GhostPersonaDefinition): ExtendedGhostPersonaState {
+    // Base state includes persona's identity and any default traits from definition
+    const state: ExtendedGhostPersonaState = {
+      persona: def.name,
+      activePersona: def.name,
+      mood: def.baseMood || 'neutral',
+      stability: 1.0,               // confidence/stability starts at max for a known persona
+      auraIntensity: 0.5,           // default aura intensity for hologram
+      isProcessing: false,
+      processingGhost: null,
+      processingStartTime: null,
+      lastActiveTime: new Date(),
+      lastProcessingDuration: null,
+      moodHistory: [],
+      stabilityHistory: [],
+      // Additional dynamic properties:
+      epsilon: def.defaultEpsilon ? [...def.defaultEpsilon] : [0.5, 0.5, 0.5],  // emotional palette
+      psi: def.defaultPsi || 'neutral',    // cognitive mode label
+      tau: def.defaultTau ?? 0.5,          // temporal bias
+      phi: def.defaultPhi ?? Math.random()*360, // unique phase
+      mentorKnowledgeBoost: 0
+    };
+    return state;
+  }
+
+  /** Trigger a lifecycle event and invoke all subscribed callbacks with given data. */
+  private triggerEvent(event: LifecycleEvent, data?: any): void {
+    const callbacks = this.lifecycleCallbacks[event] || [];
+    for (const cb of callbacks) {
+      try {
+        cb(data);
+      } catch (err) {
+  const msg = err instanceof Error ? err.message : String(err);
+        console.error(`Error in ${event
+} callback:`, err);
+      }
+    }
+  }
+
+  /** Start an emergence session for a new persona (e.g. user dropped an image to create persona). */
+  private startEmergence(userPhoto?: File): ExtendedGhostPersonaState {
+    // Create a new temporary EmergingPersona state (simplified here as GhostPersonaState)
+    const newId = userPhoto ? `PersonaFromImage_${Date.now()}` : `Persona_${Date.now()}`;
+    const baseName = userPhoto ? "NewPersona" : "Persona";
+    const emerging: ExtendedGhostPersonaState = {
+      persona: baseName,
+      activePersona: baseName,
+      mood: 'neutral',
+      stability: 0,            // start with zero confidence, will build up
+      auraIntensity: 0.5,
+      isProcessing: true,
+      processingGhost: null,
+      processingStartTime: new Date(),
+      lastActiveTime: new Date(),
+      lastProcessingDuration: null,
+      moodHistory: [],
+      stabilityHistory: [],
+      // 4D coordinate seeds:
+      // epsilon removed - not in type
+ // start with balanced emotional palette
+      psi: 'analyzing',
+      tau: 0.5,
+      phi: Math.random() * 360,
+      mentorKnowledgeBoost: 0
+    };
+    // If photo provided, do initial analysis (e.g. set avatar image and adjust palette by photo cues)
+    if (userPhoto) {
+      this.analyzePhoto(userPhoto, emerging);
+    }
+    return emerging;
+  }
+
+  /** Analyze text input to update cognitive patterns (ψ) and possibly detect persona switch triggers. */
+  private async analyzeTextInput(text: string): Promise<void> {
+    // In a full implementation, use NLP, concept mesh, etc. For now, simple keyword analysis:
+    if (!this.activePersona) return;
+    const lower = text.toLowerCase();
+    // Example: adjust persona psi (cognitive mode) based on text content
+    if (lower.includes('why') || lower.includes('because')) {
+      this.activePersona.psi = 'reflective';
+    } else if (lower.includes('imagine') || lower.includes('creative')) {
+      this.activePersona.psi = 'intuitive';
+    } else if (lower.match(/\b(step|process|method)\b/)) {
+      this.activePersona.psi = 'analytical';
+    }
+    // We could update other cognitive metrics (question count, analytical depth, etc.)
+    // and store them if needed for persona development.
+    // For brevity, not fully implementing concept extraction here.
+  }
+
+  /** Analyze voice input (audio) to update emotional signatures (ε) and temporal dynamics (τ). */
+  private async analyzeVoiceInput(audioData: ArrayBuffer): Promise<void> {
+    if (!this.activePersona) return;
+    try {
+      // Placeholder: call out to a prosody analysis module to get emotional signal
+      // For now, simulate by random or preset values:
+      const energy = Math.random(); 
+      const warmth = Math.random();
+      const urgency = Math.random();
+      // Map prosody analysis results to epsilon (calm, warm, urgent)
+      if (this.activePersona && "epsilon" in this.activePersona) (this.activePersona as any).epsilon = [
+        1 - energy,         // calmness inversely related to energy
+        warmth,             // warmth as detected
+        urgency             // urgency as detected
+      ];
+      // Simulate setting temporal bias τ (e.g., faster speech -> future orientation?)
+      this.activePersona.tau = 0.5 + (urgency - 0.5) * 0.2;
+    } catch (err) {
+  const msg = err instanceof Error ? err.message : String(err);
+      console.error("Voice analysis failed:", err);
+    
+}
+  }
+
+  /** Perform initial photo analysis to seed persona traits (if an image is used to create persona). */
+  private analyzePhoto(photo: File, personaState: ExtendedGhostPersonaState): void {
+    // Example: set avatar image (as data URL) and adjust emotional palette based on filename cues
+    const reader = new FileReader();
+    reader.onload = () => {
+      personaState.avatar = reader.result as string;  // assuming GhostPersonaState has avatar field
+    };
+    reader.readAsDataURL(photo);
+
+    const name = photo.name.toLowerCase();
+    if (name.includes('professional') || name.includes('work')) {
+      if (personaState && "epsilon" in personaState) (personaState as any).epsilon = [0.7, 0.3, 0.3];    // more calm/analytical palette
+      (personaState as any).psi = 'analytical';
+    } else if (name.includes('fun') || name.includes('party')) {
+      if (personaState && "epsilon" in personaState) (personaState as any).epsilon = [0.2, 0.7, 0.7];    // more warm/urgent palette
+      (personaState as any).psi = 'spontaneous';
+    }
+    // Additional image analysis (face expression -> mood, color -> persona style, etc.) could go here.
+  }
+
+  /** Update persona's dynamic attributes after processing new input (e.g. adjust confidence, stability, etc.). */
+  private updatePersonaDynamics(): void {
+    if (!this.activePersona) return;
+    // Example: update stability/confidence based on conversation length or content
+    const wordCount = this.activePersona.conversationLength ? this.activePersona.conversationLength : 0;
+    const newConfidence = Math.min(1.0, (wordCount / 100) + (Math.random() * 0.1));
+    this.activePersona.stability = newConfidence;
+    // Track history
+    this.activePersona.stabilityHistory.push({ stability: newConfidence, timestamp: new Date(), ghost: this.activePersona.persona });
+    this.activePersona.lastActiveTime = new Date();
+  }
+
+  /** Apply visual adaptation logic: update colors, etc., based on persona's current emotional palette (epsilon). */
+  private applyVisualAdaptation(persona: ExtendedGhostPersonaState): void {
+    if (!persona?.epsilon || 0) return;
+    const [calm, warm, urgent] = persona?.epsilon || 0;
+    // Primary color mapping based on persona's cognitive mode (psi)
+    const psiColorMap: Record<string, string> = {
+      analytical: '#059669',  // green
+      intuitive: '#ea580c',   // orange
+      reflective: '#4f46e5',  // indigo
+      spontaneous: '#dc2626', // red
+      neutral: '#6366f1'      // default purple-blue
+    };
+    persona.primaryColor = psiColorMap[persona.psi] || psiColorMap['neutral'];
+    // Secondary color based on dominant emotion in palette
+    if (warm > 0.6) {
+      persona.secondaryColor = '#f59e0b'; // warm yellow
+    } else if (urgent > 0.6) {
+      persona.secondaryColor = '#ef4444'; // urgent red
+    } else if (calm > 0.6) {
+      persona.secondaryColor = '#06b6d4'; // calm cyan
+    } else {
+      persona.secondaryColor = '#a3a3a3'; // neutral gray
+    }
+    // The persona object may also include other visual attributes like auraIntensity, posture, etc.
+    // We could adjust those here as well (e.g., auraIntensity = urgent or warm).
+    persona.auraIntensity = urgent;  // example: use urgency level to set aura glow intensity
+  }
+
+  /** Derive a simple mood descriptor from an emotional palette (epsilon values). */
+  private getMoodFromPalette(epsilon: [number, number, number]): string {
+    const [calm, warm, urgent] = epsilon;
+    if (urgent > 0.7) return 'agitated';
+    if (warm > 0.7) return 'enthusiastic';
+    if (calm > 0.7) return 'calm';
+    if (warm > 0.5 && calm > 0.5) return 'pleasant';
+    if (warm > 0.5 && urgent > 0.5) return 'passionate';
+    return 'neutral';
+  }
+}
+
+// Instantiate a singleton engine (if desired for global use)
+export const personaEmergenceEngine = new PersonaEmergenceEngine();

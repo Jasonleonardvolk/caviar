@@ -1,0 +1,92 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+
+/**
+ * POST /api/chat/export-all
+ * Exports all chat sessions and memory data as a zip archive
+ */
+export const POST: RequestHandler = async ({ locals, request }) => {
+  const userId = locals.user?.id || request.headers.get('X-User-Id');
+  
+  if (!userId) {
+    return json({
+      success: false,
+      error: 'User ID required'
+    }, { status: 401 });
+  }
+  
+  try {
+    // Request export from backend
+    const response = await fetch(`${BACKEND_URL}/api/chat/export-all`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId,
+        'X-Request-Source': 'svelte-ui'
+      },
+      body: JSON.stringify({
+        userId,
+        format: 'toripack-zip',
+        includeMemories: true,
+        includeConcepts: true,
+        includeMetadata: true
+      })
+    });
+    
+    if (response.ok) {
+      // Stream the zip file from backend to frontend
+      const blob = await response.blob();
+      
+      return new Response(blob, {
+        headers: {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="tori-memory-vault-${userId}-${Date.now()}.zip"`,
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } else {
+      const errorData = await response.text();
+      console.error('Export backend error:', response.status, errorData);
+      
+      return json({
+        success: false,
+        error: `Export failed: ${response.status}`,
+        details: errorData
+      }, { status: response.status });
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+    
+    // If backend is unavailable, try to create a basic export from available data
+    try {
+      // This is a fallback - in production, the backend should handle exports
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        userId,
+        version: '1.0',
+        error: 'Backend unavailable - limited export',
+        message: 'Full export requires backend connection'
+      };
+      
+      const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+      });
+      
+      return new Response(jsonBlob, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="tori-vault-error-${Date.now()}.json"`,
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } catch (fallbackError) {
+      return json({
+        success: false,
+        error: 'Export failed and fallback unavailable',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
+  }
+};

@@ -1,0 +1,105 @@
+import { storeMemory, listMemoriesByPrefix } from './solitonMemory';
+import { GHOST_ROOT, PHASE_BASE, PHASE_SPREAD } from '../constants/ghost';
+
+export type GhostEvent = {
+  id: string;
+  persona: string;
+  phaseTag?: number;
+  coherence?: number;
+  entropy?: number;
+  drift?: number;
+  moodCurve?: unknown;
+  conceptArc?: unknown;
+  intervention?: string;
+  outcome?: string;
+  createdAt: string; // ISO
+};
+
+/* ---------- write ---------- */
+export async function recordGhost(event: GhostEvent) {
+  const phase = PHASE_BASE + Math.random() * PHASE_SPREAD;
+  const concept = `${GHOST_ROOT}.${event.persona}.${event.id}`;
+  
+  await storeMemory(
+    concept,
+    JSON.stringify({ ...event, phaseTag: phase }),
+    0.6,  // strength
+    ['ghost', event.persona, event.outcome || 'neutral']  // tags
+  );
+}
+
+/* ---------- read ---------- */
+export async function getAllGhosts(): Promise<GhostEvent[]> {
+  const raws = await listMemoriesByPrefix(`${GHOST_ROOT}.`);
+  return raws
+    .map(r => {
+      try {
+        // Parse the content if it's a string
+        const content = typeof r.content === 'string' ? JSON.parse(r.content) : r.content;
+        return content as GhostEvent;
+      } catch (error) {
+        console.error('Error parsing ghost memory:', error);
+        return null;
+      }
+    })
+    .filter(Boolean)  // Remove any null entries
+    .sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
+}
+
+/* ---------- query helpers ---------- */
+export type GhostQuery = {
+  persona?: string;
+  outcome?: string;
+  phaseTag?: number;
+  since?: Date;
+};
+
+export async function filterGhosts(q: GhostQuery): Promise<GhostEvent[]> {
+  // Get all ghosts first
+  const allGhosts = await getAllGhosts();
+  
+  // Apply filters
+  return allGhosts.filter(ghost => {
+    if (q.persona && ghost.persona !== q.persona) return false;
+    if (q.outcome && ghost.outcome !== q.outcome) return false;
+    if (q.phaseTag && ghost.phaseTag) {
+      // Allow a small tolerance for phase matching
+      const tolerance = 0.05;
+      if (Math.abs(ghost.phaseTag - q.phaseTag) > tolerance) return false;
+    }
+    if (q.since) {
+      const ghostDate = new Date(ghost.createdAt);
+      if (ghostDate < q.since) return false;
+    }
+    return true;
+  });
+}
+
+/* ---------- analytics helpers ---------- */
+export async function getGhostStatsByPersona(): Promise<Map<string, number>> {
+  const allGhosts = await getAllGhosts();
+  const stats = new Map<string, number>();
+  
+  allGhosts.forEach(ghost => {
+    const count = stats.get(ghost.persona) || 0;
+    stats.set(ghost.persona, count + 1);
+  });
+  
+  return stats;
+}
+
+export async function getOutcomeDistribution(): Promise<{ [key: string]: number }> {
+  const allGhosts = await getAllGhosts();
+  const distribution: { [key: string]: number } = {
+    success: 0,
+    fail: 0,
+    neutral: 0
+  };
+  
+  allGhosts.forEach(ghost => {
+    const outcome = ghost.outcome || 'neutral';
+    distribution[outcome] = (distribution[outcome] || 0) + 1;
+  });
+  
+  return distribution;
+}

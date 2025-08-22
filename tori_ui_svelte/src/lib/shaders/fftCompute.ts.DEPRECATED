@@ -1,0 +1,111 @@
+// fftCompute.ts - Fixed WebGPU shader constants
+export function createFFTComputeShader(size: number, direction: 'forward' | 'inverse') {
+  const bitReversal = `
+    // Fixed: Use override keyword for WebGPU constants
+    override blockSize: u32 = 1u;
+    override totalSize: u32 = ${size}u;
+
+    @group(0) @binding(0) var<storage, read> input: array<f32>;
+    @group(0) @binding(1) var<storage, read_write> output: array<f32>;
+
+    fn bitReverse(n: u32, bits: u32) -> u32 {
+      var reversed = 0u;
+      var num = n;
+      for (var i = 0u; i < bits; i = i + 1u) {
+        reversed = (reversed << 1u) | (num & 1u);
+        num = num >> 1u;
+      }
+      return reversed;
+    }
+
+    @compute @workgroup_size(64)
+    fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+      let idx = global_id.x;
+      if (idx >= totalSize) {
+        return;
+      }
+
+      let bits = u32(log2(f32(totalSize)));
+      let reversedIdx = bitReverse(idx, bits);
+      
+      // Copy real and imaginary parts
+      let realIdx = idx * 2u;
+      let imagIdx = idx * 2u + 1u;
+      let reversedRealIdx = reversedIdx * 2u;
+      let reversedImagIdx = reversedIdx * 2u + 1u;
+      
+      output[reversedRealIdx] = input[realIdx];
+      output[reversedImagIdx] = input[imagIdx];
+    }
+  `;
+
+  const butterfly = `
+    // Fixed: Use override keyword for WebGPU constants
+    override blockSize: u32 = 1u;
+    override totalSize: u32 = ${size}u;
+
+    @group(0) @binding(0) var<storage, read_write> data: array<f32>;
+
+    const PI: f32 = 3.14159265359;
+
+    @compute @workgroup_size(64)
+    fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+      let idx = global_id.x;
+      if (idx >= totalSize / 2u) {
+        return;
+      }
+
+      let blockEnd = (idx / blockSize + 1u) * blockSize * 2u;
+      let blockMid = blockEnd - blockSize;
+      let i = idx % blockSize + blockMid - blockSize;
+      let j = i + blockSize;
+
+      let angleNumerator = ${direction === 'forward' ? '-' : ''}PI * f32(idx % blockSize);
+      let angleDenominator = f32(blockSize);
+      let angle = angleNumerator / angleDenominator;
+
+      let twiddleReal = cos(angle);
+      let twiddleImag = sin(angle);
+
+      let realI = i * 2u;
+      let imagI = i * 2u + 1u;
+      let realJ = j * 2u;
+      let imagJ = j * 2u + 1u;
+
+      let tempReal = data[realJ] * twiddleReal - data[imagJ] * twiddleImag;
+      let tempImag = data[realJ] * twiddleImag + data[imagJ] * twiddleReal;
+
+      data[realJ] = data[realI] - tempReal;
+      data[imagJ] = data[imagI] - tempImag;
+      data[realI] = data[realI] + tempReal;
+      data[imagI] = data[imagI] + tempImag;
+    }
+  `;
+
+  const normalize = `
+    // Fixed: Use override keyword for WebGPU constants
+    override totalSize: u32 = ${size}u;
+
+    @group(0) @binding(0) var<storage, read_write> data: array<f32>;
+
+    @compute @workgroup_size(64)
+    fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+      let idx = global_id.x;
+      if (idx >= totalSize * 2u) {
+        return;
+      }
+
+      data[idx] = data[idx] / f32(totalSize);
+    }
+  `;
+
+  return { bitReversal, butterfly, normalize };
+}
+
+// Helper to create shader module with proper constants
+export function createShaderModule(device: GPUDevice, code: string, label: string) {
+  return device.createShaderModule({
+    label,
+    code
+  });
+}

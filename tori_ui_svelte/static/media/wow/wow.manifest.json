@@ -1,0 +1,69 @@
+﻿{
+    "clips":  [
+                  {
+                      "label":  " $args[0].Value.ToUpper() olo  $args[0].Value.ToUpper() lux  $args[0].Value.ToUpper() oop",
+                      "sources":  [
+                                      {
+                                          "url":  "/media/wow/holo_flux_loop_hdr10.mp4",
+                                          "codecs":  "hvc1.2.4.L120.B0",
+                                          "type":  "hevc"
+                                      },
+                                      {
+                                          "url":  "/media/wow/holo_flux_loop_av1.mp4",
+                                          "codecs":  "av01.0.08M.10",
+                                          "type":  "av1"
+                                      },
+                                      {
+                                          "url":  "/media/wow/holo_flux_loop_sdr.mp4",
+                                          "codecs":  "avc1.640028",
+                                          "type":  "h264"
+                                      }
+                                  ],
+                      "id":  "holo_flux_loop"
+                  },
+                  {
+                      "label":  " $args[0].Value.ToUpper() ach  $args[0].Value.ToUpper() ightfield",
+                      "sources":  [
+                                      {
+                                          "url":  "/media/wow/mach_lightfield_hdr10.mp4",
+                                          "codecs":  "hvc1.2.4.L120.B0",
+                                          "type":  "hevc"
+                                      },
+                                      {
+                                          "url":  "/media/wow/mach_lightfield_av1.mp4",
+                                          "codecs":  "av01.0.08M.10",
+                                          "type":  "av1"
+                                      },
+                                      {
+                                          "url":  "/media/wow/mach_lightfield_sdr.mp4",
+                                          "codecs":  "avc1.640028",
+                                          "type":  "h264"
+                                      }
+                                  ],
+                      "id":  "mach_lightfield"
+                  },
+                  {
+                      "label":  " $args[0].Value.ToUpper() inetic  $args[0].Value.ToUpper() ogo  $args[0].Value.ToUpper() arade",
+                      "sources":  [
+                                      {
+                                          "url":  "/media/wow/kinetic_logo_parade_hdr10.mp4",
+                                          "codecs":  "hvc1.2.4.L120.B0",
+                                          "type":  "hevc"
+                                      },
+                                      {
+                                          "url":  "/media/wow/kinetic_logo_parade_av1.mp4",
+                                          "codecs":  "av01.0.08M.10",
+                                          "type":  "av1"
+                                      },
+                                      {
+                                          "url":  "/media/wow/kinetic_logo_parade_sdr.mp4",
+                                          "codecs":  "avc1.640028",
+                                          "type":  "h264"
+                                      }
+                                  ],
+                      "id":  "kinetic_logo_parade"
+                  }
+              ],
+    "version":  1,
+    "updated":  "2025-08-19T10:53:03"
+}

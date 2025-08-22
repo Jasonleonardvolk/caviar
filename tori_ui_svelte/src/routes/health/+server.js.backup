@@ -1,0 +1,20 @@
+// Simple JavaScript health endpoint as fallback
+export async function GET() {
+  return new Response('OK', {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain',
+      'Cache-Control': 'no-cache'
+    }
+  });
+}
+
+export async function HEAD() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain',  
+      'Cache-Control': 'no-cache'
+    }
+  });
+}

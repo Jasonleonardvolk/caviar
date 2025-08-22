@@ -1,0 +1,28 @@
+{
+  "free": {
+    "id": "free",
+    "name": "Free",
+    "maxDurationSec": 10,
+    "watermark": true,
+    "export": ["webm"],
+    "notes": "Trial to drive upgrade"
+  },
+  "plus": {
+    "id": "plus",
+    "name": "Plus",
+    "maxDurationSec": 60,
+    "watermark": false,
+    "export": ["webm","mp4"],
+    "notes": "Best for creators",
+    "stripePriceId": "price_PLUS_TEST"
+  },
+  "pro": {
+    "id": "pro",
+    "name": "Pro",
+    "maxDurationSec": 300,
+    "watermark": false,
+    "export": ["webm","mp4","prores"],
+    "notes": "Studios & agencies",
+    "stripePriceId": "price_PRO_TEST"
+  }
+}

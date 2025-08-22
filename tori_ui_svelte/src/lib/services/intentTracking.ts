@@ -1,0 +1,496 @@
+/**
+ * Intent Tracker - Conversation Intent Analysis
+ * =============================================
+ * 
+ * Frontend integration with backend Intent-Driven Reasoning system
+ * Tracks and analyzes user intent across conversations:
+ * - Maps to 8 backend intent types
+ * - Emotional trajectory via prosody
+ * - Topic coherence and phase tracking
+ */
+
+import { writable, derived, get } from 'svelte/store';
+import type { Message } from './toriStorage';
+import type { ProsodyMetrics } from './typingProsody';
+
+// Backend intent types from prajna_intent_integration
+export enum ReasoningIntent {
+  EXPLAIN = 'EXPLAIN',
+  JUSTIFY = 'JUSTIFY',
+  CAUSAL = 'CAUSAL',
+  SUPPORT = 'SUPPORT',
+  HISTORICAL = 'HISTORICAL',
+  COMPARE = 'COMPARE',
+  CRITIQUE = 'CRITIQUE',
+  SPECULATE = 'SPECULATE'
+}
+
+export interface Intent {
+  id: string;
+  type: ReasoningIntent;
+  label: string;
+  confidence: number;
+  keywords: string[];
+  emotionalTone: number; // -1 (negative) to 1 (positive)
+  timestamp: Date;
+  prosodyMetrics?: ProsodyMetrics; // From typing analysis
+}
+
+export interface IntentContext {
+  primaryIntent: Intent;
+  secondaryIntents: Intent[];
+  coherenceScore: number; // 0-1 how focused the conversation is
+  topicShifts: number;
+  emotionalTrajectory: number[]; // Array of emotional values over time
+  dominantEmotion: string;
+  conversationPhase: 'opening' | 'exploration' | 'deep_dive' | 'conclusion' | 'idle';
+  // Backend integration
+  backendIntent?: ReasoningIntent;
+  resolutionStrategy?: 'SHORTEST' | 'COMPREHENSIVE' | 'RECENT' | 'TRUSTED' | 'DIVERSE';
+}
+
+export interface ConversationInsight {
+  type: 'pattern' | 'shift' | 'emotion' | 'coherence' | 'prosody';
+  description: string;
+  timestamp: Date;
+  importance: number; // 0-1
+  data?: any;
+}
+
+class IntentTracker {
+  // Stores
+  public currentIntent = writable<IntentContext | null>(null);
+  public conversationInsights = writable<ConversationInsight[]>([]);
+  public intentHistory = writable<Intent[]>([]);
+  
+  // Derived stores
+  public isCoherent = derived(this.currentIntent, $intent => 
+    $intent ? $intent.coherenceScore > 0.7 : true
+  );
+  
+  public needsClarification = derived(this.currentIntent, $intent =>
+    $intent ? $intent.coherenceScore < 0.4 : false
+  );
+  
+  public emotionalState = derived(this.currentIntent, $intent =>
+    $intent ? this.getEmotionalState($intent.dominantEmotion) : 'neutral'
+  );
+
+  // Intent patterns mapped to backend ReasoningIntent
+  private intentPatterns = {
+    // EXPLAIN - General explanation
+    'explain': {
+      keywords: ['what', 'explain', 'tell me', 'describe', 'mean', 'definition'],
+      backendIntent: ReasoningIntent.EXPLAIN,
+      emotionalTone: 0,
+      phase: 'exploration' as const
+    },
+    // JUSTIFY - Provide justification
+    'justify': {
+      keywords: ['why', 'reason', 'because', 'justify', 'rationale', 'purpose'],
+      backendIntent: ReasoningIntent.JUSTIFY,
+      emotionalTone: 0,
+      phase: 'deep_dive' as const
+    },
+    // CAUSAL - Cause-effect relationships
+    'causal': {
+      keywords: ['cause', 'effect', 'result', 'lead to', 'consequence', 'trigger'],
+      backendIntent: ReasoningIntent.CAUSAL,
+      emotionalTone: 0,
+      phase: 'deep_dive' as const
+    },
+    // SUPPORT - Find supporting evidence
+    'support': {
+      keywords: ['evidence', 'support', 'prove', 'confirm', 'validate', 'back up'],
+      backendIntent: ReasoningIntent.SUPPORT,
+      emotionalTone: 0.1,
+      phase: 'deep_dive' as const
+    },
+    // HISTORICAL - Historical perspective
+    'historical': {
+      keywords: ['history', 'evolution', 'past', 'timeline', 'development', 'origin'],
+      backendIntent: ReasoningIntent.HISTORICAL,
+      emotionalTone: 0,
+      phase: 'exploration' as const
+    },
+    // COMPARE - Compare alternatives
+    'compare': {
+      keywords: ['compare', 'versus', 'difference', 'similar', 'contrast', 'between'],
+      backendIntent: ReasoningIntent.COMPARE,
+      emotionalTone: 0,
+      phase: 'exploration' as const
+    },
+    // CRITIQUE - Critical analysis
+    'critique': {
+      keywords: ['critique', 'analyze', 'evaluate', 'assess', 'judge', 'review'],
+      backendIntent: ReasoningIntent.CRITIQUE,
+      emotionalTone: -0.1,
+      phase: 'deep_dive' as const
+    },
+    // SPECULATE - Hypothetical reasoning
+    'speculate': {
+      keywords: ['what if', 'imagine', 'suppose', 'hypothetical', 'could', 'might'],
+      backendIntent: ReasoningIntent.SPECULATE,
+      emotionalTone: 0.3,
+      phase: 'exploration' as const
+    },
+    // Additional frontend patterns
+    'problem_solving': {
+      keywords: ['fix', 'solve', 'issue', 'problem', 'error', 'help', 'wrong', 'broken'],
+      backendIntent: ReasoningIntent.SUPPORT, // Maps to finding solutions
+      emotionalTone: -0.2,
+      phase: 'deep_dive' as const
+    },
+    'emotional_support': {
+      keywords: ['feel', 'feeling', 'worried', 'anxious', 'happy', 'sad', 'stressed'],
+      backendIntent: ReasoningIntent.EXPLAIN, // Maps to understanding emotions
+      emotionalTone: 0,
+      phase: 'deep_dive' as const
+    },
+    'technical_assistance': {
+      keywords: ['code', 'function', 'api', 'database', 'implement', 'technical', 'debug'],
+      backendIntent: ReasoningIntent.EXPLAIN, // Technical explanations
+      emotionalTone: 0,
+      phase: 'deep_dive' as const
+    },
+    'casual_conversation': {
+      keywords: ['hello', 'hi', 'hey', 'thanks', 'good', 'nice', 'cool'],
+      backendIntent: ReasoningIntent.EXPLAIN, // Default to explain
+      emotionalTone: 0.3,
+      phase: 'opening' as const
+    }
+  };
+
+  private conversationStartTime: number = Date.now();
+  private messageCount: number = 0;
+  private lastIntentUpdate: number = Date.now();
+
+  analyzeMessage(message: Message, prosodyMetrics?: ProsodyMetrics): Intent {
+    const text = message.content.toLowerCase();
+    const words = text.split(/\s+/);
+    
+    // Score each intent pattern
+    const scores: Array<{pattern: string; score: number; data: any}> = [];
+    
+    for (const [patternName, pattern] of Object.entries(this.intentPatterns)) {
+      let score = 0;
+      let matchedKeywords: string[] = [];
+      
+      // Keyword matching
+      for (const keyword of pattern.keywords) {
+        if (text.includes(keyword)) {
+          score += keyword.split(' ').length; // Multi-word keywords score higher
+          matchedKeywords.push(keyword);
+        }
+      }
+      
+      // Normalize by text length
+      score = score / Math.max(words.length, 1);
+      
+      scores.push({
+        pattern: patternName,
+        score,
+        data: { ...pattern, matchedKeywords }
+      });
+    }
+    
+    // Sort by score
+    scores.sort((a, b) => b.score - a.score);
+    
+    // Get best match
+    const bestMatch = scores[0];
+    const confidence = Math.min(bestMatch.score * 2, 1); // Scale confidence
+    
+    // Adjust emotional tone based on prosody
+    let emotionalTone = bestMatch.data.emotionalTone;
+    if (prosodyMetrics) {
+      // Blend pattern emotion with prosody emotion
+      const prosodyEmotion = this.getProsodyEmotion(prosodyMetrics);
+      emotionalTone = (emotionalTone + prosodyEmotion) / 2;
+    }
+    
+    const intent: Intent = {
+      id: `intent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: bestMatch.data.backendIntent,
+      label: bestMatch.pattern,
+      confidence,
+      keywords: bestMatch.data.matchedKeywords,
+      emotionalTone,
+      timestamp: new Date(),
+      prosodyMetrics
+    };
+    
+    // Update intent history
+    const history = get(this.intentHistory);
+    history.push(intent);
+    this.intentHistory.set(history.slice(-50)); // Keep last 50
+    
+    return intent;
+  }
+
+  updateConversationContext(message: Message, prosodyMetrics?: ProsodyMetrics): void {
+    this.messageCount++;
+    
+    // Analyze intent
+    const intent = this.analyzeMessage(message, prosodyMetrics);
+    
+    // Get current context
+    const currentContext = get(this.currentIntent);
+    const insights = get(this.conversationInsights);
+    
+    // Detect topic shift
+    if (currentContext && currentContext.primaryIntent.type !== intent.type) {
+      insights.push({
+        type: 'shift',
+        description: `Topic shift from ${currentContext.primaryIntent.label} to ${intent.label}`,
+        timestamp: new Date(),
+        importance: 0.7,
+        data: { from: currentContext.primaryIntent.type, to: intent.type }
+      });
+    }
+    
+    // Update emotional trajectory
+    const trajectory = currentContext?.emotionalTrajectory || [];
+    trajectory.push(intent.emotionalTone);
+    
+    // Calculate coherence based on intent consistency
+    const recentIntents = get(this.intentHistory).slice(-5);
+    const uniqueIntentTypes = new Set(recentIntents.map(i => i.type));
+    const coherenceScore = 1 - (uniqueIntentTypes.size - 1) / 5; // More variety = less coherence
+    
+    // Determine conversation phase
+    const phase = this.determinePhase(this.messageCount, intent, coherenceScore);
+    
+    // Get dominant emotion
+    const dominantEmotion = this.calculateDominantEmotion(trajectory);
+    
+    // Add prosody insights if available
+    if (prosodyMetrics) {
+      if (prosodyMetrics.hesitationScore > 0.7) {
+        insights.push({
+          type: 'prosody',
+          description: 'User showing high hesitation - may need clarification',
+          timestamp: new Date(),
+          importance: 0.8,
+          data: prosodyMetrics
+        });
+      }
+      
+      if (prosodyMetrics.emotionalIntensity > 0.8) {
+        insights.push({
+          type: 'emotion',
+          description: 'High emotional intensity detected',
+          timestamp: new Date(),
+          importance: 0.9,
+          data: prosodyMetrics
+        });
+      }
+    }
+    
+    // Determine resolution strategy based on intent and context
+    const resolutionStrategy = this.determineResolutionStrategy(intent, coherenceScore);
+    
+    // Update context
+    const newContext: IntentContext = {
+      primaryIntent: intent,
+      secondaryIntents: recentIntents.slice(0, -1).slice(-3), // Last 3 before current
+      coherenceScore,
+      topicShifts: insights.filter(i => i.type === 'shift').length,
+      emotionalTrajectory: trajectory.slice(-20), // Keep last 20
+      dominantEmotion,
+      conversationPhase: phase,
+      backendIntent: intent.type,
+      resolutionStrategy
+    };
+    
+    this.currentIntent.set(newContext);
+    this.conversationInsights.set(insights.slice(-50)); // Keep last 50 insights
+    this.lastIntentUpdate = Date.now();
+  }
+
+  private getProsodyEmotion(metrics: ProsodyMetrics): number {
+    // Map prosody metrics to emotional tone (-1 to 1)
+    let emotion = 0;
+    
+    // High hesitation = negative emotion
+    emotion -= metrics.hesitationScore * 0.3;
+    
+    // High intensity = stronger emotion (positive or negative)
+    const intensityMultiplier = metrics.emotionalIntensity;
+    
+    // High cognitive load = frustration
+    emotion -= metrics.cognitiveLoad * 0.2;
+    
+    // Fast typing with low hesitation = excitement
+    if (metrics.wpm > 80 && metrics.hesitationScore < 0.3) {
+      emotion += 0.3;
+    }
+    
+    // Many deletes = uncertainty/frustration
+    emotion -= metrics.deleteRatio * 0.5;
+    
+    return Math.max(-1, Math.min(1, emotion * intensityMultiplier));
+  }
+
+  private determinePhase(messageCount: number, intent: Intent, coherence: number): IntentContext['conversationPhase'] {
+    if (messageCount <= 3) return 'opening';
+    if (messageCount > 20 && coherence < 0.5) return 'conclusion';
+    if (Date.now() - this.lastIntentUpdate > 300000) return 'idle'; // 5 min idle
+    
+    const phase = this.intentPatterns[intent.label as keyof typeof this.intentPatterns]?.phase;
+    return phase || 'exploration';
+  }
+
+  private calculateDominantEmotion(trajectory: number[]): string {
+    if (trajectory.length === 0) return 'neutral';
+    
+    const avg = trajectory.reduce((a, b) => a + b, 0) / trajectory.length;
+    const recent = trajectory.slice(-5);
+    const recentAvg = recent.length > 0 ? recent.reduce((a, b) => a + b, 0) / recent.length : avg;
+    
+    // Weight recent emotions more
+    const weighted = (avg + recentAvg * 2) / 3;
+    
+    if (weighted > 0.5) return 'positive';
+    if (weighted > 0.2) return 'curious';
+    if (weighted > -0.2) return 'neutral';
+    if (weighted > -0.5) return 'concerned';
+    return 'frustrated';
+  }
+
+  private determineResolutionStrategy(intent: Intent, coherence: number): NonNullable<IntentContext['resolutionStrategy']> {
+    // Map intent types to resolution strategies
+    switch (intent.type) {
+      case ReasoningIntent.CAUSAL:
+        return 'SHORTEST'; // Direct causal paths
+      
+      case ReasoningIntent.HISTORICAL:
+        return 'COMPREHENSIVE'; // Include all historical context
+      
+      case ReasoningIntent.COMPARE:
+        return 'DIVERSE'; // Multiple perspectives
+      
+      case ReasoningIntent.CRITIQUE:
+        return 'COMPREHENSIVE'; // Thorough analysis
+      
+      case ReasoningIntent.SUPPORT:
+        return 'TRUSTED'; // High-quality sources
+      
+      default:
+        // Use coherence to decide
+        if (coherence > 0.8) return 'SHORTEST'; // Focused conversation
+        if (coherence < 0.4) return 'COMPREHENSIVE'; // Scattered, needs context
+        return 'RECENT'; // Default to recent information
+    }
+  }
+
+  getEmotionalState(emotion: string): string {
+    // Map emotion to state for UI
+    const stateMap: Record<string, string> = {
+      'positive': '😊',
+      'curious': '🤔',
+      'neutral': '😐',
+      'concerned': '😟',
+      'frustrated': '😤'
+    };
+    return stateMap[emotion] || '😐';
+  }
+
+  async sendIntentToBackend(intent: Intent, message: string): Promise<any> {
+    // Send intent to backend for processing
+    try {
+      const response = await fetch('/api/intent_answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: message,
+          intent: intent.type,
+          strategy: get(this.currentIntent)?.resolutionStrategy || 'RECENT',
+          context: {
+            explain_reasoning: intent.confidence < 0.6, // Explain if uncertain
+            emotional_context: {
+              tone: intent.emotionalTone,
+              prosody: intent.prosodyMetrics
+            }
+          }
+        })
+      });
+      
+      if (!response.ok) throw new Error('Intent API failed');
+      
+      return await response.json();
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('Failed to send intent to backend:', error);
+      return null;
+    
+}
+  }
+
+  reset(): void {
+    this.currentIntent.set(null);
+    this.conversationInsights.set([]);
+    this.intentHistory.set([]);
+    this.conversationStartTime = Date.now();
+    this.messageCount = 0;
+  }
+
+  exportAnalysis(): {
+    context: IntentContext | null;
+    insights: ConversationInsight[];
+    history: Intent[];
+    summary: {
+      duration: number;
+      messageCount: number;
+      dominantIntents: Array<{intent: ReasoningIntent; count: number}>;
+      emotionalJourney: string;
+      coherenceLevel: string;
+    };
+  } {
+    const context = get(this.currentIntent);
+    const insights = get(this.conversationInsights);
+    const history = get(this.intentHistory);
+    
+    // Calculate dominant intents
+    const intentCounts = history.reduce((acc, intent) => {
+      acc[intent.type] = (acc[intent.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const dominantIntents = Object.entries(intentCounts)
+      .map(([intent, count]) => ({ intent: intent as ReasoningIntent, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    // Emotional journey summary
+    const emotionalJourney = context ? 
+      `Started ${context.emotionalTrajectory[0] > 0 ? 'positive' : 'neutral'}, ` +
+      `currently ${context.dominantEmotion}` :
+      'No emotional data';
+    
+    // Coherence level
+    const coherenceLevel = context ? 
+      context.coherenceScore > 0.7 ? 'Highly focused' :
+      context.coherenceScore > 0.4 ? 'Moderately focused' :
+      'Exploratory' :
+      'Unknown';
+    
+    return {
+      context,
+      insights,
+      history,
+      summary: {
+        duration: Date.now() - this.conversationStartTime,
+        messageCount: this.messageCount,
+        dominantIntents,
+        emotionalJourney,
+        coherenceLevel
+      }
+    };
+  }
+}
+
+// Export singleton instance
+export const intentTracker = new IntentTracker();
+
+// Export types
+// Types exported individually above

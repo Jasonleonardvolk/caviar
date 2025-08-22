@@ -1,0 +1,17 @@
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+build/
+
+# Local runtime + artifacts
+var/uploads/
+*.log
+*.tmp
+
+# Environment
+.env.local
+.env.production
+
+# Shader intermediates (keep sources under src\lib\shaders\**)
+src/lib/shaders/out/
+shader-cache/

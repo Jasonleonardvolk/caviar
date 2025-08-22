@@ -1,0 +1,7 @@
+{
+  "minSupportedModel": "iPhone13",
+  "tiers": {
+    "GOLD":  { "models": ["iPhone16*", "iPhone15,2", "iPhone15,3"], "maxN": 512, "zernikeModes": 16, "serverFallback": true },
+    "SILVER":{ "models": ["iPhone15*", "iPhone14*", "iPhone13*"],  "maxN": 256, "zernikeModes": 12, "serverFallback": false }
+  }
+}

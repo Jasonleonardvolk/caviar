@@ -1,0 +1,39 @@
+// See https://kit.svelte.dev/docs/types#app
+// for information about these interfaces
+declare global {
+  namespace App {
+    interface Locals {
+      user?: { 
+        id: string; 
+        username: string; 
+        name?: string; 
+        role: 'admin' | 'user' 
+      } | null;
+    }
+    
+    interface PageData {
+      user?: Locals['user'] | null;
+    }
+    
+    interface Error {
+      message: string;
+      code?: string;
+    }
+    
+    interface Platform {}
+  }
+  
+  interface Window {
+    TORI?: {
+      updateHologramState?: (state: any) => void;
+      setHologramVideoMode?: (enabled: boolean) => void;
+      toggleHologramAudio?: (enabled: boolean) => void;
+      toggleHologramVideo?: (enabled: boolean) => void;
+    };
+    ghostMemoryDemo?: () => void;
+    webkitAudioContext?: typeof AudioContext;
+    TORI_DISPLAY_TYPE?: string; // used by HolographicVisualization_CONNECTED.svelte
+  }
+}
+
+export {};

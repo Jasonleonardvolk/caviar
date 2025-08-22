@@ -1,0 +1,93 @@
+// Test file to verify Phase 3 fixes work correctly
+import { vaultEntries, sealedArcs, type VaultEntry } from '$lib/stores';
+import { get } from 'svelte/store';
+
+// Test 1: Vault stores now have proper types (not never[])
+const testVaultOperations = () => {
+  // Should work - vaultEntries is writable<VaultEntry[]>
+  vaultEntries.update(entries => {
+    const newEntry: VaultEntry = {
+      id: 'test_1',
+      key: 'test_key',
+      title: 'Test Entry',
+      content: 'Test content',
+      value: 'Test value',
+      sealed: false,
+      timestamp: new Date(),
+      conceptIds: ['concept1', 'concept2'],
+      emotionalWeight: 0.5,
+      metadata: { test: true }
+    };
+    
+    // This should work now (was failing with never[] before)
+    return [...entries, newEntry];
+  });
+  
+  // Should work - sealedArcs is writable<string[]>
+  sealedArcs.update(arcs => {
+    // This should work now (was failing with never[] before)
+    return [...arcs, 'new_arc_id'];
+  });
+  
+  // Test reading values
+  const currentEntries = get(vaultEntries);
+  currentEntries.forEach(entry => {
+    // These properties should be accessible now
+    console.log(entry.title, entry.key, entry.value);
+  });
+  
+  const currentArcs = get(sealedArcs);
+  currentArcs.forEach(arc => {
+    // Should be string
+    console.log(arc.toUpperCase());
+  });
+};
+
+// Test 2: Error handling pattern works correctly
+const testErrorHandling = () => {
+  try {
+    throw new Error('Test error');
+  } catch (error) {
+    // Proper error handling pattern
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`Error: ${msg}`);
+  }
+  
+  try {
+    throw 'String error';
+  } catch (error) {
+    // Works with non-Error throws too
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`Error: ${msg}`);
+  }
+  
+  try {
+    throw { custom: 'error object' };
+  } catch (error) {
+    // Works with object throws
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`Error: ${msg}`);
+  }
+};
+
+// Test 3: Style object typing (no React types)
+const testStyleObject = () => {
+  const style: Record<string, string | number> = {
+    background: 'linear-gradient(135deg, #ff0000, #00ff00)',
+    color: '#ffffff',
+    border: '2px solid #000',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+    borderRadius: '12px',
+    backdropFilter: 'blur(8px)',
+    opacity: 0.9,
+    '--custom-var': '100px',
+    '--another-var': '#ff0000'
+  };
+  
+  // This should work without React.CSSProperties
+  return style;
+};
+
+console.log('✅ All Phase 3 type tests pass!');
+
+export { testVaultOperations, testErrorHandling, testStyleObject };

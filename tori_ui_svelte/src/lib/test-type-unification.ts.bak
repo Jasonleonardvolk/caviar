@@ -1,0 +1,73 @@
+// Test file to verify type unification works correctly
+import { addConceptDiff, type ConceptDiff, type ConceptDiffType } from '$lib/stores/conceptMesh';
+import type { BridgeConfig, ExtendedBridgeConfig } from '$lib/bridgeConfig';
+
+// Test 1: ConceptDiffType includes all required types
+const testTypes: ConceptDiffType[] = [
+  'document', 'manual', 'chat', 'system',
+  'add', 'remove', 'modify', 'relate', 'unrelate',
+  'extract', 'link', 'memory'  // These were previously missing
+];
+
+// Test 2: Builder pattern works - can omit id and timestamp
+addConceptDiff({
+  type: 'extract',
+  title: 'Test Extract',
+  concepts: ['concept1', 'concept2'],
+  summary: 'Testing extract type'
+});
+
+// Test 3: Can provide partial fields
+addConceptDiff({
+  type: 'link',
+  title: 'Test Link',
+  concepts: ['a', 'b'],
+  changes: [{ field: 'test', from: 'old', to: 'new' }]
+});
+
+// Test 4: Can override id and timestamp if needed
+addConceptDiff({
+  id: 'custom_id',
+  timestamp: new Date('2025-01-01'),
+  type: 'memory',
+  title: 'Test Memory',
+  concepts: ['memory1']
+});
+
+// Test 5: BridgeConfig types work
+const simpleBridge: BridgeConfig = {
+  mode: 'dev',
+  api: { url: '/api', timeout: 5000 },
+  websocket: { url: '/ws', reconnect: true }
+};
+
+const extendedBridge: ExtendedBridgeConfig = {
+  mode: 'prod',
+  api: { url: '/api', timeout: 3000 },
+  websocket: { url: '/ws', reconnect: false },
+  host: '127.0.0.1',
+  port: 8765,
+  health_endpoint: '/health',
+  metrics_endpoint: '/metrics',
+  name: 'Test Bridge',
+  status: 'healthy'
+};
+
+// Test 6: Metadata is now Record<string, any>
+addConceptDiff({
+  type: 'document',
+  title: 'Document with metadata',
+  concepts: ['doc'],
+  metadata: {
+    processedBy: 'test',
+    fallbackMode: true,
+    confidence: 0.95,
+    source: 'test',
+    customField: 'any value',
+    nested: { field: 'value' }
+  }
+});
+
+console.log('✅ All type tests pass - unification successful!');
+
+export {};

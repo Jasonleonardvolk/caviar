@@ -1,0 +1,236 @@
+<script lang="ts">
+    import { currentGroupId, fetchUserGroups } from '$lib/stores/session';
+    
+    export let show = false;
+    
+    let inviteCode = '';
+    let loading = false;
+    let error = '';
+    let success = false;
+    
+    async function joinGroup() {
+        if (!inviteCode.trim()) {
+            error = 'Please enter an invite code';
+            return;
+        }
+        
+        loading = true;
+        error = '';
+        
+        try {
+            const response = await fetch('/api/groups/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: inviteCode.trim() })
+            });
+            
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.detail || 'Failed to join group');
+            }
+            
+            const result = await response.json();
+            
+            // Success!
+            success = true;
+            
+            // Refresh groups list
+            await fetchUserGroups();
+            
+            // Set as current group
+            currentGroupId.set(result.joined);
+            
+            // Close modal after delay
+            setTimeout(() => {
+                show = false;
+                inviteCode = '';
+                success = false;
+            }, 1500);
+            
+        } catch (err) {
+            error = err instanceof Error ? err.message : 'Failed to join group';
+        } finally {
+            loading = false;
+        }
+    }
+    
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter' && !loading) {
+            joinGroup();
+        } else if (e.key === 'Escape') {
+            show = false;
+        }
+    }
+    
+    function close() {
+        show = false;
+        inviteCode = '';
+        error = '';
+        success = false;
+    }
+</script>
+
+{#if show}
+    <div class="modal-backdrop" role="button" tabindex="0" on:click={close} on:keydown={(e) => (e.key === 'Escape') && close()}>
+        <div class="modal" on:click|stopPropagation>
+            <h2>Join Group with Invite</h2>
+            
+            {#if success}
+                <div class="success-message">
+                    <span class="icon">✓</span>
+                    Successfully joined group!
+                </div>
+            {:else}
+                <p>Enter the invite code or link you received:</p>
+                
+                <input
+                    type="text"
+                    bind:value={inviteCode}
+                    placeholder="ABCD-EFGH or full invite link"
+                    on:keydown={handleKeydown}
+                    disabled={loading}
+                    class:error={error}
+                />
+                
+                {#if error}
+                    <div class="error-message">{error}</div>
+                {/if}
+                
+                <div class="modal-actions">
+                    <button
+                        type="button"
+                        class="btn-secondary"
+                        on:click={close}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-primary"
+                        on:click={joinGroup}
+                        disabled={loading || !inviteCode.trim()}
+                    >
+                        {loading ? 'Joining...' : 'Join Group'}
+                    </button>
+                </div>
+            {/if}
+        </div>
+    </div>
+{/if}
+
+<style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .modal {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+    }
+    
+    p {
+        margin: 0 0 1rem 0;
+        color: #666;
+    }
+    
+    input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        font-family: monospace;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    
+    input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    input.error {
+        border-color: #e74c3c;
+    }
+    
+    input:disabled {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+    
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    .success-message {
+        text-align: center;
+        color: #27ae60;
+        font-size: 1.125rem;
+        padding: 2rem 0;
+    }
+    
+    .success-message .icon {
+        display: block;
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled),
+    .btn-secondary:hover:not(:disabled) {
+        opacity: 0.9;
+    }
+    
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>

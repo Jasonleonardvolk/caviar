@@ -1,0 +1,709 @@
+// STEP 4: Holographic Memory - 3D Visualization and Spatial Concept Management
+// Creates immersive 3D representations of concept networks and memory topology
+
+export interface ConceptNode {
+  id: string;
+  essence: string; // The core concept
+  position: { x: number; y: number; z: number };
+  strength: number; // 0-1 activation strength
+  connections: Connection[];
+  visualProperties: {
+    color: string;
+    size: number;
+    glow: number;
+    opacity: number;
+  };
+  metadata: {
+    createdAt: Date;
+    lastActivated: Date;
+    activationCount: number;
+    personaTouches: PersonaTouch[];
+    memoryReferences: string[]; // Links to BraidMemory loops
+  };
+}
+
+export interface Connection {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  strength: number;
+  type: RelationType;
+  visualProperties: {
+    color: string;
+    thickness: number;
+    animated: boolean;
+    flow: 'bidirectional' | 'source-to-target' | 'target-to-source';
+  };
+  metadata: {
+    createdAt: Date;
+    reinforcementCount: number;
+    lastReinforced: Date;
+  };
+}
+
+export interface PersonaTouch {
+  personaId: string;
+  strength: number;
+  timestamp: Date;
+  context: string;
+}
+
+export type RelationType = 'semantic' | 'causal' | 'temporal' | 'emergent' | 'synthetic';
+
+export interface EmergentCluster {
+  id: string;
+  concepts: ConceptNode[];
+  emergentProperty: string;
+  strength: number;
+  centroid: { x: number; y: number; z: number };
+  visualProperties: {
+    boundaryColor: string;
+    fillOpacity: number;
+    pulseRate: number;
+  };
+}
+
+export interface HolographicState {
+  nodes: Map<string, ConceptNode>;
+  connections: Map<string, Connection>;
+  emergentClusters: EmergentCluster[];
+  activationWave: {
+    center: { x: number; y: number; z: number };
+    radius: number;
+    strength: number;
+    timestamp: Date;
+  } | null;
+  spatialBounds: {
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
+  };
+}
+
+export class HolographicMemory {
+  private state: HolographicState;
+  private updateCallbacks: Set<Function> = new Set();
+  private animationFrameId: number | null = null;
+  private isAnimating: boolean = false;
+  private isBrowser: boolean = false;
+
+  constructor() {
+    console.log('🌌 Holographic Memory system initializing...');
+    
+    // Check if we're in browser environment
+    this.isBrowser = typeof window !== 'undefined' && typeof window.requestAnimationFrame !== 'undefined';
+    
+    this.state = {
+      nodes: new Map(),
+      connections: new Map(),
+      emergentClusters: [],
+      activationWave: null,
+      spatialBounds: {
+        min: { x: -10, y: -10, z: -10 },
+        max: { x: 10, y: 10, z: 10 }
+      }
+    };
+    
+    // Only start animation loop in browser
+    if (this.isBrowser) {
+      this.startAnimationLoop();
+    }
+    
+    console.log('🌌 Holographic Memory system ready (browser:', this.isBrowser, ')');
+  }
+
+  /**
+   * Initialize the Holographic Memory system
+   */
+  initialize(): void {
+    console.log('🔮 Holographic Memory initialized');
+    // System is already initialized in constructor
+    // This method exists for compatibility with the initialization flow
+  }
+
+  /**
+   * Encode content into holographic memory - compatibility method for +page.svelte
+   */
+  async encode(data: {
+    content: string;
+    position: { x: number; y: number; z: number };
+    timestamp: number;
+  }): Promise<{ position: { x: number; y: number; z: number } }> {
+    try {
+      // Extract key concepts from content for the node essence
+      const essence = this.extractEssence(data.content);
+      
+      // Create concept node at specified position
+      const node = this.createConceptNode(essence, 0.6);
+      
+      // Update position to match requested coordinates
+      node.position = { ...data.position };
+      
+      // Add timestamp metadata
+      node.metadata.createdAt = new Date(data.timestamp);
+      
+      console.log(`🔮 Encoded into holographic memory: "${essence}" at (${data.position.x}, ${data.position.y}, ${data.position.z})`);
+      
+      return { position: node.position };
+    } catch (error) {
+      console.warn('Failed to encode into holographic memory:', error);
+      return { position: data.position };
+    }
+  }
+
+  /**
+   * Extract essence/key concept from content text
+   */
+  private extractEssence(content: string): string {
+    // Simple extraction - take first meaningful phrase or fallback to timestamp
+    const words = content.split(' ').filter(word => word.length > 3);
+    if (words.length > 0) {
+      return words.slice(0, 2).join(' ');
+    }
+    return `Message_${Date.now()}`;
+  }
+
+  /**
+   * STEP 4: Create a new concept node in 3D space
+   */
+  createConceptNode(essence: string, initialStrength: number = 0.5): ConceptNode {
+    const nodeId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+    
+    // Find optimal position (avoid overlap with existing nodes)
+    const position = this.findOptimalPosition();
+    
+    const node: ConceptNode = {
+      id: nodeId,
+      essence,
+      position,
+      strength: initialStrength,
+      connections: [],
+      visualProperties: {
+        color: this.generateConceptColor(essence),
+        size: 0.5 + initialStrength * 0.5,
+        glow: initialStrength * 0.8,
+        opacity: 0.7 + initialStrength * 0.3
+      },
+      metadata: {
+        createdAt: new Date(),
+        lastActivated: new Date(),
+        activationCount: 1,
+        personaTouches: [],
+        memoryReferences: []
+      }
+    };
+    
+    this.state.nodes.set(nodeId, node);
+    this.notifyUpdates();
+    
+    console.log(`🌌 Created concept node: ${essence} at (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
+    
+    return node;
+  }
+
+  /**
+   * STEP 4: Create connection between two concept nodes
+   */
+  createConnection(
+    sourceId: string, 
+    targetId: string, 
+    strength: number, 
+    type: RelationType,
+    flow: 'bidirectional' | 'source-to-target' | 'target-to-source' = 'bidirectional'
+  ): Connection | null {
+    const sourceNode = this.state.nodes.get(sourceId);
+    const targetNode = this.state.nodes.get(targetId);
+    
+    if (!sourceNode || !targetNode) {
+      console.warn('Cannot create connection: node not found');
+      return null;
+    }
+    
+    const connectionId = `conn_${sourceId}_${targetId}_${Date.now()}`;
+    
+    const connection: Connection = {
+      id: connectionId,
+      sourceId,
+      targetId,
+      strength,
+      type,
+      visualProperties: {
+        color: this.getConnectionColor(type),
+        thickness: 1 + strength * 2,
+        animated: strength > 0.7,
+        flow
+      },
+      metadata: {
+        createdAt: new Date(),
+        reinforcementCount: 1,
+        lastReinforced: new Date()
+      }
+    };
+    
+    this.state.connections.set(connectionId, connection);
+    
+    // Add to node connection lists
+    sourceNode.connections.push(connection);
+    if (sourceId !== targetId) {
+      targetNode.connections.push(connection);
+    }
+    
+    this.notifyUpdates();
+    
+    console.log(`🌌 Connected: ${sourceNode.essence} ${flow === 'bidirectional' ? '↔' : '→'} ${targetNode.essence} (${type})`);
+    
+    return connection;
+  }
+
+  /**
+   * STEP 4: Activate concept node with visual wave effect
+   */
+  activateConcept(nodeId: string, strength: number = 0.3): void {
+    const node = this.state.nodes.get(nodeId);
+    if (!node) return;
+    
+    // Update node properties
+    node.strength = Math.min(1, node.strength + strength);
+    node.visualProperties.glow = node.strength * 0.8;
+    node.visualProperties.size = 0.5 + node.strength * 0.5;
+    node.metadata.lastActivated = new Date();
+    node.metadata.activationCount++;
+    
+    // Create activation wave
+    this.state.activationWave = {
+      center: { ...node.position },
+      radius: 0,
+      strength: strength,
+      timestamp: new Date()
+    };
+    
+    // Propagate activation to connected nodes
+    this.propagateActivation(node, strength * 0.5);
+    
+    this.notifyUpdates();
+    
+    console.log(`🌌 Activated concept: ${node.essence} (strength: ${node.strength.toFixed(2)})`);
+  }
+
+  /**
+   * STEP 4: Add persona touch to concept node
+   */
+  addPersonaTouch(nodeId: string, personaId: string, strength: number, context: string): void {
+    const node = this.state.nodes.get(nodeId);
+    if (!node) return;
+    
+    const touch: PersonaTouch = {
+      personaId,
+      strength,
+      timestamp: new Date(),
+      context
+    };
+    
+    node.metadata.personaTouches.push(touch);
+    
+    // Update visual properties based on persona
+    node.visualProperties.color = this.blendPersonaColor(node.visualProperties.color, personaId, strength);
+    
+    this.notifyUpdates();
+    
+    console.log(`🌌 Persona touch: ${personaId} → ${node.essence} (${context})`);
+  }
+
+  /**
+   * STEP 4: Detect emergent clusters in 3D space
+   */
+  detectEmergentClusters(): EmergentCluster[] {
+    const clusters: EmergentCluster[] = [];
+    const nodes = Array.from(this.state.nodes.values());
+    const processed = new Set<string>();
+    
+    for (const node of nodes) {
+      if (processed.has(node.id) || node.strength < 0.3) continue;
+      
+      // Find nearby nodes with strong connections
+      const clusterNodes = this.findClusterNodes(node, processed);
+      
+      if (clusterNodes.length >= 2) {
+        const cluster = this.createEmergentCluster(clusterNodes);
+        clusters.push(cluster);
+        
+        clusterNodes.forEach(n => processed.add(n.id));
+      }
+    }
+    
+    this.state.emergentClusters = clusters;
+    this.notifyUpdates();
+    
+    console.log(`🌌 Detected ${clusters.length} emergent clusters`);
+    
+    return clusters;
+  }
+
+  /**
+   * STEP 4: Get visualization data for 3D rendering
+   */
+  getVisualizationData(): {
+    nodes: Array<{
+      id: string;
+      essence: string;
+      position: { x: number; y: number; z: number };
+      visual: {
+        color: string;
+        size: number;
+        glow: number;
+        opacity: number;
+      };
+      strength: number;
+      connections: number;
+    }>;
+    connections: Array<{
+      id: string;
+      source: { x: number; y: number; z: number };
+      target: { x: number; y: number; z: number };
+      visual: {
+        color: string;
+        thickness: number;
+        animated: boolean;
+        flow: string;
+      };
+      strength: number;
+      type: string;
+    }>;
+    clusters: Array<{
+      id: string;
+      concepts: string[];
+      centroid: { x: number; y: number; z: number };
+      emergentProperty: string;
+      visual: {
+        boundaryColor: string;
+        fillOpacity: number;
+        pulseRate: number;
+      };
+    }>;
+    activationWave: {
+      center: { x: number; y: number; z: number };
+      radius: number;
+      strength: number;
+    } | null;
+    bounds: {
+      min: { x: number; y: number; z: number };
+      max: { x: number; y: number; z: number };
+    };
+  } {
+    const nodes = Array.from(this.state.nodes.values()).map(node => ({
+      id: node.id,
+      essence: node.essence,
+      position: node.position,
+      visual: node.visualProperties,
+      strength: node.strength,
+      connections: node.connections.length
+    }));
+    
+    const connections = Array.from(this.state.connections.values()).map(conn => {
+      const sourceNode = this.state.nodes.get(conn.sourceId);
+      const targetNode = this.state.nodes.get(conn.targetId);
+      
+      return {
+        id: conn.id,
+        source: sourceNode?.position || { x: 0, y: 0, z: 0 },
+        target: targetNode?.position || { x: 0, y: 0, z: 0 },
+        visual: conn.visualProperties,
+        strength: conn.strength,
+        type: conn.type
+      };
+    });
+    
+    const clusters = this.state.emergentClusters.map(cluster => ({
+      id: cluster.id,
+      concepts: cluster.concepts.map(c => c.essence),
+      centroid: cluster.centroid,
+      emergentProperty: cluster.emergentProperty,
+      visual: cluster.visualProperties
+    }));
+    
+    return {
+      nodes,
+      connections,
+      clusters,
+      activationWave: this.state.activationWave,
+      bounds: this.state.spatialBounds
+    };
+  }
+
+  /**
+   * STEP 4: Subscribe to updates for real-time visualization
+   */
+  onUpdate(callback: Function): () => void {
+    this.updateCallbacks.add(callback);
+    return () => this.updateCallbacks.delete(callback);
+  }
+
+  /**
+   * STEP 4: Get all nodes (for external access)
+   */
+  getAllNodes(): ConceptNode[] {
+    return Array.from(this.state.nodes.values());
+  }
+
+  /**
+   * STEP 4: Get node by ID
+   */
+  getNode(nodeId: string): ConceptNode | undefined {
+    return this.state.nodes.get(nodeId);
+  }
+
+  /**
+   * STEP 4: Clear all holographic memory
+   */
+  clear(): void {
+    this.state.nodes.clear();
+    this.state.connections.clear();
+    this.state.emergentClusters = [];
+    this.state.activationWave = null;
+    this.notifyUpdates();
+    
+    console.log('🌌 Holographic memory cleared');
+  }
+
+  // Private helper methods
+  private findOptimalPosition(): { x: number; y: number; z: number } {
+    const attempts = 50;
+    const minDistance = 2;
+    
+    for (let i = 0; i < attempts; i++) {
+      const position = {
+        x: (Math.random() - 0.5) * 16,
+        y: (Math.random() - 0.5) * 16,
+        z: (Math.random() - 0.5) * 16
+      };
+      
+      // Check distance from existing nodes
+      let validPosition = true;
+      for (const node of this.state.nodes.values()) {
+        const distance = Math.sqrt(
+          Math.pow(position.x - node.position.x, 2) +
+          Math.pow(position.y - node.position.y, 2) +
+          Math.pow(position.z - node.position.z, 2)
+        );
+        
+        if (distance < minDistance) {
+          validPosition = false;
+          break;
+        }
+      }
+      
+      if (validPosition) {
+        return position;
+      }
+    }
+    
+    // Fallback: random position
+    return {
+      x: (Math.random() - 0.5) * 16,
+      y: (Math.random() - 0.5) * 16,
+      z: (Math.random() - 0.5) * 16
+    };
+  }
+
+  private generateConceptColor(essence: string): string {
+    // Generate color based on concept essence
+    const colors = {
+      'Learning': '#3B82F6',      // Blue
+      'Thinking': '#8B5CF6',      // Purple
+      'Analysis': '#10B981',      // Green
+      'Creation': '#F59E0B',      // Orange
+      'Connections': '#EF4444',   // Red
+      'Systems': '#6366F1',       // Indigo
+      'Patterns': '#EC4899',      // Pink
+      'Memory': '#14B8A6',        // Teal
+      'Consciousness': '#A855F7', // Violet
+      'Prediction': '#06B6D4'     // Cyan
+    };
+    
+    return colors[essence] || this.hashStringToColor(essence);
+  }
+
+  private hashStringToColor(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const hue = hash % 360;
+    return `hsl(${hue}, 70%, 50%)`;
+  }
+
+  private getConnectionColor(type: RelationType): string {
+    const colors = {
+      'semantic': '#94A3B8',    // Slate
+      'causal': '#F97316',      // Orange
+      'temporal': '#06B6D4',    // Cyan
+      'emergent': '#A855F7',    // Purple
+      'synthetic': '#10B981'    // Green
+    };
+    
+    return colors[type] || '#6B7280';
+  }
+
+  private blendPersonaColor(baseColor: string, personaId: string, strength: number): string {
+    const personaColors = {
+      'scholar': '#1E40AF',    // Blue
+      'creator': '#DC2626',    // Red
+      'explorer': '#059669',   // Green
+      'mentor': '#D97706',     // Orange
+      'synthesizer': '#7C3AED' // Purple
+    };
+    
+    // Simple color blending simulation
+    return personaColors[personaId] || baseColor;
+  }
+
+  private propagateActivation(sourceNode: ConceptNode, strength: number): void {
+    if (strength < 0.1) return;
+    
+    sourceNode.connections.forEach(connection => {
+      const targetId = connection.sourceId === sourceNode.id ? connection.targetId : connection.sourceId;
+      const targetNode = this.state.nodes.get(targetId);
+      
+      if (targetNode && connection.strength > 0.3) {
+        const propagatedStrength = strength * connection.strength * 0.5;
+        targetNode.strength = Math.min(1, targetNode.strength + propagatedStrength);
+        targetNode.visualProperties.glow = targetNode.strength * 0.8;
+        
+        // Recursive propagation with decay (only in browser)
+        if (this.isBrowser) {
+          setTimeout(() => {
+            this.propagateActivation(targetNode, propagatedStrength * 0.3);
+          }, 100);
+        }
+      }
+    });
+  }
+
+  private findClusterNodes(seedNode: ConceptNode, processed: Set<string>): ConceptNode[] {
+    const cluster = [seedNode];
+    const queue = [seedNode];
+    const visited = new Set([seedNode.id]);
+    
+    while (queue.length > 0) {
+      const currentNode = queue.shift()!;
+      
+      for (const connection of currentNode.connections) {
+        if (connection.strength < 0.5) continue;
+        
+        const nextId = connection.sourceId === currentNode.id ? connection.targetId : connection.sourceId;
+        const nextNode = this.state.nodes.get(nextId);
+        
+        if (nextNode && !visited.has(nextId) && !processed.has(nextId) && nextNode.strength > 0.3) {
+          // Check spatial proximity
+          const distance = Math.sqrt(
+            Math.pow(seedNode.position.x - nextNode.position.x, 2) +
+            Math.pow(seedNode.position.y - nextNode.position.y, 2) +
+            Math.pow(seedNode.position.z - nextNode.position.z, 2)
+          );
+          
+          if (distance < 6) {
+            cluster.push(nextNode);
+            queue.push(nextNode);
+            visited.add(nextId);
+          }
+        }
+      }
+    }
+    
+    return cluster;
+  }
+
+  private createEmergentCluster(nodes: ConceptNode[]): EmergentCluster {
+    // Calculate centroid
+    const centroid = {
+      x: nodes.reduce((sum, n) => sum + n.position.x, 0) / nodes.length,
+      y: nodes.reduce((sum, n) => sum + n.position.y, 0) / nodes.length,
+      z: nodes.reduce((sum, n) => sum + n.position.z, 0) / nodes.length
+    };
+    
+    // Generate emergent property description
+    const essences = nodes.map(n => n.essence).join(' + ');
+    const emergentProperty = `Emergent cluster: ${essences}`;
+    
+    // Calculate cluster strength
+    const averageStrength = nodes.reduce((sum, n) => sum + n.strength, 0) / nodes.length;
+    
+    return {
+      id: `cluster_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      concepts: nodes,
+      emergentProperty,
+      strength: averageStrength,
+      centroid,
+      visualProperties: {
+        boundaryColor: '#A855F7',
+        fillOpacity: 0.1,
+        pulseRate: 2000
+      }
+    };
+  }
+
+  private startAnimationLoop(): void {
+    if (this.isAnimating || !this.isBrowser) return;
+    
+    this.isAnimating = true;
+    
+    const animate = () => {
+      // Update activation wave
+      if (this.state.activationWave) {
+        this.state.activationWave.radius += 0.5;
+        this.state.activationWave.strength *= 0.95;
+        
+        if (this.state.activationWave.strength < 0.01) {
+          this.state.activationWave = null;
+        }
+      }
+      
+      // Decay node strengths gradually
+      for (const node of this.state.nodes.values()) {
+        if (node.strength > 0.1) {
+          node.strength *= 0.998;
+          node.visualProperties.glow = node.strength * 0.8;
+        }
+      }
+      
+      this.notifyUpdates();
+      
+      if (this.isAnimating && this.isBrowser) {
+        this.animationFrameId = window.requestAnimationFrame(animate);
+      }
+    };
+    
+    if (this.isBrowser) {
+      this.animationFrameId = window.requestAnimationFrame(animate);
+    }
+  }
+
+  private notifyUpdates(): void {
+    this.updateCallbacks.forEach(callback => {
+      try {
+        callback(this.getVisualizationData());
+      } catch (error) {
+        console.warn('Holographic memory update callback error:', error);
+      }
+    });
+  }
+
+  // Public method to stop animation (cleanup)
+  public destroy(): void {
+    this.isAnimating = false;
+    if (this.animationFrameId && this.isBrowser) {
+      window.cancelAnimationFrame(this.animationFrameId);
+    }
+    this.updateCallbacks.clear();
+  }
+}
+
+// Export singleton instance
+export const holographicMemory = new HolographicMemory();
+
+// Browser console access
+if (typeof window !== 'undefined') {
+  (window as any).HolographicMemory = holographicMemory;
+}
+
+console.log('🌌 Holographic Memory system ready for 3D visualization (SSR-safe)');

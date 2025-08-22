@@ -1,0 +1,170 @@
+// lib/elfin/scripts/onUpload.ts - Document Upload Orchestration Script
+import { Ghost, setLastTriggeredGhost } from '$lib/stores/ghostPersona';
+import { addConceptDiff, updateSystemEntropy } from '$lib/stores/conceptMesh';
+
+interface UploadContext {
+  file: File;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * ELFIN++ Script: onUpload
+ * Orchestrates Scholar ghost to process uploaded documents
+ * Flow: Focus → Index → EmitConcepts → UpdateThoughtspace → TriggerCognitiveEngine
+ */
+export async function onUpload(context: UploadContext): Promise<void> {
+  const { file } = context;
+  
+  console.log('📚 ELFIN++ onUpload: Scholar ghost activating for document processing');
+  
+  // 1. Retrieve Scholar ghost persona
+  const scholar = Ghost('Scholar');
+  if (!scholar) {
+    console.error('❌ Scholar ghost not available for document processing');
+    throw new Error('Scholar ghost persona not found');
+  }
+
+  try {
+    // 2. Set Scholar as the last triggered ghost
+    setLastTriggeredGhost('Scholar');
+    
+    // 3. Focus Scholar on the uploaded document
+    await scholar.focus(file);
+    
+    // 4. Scholar indexes the document into memory vault
+    const indexResult = await scholar.index();
+    
+    if (indexResult && indexResult.concepts && indexResult.concepts.length > 0) {
+      // 🧠 Log concepts being injected before adding to concept diff
+      console.log('🧠 Injecting concepts:', indexResult.concepts.map(c => c.name || c));
+      
+      // 5. Create concept diff for the memory system
+      addConceptDiff({
+        type: 'document',
+        title: file.name,
+        concepts: indexResult.concepts.map((c: any) => c.name || c),
+        summary: indexResult.summary || `Processed "${file.name}" via Scholar ghost`,
+        metadata: {
+          size: file.size,
+          type: file.type,
+          lastModified: new Date(file.lastModified),
+          processedBy: 'Scholar',
+          extractedConcepts: indexResult.concepts.length,
+          processingTime: indexResult.processingTime,
+          elfinScript: 'onUpload'
+        }
+      });
+
+      // 6. Scholar emits concepts to Thoughtspace
+      await scholar.emitConcepts(indexResult.concepts);
+      
+      // 7. Update system entropy (new knowledge reduces chaos)
+      updateSystemEntropy(-5); // New organized knowledge reduces entropy
+      
+      // ✅ CRITICAL PATCH: Dispatch tori:upload event to cognitive engine
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tori:upload', {
+          detail: {
+            filename: file.name,
+            text: (indexResult as any).text || indexResult.summary || "",
+            concepts: indexResult.concepts.map((c: any) => c.name || c),
+            source: 'scholarGhost',
+            fileSize: file.size,
+            fileType: file.type,
+            extractedAt: new Date(),
+            summary: indexResult.summary
+          }
+        }));
+        console.log('🌀 tori:upload event dispatched to cognitive engine');
+      }
+      
+      console.log('✅ ELFIN++ onUpload: Scholar successfully processed document', {
+        file: file.name,
+        conceptsFound: indexResult.concepts.length,
+        summary: indexResult.summary
+      });
+      
+    } else {
+      console.warn('⚠️ ELFIN++ onUpload: No concepts extracted from document');
+      
+      // Fallback: create basic concept diff
+      console.log('🧠 Injecting concepts:', ['Document', 'Knowledge']);
+      addConceptDiff({
+        type: 'document',
+        title: file.name,
+        concepts: ['Document', 'Knowledge'],
+        summary: `Document "${file.name}" uploaded (minimal processing)`,
+        metadata: {
+          size: file.size,
+          type: file.type,
+          lastModified: new Date(file.lastModified),
+          processedBy: 'Scholar',
+          fallbackMode: true,
+          elfinScript: 'onUpload'
+        }
+      });
+      
+      // ✅ CRITICAL PATCH: Dispatch fallback tori:upload event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tori:upload', {
+          detail: {
+            filename: file.name,
+            text: '',
+            concepts: ['Document', 'Knowledge'],
+            source: 'scholarGhost',
+            fileSize: file.size,
+            fileType: file.type,
+            extractedAt: new Date(),
+            fallbackMode: true,
+            summary: `Fallback processing for ${file.name}`
+          }
+        }));
+        console.log('🌀 Fallback tori:upload event dispatched to cognitive engine');
+      }
+    }
+    
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ ELFIN++ onUpload: Scholar processing failed:', error);
+    
+    // Create error concept diff
+    console.log('🧠 Injecting concepts:', ['Processing Error', 'Failed Upload']);
+    addConceptDiff({
+      type: 'document',
+      title: file.name,
+      concepts: ['Processing Error', 'Failed Upload'],
+      summary: `Failed to process "${file.name}": ${msg}`,
+      metadata: {
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified),
+        processedBy: 'Scholar',
+        error: msg,
+        elfinScript: 'onUpload'
+      }
+    });
+    
+    // ✅ CRITICAL PATCH: Dispatch error tori:upload event
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tori:upload', {
+        detail: {
+          filename: file.name,
+          text: '',
+          concepts: ['Processing Error', 'Failed Upload'],
+          source: 'scholarGhost',
+          fileSize: file.size,
+          fileType: file.type,
+          extractedAt: new Date(),
+          error: msg,
+          fallbackMode: true,
+          summary: `Error processing ${file.name}: ${msg}`
+        }
+      }));
+      console.log('🌀 Error tori:upload event dispatched to cognitive engine');
+    }
+    
+    throw error;
+  }
+}
+
+console.log('📚 ELFIN++ onUpload script loaded with cognitive engine integration');

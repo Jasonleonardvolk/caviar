@@ -1,0 +1,9 @@
+{
+  "name": "FresnelRim",
+  "params": {
+    "bias": 0.1,
+    "scale": 1.6,
+    "power": 2.0
+  },
+  "blend": "add"
+}

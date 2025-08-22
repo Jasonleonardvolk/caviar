@@ -1,0 +1,22 @@
+{
+  "name": "EdgeGlow",
+  "passes": [
+    {
+      "type": "sobel",
+      "strength": 1.0
+    },
+    {
+      "type": "threshold",
+      "t": 0.62
+    },
+    {
+      "type": "gaussian_blur",
+      "sigma": 2.5,
+      "iterations": 2
+    },
+    {
+      "type": "add",
+      "gain": 1.25
+    }
+  ]
+}

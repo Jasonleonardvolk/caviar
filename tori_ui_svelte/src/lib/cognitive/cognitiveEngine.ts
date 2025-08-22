@@ -1,0 +1,594 @@
+// Enhanced cognitive engine with all symbolic loop processing capabilities
+import { cognitiveState, updateCognitiveState, CognitiveThresholds } from './cognitiveState';
+import { contradictionMonitor } from './contradictionMonitor';
+import { phaseController } from './phaseController';
+// import type { LoopRecord } from './loopRecord'; // TEMPORARILY DISABLED - CACHE ISSUES
+import { closureGuard } from './closureGuard';
+import type { ClosureResult, FeedbackOptions } from './closureGuard';
+// import { braidMemory } from './braidMemory'; // TEMPORARILY DISABLED - CACHE ISSUES
+// import { NoveltyGlyph } from './loopRecord'; // TEMPORARILY DISABLED - CACHE ISSUES
+import { addConceptDiff } from '$lib/stores/conceptMesh';
+import { get } from 'svelte/store';
+
+// TEMPORARY LOCAL TYPE DEFINITIONS TO BYPASS CACHE ISSUES
+interface LoopRecord {
+  id: string;
+  prompt: string;
+  glyphPath: string[];
+  phaseTrace: number[];
+  coherenceTrace: number[];
+  contradictionTrace: number[];
+  returnGlyph?: string;
+  closed: boolean;
+  scarFlag: boolean;
+  timestamp: Date;
+  processingTime: number;
+  coreGlyphs?: string[];
+  cInfinity?: number;
+  digest?: string;
+  reentryCount?: number;
+  memoryEchoFlag?: boolean;
+  crossingRefs?: string[];
+  metadata?: {
+    createdByPersona?: string;
+    scriptId?: string;
+    conceptFootprint?: string[];
+    phaseGateHits?: string[];
+    contradictionPeaks?: number[];
+    coherenceGains?: Array<{
+      glyphIndex: number;
+      deltaC: number;
+    }>;
+    [key: string]: any;
+  };
+}
+
+type NoveltyGlyph = 'interruptor' | 'scar-sealer' | 'intent-bifurcation' | 'meta-echo:reflect' | 'phase-drift' | 'paradox-embrace' | 'coherence-boost' | 'memory-anchor';
+
+export interface CognitiveEngineConfig {
+  enablePhaseGating: boolean;
+  enableBraidMemory: boolean;
+  enableNoveltyInjection: boolean;
+  enableClosureGuarding: boolean;
+  maxLoopDepth: number;
+  contradictionThreshold: number;
+  coherenceThreshold: number;
+  enablePersonaSwapping: boolean;
+  enableMemoryEchoPrevention: boolean;
+}
+
+const DEFAULT_CONFIG: CognitiveEngineConfig = {
+  enablePhaseGating: true,
+  enableBraidMemory: true,
+  enableNoveltyInjection: true,
+  enableClosureGuarding: true,
+  maxLoopDepth: 10,
+  contradictionThreshold: CognitiveThresholds.PI_HIGH,
+  coherenceThreshold: CognitiveThresholds.COHERENCE_MIN,
+  enablePersonaSwapping: true,
+  enableMemoryEchoPrevention: true
+};
+
+export class CognitiveEngine {
+  private config: CognitiveEngineConfig;
+  private activeLoops = new Map<string, LoopRecord>();
+  private loopCounter = 0;
+
+  constructor(config: Partial<CognitiveEngineConfig> = {}) {
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    console.log('🧠 CognitiveEngine initialized with config:', this.config);
+    
+    // Set up event listeners for automatic processing
+    this.setupEventListeners();
+  }
+
+  /**
+   * Process a symbolic loop end-to-end
+   */
+  async processSymbolicLoop(
+    prompt: string,
+    glyphPath: string[],
+    metadata?: Partial<LoopRecord['metadata']>
+  ): Promise<LoopRecord> {
+    const loopId = `L${++this.loopCounter}_${Date.now()}`;
+    const startTime = Date.now();
+    
+    console.log(`🧠 Processing symbolic loop ${loopId}: "${prompt}"`);
+    
+    // Initialize loop record
+    const loop: LoopRecord = {
+      id: loopId,
+      prompt,
+      glyphPath,
+      phaseTrace: [],
+      coherenceTrace: [],
+      contradictionTrace: [],
+      closed: false,
+      scarFlag: false,
+      timestamp: new Date(),
+      processingTime: 0,
+      metadata: {
+        scriptId: metadata?.scriptId || 'manual',
+        createdByPersona: metadata?.createdByPersona || 'default',
+        conceptFootprint: metadata?.conceptFootprint || [],
+        phaseGateHits: [],
+        contradictionPeaks: [],
+        coherenceGains: [],
+        ...metadata
+      }
+    };
+    
+    // Store as active loop
+    this.activeLoops.set(loopId, loop);
+    updateCognitiveState({ activeLoopId: loopId, loopDepth: this.activeLoops.size });
+    
+    try {
+      // Process each glyph in the path
+      for (let i = 0; i < glyphPath.length; i++) {
+        const glyph = glyphPath[i];
+        console.log(`🔄 Processing glyph ${i + 1}/${glyphPath.length}: "${glyph}"`);
+        
+        // Record current state metrics
+        const state = get(cognitiveState);
+        loop.phaseTrace.push(state.phasePhi);
+        loop.coherenceTrace.push(state.coherenceC);
+        loop.contradictionTrace.push(state.contradictionPi);
+        
+        // Check for phase gate alignment
+        if (this.config.enablePhaseGating && phaseController.inGate('processing')) {
+          loop.metadata!.phaseGateHits!.push(`processing_${i}`);
+          console.log(`⭕ Phase gate hit at glyph ${i}`);
+        }
+        
+        // Process the glyph symbolically
+        await this.processGlyph(loop, glyph, i);
+        
+        // Check for contradiction spikes
+        if (state.contradictionPi > this.config.contradictionThreshold) {
+          loop.metadata!.contradictionPeaks!.push(i);
+          console.log(`⚠️ Contradiction spike at glyph ${i}: ${state.contradictionPi.toFixed(3)}`);
+        }
+        
+        // Emergency brake if loop gets too deep or unstable
+        if (this.shouldAbortLoop(loop, state)) {
+          console.log(`🚨 Emergency abort for loop ${loopId}`);
+          loop.scarFlag = true;
+          break;
+        }
+      }
+      
+      // Attempt loop closure
+      await this.attemptLoopClosure(loop);
+      
+      // ✅ CRITICAL PATCH: Add LoopRecord to ConceptMesh after successful processing
+      if (loop.closed && !loop.scarFlag) {
+        addConceptDiff({
+          type: 'memory',
+          title: `Loop: ${loop.prompt}`,
+          concepts: loop.metadata?.conceptFootprint || ['Symbolic Processing', 'Cognitive Loop'],
+          summary: `LoopRecord ${loop.id} completed successfully (${loop.glyphPath.length} glyphs)`,
+          metadata: {
+            loopId: loop.id,
+            processedBy: 'cognitiveEngine',
+            glyphPath: loop.glyphPath,
+            closed: loop.closed,
+            scarFlag: loop.scarFlag,
+            processingTime: loop.processingTime,
+            coherenceGains: loop.metadata?.coherenceGains?.length || 0,
+            contradictionPeaks: loop.metadata?.contradictionPeaks?.length || 0,
+            phaseGateHits: loop.metadata?.phaseGateHits?.length || 0
+          }
+        });
+        console.log(`🗂️ LoopRecord ${loop.id} added to ConceptMesh`);
+      }
+      
+      // Archive to braid memory if enabled
+      if (this.config.enableBraidMemory) {
+        // braidMemory.archiveLoop(loop); // DISABLED - CACHE ISSUES
+        console.log('📚 Would archive to braid memory (disabled)');
+      }
+      
+    } catch (error: any) {
+      console.error(`❌ Error processing loop ${loopId}:`, error);
+      loop.scarFlag = true;
+    } finally {
+      // Clean up
+      loop.processingTime = Date.now() - startTime;
+      this.activeLoops.delete(loopId);
+      updateCognitiveState({ 
+        activeLoopId: this.activeLoops.size > 0 ? Array.from(this.activeLoops.keys())[0] : null,
+        loopDepth: this.activeLoops.size 
+      });
+      
+      console.log(`✅ Loop ${loopId} completed in ${loop.processingTime}ms (closed: ${loop.closed}, scarred: ${loop.scarFlag})`);
+    }
+    
+    return loop;
+  }
+
+  /**
+   * Process a single glyph symbolically
+   */
+  private async processGlyph(loop: LoopRecord, glyph: string, index: number): Promise<void> {
+    // Simulate symbolic processing based on glyph type
+    const state = get(cognitiveState);
+    let coherenceDelta = 0;
+    let contradictionDelta = 0;
+    
+    // Glyph-specific processing
+    switch (glyph) {
+      case 'anchor':
+        coherenceDelta = 0.1;
+        contradictionDelta = -0.05;
+        break;
+        
+      case 'scar-repair':
+        coherenceDelta = 0.15;
+        contradictionDelta = -0.2;
+        break;
+        
+      case 'intent-bifurcation':
+        coherenceDelta = -0.05;
+        contradictionDelta = 0.1;
+        break;
+        
+      case 'meta-echo:reflect':
+        coherenceDelta = 0.2;
+        contradictionDelta = -0.1;
+        break;
+        
+      case 'return':
+        coherenceDelta = 0.3;
+        contradictionDelta = -0.15;
+        loop.returnGlyph = glyph;
+        break;
+        
+      default:
+        // Generic processing
+        coherenceDelta = Math.random() * 0.1 - 0.05;
+        contradictionDelta = Math.random() * 0.08 - 0.04;
+    }
+    
+    // Apply changes to cognitive state
+    const newCoherence = Math.max(0, Math.min(1, state.coherenceC + coherenceDelta));
+    const newContradiction = Math.max(0, Math.min(1, state.contradictionPi + contradictionDelta));
+    
+    updateCognitiveState({
+      coherenceC: newCoherence,
+      contradictionPi: newContradiction
+    });
+    
+    // Track significant coherence gains
+    if (coherenceDelta > 0.1) {
+      loop.metadata!.coherenceGains!.push({
+        glyphIndex: index,
+        deltaC: coherenceDelta
+      });
+    }
+    
+    // Check for memory echo patterns if enabled
+    if (this.config.enableMemoryEchoPrevention) {
+      await this.checkForMemoryEcho(loop);
+    }
+    
+    // Small delay to simulate processing
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+
+  /**
+   * Check for memory echo patterns and suggest novelty injection
+   */
+  private async checkForMemoryEcho(loop: LoopRecord): Promise<void> {
+    if (!this.config.enableNoveltyInjection) return;
+    
+    // Simplified digest computation (normally would use braidMemory)
+    const simpleDigest = loop.prompt.toLowerCase().replace(/[^a-z]/g, '').substring(0, 8);
+    
+    // Simulate reentry count (normally would query braidMemory)
+    const reentryCount = Math.floor(Math.random() * 5) + 1;
+    
+    if (reentryCount >= 3) {
+      // Get state for novelty selection
+      const state = get(cognitiveState);
+      
+      // Get suggested novelty glyph
+      const noveltyGlyph = this.selectNoveltyGlyph(
+        reentryCount,
+        state.contradictionPi,
+        state.coherenceC,
+        state.scarCount
+      );
+      
+      if (noveltyGlyph) {
+        console.log(`💡 Suggesting novelty glyph: ${noveltyGlyph} for reentry optimization`);
+        
+        // Emit novelty suggestion event
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tori:cognitive:novelty-suggested', {
+            detail: {
+              digest: simpleDigest,
+              count: reentryCount,
+              noveltyGlyph,
+              loop: loop.id
+            }
+          }));
+        }
+        
+        // Auto-inject novelty if configured
+        this.injectNoveltyGlyph(noveltyGlyph, `Reentry optimization for digest ${simpleDigest}`);
+      }
+    }
+  }
+
+  /**
+   * Simple novelty glyph selection
+   */
+  private selectNoveltyGlyph(
+    reentryCount: number,
+    contradictionLevel: number,
+    coherenceLevel: number,
+    scarCount: number
+  ): NoveltyGlyph {
+    if (contradictionLevel > 0.7) {
+      return scarCount > 2 ? 'scar-sealer' : 'paradox-embrace';
+    }
+    
+    if (coherenceLevel < 0.3) {
+      return 'coherence-boost';
+    }
+    
+    if (reentryCount >= 5) {
+      return 'meta-echo:reflect';
+    }
+    
+    if (reentryCount >= 4) {
+      return 'intent-bifurcation';
+    }
+    
+    return 'interruptor';
+  }
+
+  /**
+   * Inject a novelty glyph to break repetitive patterns
+   */
+  private async injectNoveltyGlyph(glyph: NoveltyGlyph, reason: string): Promise<void> {
+    console.log(`💡 Injecting novelty glyph: ${glyph} (${reason})`);
+    
+    // Emit novelty injection event
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tori:cognitive:novelty-injected', {
+        detail: { glyph, reason, timestamp: new Date() }
+      }));
+    }
+    
+    // Apply novelty effect to cognitive state
+    const state = get(cognitiveState);
+    let coherenceBoost = 0;
+    let contradictionReduction = 0;
+    
+    switch (glyph) {
+      case 'interruptor':
+        coherenceBoost = 0.1;
+        contradictionReduction = 0.05;
+        break;
+      case 'scar-sealer':
+        coherenceBoost = 0.2;
+        contradictionReduction = 0.3;
+        break;
+      case 'coherence-boost':
+        coherenceBoost = 0.25;
+        break;
+      case 'meta-echo:reflect':
+        coherenceBoost = 0.15;
+        contradictionReduction = 0.1;
+        break;
+      default:
+        coherenceBoost = 0.05;
+        contradictionReduction = 0.02;
+    }
+    
+    updateCognitiveState({
+      coherenceC: Math.min(1, state.coherenceC + coherenceBoost),
+      contradictionPi: Math.max(0, state.contradictionPi - contradictionReduction)
+    });
+  }
+
+  /**
+   * Determine if a loop should be aborted due to instability
+   */
+  private shouldAbortLoop(loop: LoopRecord, state: any): boolean {
+    // Too deep
+    if (loop.glyphPath.length > this.config.maxLoopDepth) {
+      return true;
+    }
+    
+    // Critical contradiction
+    if (state.contradictionPi > CognitiveThresholds.PI_CRITICAL) {
+      return true;
+    }
+    
+    // Critical volatility
+    if (state.volatilitySigma > CognitiveThresholds.SIGMA_CRITICAL) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Attempt to close a loop using closure guard
+   */
+  private async attemptLoopClosure(loop: LoopRecord): Promise<void> {
+    if (!this.config.enableClosureGuarding) {
+      loop.closed = true;
+      return;
+    }
+    
+    try {
+      const closureResult = closureGuard.attemptFeedbackClosure(loop, {
+        minimumCoherence: this.config.coherenceThreshold,
+        maximumContradiction: this.config.contradictionThreshold
+      });
+      
+      if (closureResult.allowed) {
+        loop.closed = true;
+        loop.returnGlyph = loop.returnGlyph || 'return';
+        console.log(`✅ Loop ${loop.id} closed successfully`);
+        
+        // Deliver feedback
+        await closureGuard.deliverFeedback({
+          loopId: loop.id,
+          result: 'success',
+          coherence: loop.coherenceTrace[loop.coherenceTrace.length - 1] || 0,
+          timestamp: new Date()
+        }, closureResult);
+        
+      } else {
+        console.log(`⏳ Loop ${loop.id} closure deferred: ${closureResult.reason}`);
+        
+        if (closureResult.action === 'abort') {
+          loop.scarFlag = true;
+        }
+      }
+    } catch (error: any) {
+      console.error(`❌ Error during closure attempt for loop ${loop.id}:`, error);
+      loop.scarFlag = true;
+    }
+  }
+
+  /**
+   * Set up event listeners for automatic processing
+   */
+  private setupEventListeners(): void {
+    if (typeof window === 'undefined') return;
+    
+    // ✅ CRITICAL PATCH: Listen for tori:upload events and add concepts to ConceptMesh
+    window.addEventListener('tori:upload', async (event: any) => {
+      const { filename, text, concepts, source } = event.detail;
+      console.log(`📚 Auto-processing upload: ${filename}`);
+      
+      // Only add to ConceptMesh if NOT from scholarGhost (avoid duplicates)
+      if (source !== 'scholarGhost') {
+        addConceptDiff({
+          type: 'document',
+          title: filename,
+          concepts: concepts || ['Document Processing'],
+          summary: `Processed "${filename}" (${concepts?.length || 0} concepts)`,
+          metadata: {
+            processedBy: 'auto_upload_processor',
+            uploadTimestamp: new Date(),
+            textLength: text?.length || 0,
+            source: source || 'unknown'
+          }
+        });
+        console.log(`🗂️ ConceptMesh updated with upload: ${filename}`);
+      }
+      
+      // Generate symbolic glyph path from upload
+      const glyphPath = this.generateGlyphPathFromUpload(text, concepts);
+      
+      // Process as symbolic loop
+      await this.processSymbolicLoop(
+        `Document upload: ${filename}`,
+        glyphPath,
+        {
+          scriptId: 'auto_upload_processor',
+          conceptFootprint: concepts || [],
+          createdByPersona: 'document_processor'
+        }
+      );
+    });
+    
+    // Listen for manual cognitive processing requests
+    window.addEventListener('tori:cognitive:process', async (event: any) => {
+      const { prompt, glyphPath, metadata } = event.detail;
+      await this.processSymbolicLoop(prompt, glyphPath, metadata);
+    });
+  }
+
+  /**
+   * Generate a symbolic glyph path from uploaded content
+   */
+  private generateGlyphPathFromUpload(text: string, concepts: string[]): string[] {
+    const glyphs: string[] = ['anchor']; // Start with anchor
+    
+    // Add processing glyphs based on content characteristics
+    if (text && text.length > 1000) {
+      glyphs.push('complexity-handler');
+    }
+    
+    if (concepts && concepts.length > 5) {
+      glyphs.push('concept-synthesizer');
+    }
+    
+    // Add concept-specific glyphs
+    if (concepts) {
+      concepts.forEach(concept => {
+        if (concept.toLowerCase().includes('error') || concept.toLowerCase().includes('problem')) {
+          glyphs.push('scar-repair');
+        } else if (concept.toLowerCase().includes('new') || concept.toLowerCase().includes('novel')) {
+          glyphs.push('novelty-detector');
+        }
+      });
+    }
+    
+    // End with return attempt
+    glyphs.push('return');
+    
+    return glyphs;
+  }
+
+  /**
+   * Export full cognitive state for debugging
+   */
+  exportCognitiveState(): object {
+    const state = get(cognitiveState);
+    
+    return {
+      config: this.config,
+      currentState: state,
+      activeLoops: Array.from(this.activeLoops.entries()),
+      loopCounter: this.loopCounter,
+      systemMetrics: {
+        contradictionLevel: contradictionMonitor.getPi(),
+        phaseGateStatus: phaseController.getPhase(),
+        closureGuardDiagnostics: closureGuard.getDiagnostics()
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Get current cognitive engine statistics
+   */
+  getStats(): object {
+    const state = get(cognitiveState);
+    
+    return {
+      activeLoops: this.activeLoops.size,
+      totalProcessed: this.loopCounter,
+      currentCoherence: state.coherenceC,
+      currentContradiction: state.contradictionPi,
+      currentPhase: state.phasePhi,
+      scarCount: state.scarCount,
+      engineReady: true,
+      timestamp: Date.now()
+    };
+  }
+
+  /**
+   * Manual trigger for processing a symbolic sequence
+   */
+  async triggerManualProcessing(prompt: string, glyphSequence: string[]): Promise<LoopRecord> {
+    console.log(`🔧 Manual cognitive processing triggered: "${prompt}"`);
+    return await this.processSymbolicLoop(prompt, glyphSequence, {
+      scriptId: 'manual_trigger',
+      createdByPersona: 'user'
+    });
+  }
+}
+
+// Singleton instance for global access
+export const cognitiveEngine = new CognitiveEngine();
+
+console.log('🧠 Enhanced CognitiveEngine ready for symbolic loop processing with ConceptMesh integration');

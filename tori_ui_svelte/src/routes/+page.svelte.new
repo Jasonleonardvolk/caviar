@@ -1,0 +1,277 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  
+  let videoPlaying = false;
+  
+  function navigateToHologram() {
+    goto('/hologram-studio');
+  }
+  
+  function navigateToPricing() {
+    goto('/pricing');
+  }
+</script>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .hero-title {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #00ff88, #00ccff, #ff00ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .hero-subtitle {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: #a0a0a0;
+    margin-bottom: 3rem;
+    max-width: 800px;
+  }
+  
+  .cta-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4rem;
+  }
+  
+  .btn {
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981, #00ff88);
+    color: #000;
+  }
+  
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.4);
+  }
+  
+  .btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid #10b981;
+  }
+  
+  .btn-secondary:hover {
+    background: #10b981;
+    color: #000;
+    transform: scale(1.05);
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+  }
+  
+  .feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    border-color: #10b981;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+  }
+  
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #10b981;
+  }
+  
+  .feature-desc {
+    color: #a0a0a0;
+    line-height: 1.6;
+  }
+  
+  .video-preview {
+    max-width: 800px;
+    margin: 3rem auto;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  .video-preview video {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .launch-banner {
+    background: linear-gradient(90deg, #ff00ff, #00ccff);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 700;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.9; }
+  }
+  
+  .social-proof {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 20px;
+    max-width: 800px;
+  }
+  
+  .testimonial {
+    font-style: italic;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .author {
+    color: #10b981;
+    font-weight: 700;
+  }
+  
+  @media (max-width: 768px) {
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .btn {
+      width: 100%;
+      max-width: 300px;
+    }
+  }
+</style>
+
+<!-- Launch Banner -->
+<div class="launch-banner">
+  🚀 #HologramDrop LIVE - Post your creation today for 1-year Pro access!
+</div>
+
+<!-- Hero Section -->
+<section class="hero">
+  <h1 class="hero-title">
+    Make 'hologram' videos<br/>brands pay for.
+  </h1>
+  
+  <p class="hero-subtitle">
+    Physics-native looks. 10s Free exports. Upgrade for 60s & no watermark.
+  </p>
+  
+  <div class="cta-buttons">
+    <button class="btn btn-primary" on:click={navigateToHologram}>
+      <span>⚡</span> Try Free
+    </button>
+    <button class="btn btn-secondary" on:click={navigateToPricing}>
+      <span>🚀</span> Get Plus
+    </button>
+  </div>
+  
+  <!-- Video Preview -->
+  {#if !videoPlaying}
+    <div class="video-preview" on:click={() => videoPlaying = true}>
+      <img src="/preview-thumbnail.jpg" alt="iRis Demo" style="width: 100%; cursor: pointer;">
+    </div>
+  {:else}
+    <div class="video-preview">
+      <video controls autoplay>
+        <source src="/showcase/B_how_to_60s.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  {/if}
+  
+  <!-- Features Grid -->
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">👑</div>
+      <h3 class="feature-title">Ownable Masters</h3>
+      <p class="feature-desc">
+        You own every pixel. No platform lock-in. Export to any format, post anywhere, sell to anyone.
+      </p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <h3 class="feature-title">Export Anywhere</h3>
+      <p class="feature-desc">
+        WebM, MP4, ProRes. From Instagram Reels to cinema screens. Your hologram, your rules.
+      </p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3 class="feature-title">Weekly Templates</h3>
+      <p class="feature-desc">
+        New physics presets drop every week. From neon plasma to quantum interference patterns.
+      </p>
+    </div>
+  </div>
+  
+  <!-- Social Proof -->
+  <div class="social-proof">
+    <p class="testimonial">
+      "We killed the 45° glass. You can't mix two light fields without optics—but you can make footage that looks like you did."
+    </p>
+    <p class="author">— iRis Team</p>
+  </div>
+  
+  <!-- Final CTA -->
+  <div class="cta-buttons">
+    <button class="btn btn-primary" on:click={navigateToHologram}>
+      Start Creating Now →
+    </button>
+  </div>
+</section>

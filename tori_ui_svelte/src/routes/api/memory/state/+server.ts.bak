@@ -1,0 +1,134 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+
+/**
+ * GET /api/memory/state
+ * Returns the current memory system state including Soliton engine status
+ */
+export const GET: RequestHandler = async ({ locals, request }) => {
+  const userId = locals.user?.id || request.headers.get('X-User-Id');
+  
+  if (!userId) {
+    return json({
+      success: false,
+      error: 'User ID required'
+    }, { status: 401 });
+  }
+  
+  try {
+    // Try to fetch memory state from backend
+    const response = await fetch(`${BACKEND_URL}/api/memory/state/${userId}`, {
+      headers: {
+        'X-User-Id': userId,
+        'X-Request-Source': 'svelte-ui'
+      }
+    });
+    
+    if (response.ok) {
+      const backendState = await response.json();
+      
+      // Enhance with frontend-specific metadata
+      return json({
+        success: true,
+        memoryState: {
+          ...backendState,
+          engineHealth: {
+            success: true,
+            backend: 'soliton',
+            timestamp: new Date().toISOString()
+          },
+          capabilities: {
+            perfectRecall: true,
+            phaseBasedRetrieval: true,
+            memoryVaulting: true,
+            noDegradation: true,
+            infiniteContext: true,
+            pdfPhaseMapping: true,
+            ...backendState.capabilities
+          },
+          architecture: 'ConceptMesh with Soliton Memory Engine',
+          pdfIngestion: backendState.pdfIngestion || {
+            totalUploads: 0,
+            totalConcepts: 0,
+            conceptPhaseRegistry: 0,
+            averageConceptsPerFile: 0
+          }
+        }
+      });
+    } else {
+      // Backend unavailable, return degraded state
+      console.error('Memory state backend error:', response.status);
+      
+      return json({
+        success: true,
+        memoryState: {
+          engineHealth: {
+            success: false,
+            backend: 'unavailable',
+            error: `Backend returned ${response.status}`,
+            timestamp: new Date().toISOString()
+          },
+          capabilities: {
+            perfectRecall: false,
+            phaseBasedRetrieval: false,
+            memoryVaulting: false,
+            noDegradation: false,
+            infiniteContext: false,
+            pdfPhaseMapping: false
+          },
+          architecture: 'ConceptMesh (Soliton offline)',
+          solitonMemory: {
+            totalMemories: 0,
+            activeWaves: 0,
+            averageStrength: 0,
+            clusterCount: 0
+          },
+          pdfIngestion: {
+            totalUploads: 0,
+            totalConcepts: 0,
+            conceptPhaseRegistry: 0,
+            averageConceptsPerFile: 0
+          }
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Memory state fetch error:', error);
+    
+    // Return minimal state on complete failure
+    return json({
+      success: true,
+      memoryState: {
+        engineHealth: {
+          success: false,
+          backend: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        },
+        capabilities: {
+          perfectRecall: false,
+          phaseBasedRetrieval: false,
+          memoryVaulting: false,
+          noDegradation: false,
+          infiniteContext: false,
+          pdfPhaseMapping: false
+        },
+        architecture: 'ConceptMesh (Error)',
+        solitonMemory: {
+          totalMemories: 0,
+          activeWaves: 0,
+          averageStrength: 0,
+          clusterCount: 0
+        },
+        pdfIngestion: {
+          totalUploads: 0,
+          totalConcepts: 0,
+          conceptPhaseRegistry: 0,
+          averageConceptsPerFile: 0
+        }
+      }
+    });
+  }
+};

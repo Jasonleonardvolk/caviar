@@ -1,0 +1,47 @@
+[
+  {
+    "id": "cgtrader_generic_sneaker",
+    "category": "sneakers",
+    "brandless": true,
+    "license": "royalty-free",
+    "source": "cgtrader",
+    "source_url": "https://www.cgtrader.com/free-3d-models/sports/equipment/sneaker",
+    "raw": "assets/3d/luxury/sneakers/free/cgtrader_generic_sneaker/raw/model.gltf",
+    "opt": "assets/3d/luxury/sneakers/free/cgtrader_generic_sneaker/opt/model.draco.glb",
+    "polycount_hint": 15000,
+    "units": "meters",
+    "scale_m": 0.28,
+    "centered": true,
+    "pivot": "base"
+  },
+  {
+    "id": "skfb_lowpoly_watch",
+    "category": "watches",
+    "brandless": true,
+    "license": "CC-BY-4.0",
+    "source": "sketchfab",
+    "source_url": "https://sketchfab.com/3d-models/low-poly-watch-85e3fe10d5e9411fbcd409f7eab6524f",
+    "raw": "assets/3d/luxury/watches/free/sketchfab_lowpoly_watch/raw/model.gltf",
+    "opt": "assets/3d/luxury/watches/free/sketchfab_lowpoly_watch/opt/model.meshopt.glb",
+    "polycount_hint": 1700,
+    "units": "meters",
+    "scale_m": 0.045,
+    "centered": true,
+    "pivot": "base"
+  },
+  {
+    "id": "skfb_perfume_bottle",
+    "category": "perfume",
+    "brandless": true,
+    "license": "CC-BY-4.0",
+    "source": "sketchfab",
+    "source_url": "https://sketchfab.com/3d-models/3d-perfume-bottle-for-product-visualizations-6e58cd19fb4f49829411c7f97df14f6e",
+    "raw": "assets/3d/luxury/perfume/free/sketchfab_perfume_bottle/raw/model.gltf",
+    "opt": "assets/3d/luxury/perfume/free/sketchfab_perfume_bottle/opt/model.draco.glb",
+    "polycount_hint": 25000,
+    "units": "meters",
+    "scale_m": 0.18,
+    "centered": true,
+    "pivot": "base"
+  }
+]

@@ -1,0 +1,10 @@
+// src/lib/server/auth.ts
+export function requireApiKey(request: Request) {
+  const expected = process.env.INTERNAL_API_KEY;
+  if (!expected) return null; // no key set -> allow (dev)
+  const got = request.headers.get('x-api-key');
+  if (got !== expected) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+  return null;
+}

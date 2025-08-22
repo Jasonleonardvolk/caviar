@@ -1,0 +1,498 @@
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { RealGhostEngine } from '$lib/realGhostEngine.js';
+  import { ghostPersona } from '$lib/stores/ghostPersona';
+  import { get } from 'svelte/store';
+  
+  // Props with proper defaults
+  export let width = 320;
+  export let height = 240;
+  export let usePenrose = false;
+  export let showStats = true;
+  export let enableVideo = false;
+  export let videoSource: 'webcam' | 'file' | 'stream' = 'webcam';
+  
+  // Internal state
+  let canvas: HTMLCanvasElement;
+  let video: HTMLVideoElement;
+  let animationFrame: number;
+  let fps = 0;
+  let complexity = 'O(n)';
+  let time = 0;
+  let videoReady = false;
+  let isInitialized = false;
+  let error = '';
+  let ghostEngine: RealGhostEngine | null = null;
+  let currentPersona: any = null;
+  let engineCapabilities: string[] = [];
+  let hasWebGPU = false;
+  let usingFallback = false;
+  
+  // Frame tracking for stats
+  let lastFrameTime = performance.now();
+  let frameCount = 0;
+  
+  // Subscribe to persona changes
+  $: if (ghostEngine && $ghostPersona && $ghostPersona.id !== currentPersona?.id) {
+    console.log('Switching hologram to:', $ghostPersona.name);
+    currentPersona = $ghostPersona;
+    updatePersonaHologram();
+  }
+  
+  // Check WebGPU support
+  async function checkWebGPUSupport(): Promise<boolean> {
+    if (!navigator.gpu) {
+      console.warn('WebGPU not supported in this browser');
+      return false;
+    }
+    
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) {
+        console.warn('No WebGPU adapter available');
+        return false;
+      }
+      
+      const device = await adapter.requestDevice();
+      if (!device) {
+        console.warn('Could not create WebGPU device');
+        return false;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('WebGPU initialization error:', err);
+      return false;
+    }
+  }
+  
+  // Initialize holographic display
+  async function initializeDisplay() {
+    try {
+      // Check WebGPU support first
+      hasWebGPU = await checkWebGPUSupport();
+      
+      if (!hasWebGPU && !usePenrose) {
+        console.warn('WebGPU not available, using fallback renderer');
+        usingFallback = true;
+      }
+      
+      // Get current persona from store
+      const initialPersona = get(ghostPersona);
+      currentPersona = initialPersona;
+      
+      console.log('Initializing hologram with persona:', initialPersona?.name);
+      
+      // Create Ghost Engine instance
+      ghostEngine = new RealGhostEngine();
+      
+      // Initialize with configuration
+      const config = {
+        displayType: hasWebGPU ? 'webgpu_only' : 'canvas_fallback',
+        width,
+        height,
+        usePenrose,
+        enableConceptMesh: true,
+        personaData: currentPersona,
+        apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8002'
+      };
+      
+      const result = await ghostEngine.initialize(canvas, config);
+      
+      if (result.success) {
+        isInitialized = true;
+        engineCapabilities = result.capabilities || [];
+        
+        // Start render loop
+        startRenderLoop();
+        
+        // Connect to SSE if available
+        if (ghostEngine.connectSSE) {
+          await ghostEngine.connectSSE();
+        }
+      } else {
+        throw new Error(result.error || 'Failed to initialize engine');
+      }
+    } catch (err) {
+      console.error('Display initialization failed:', err);
+      error = err instanceof Error ? err.message : 'Unknown error';
+      isInitialized = false;
+    }
+  }
+  
+  // Update hologram for persona change
+  async function updatePersonaHologram() {
+    if (!ghostEngine || !currentPersona) return;
+    
+    try {
+      // Update the hologram with new persona data
+      await ghostEngine.updatePersona(currentPersona);
+      
+      // Trigger a re-render
+      if (ghostEngine.render) {
+        ghostEngine.render();
+      }
+    } catch (err) {
+      console.error('Failed to update persona hologram:', err);
+    }
+  }
+  
+  // Initialize video if enabled
+  async function initializeVideo() {
+    if (!enableVideo || !video) return;
+    
+    try {
+      if (videoSource === 'webcam') {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width, height } 
+        });
+        video.srcObject = stream;
+      }
+      
+      await video.play();
+      videoReady = true;
+    } catch (err) {
+      console.error('Video initialization failed:', err);
+      videoReady = false;
+    }
+  }
+  
+  // Render loop
+  function startRenderLoop() {
+    function animate() {
+      if (!isInitialized || !ghostEngine) return;
+      
+      // Update stats
+      const currentTime = performance.now();
+      const deltaTime = currentTime - lastFrameTime;
+      frameCount++;
+      
+      if (frameCount % 60 === 0) {
+        fps = Math.round(1000 / deltaTime);
+        frameCount = 0;
+      }
+      
+      lastFrameTime = currentTime;
+      time += deltaTime * 0.001;
+      
+      // Update complexity based on actual workload
+      if (usingFallback) {
+        complexity = 'O(n)';
+      } else if (usePenrose) {
+        complexity = 'O(n log n)';
+      } else {
+        complexity = 'O(n^2)';
+      }
+      
+      // Render frame
+      if (ghostEngine.render) {
+        ghostEngine.render(time, deltaTime);
+      }
+      
+      // Continue loop
+      animationFrame = requestAnimationFrame(animate);
+    }
+    
+    animate();
+  }
+  
+  // Cleanup
+  function cleanup() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    
+    if (ghostEngine) {
+      if (ghostEngine.destroy) {
+        ghostEngine.destroy();
+      }
+      ghostEngine = null;
+    }
+    
+    if (video && video.srcObject) {
+      const stream = video.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
+  }
+  
+  // Lifecycle
+  onMount(async () => {
+    await initializeDisplay();
+    
+    if (enableVideo) {
+      await initializeVideo();
+    }
+  });
+  
+  onDestroy(() => {
+    cleanup();
+  });
+  
+  // Keyboard handlers for accessibility
+  function handleKeyDown(event: KeyboardEvent) {
+    switch (event.key) {
+      case 's':
+      case 'S':
+        showStats = !showStats;
+        break;
+      case 'p':
+      case 'P':
+        usePenrose = !usePenrose;
+        if (ghostEngine && ghostEngine.togglePenrose) {
+          ghostEngine.togglePenrose(usePenrose);
+        }
+        break;
+      case 'Escape':
+        cleanup();
+        break;
+    }
+  }
+</script>
+
+<div 
+  class="holographic-display"
+  in:fade={{ duration: 300 }}
+  role="application"
+  aria-label="Holographic Display Renderer"
+  on:keydown={handleKeyDown}
+  tabindex="0"
+>
+  {#if error}
+    <div class="error-overlay" role="alert">
+      <div class="error-content">
+        <h3>Display Error</h3>
+        <p>{error}</p>
+        {#if usingFallback}
+          <p class="fallback-notice">Using fallback renderer (WebGPU not available)</p>
+        {/if}
+      </div>
+    </div>
+  {/if}
+  
+  <div class="display-container">
+    <canvas 
+      bind:this={canvas}
+      {width} 
+      {height}
+      class="hologram-canvas"
+      aria-label="Holographic projection canvas"
+    />
+    
+    {#if enableVideo}
+      <video 
+        bind:this={video}
+        {width} 
+        {height}
+        class="video-feed"
+        muted
+        playsinline
+        aria-label="Video input feed"
+      >
+        <track kind="captions" srclang="en" label="English captions" />
+      </video>
+    {/if}
+    
+    {#if !isInitialized}
+      <div class="loading-overlay">
+        <div class="loading-spinner" role="status" aria-live="polite">
+          <span class="sr-only">Initializing holographic display...</span>
+        </div>
+        <p>Initializing...</p>
+      </div>
+    {/if}
+  </div>
+  
+  {#if showStats && isInitialized}
+    <div class="stats-overlay" aria-live="polite" aria-atomic="true">
+      <div class="stat">
+        <span class="label">FPS:</span>
+        <span class="value">{fps}</span>
+      </div>
+      <div class="stat">
+        <span class="label">Complexity:</span>
+        <span class="value">{complexity}</span>
+      </div>
+      <div class="stat">
+        <span class="label">Renderer:</span>
+        <span class="value">{usingFallback ? 'Fallback' : hasWebGPU ? 'WebGPU' : 'Canvas'}</span>
+      </div>
+      <div class="stat">
+        <span class="label">Persona:</span>
+        <span class="value">{currentPersona?.name || 'None'}</span>
+      </div>
+      {#if engineCapabilities.length > 0}
+        <div class="capabilities">
+          {#each engineCapabilities as capability}
+            <span class="capability">{capability}</span>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
+</div>
+
+<style>
+  .holographic-display {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .holographic-display:focus {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+  }
+  
+  .display-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hologram-canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .video-feed {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.3;
+    z-index: 1;
+  }
+  
+  .error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(239, 68, 68, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+  
+  .error-content {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 400px;
+    color: white;
+  }
+  
+  .error-content h3 {
+    margin: 0 0 10px 0;
+    color: #ef4444;
+  }
+  
+  .fallback-notice {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid #fbbf24;
+    border-radius: 4px;
+    color: #fbbf24;
+    font-size: 0.9em;
+  }
+  
+  .loading-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #00ffff;
+    z-index: 10;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    border: 3px solid rgba(0, 255, 255, 0.3);
+    border-top-color: #00ffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .stats-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 10px;
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    z-index: 50;
+  }
+  
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  
+  .stat .label {
+    margin-right: 10px;
+    opacity: 0.7;
+  }
+  
+  .stat .value {
+    font-weight: bold;
+  }
+  
+  .capabilities {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .capability {
+    background: rgba(0, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.4);
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

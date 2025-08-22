@@ -1,0 +1,190 @@
+<!-- 🎭 PERSONA MANAGEMENT PANEL COMPONENT (Cleaned + Teaching-Ready) -->
+<script>
+  export let showPersonaPanel = false;
+  export let showCreatePersona = false;
+  export let currentPersona;
+  export let availablePersonas;
+  export let newPersonaForm;
+  export let switchPersona;
+  export let createPersona;
+  export let toggleCreatePersona;
+
+  // Reactive computed styles for dynamic RGB colors
+  $: currentPersonaRGB = currentPersona
+    ? `rgb(${currentPersona.color.r * 255}, ${currentPersona.color.g * 255}, ${currentPersona.color.b * 255})`
+    : 'transparent';
+  $: newPersonaRGB = `rgb(${newPersonaForm.color.r * 255}, ${newPersonaForm.color.g * 255}, ${newPersonaForm.color.b * 255})`;
+</script>
+
+{#if showPersonaPanel}
+  <div class="persona-panel-overlay" 
+       role="dialog" 
+       aria-modal="true"
+       aria-labelledby="persona-panel-title"
+       tabindex="-1" 
+       on:click={() => showPersonaPanel = false}
+       on:keydown={(e) => {
+         if (e.key === 'Escape') {
+           showPersonaPanel = false;
+         }
+       }}>
+    <div class="persona-panel" 
+         on:click|stopPropagation role="document">
+      <div class="persona-header">
+        <h3 id="persona-panel-title">🎭 Persona Management</h3>
+        <div class="persona-controls">
+          <button on:click={toggleCreatePersona} class="create-btn" aria-label="Create New Persona">
+            ➕ Create New
+          </button>
+          <button on:click={() => showPersonaPanel = false} class="close-btn" aria-label="Close Persona Panel">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Current Persona Display -->
+      <div class="current-persona">
+        <div class="persona-info">
+          <div class="persona-color" style="background-color: {currentPersonaRGB}"></div>
+          <strong>{currentPersona.name}</strong>
+          <span class="active-label">(Active)</span>
+        </div>
+        <div class="persona-description">{currentPersona.description}</div>
+        <div class="persona-coordinates">
+          ψ:{currentPersona.psi} • ε:{currentPersona.epsilon} • τ:{currentPersona.tau} • φ:{currentPersona.phi}
+        </div>
+      </div>
+
+      <!-- Available Personas Grid -->
+      <div class="personas-grid">
+        {#each availablePersonas as persona (persona.id)}
+          <button
+            on:click={() => switchPersona(persona)}
+            class="persona-card {persona.id === currentPersona.id ? 'active' : ''}"
+            disabled={persona.id === currentPersona.id}
+            aria-label={`Switch to persona ${persona.name}`}
+          >
+            <div class="persona-info">
+              <div
+                class="persona-color"
+                style="background-color: rgb({persona.color.r * 255}, {persona.color.g * 255}, {persona.color.b * 255})"
+              ></div>
+              <span class="persona-name">{persona.name}</span>
+            </div>
+            <div class="persona-description">{persona.description}</div>
+          </button>
+        {/each}
+      </div>
+
+      <!-- Create New Persona Form -->
+      {#if showCreatePersona}
+        <div class="create-form">
+          <h4>Create New Persona</h4>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="persona-name">Name:</label>
+              <input id="persona-name" bind:value={newPersonaForm.name} placeholder="e.g., Visionary" />
+            </div>
+            <div class="form-field">
+              <label for="persona-description">Description:</label>
+              <input id="persona-description" bind:value={newPersonaForm.description} placeholder="Brief description" />
+            </div>
+          </div>
+
+          <div class="coordinates-row">
+            <div class="form-field">
+              <label for="persona-psi">ψ (Cognitive):</label>
+              <select id="persona-psi" bind:value={newPersonaForm.psi}>
+                <option value="analytical">Analytical</option>
+                <option value="creative">Creative</option>
+                <option value="intuitive">Intuitive</option>
+                <option value="logical">Logical</option>
+                <option value="holistic">Holistic</option>
+                <option value="divergent">Divergent</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="persona-epsilon">ε (Emotional):</label>
+              <select id="persona-epsilon" bind:value={newPersonaForm.epsilon}>
+                <option value="calm">Calm</option>
+                <option value="passionate">Passionate</option>
+                <option value="serene">Serene</option>
+                <option value="excited">Excited</option>
+                <option value="contemplative">Contemplative</option>
+                <option value="inspired">Inspired</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="persona-tau">τ (Temporal):</label>
+              <select id="persona-tau" bind:value={newPersonaForm.tau}>
+                <option value="present">Present</option>
+                <option value="future">Future</option>
+                <option value="past">Past</option>
+                <option value="eternal">Eternal</option>
+                <option value="spontaneous">Spontaneous</option>
+                <option value="reflective">Reflective</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="persona-phi">φ (Philosophy):</label>
+              <select id="persona-phi" bind:value={newPersonaForm.phi}>
+                <option value="rational">Rational</option>
+                <option value="existential">Existential</option>
+                <option value="pragmatic">Pragmatic</option>
+                <option value="transcendent">Transcendent</option>
+                <option value="aesthetic">Aesthetic</option>
+                <option value="empirical">Empirical</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="color-section">
+            <fieldset role="group" aria-labelledby="hologram-color-label"><legend id="hologram-color-label">Hologram Color</legend><div class="color-sliders">
+              <label for="color-r" class="sr-only">Red</label>
+              <input id="color-r" type="range" min="0" max="1" step="0.1" bind:value={newPersonaForm.color.r} aria-label="Red color value" /><span aria-hidden="true">R</span>
+              <label for="color-g" class="sr-only">Green</label>
+              <input id="color-g" type="range" min="0" max="1" step="0.1" bind:value={newPersonaForm.color.g} aria-label="Green color value" /><span aria-hidden="true">G</span>
+              <label for="color-b" class="sr-only">Blue</label>
+              <input id="color-b" type="range" min="0" max="1" step="0.1" bind:value={newPersonaForm.color.b} aria-label="Blue color value" /><span aria-hidden="true">B</span>
+              <div class="color-preview" style="background-color: {newPersonaRGB}"></div>
+            </div>
+          </div>
+
+          <div class="form-buttons">
+            <button
+              on:click={createPersona}
+              disabled={!newPersonaForm.name.trim()}
+              class="create-persona-btn"
+            >
+              ✅ Create Persona
+            </button>
+            <button
+              on:click={() => showCreatePersona = false}
+              class="cancel-btn"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+<style lang="postcss">
+  /* Screen reader only class for accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  /* Same CSS as before, safe to reuse */
+</style>

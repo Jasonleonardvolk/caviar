@@ -1,0 +1,39 @@
+// shaderConstantManager.ts - Fixed for WebGPU override constants
+export class ShaderConstantManager {
+  private constants: Map<string, number> = new Map();
+
+  constructor() {
+    // Initialize with default values
+    this.constants.set('blockSize', 1);
+    this.constants.set('totalSize', 256);
+  }
+
+  setConstant(name: string, value: number) {
+    this.constants.set(name, value);
+  }
+
+  getConstant(name: string): number {
+    return this.constants.get(name) ?? 1;
+  }
+
+  // Create pipeline descriptor with proper constant values
+  getPipelineConstants(): Record<string, number> {
+    const constants: Record<string, number> = {};
+    
+    // Map our named constants to their values
+    for (const [key, value] of this.constants) {
+      constants[key] = value;
+    }
+    
+    return constants;
+  }
+
+  // Update constants for FFT operations
+  updateForFFT(size: number, blockSize: number) {
+    this.setConstant('totalSize', size);
+    this.setConstant('blockSize', blockSize);
+  }
+}
+
+// Global instance
+export const shaderConstants = new ShaderConstantManager();

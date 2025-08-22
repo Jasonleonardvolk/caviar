@@ -1,0 +1,24 @@
+name: iris-ci
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20.x' }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - name: Check BOMs (fail-fast)
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/lint/Check-BOM.ps1
+      - name: Install
+        run: pnpm install
+      - name: Build (UI)
+        run: pnpm run build
+      - name: Verify (mock, ephemeral)
+        shell: pwsh
+        run: >
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File tools/release/Verify-EndToEnd.ps1
+          -Mode mock -Port 3000 -StartServer -StopOnExit

@@ -1,0 +1,28 @@
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ cookies }) => {
+  // For SSR hydration, we could fetch recent messages from a database
+  // This ensures the server-rendered HTML matches what the client expects
+  
+  // For now, return empty as messages are in localStorage
+  // In production, you might want to:
+  // 1. Check for a session ID in cookies
+  // 2. Fetch last 10-20 messages from Soliton Memory
+  // 3. Return them as initialMessages
+  
+  const userId = cookies.get('tori_user_id');
+  
+  if (userId) {
+    try {
+      // TODO: Fetch recent messages from Soliton Memory
+      // const recentMessages = await solitonMemory.getRecentMessages(userId, 20);
+      // return { initialMessages: recentMessages };
+    } catch (e) {
+      console.error('Failed to fetch initial messages:', e);
+    }
+  }
+  
+  return {
+    initialMessages: []
+  };
+};

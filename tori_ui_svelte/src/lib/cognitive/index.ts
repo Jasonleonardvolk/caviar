@@ -1,0 +1,383 @@
+// Enhanced index file for cognitive layer - Phase 2 exports with FULL SYSTEM INTEGRATION
+export { 
+  cognitiveState, 
+  updateCognitiveState,
+  incrementLoopDepth,
+  decrementLoopDepth,
+  addScar,
+  healScar,
+  CognitiveThresholds,
+  type ConceptDiffState
+} from './cognitiveState';
+
+export { 
+  ContradictionMonitor,
+  contradictionMonitor 
+} from './contradictionMonitor';
+
+export { 
+  PhaseController,
+  phaseController 
+} from './phaseController';
+
+export { 
+  ClosureGuard,
+  closureGuard,
+  type ClosureResult,
+  type FeedbackOptions 
+} from './closureGuard';
+
+export { 
+  CognitiveEngine,
+  cognitiveEngine,
+  type CognitiveEngineConfig 
+} from './cognitiveEngine';
+
+// STEP 1: BraidMemory - ACTIVE
+export {
+  BraidMemory,
+  braidMemory
+} from './braidMemory';
+
+export {
+  type LoopRecord as EnhancedLoopRecord,
+  type LoopCrossing,
+  type BraidMemoryStats,
+  CompressionConfig,
+  NoveltyGlyphs,
+  type NoveltyGlyph,
+  calculateLoopWeight,
+  classifyCrossingType,
+  selectNoveltyGlyph
+} from './loopRecord';
+
+// STEP 3: Ghost Collective - ACTIVE
+export {
+  GhostCollective,
+  ghostCollective,
+  type GhostPersona,
+  type GhostCollectiveState
+} from './ghostCollective';
+
+// STEP 4: Holographic Memory - NOW ACTIVE
+export {
+  HolographicMemory,
+  holographicMemory,
+  type ConceptNode,
+  type Connection,
+  type PersonaTouch,
+  type RelationType,
+  type EmergentCluster,
+  type HolographicState
+} from './holographicMemory';
+
+// === Mandatory Phase 3 Re-exports ===
+export * from './memoryMetrics';
+// export * from './paradoxAnalyzer'; // STILL TEMPORARILY DISABLED
+
+// Import the necessary modules for the cognitive object
+import { cognitiveEngine } from './cognitiveEngine';
+import { cognitiveState } from './cognitiveState';
+import { contradictionMonitor } from './contradictionMonitor';
+import { phaseController } from './phaseController';
+import { closureGuard } from './closureGuard';
+import { braidMemory } from './braidMemory'; // STEP 1
+import { ghostCollective } from './ghostCollective'; // STEP 3
+import { holographicMemory } from './holographicMemory'; // STEP 4
+
+// Re-export for convenience with ALL SYSTEMS INTEGRATED
+export const cognitive = {
+  engine: cognitiveEngine,
+  state: cognitiveState,
+  contradiction: contradictionMonitor,
+  phase: phaseController,
+  closure: closureGuard,
+  memory: braidMemory,           // STEP 1: BraidMemory
+  ghosts: ghostCollective,       // STEP 3: Ghost Collective  
+  holographic: holographicMemory // STEP 4: Holographic Memory
+};
+
+console.log('🧠 Cognitive layer FULLY INTEGRATED - All 4 systems active');
+
+// Enhanced integration helper for ALL SYSTEMS
+export function integrateCognitiveLayer(enableAllSystems: boolean = true) {
+  console.log('🔗 Integrating FULL cognitive layer with ALL systems...');
+  
+  if (typeof window !== 'undefined') {
+    // Set up global TORI cognitive interface
+    (window as any).TORI = (window as any).TORI || {};
+    (window as any).TORI.cognitive = cognitive;
+    
+    // STEP 1-4: Full system integration
+    if (enableAllSystems) {
+      setupFullSystemIntegration();
+    }
+    
+    // Emit integration complete event
+    window.dispatchEvent(new CustomEvent('tori:cognitive-integrated', {
+      detail: { 
+        timestamp: new Date(),
+        phase: 4, // PHASE 4 - FULL INTEGRATION
+        systems: {
+          braidMemory: true,
+          ghostCollective: true,
+          holographicMemory: true,
+          cognitiveEngine: true
+        }
+      }
+    }));
+  }
+  
+  console.log('✅ FULL cognitive layer integration complete - All systems online');
+}
+
+/**
+ * STEP 1-4: Set up integration between ALL systems
+ */
+function setupFullSystemIntegration() {
+  if (typeof window === 'undefined') return;
+  
+  console.log('🌌 Setting up full system integration...');
+  
+  // STEP 1: BraidMemory events (existing)
+  window.addEventListener('tori:cognitive:loop-closed', (event: any) => {
+    const { loop } = event.detail;
+    const loopId = braidMemory.archiveLoop(loop);
+    console.log(`🧬 Loop ${loopId} archived in braid memory`);
+  });
+  
+  // STEP 3: Ghost Collective integration with Holographic Memory
+  window.addEventListener('tori:ghost:persona-emerged', (event: any) => {
+    const { persona, query, concepts } = event.detail;
+    
+    // Create concept nodes in holographic memory for active concepts
+    concepts.forEach((concept: string) => {
+      let node = holographicMemory.getAllNodes().find(n => n.essence === concept);
+      if (!node) {
+        node = holographicMemory.createConceptNode(concept, 0.6);
+      }
+      
+      // Add persona touch to the concept
+      holographicMemory.addPersonaTouch(node.id, persona.id, 0.3, `Persona emergence: ${query}`);
+      
+      // Activate the concept
+      holographicMemory.activateConcept(node.id, 0.4);
+    });
+    
+    console.log(`👻 Persona ${persona.name} integrated with holographic memory`);
+  });
+  
+  // STEP 4: Holographic Memory integration with BraidMemory
+  window.addEventListener('tori:holographic:cluster-detected', (event: any) => {
+    const { cluster } = event.detail;
+    
+    // Create loop record for emergent cluster
+    const clusterLoop = {
+      id: `cluster_loop_${cluster.id}`,
+      prompt: `Emergent cluster: ${cluster.concepts.map((c: any) => c.essence).join(' + ')}`,
+      glyphPath: ['anchor', 'emergence-detection', 'cluster-formation', 'integration', 'return'],
+      phaseTrace: [0, 0.3, 0.7, 0.9, 1.0],
+      coherenceTrace: [0.5, 0.6, 0.8, 0.9, 0.95],
+      contradictionTrace: [0.2, 0.15, 0.1, 0.05, 0.02],
+      closed: true,
+      scarFlag: false,
+      timestamp: new Date(),
+      processingTime: 500,
+      metadata: {
+        emergentCluster: cluster.id,
+        conceptFootprint: cluster.concepts.map((c: any) => c.essence),
+        holographicOrigin: true
+      }
+    };
+    
+    braidMemory.archiveLoop(clusterLoop);
+    console.log(`🌌 Emergent cluster ${cluster.id} archived as loop in braid memory`);
+  });
+  
+  // Cross-system concept synchronization
+  window.addEventListener('tori:concept:activated', (event: any) => {
+    const { concept, strength, source } = event.detail;
+    
+    // Ensure concept exists in holographic memory
+    let node = holographicMemory.getAllNodes().find(n => n.essence === concept);
+    if (!node) {
+      node = holographicMemory.createConceptNode(concept, strength);
+    } else {
+      holographicMemory.activateConcept(node.id, strength);
+    }
+    
+    // Link to memory references if from BraidMemory
+    if (source === 'braidMemory' && event.detail.loopId) {
+      node.metadata.memoryReferences.push(event.detail.loopId);
+    }
+  });
+  
+  // Periodic system synchronization
+  setInterval(() => {
+    try {
+      // Get stats from all systems
+      const braidStats = braidMemory.getStats();
+      const ghostStats = ghostCollective.getDiagnostics();
+      const holographicData = holographicMemory.getVisualizationData();
+      
+      // Emit combined system stats
+      window.dispatchEvent(new CustomEvent('tori:ui:full-system-stats', {
+        detail: {
+          braid: braidStats,
+          ghosts: ghostStats,
+          holographic: {
+            nodes: holographicData.nodes.length,
+            connections: holographicData.connections.length,
+            clusters: holographicData.clusters.length
+          },
+          timestamp: new Date()
+        }
+      }));
+      
+      // Auto-detect emergent clusters in holographic memory
+      if (holographicData.nodes.length > 3) {
+        const clusters = holographicMemory.detectEmergentClusters();
+        if (clusters.length > 0) {
+          clusters.forEach(cluster => {
+            window.dispatchEvent(new CustomEvent('tori:holographic:cluster-detected', {
+              detail: { cluster }
+            }));
+          });
+        }
+      }
+      
+    } catch (error: any) {
+      console.warn('System synchronization error:', error);
+    }
+  }, 15000); // Every 15 seconds
+  
+  console.log('✅ Full system integration setup complete');
+}
+
+/**
+ * Enhanced utility functions for full system integration
+ */
+
+// Get comprehensive system metrics
+export function getFullSystemMetrics(): {
+  braidMemory: any;
+  ghostCollective: any;
+  holographicMemory: any;
+  cognitiveEngine: any;
+  integration: {
+    conceptSynchronization: number;
+    crossSystemConnections: number;
+    emergentClusters: number;
+  };
+} {
+  try {
+    const braidStats = braidMemory.getStats();
+    const ghostStats = ghostCollective.getDiagnostics();
+    const holographicData = holographicMemory.getVisualizationData();
+    const engineStats = cognitiveEngine.getStats();
+    
+    // Calculate integration metrics
+    const conceptSynchronization = calculateConceptSynchronization();
+    const crossSystemConnections = calculateCrossSystemConnections();
+    const emergentClusters = holographicData.clusters.length;
+    
+    return {
+      braidMemory: braidStats,
+      ghostCollective: ghostStats,
+      holographicMemory: {
+        nodes: holographicData.nodes.length,
+        connections: holographicData.connections.length,
+        clusters: emergentClusters,
+        activationWave: !!holographicData.activationWave
+      },
+      cognitiveEngine: engineStats,
+      integration: {
+        conceptSynchronization,
+        crossSystemConnections,
+        emergentClusters
+      }
+    };
+  } catch (error: any) {
+    console.error('Failed to get full system metrics:', error);
+    return null;
+  }
+}
+
+function calculateConceptSynchronization(): number {
+  // Calculate how well concepts are synchronized across systems
+  const holographicNodes = holographicMemory.getAllNodes();
+  const braidStats = braidMemory.getStats();
+  
+  if (holographicNodes.length === 0 || braidStats.totalLoops === 0) return 0;
+  
+  // Simple synchronization metric
+  const syncRatio = Math.min(holographicNodes.length / 10, 1) * Math.min(braidStats.totalLoops / 5, 1);
+  return syncRatio;
+}
+
+function calculateCrossSystemConnections(): number {
+  // Count connections between different systems
+  const holographicNodes = holographicMemory.getAllNodes();
+  let connections = 0;
+  
+  holographicNodes.forEach(node => {
+    // Count persona touches (Ghost Collective connections)
+    connections += node.metadata.personaTouches.length;
+    
+    // Count memory references (BraidMemory connections)
+    connections += node.metadata.memoryReferences.length;
+  });
+  
+  return connections;
+}
+
+// Trigger comprehensive system test
+export function runFullSystemTest(): boolean {
+  try {
+    console.log('🧪 Running full system integration test...');
+    
+    // Test 1: Create holographic concept
+    const testNode = holographicMemory.createConceptNode('SystemTest', 0.8);
+    
+    // Test 2: Trigger ghost collective
+    const ghostResult = ghostCollective.selectPersonaForQuery('How does this system integration work?');
+    
+    // Test 3: Add persona touch to holographic node
+    if (ghostResult) {
+      holographicMemory.addPersonaTouch(testNode.id, ghostResult.id, 0.5, 'System test');
+    }
+    
+    // Test 4: Create simple loop in braid memory
+    const testLoop = {
+      id: `test_${Date.now()}`,
+      prompt: 'System integration test',
+      glyphPath: ['anchor', 'test', 'integration', 'return'],
+      phaseTrace: [0, 0.5, 0.8, 1],
+      coherenceTrace: [0.5, 0.7, 0.9, 1],
+      contradictionTrace: [0.2, 0.1, 0.05, 0],
+      closed: true,
+      scarFlag: false,
+      timestamp: new Date(),
+      processingTime: 100,
+      metadata: { systemTest: true }
+    };
+    
+    braidMemory.archiveLoop(testLoop);
+    
+    // Test 5: Link systems
+    testNode.metadata.memoryReferences.push(testLoop.id);
+    
+    console.log('✅ Full system integration test passed');
+    return true;
+  } catch (error: any) {
+    console.error('❌ Full system integration test failed:', error);
+    return false;
+  }
+}
+
+// Auto-integrate ALL SYSTEMS if in browser environment
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    integrateCognitiveLayer(true); // FULL SYSTEM INTEGRATION
+  }, 1000);
+}

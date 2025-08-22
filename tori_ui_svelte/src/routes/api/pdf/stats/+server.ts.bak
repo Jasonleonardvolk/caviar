@@ -1,0 +1,87 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+
+/**
+ * GET /api/pdf/stats
+ * Returns PDF processing statistics for the current user
+ */
+export const GET: RequestHandler = async ({ locals, request }) => {
+  const userId = locals.user?.id || request.headers.get('X-User-Id');
+  
+  if (!userId) {
+    return json({
+      success: false,
+      error: 'User ID required'
+    }, { status: 401 });
+  }
+  
+  try {
+    // Try to fetch PDF stats from backend
+    const response = await fetch(`${BACKEND_URL}/api/pdf/stats/${userId}`, {
+      headers: {
+        'X-User-Id': userId,
+        'X-Request-Source': 'svelte-ui'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Ensure we have proper structure
+      return json({
+        success: true,
+        totalDocuments: data.totalDocuments || 0,
+        totalConcepts: data.totalConcepts || 0,
+        phaseMappings: data.phaseMappings || 0,
+        avgConceptsPerDoc: data.avgConceptsPerDoc || 0,
+        recentUploads: data.recentUploads || [],
+        processingStats: {
+          successful: data.processingStats?.successful || 0,
+          failed: data.processingStats?.failed || 0,
+          pending: data.processingStats?.pending || 0
+        },
+        lastUpdated: data.lastUpdated || new Date().toISOString()
+      });
+    } else {
+      console.error('PDF stats backend error:', response.status);
+      
+      // Return empty stats on backend error
+      return json({
+        success: true,
+        totalDocuments: 0,
+        totalConcepts: 0,
+        phaseMappings: 0,
+        avgConceptsPerDoc: 0,
+        recentUploads: [],
+        processingStats: {
+          successful: 0,
+          failed: 0,
+          pending: 0
+        },
+        lastUpdated: new Date().toISOString(),
+        error: 'Backend unavailable'
+      });
+    }
+  } catch (error) {
+    console.error('PDF stats fetch error:', error);
+    
+    // Return empty stats on complete failure
+    return json({
+      success: true,
+      totalDocuments: 0,
+      totalConcepts: 0,
+      phaseMappings: 0,
+      avgConceptsPerDoc: 0,
+      recentUploads: [],
+      processingStats: {
+        successful: 0,
+        failed: 0,
+        pending: 0
+      },
+      lastUpdated: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};

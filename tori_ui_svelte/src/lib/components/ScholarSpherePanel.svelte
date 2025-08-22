@@ -1,0 +1,1091 @@
+<!-- ScholarSphere Panel - FIXED DATA FLOW AND UI UPDATES -->
+<script lang="ts">
+  import { createEventDispatcher, onMount } from 'svelte';
+  import { conceptMesh, addConceptDiff } from '$lib/stores/conceptMesh';
+  import { darkMode } from '$lib/stores/darkMode';
+  import { fade, fly } from 'svelte/transition';
+  
+  const dispatch = createEventDispatcher();
+  
+  let isDragOver = false;
+  let isUploading = false;
+  let uploadProgress = 0;
+  let uploadedDocuments: any[] = [];
+  let uploadStatus = '';
+  let uploadError = '';
+  let showDocuments = true;
+  let debugInfo = ''; // 🔧 Debug information display
+  
+  // === PHASE 2C: SSE Progress Tracking ===
+  let eventSource: EventSource | null = null;
+  let currentProgressId: string | null = null;
+  let progressStage = '';
+  let progressDetails: any = {};
+  let isConnectedToSSE = false;
+  
+  // 🔧 BULLETPROOF: Reconnection and error tracking
+  let reconnectAttempts = 0;
+  let sseParseErrors = 0;
+  let maxReconnectAttempts = 5;
+  let baseReconnectDelay = 1000; // 1 second
+  
+  onMount(() => {
+    // Load uploaded documents from localStorage
+    const saved = localStorage.getItem('tori-scholarsphere-documents');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        uploadedDocuments = Array.isArray(parsed) ? parsed : [];
+        console.log('📚 Loaded documents from localStorage:', uploadedDocuments.length);
+        debugInfo = `Loaded ${uploadedDocuments.length} documents from storage`;
+      } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+        console.warn('Failed to load ScholarSphere documents:', e);
+        uploadedDocuments = [];
+        debugInfo = 'Failed to load from storage, starting fresh';
+      
+}
+    } else {
+      uploadedDocuments = [];
+      debugInfo = 'No previous documents found';
+    }
+  });
+  
+  // === PHASE 2C: SSE UTILITY FUNCTIONS ===
+  function generateProgressId(): string {
+    return `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  function connectToProgressStream(progressId: string) {
+    // Clean up any existing connection
+    disconnectFromProgressStream();
+    
+    currentProgressId = progressId;
+    debugInfo = `Connecting to progress stream: ${progressId}`;
+    
+    try {
+      // Connect to the SSE endpoint
+      eventSource = new EventSource(`/api/upload/progress/${progressId}`);
+      
+      eventSource.onopen = () => {
+        isConnectedToSSE = true;
+        debugInfo = `✅ Connected to progress stream: ${progressId}`;
+        console.log('🔄 SSE Connected:', progressId);
+      };
+      
+      // 🔧 NEW: only parse real JSON messages; listen for "end" event to close the stream
+      eventSource.addEventListener('message', (event) => {
+        const raw = event.data.trim();
+        // skip any non-JSON frames (e.g. stray newlines or comments)
+        if (!raw.startsWith('{')) {
+          console.debug('Skipping non-JSON SSE frame:', raw);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          
+          console.log('📊 SSE Progress:', parsed);
+          
+          // Update progress from server with validation
+          if (typeof parsed.percentage === 'number') {
+            uploadProgress = Math.max(0, Math.min(100, parsed.percentage));
+          }
+          if (typeof parsed.stage === 'string') {
+            progressStage = parsed.stage;
+          }
+          if (typeof parsed.message === 'string') {
+            uploadStatus = parsed.message;
+          }
+          progressDetails = parsed.details || {};
+          
+          debugInfo = `${parsed.stage || 'unknown'}: ${uploadProgress}% - ${parsed.message || 'processing'}`;
+          
+          // Handle progress updates without premature disconnection
+          if (parsed.stage === 'complete') {
+            console.log('✅ Upload completed via SSE');
+            debugInfo = `✅ Complete: ${parsed.message || 'Upload finished'}`;
+          } else if (parsed.stage === 'error' || parsed.stage === 'failed') {
+            console.error('❌ Upload failed via SSE:', parsed.message);
+            uploadError = parsed.message || 'Upload failed';
+            debugInfo = `❌ Error: ${uploadError}`;
+          } else if (parsed.stage === 'heartbeat') {
+            console.log('💗 SSE Heartbeat');
+            reconnectAttempts = 0; // Reset reconnection attempts
+          }
+          
+        } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+          console.error('❌ SSE JSON parse error:', e, raw);
+          debugInfo = `Parse error: ${msg
+}`;
+          
+          sseParseErrors++;
+          if (sseParseErrors > 10) {
+            console.warn('⚠️ Too many SSE parse errors, disconnecting');
+            debugInfo = 'Too many parse errors - disconnecting';
+            disconnectFromProgressStream();
+          }
+        }
+      });
+      
+      // Close only once the server explicitly sends "event: end"
+      eventSource.addEventListener('end', () => {
+        console.log('🔌 Received SSE \'end\' event – closing stream');
+        debugInfo = '✅ Server sent end signal - stream closed';
+        eventSource.close();
+      });
+      
+      eventSource.onerror = (error) => {
+        console.error('❌ SSE Connection error:', error);
+        isConnectedToSSE = false;
+        
+        // 🔧 BULLETPROOF: Exponential backoff reconnection
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts); // Exponential backoff
+          reconnectAttempts++;
+          
+          console.warn(`⚠️ SSE connection lost, attempt ${reconnectAttempts}/${maxReconnectAttempts}, retrying in ${delay}ms`);
+          debugInfo = `Reconnecting in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`;
+          
+          // Clean up current connection
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          
+          // Retry with exponential backoff
+          setTimeout(() => {
+            if (currentProgressId && reconnectAttempts <= maxReconnectAttempts) {
+              console.log(`🔄 Attempting SSE reconnection ${reconnectAttempts}/${maxReconnectAttempts}`);
+              connectToProgressStream(currentProgressId);
+            }
+          }, delay);
+        } else {
+          console.error('❌ SSE max reconnection attempts exceeded');
+          debugInfo = `Connection failed - max ${maxReconnectAttempts} attempts exceeded`;
+          disconnectFromProgressStream();
+          
+          // Show user-friendly error
+          uploadError = 'Connection lost - please try uploading again';
+        }
+      };
+      
+    } catch (connectionError) {
+  const msg = connectionError instanceof Error ? connectionError.message : String(connectionError);
+      console.error('❌ Failed to create SSE connection:', connectionError);
+      debugInfo = `Failed to connect: ${msg
+}`;
+    }
+  }
+  
+  function disconnectFromProgressStream() {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+      console.log('🔌 SSE Disconnected');
+    }
+    isConnectedToSSE = false;
+    currentProgressId = null;
+    progressStage = '';
+    progressDetails = {};
+    
+    // 🔧 BULLETPROOF: Reset error tracking on clean disconnect
+    reconnectAttempts = 0;
+    sseParseErrors = 0;
+  }
+  
+  // Clean up SSE connection when component is destroyed
+  import { onDestroy } from 'svelte';
+  onDestroy(() => {
+    disconnectFromProgressStream();
+  });
+  
+  // 🔧 FORCE reactive updates with explicit reactivity
+  function updateDocumentsList(newDoc: any) {
+    console.log('🔄 Updating documents list with:', newDoc);
+    
+    // Create completely new array to trigger reactivity - NEW UPLOADS FIRST
+    uploadedDocuments = [newDoc, ...uploadedDocuments];
+    
+    // Force save to localStorage immediately
+    try {
+      localStorage.setItem('tori-scholarsphere-documents', JSON.stringify(uploadedDocuments));
+      console.log('💾 Saved to localStorage:', uploadedDocuments.length, 'documents');
+      debugInfo = `Updated! ${uploadedDocuments.length} documents total`;
+    } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+      console.error('Failed to save to localStorage:', e);
+      debugInfo = `Update failed: ${msg
+}`;
+    }
+    
+    // Force UI re-render by updating a dummy reactive variable
+    showDocuments = showDocuments;
+  }
+  
+  function handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    isDragOver = true;
+  }
+  
+  function handleDragLeave(event: DragEvent) {
+    event.preventDefault();
+    isDragOver = false;
+  }
+  
+  async function handleDrop(event: DragEvent) {
+    event.preventDefault();
+    isDragOver = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      if (isUploading) return;
+      await processFiles(files);
+    }
+  }
+  
+  async function handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      if (isUploading) return;
+      await processFiles(input.files);
+    }
+  }
+  
+  async function processFiles(files: FileList) {
+    if (files.length === 0) return;
+    
+    // Reset state
+    isUploading = true;
+    uploadProgress = 0;
+    uploadError = '';
+    uploadStatus = 'Preparing upload...';
+    debugInfo = 'Starting upload process...';
+    
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        try {
+          console.log('🔬 ========== SSE UPLOAD START ==========');
+          console.log('📁 File:', file.name, 'Size:', file.size, 'Type:', file.type);
+          
+          uploadError = '';
+          uploadStatus = `Preparing ${file.name}...`;
+          
+          // === PHASE 2C: Generate progress ID and connect to SSE ===
+          const progressId = generateProgressId();
+          console.log('🆔 Generated progress ID:', progressId);
+          
+          // Connect to SSE stream BEFORE starting upload
+          connectToProgressStream(progressId);
+          
+          // Create form data for file upload
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          console.log('📤 Calling /api/upload endpoint with progress tracking...');
+          
+          // Upload to server with progress tracking (progress_id as query param)
+          const uploadUrl = `/api/upload?progress_id=${encodeURIComponent(progressId)}`;
+          const response = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData
+          });
+          
+          console.log('📥 Server response:', response.status, response.statusText);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Server error response:', errorText);
+            disconnectFromProgressStream(); // Clean up SSE on error
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+          }
+          
+          const result = await response.json();
+          console.log('📊 Complete server result:', JSON.stringify(result, null, 2));
+          
+          // Note: Progress updates now come from SSE stream, not hard-coded here
+          
+          if (result.success && result.document) {
+            console.log('✅ Upload successful! Processing document data...');
+            
+            // 🔧 ENHANCED: Validate and clean document data
+            const document = result.document;
+            
+            // Ensure concepts are properly formatted
+            let conceptsArray = [];
+            if (document.concepts && Array.isArray(document.concepts)) {
+              conceptsArray = document.concepts.map((concept: any, index: number) => {
+                if (typeof concept === 'string') {
+                  return {
+                    name: concept,
+                    score: 0.8 - (index * 0.05),
+                    method: document.extractionMethod || 'server_extraction',
+                    source: { server_extraction: true },
+                    context: `Extracted from ${file.name}`,
+                    metadata: {
+                      extraction_method: document.extractionMethod,
+                      processing_time: document.processingTime,
+                      server_side: true
+                    }
+                  };
+                } else if (typeof concept === 'object' && concept !== null) {
+                  return {
+                    name: concept.name || concept.toString() || `Concept ${index + 1}`,
+                    score: typeof concept.score === 'number' ? concept.score : (0.8 - (index * 0.05)),
+                    method: concept.method || document.extractionMethod || 'server_extraction',
+                    source: concept.source || { server_extraction: true },
+                    context: concept.context || `Extracted from ${file.name}`,
+                    metadata: concept.metadata || {}
+                  };
+                } else {
+                  return {
+                    name: `Concept ${index + 1}`,
+                    score: 0.5,
+                    method: 'fallback',
+                    source: { fallback: true },
+                    context: 'Fallback concept',
+                    metadata: {}
+                  };
+                }
+              });
+            }
+            
+            console.log('🧠 Processed concepts:', conceptsArray.length);
+            
+            // Add to concept mesh
+            try {
+              addConceptDiff({
+                type: 'document',
+                title: document.filename || file.name,
+                concepts: conceptsArray,
+                summary: `Extracted ${conceptsArray.length} concepts from ${file.name}`,
+                metadata: {
+                  source: 'scholarsphere_server',
+                  documentId: document.id,
+                  filename: document.filename,
+                  size: document.size,
+                  uploadedAt: document.uploadedAt,
+                  processingMethod: document.extractionMethod,
+                  processingTime: document.processingTime
+                }
+              });
+              console.log('🧠 Concepts added to mesh successfully');
+            } catch (meshError) {
+  const msg = meshError instanceof Error ? meshError.message : String(meshError);
+              console.warn('⚠️ Failed to add concepts to mesh:', meshError);
+              // Continue anyway - don't fail the upload
+            
+}
+            
+            uploadStatus = 'Updating document list...';
+            uploadProgress = 95;
+            
+            // 🔧 CRITICAL: Create clean document object for UI
+            const cleanDocument = {
+              id: document.id || `doc_${Date.now()}`,
+              filename: document.filename || file.name,
+              concepts: conceptsArray, // Use processed concepts
+              size: document.size || file.size,
+              uploadedAt: document.uploadedAt || new Date().toISOString(),
+              uploadedBy: document.uploadedBy || 'user',
+              extractionMethod: document.extractionMethod || 'server_extraction',
+              enhancedExtraction: document.enhancedExtraction || false,
+              elfinTriggered: document.elfinTriggered || false,
+              processingTime: document.processingTime || 0,
+              extractedText: document.extractedText || '',
+              semanticConcepts: document.semanticConcepts || 0,
+              boostedConcepts: document.boostedConcepts || 0,
+              summary: document.summary || `${conceptsArray.length} concepts extracted`
+            };
+            
+            console.log('📋 Clean document for UI:', cleanDocument);
+            
+            // Update documents list with forced reactivity
+            updateDocumentsList(cleanDocument);
+            
+            // SSE will handle final progress updates, just update debug info
+            debugInfo = `SUCCESS: ${conceptsArray.length} concepts from ${file.name}`;
+            
+            console.log('🎉 Upload complete!');
+            console.log('📚 Total documents now:', uploadedDocuments.length);
+            console.log('🔬 ========== UPLOAD DEBUG END ==========');
+            
+            // Dispatch success event
+            dispatch('upload-complete', { 
+              document: cleanDocument,
+              conceptsAdded: conceptsArray.length 
+            });
+            
+          } else {
+            const errorMsg = result.error || 'Server returned success=false';
+            console.error('❌ Upload failed:', errorMsg);
+            throw new Error(errorMsg);
+          }
+          
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+          console.error(`❌ Failed to process ${file.name
+}:`, error);
+          
+          // Clean up SSE connection on error
+          disconnectFromProgressStream();
+          
+          uploadError = error instanceof Error ? error.message : 'Upload failed';
+          debugInfo = `ERROR: ${uploadError}`;
+          
+          // Show error for 3 seconds then reset
+          setTimeout(() => {
+            if (uploadError) {  // Only reset if still showing this error
+              isUploading = false;
+              uploadProgress = 0;
+              uploadStatus = '';
+              uploadError = '';
+              debugInfo = 'Ready for upload';
+            }
+          }, 3000);
+          
+          break; // Stop processing on error
+        }
+      }
+      
+      // Success - SSE will handle completion status
+      if (!uploadError) {
+        debugInfo = `✅ All files processed. ${uploadedDocuments.length} total documents.`;
+      }
+      
+    } catch (outerError) {
+  const msg = outerError instanceof Error ? outerError.message : String(outerError);
+      console.error('❌ Outer processing error:', outerError);
+      
+      // Clean up any remaining SSE connections
+      disconnectFromProgressStream();
+      
+      uploadError = 'Processing failed';
+      debugInfo = `OUTER ERROR: ${outerError
+}`;
+    } finally {
+      // Reset upload state after 2 seconds (SSE handles most state updates)
+      setTimeout(() => {
+        isUploading = false;
+        // Don't reset progress/status if SSE is still active
+        if (!isConnectedToSSE) {
+          uploadProgress = 0;
+          uploadStatus = '';
+        }
+        if (!uploadError) {
+          debugInfo = `Ready - ${uploadedDocuments.length} documents loaded`;
+        }
+        
+        // Final cleanup of any remaining SSE connections
+        disconnectFromProgressStream();
+      }, 2000);
+    }
+  }
+  
+  function browseFiles() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '.pdf,.txt,.json';
+    input.onchange = handleFileSelect;
+    input.click();
+  }
+  
+  function handleUploadKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      browseFiles();
+    }
+  }
+  
+  function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+  
+  function formatDate(dateString: string): string {
+    try {
+      return new Date(dateString).toLocaleDateString() + ' ' + 
+             new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return 'Unknown date';
+    }
+  }
+  
+  function getDocumentIcon(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf': return '📕';
+      case 'txt': return '📄';
+      case 'json': return '🔧';
+      default: return '📄';
+    }
+  }
+  
+  function removeDocument(docId: string) {
+    if (confirm('Remove this document from ScholarSphere?')) {
+      console.log('🗑️ Removing document:', docId);
+      uploadedDocuments = uploadedDocuments.filter(doc => doc.id !== docId);
+      
+      // Update localStorage
+      try {
+        localStorage.setItem('tori-scholarsphere-documents', JSON.stringify(uploadedDocuments));
+        debugInfo = `Removed document. ${uploadedDocuments.length} remaining.`;
+      } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+        console.error('Failed to update localStorage after removal:', e);
+      
+}
+    }
+  }
+  
+  function clearError() {
+    uploadError = '';
+    debugInfo = 'Error cleared';
+  }
+  
+  function extractConceptNames(concepts: any[]): string[] {
+    if (!Array.isArray(concepts)) return [];
+    
+    return concepts.map(concept => {
+      if (typeof concept === 'string') {
+        return concept;
+      } else if (typeof concept === 'object' && concept !== null) {
+        return concept.name || concept.toString() || 'Unknown';
+      } else {
+        return 'Unknown';
+      }
+    });
+  }
+  
+  function resetUploadState() {
+    // Clean up SSE connections first
+    disconnectFromProgressStream();
+    
+    isUploading = false;
+    uploadProgress = 0;
+    uploadStatus = '';
+    uploadError = '';
+    progressStage = '';
+    progressDetails = {};
+    debugInfo = 'State manually reset (SSE disconnected)';
+    console.log('🔄 Upload state manually reset with SSE cleanup');
+  }
+  
+  // 🔧 ADD: Force refresh documents from localStorage
+  function refreshDocuments() {
+    const saved = localStorage.getItem('tori-scholarsphere-documents');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        uploadedDocuments = Array.isArray(parsed) ? parsed : [];
+        debugInfo = `Refreshed: ${uploadedDocuments.length} documents loaded`;
+        console.log('🔄 Documents refreshed from localStorage');
+      } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+        console.error('Failed to refresh documents:', e);
+        debugInfo = 'Refresh failed';
+      
+}
+    }
+  }
+  
+  // 🔧 ADD: Clear all documents
+  function clearAllDocuments() {
+    if (confirm('Clear all documents from ScholarSphere?')) {
+      uploadedDocuments = [];
+      localStorage.removeItem('tori-scholarsphere-documents');
+      debugInfo = 'All documents cleared';
+      console.log('🧹 All documents cleared');
+    }
+  }
+</script>
+
+<div class="h-full flex flex-col {$darkMode ? 'bg-gray-800' : ''}" style="background-color: {$darkMode ? '' : 'var(--color-base)'};">
+  <!-- Header -->
+  <div class="p-4 {$darkMode ? 'border-gray-700 bg-gray-900' : ''}" style="
+    padding: var(--space-3);
+    border-bottom: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+    background-color: {$darkMode ? '' : 'var(--color-secondary)'};
+  ">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold {$darkMode ? 'text-white' : ''} flex items-center" style="
+          font-size: var(--text-xl);
+          color: {$darkMode ? '' : 'var(--color-text-primary)'};
+          margin: 0;
+        ">
+          📚 ScholarSphere
+          <span class="ml-2" style="
+            padding: calc(var(--space-1) / 2) var(--space-1);
+            font-size: var(--text-xs);
+            background: rgba(147, 51, 234, 0.1);
+            color: var(--color-accent);
+            border-radius: 9999px;
+          ">Debug</span>
+          <span class="ml-2" style="
+            padding: calc(var(--space-1) / 2) var(--space-1);
+            font-size: var(--text-xs);
+            background: rgba(91, 138, 138, 0.1);
+            color: var(--color-accent);
+            border-radius: 9999px;
+          ">🧬 Server</span>
+          {#if isConnectedToSSE}
+            <span class="ml-2" style="
+              padding: calc(var(--space-1) / 2) var(--space-1);
+              font-size: var(--text-xs);
+              background: rgba(59, 130, 246, 0.1);
+              color: #3b82f6;
+              border-radius: 9999px;
+            ">🔄 SSE Live</span>
+          {/if}
+          {#if currentProgressId}
+            <span class="ml-1" style="
+              padding: calc(var(--space-1) / 2) var(--space-1);
+              font-size: var(--text-xs);
+              background: rgba(251, 191, 36, 0.1);
+              color: #f59e0b;
+              border-radius: var(--border-radius-sm);
+            " title={currentProgressId}>🆔</span>
+          {/if}
+        </h3>
+        <p class="mt-1" style="
+          font-size: var(--text-xs);
+          color: var(--color-text-secondary);
+        ">
+          {uploadedDocuments.length} documents • Enhanced extraction with bulletproof processing
+        </p>
+        <!-- 🔧 ADD: Debug info display -->
+        {#if debugInfo}
+          <p class="mt-1 font-mono" style="
+            font-size: var(--text-xs);
+            color: var(--color-accent);
+          ">
+            🔍 {debugInfo}
+          </p>
+        {/if}
+      </div>
+      
+      <div class="flex items-center" style="gap: var(--space-1);">
+        <!-- 🔧 ADD: Debugging buttons -->
+        <button
+          type="button"
+          on:click={refreshDocuments}
+          class="transition-all"
+          style="
+            padding: calc(var(--space-1) / 2) var(--space-2);
+            font-size: var(--text-xs);
+            background: var(--color-base);
+            color: var(--color-text-primary);
+            border: var(--border-width) solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+          "
+          
+          title="Refresh documents from storage"
+        >
+          🔄 Refresh
+        </button>
+        
+        {#if uploadedDocuments.length > 0}
+          <button
+            type="button"
+            on:click={clearAllDocuments}
+            class="transition-all"
+            style="
+              padding: calc(var(--space-1) / 2) var(--space-2);
+              font-size: var(--text-xs);
+              background: var(--color-base);
+              color: var(--color-text-secondary);
+              border: var(--border-width) solid var(--color-border);
+              border-radius: var(--border-radius-sm);
+              cursor: pointer;
+              font-weight: 500;
+            "
+            
+            title="Clear all documents"
+          >
+            🧹 Clear
+          </button>
+        {/if}
+        
+        {#if isUploading}
+          <button
+            type="button"
+            on:click={resetUploadState}
+            class="transition-all"
+            style="
+              padding: calc(var(--space-1) / 2) var(--space-2);
+              font-size: var(--text-xs);
+              background: rgba(239, 68, 68, 0.1);
+              color: var(--color-error);
+              border: var(--border-width) solid var(--color-error);
+              border-radius: var(--border-radius-sm);
+              cursor: pointer;
+              font-weight: 500;
+            "
+            
+            title="Reset upload state if stuck"
+          >
+            🛑 Reset
+          </button>
+        {/if}
+        
+        <button
+          type="button"
+          on:click={() => showDocuments = !showDocuments}
+          class="p-1 rounded transition-colors"
+          style="
+            background: transparent;
+            cursor: pointer;
+            border: none;
+            font-size: var(--text-sm);
+          "
+          
+          title={showDocuments ? 'Hide documents' : 'Show documents'}
+        >
+          {showDocuments ? '🔽' : '▶️'}
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Upload Area -->
+  <div class="p-4 {$darkMode ? 'border-gray-700' : ''}" style="
+    padding: var(--space-3);
+    border-bottom: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+  ">
+    <!-- Error Display -->
+    {#if uploadError}
+      <div class="mb-3" style="
+        padding: var(--space-2);
+        background: rgba(239, 68, 68, 0.05);
+        border: var(--border-width) solid var(--color-error);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+      " transition:fade>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center" style="gap: var(--space-1);">
+            <span style="color: var(--color-error);">❌</span>
+            <span style="font-size: var(--text-sm); color: var(--color-error);">{uploadError}</span>
+          </div>
+          <button type="button" on:click={clearError} style="
+            color: var(--color-error);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--text-lg);
+            padding: 0;
+            opacity: 0.5;
+          "  >✕</button>
+        </div>
+      </div>
+    {/if}
+    
+    <!-- Upload Drop Zone -->
+    <div 
+      class="transition-all duration-200 {
+        isDragOver ? '' : 
+        isUploading ? '' : 
+        ''
+      }"
+      style="
+        border: calc(var(--border-width) * 2) dashed {isDragOver ? 'var(--color-accent)' : isUploading ? '#3b82f6' : $darkMode ? '#4b5563' : 'var(--color-border)'};
+        border-radius: var(--border-radius);
+        padding: var(--space-3);
+        text-align: center;
+        background-color: {isDragOver ? 'rgba(91, 138, 138, 0.05)' : isUploading ? 'rgba(59, 130, 246, 0.05)' : $darkMode ? 'rgba(255, 255, 255, 0.02)' : 'var(--color-base)'};
+        cursor: {isUploading ? 'not-allowed' : 'pointer'};
+        transition: all 0.2s ease;
+      "
+      class:pointer-events-none={isUploading}
+      on:dragover={handleDragOver}
+      on:dragleave={handleDragLeave}
+      on:drop={handleDrop}
+      on:click={browseFiles}
+      on:keydown={handleUploadKeydown}
+      role="button"
+      tabindex="0"
+      aria-label="Upload documents"
+    >
+      {#if isUploading}
+        <div class="space-y-3" transition:fly={{y: 10, duration: 200}}>
+          <div style="color: #3b82f6; font-size: var(--text-2xl);">📤</div>
+          <div style="font-size: var(--text-sm); font-weight: 500; color: #3b82f6;">{uploadStatus}</div>
+          {#if progressStage}
+            <div style="
+              font-size: var(--text-xs);
+              color: #3b82f6;
+              font-family: monospace;
+              background: rgba(59, 130, 246, 0.1);
+              padding: calc(var(--space-1) / 2) var(--space-1);
+              border-radius: var(--border-radius-sm);
+              display: inline-block;
+            ">
+              Stage: {progressStage}
+            </div>
+          {/if}
+          <div style="
+            width: 100%;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 9999px;
+            height: var(--space-1);
+            max-width: 20rem;
+            margin: 0 auto;
+          ">
+            <div 
+              style="
+                background: #3b82f6;
+                height: var(--space-1);
+                border-radius: 9999px;
+                transition: all 0.3s ease;
+                width: {uploadProgress}%;
+              "
+            ></div>
+          </div>
+          <div style="font-size: var(--text-xs); color: #3b82f6;">
+            {uploadProgress}%
+            {#if isConnectedToSSE}
+              <span style="margin-left: var(--space-1); color: #10b981;">• Live SSE</span>
+            {/if}
+          </div>
+        </div>
+      {:else}
+        <div style="
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-1);
+          align-items: center;
+        ">
+          <div style="font-size: var(--text-2xl); color: {$darkMode ? '#9ca3af' : 'var(--color-text-secondary)'};">🧬</div>
+          <div style="
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: {$darkMode ? '#e5e7eb' : 'var(--color-text-primary)'};
+          ">
+            Upload Ideas...
+          </div>
+          <div style="
+            font-size: var(--text-xs);
+            color: {$darkMode ? '#6b7280' : 'var(--color-text-secondary)'};
+          ">
+            Drop files here or click to browse
+          </div>
+        </div>
+      {/if}
+    </div>
+    
+    <div style="
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      text-align: center;
+      margin-top: var(--space-1);
+    ">
+      Supports: PDF, TXT, JSON • Max 50MB per file • 🧬 Enhanced Processing
+    </div>
+  </div>
+  
+  <!-- Document Library -->
+  {#if showDocuments}
+    <div class="flex-1 overflow-y-auto" transition:fly={{y: -20, duration: 200}}>
+      <!-- 🔧 ADD: Documents count display -->
+      <div style="
+        padding: var(--space-2);
+        background: {$darkMode ? 'rgba(255, 255, 255, 0.02)' : 'var(--color-secondary)'};
+        font-size: var(--text-xs);
+        color: var(--color-text-secondary);
+        border-bottom: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+      ">
+        📊 Document Library: {uploadedDocuments.length} total
+        {#if uploadedDocuments.length > 0}
+          • Last: {uploadedDocuments[uploadedDocuments.length - 1]?.filename || 'Unknown'}
+        {/if}
+      </div>
+      
+      {#if uploadedDocuments.length === 0}
+        <div style="
+          padding: var(--space-6);
+          text-align: center;
+          color: var(--color-text-secondary);
+        ">
+          <div style="font-size: 3rem; margin-bottom: var(--space-1);">📖</div>
+          <div style="font-size: var(--text-sm);">No documents uploaded yet</div>
+          <div style="font-size: var(--text-xs); margin-top: calc(var(--space-1) / 2);">Upload your first document to begin extraction</div>
+          <div style="
+            font-size: var(--text-xs);
+            color: var(--color-accent);
+            margin-top: var(--space-1);
+          ">
+            Debug: {debugInfo || 'Ready for upload'}
+          </div>
+        </div>
+      {:else}
+        <div style="padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1);">
+          {#each uploadedDocuments as doc, index (doc.id || index)}
+            <div style="
+              border: var(--border-width) solid var(--color-border);
+              border-radius: var(--border-radius);
+              padding: var(--space-2);
+              background: {$darkMode ? 'rgba(255, 255, 255, 0.02)' : 'var(--color-base)'};
+              transition: all 0.2s ease;
+              box-shadow: var(--shadow-sm);
+            "
+            
+            transition:fly={{x: -20, duration: 200}}>
+              <!-- Document header -->
+              <div class="flex items-start justify-between" style="margin-bottom: var(--space-1);">
+                <div class="flex items-center flex-1 min-w-0" style="gap: var(--space-1);">
+                  <div style="font-size: var(--text-lg); flex-shrink: 0;">
+                    {getDocumentIcon(doc.filename)}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="truncate" style="
+                      font-weight: 500;
+                      color: var(--color-text-primary);
+                      font-size: var(--text-sm);
+                      margin: 0;
+                    " title={doc.filename}>
+                      {doc.filename}
+                    </h4>
+                    <p style="
+                      font-size: var(--text-xs);
+                      color: var(--color-text-secondary);
+                      margin: 0;
+                    ">
+                      {formatDate(doc.uploadedAt)} • {formatFileSize(doc.size)}
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  on:click={() => removeDocument(doc.id)}
+                  style="
+                    color: var(--color-text-secondary);
+                    font-size: var(--text-xs);
+                    padding: calc(var(--space-1) / 2);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    transition: color 0.2s ease;
+                  "
+                  
+                  title="Remove document"
+                >
+                  🗑️
+                </button>
+              </div>
+              
+              <!-- Concepts -->
+              {#if doc.concepts && doc.concepts.length > 0}
+                {@const conceptNames = extractConceptNames(doc.concepts)}
+                <div class="flex flex-wrap" style="gap: calc(var(--space-1) / 2); margin-bottom: var(--space-1);">
+                  {#each conceptNames.slice(0, 5) as conceptName}
+                    <span style="
+                      padding: calc(var(--space-1) / 2) var(--space-1);
+                      font-size: var(--text-xs);
+                      background: rgba(91, 138, 138, 0.1);
+                      color: var(--color-accent);
+                      border-radius: 9999px;
+                      font-weight: 500;
+                    ">
+                      {conceptName}
+                    </span>
+                  {/each}
+                  {#if conceptNames.length > 5}
+                    <span style="
+                      padding: calc(var(--space-1) / 2) var(--space-1);
+                      font-size: var(--text-xs);
+                      background: var(--color-secondary);
+                      color: var(--color-text-secondary);
+                      border-radius: 9999px;
+                    ">
+                      +{conceptNames.length - 5}
+                    </span>
+                  {/if}
+                </div>
+              {/if}
+              
+              <!-- Status -->
+              <div class="flex items-center justify-between" style="font-size: var(--text-xs);">
+                <div style="color: var(--color-text-secondary);">
+                  {doc.concepts?.length || 0} concepts extracted
+                </div>
+                
+                <div class="flex items-center" style="gap: var(--space-1);">
+                  {#if doc.enhancedExtraction}
+                    <span style="color: #10b981;" title="Enhanced extraction">🧬</span>
+                  {/if}
+                  {#if doc.elfinTriggered}
+                    <span style="color: #3b82f6;" title="ELFIN++ processed">⚡</span>
+                  {/if}
+                  <span style="color: var(--color-accent);" title="In concept mesh">🧠</span>
+                </div>
+              </div>
+              
+              <!-- Method info -->
+              {#if doc.extractionMethod}
+                <div style="
+                  font-size: var(--text-xs);
+                  color: var(--color-text-secondary);
+                  margin-top: calc(var(--space-1) / 2);
+                ">
+                  Method: {doc.extractionMethod}
+                  {#if doc.processingTime}
+                    • {doc.processingTime.toFixed(2)}s
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
+</div>
+
+<style>
+  [role="button"] {
+    outline: none;
+  }
+  
+  [role="button"]:focus {
+    box-shadow: 0 0 0 2px rgba(91, 138, 138, 0.5);
+  }
+  
+  /* Custom scrollbar styling */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: var(--space-1);
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: var(--color-secondary);
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: calc(var(--space-1) / 2);
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary);
+  }
+  
+  :global(.dark) .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  :global(.dark) .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  :global(.dark) .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+</style>

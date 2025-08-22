@@ -1,0 +1,489 @@
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import RealGhostEngine from '$lib/realGhostEngine.js';
+  import { ghostPersona } from '$lib/stores/ghostPersona.js';
+  import { get } from 'svelte/store';
+  
+  export let width = 320;
+  export let height = 240;
+  export let usePenrose = true;
+  export let showStats = true;
+  export let enableVideo = false;
+  export let videoSource: 'webcam' | 'file' | 'stream' = 'webcam';
+  
+  let canvas: HTMLCanvasElement;
+  let video: HTMLVideoElement;
+  let animationFrame: number;
+  let fps = 0;
+  let complexity = 'O(n²·³²)';
+  let time = 0;
+  let videoReady = false;
+  let isInitialized = false;
+  let error = '';
+  let ghostEngine = null;
+  let currentPersona = null;
+  
+  // Subscribe to persona changes
+  $: if (ghostEngine && $ghostPersona && $ghostPersona.id !== currentPersona?.id) {
+    console.log('🔄 Switching hologram to:', $ghostPersona.name);
+    currentPersona = $ghostPersona;
+    ghostEngine.switchPersona($ghostPersona);
+  }
+  
+  onMount(async () => {
+    try {
+      // Get current persona from store
+      const initialPersona = get(ghostPersona);
+      currentPersona = initialPersona;
+      
+      console.log('🎭 Initializing hologram with persona:', initialPersona.name);
+      
+      // Create Ghost Engine instance with current persona
+      ghostEngine = new RealGhostEngine({ 
+        persona: initialPersona.id || initialPersona.name || 'ENOLA' 
+      
+    // Auto-start hologram if not using webcam
+    if (!enableVideo || videoSource !== 'webcam') {
+      console.log('🌟 Auto-starting hologram display');
+      startHologram();
+    }
+    
+  });
+      
+      // Initialize Ghost Engine with canvas
+      await ghostEngine.initialize(canvas, {
+        enableSync: true,
+        targetFPS: 60
+      });
+      
+      isInitialized = true;
+      
+      // Add holographic objects
+      setupHolographicScene();
+      
+      // Start engine
+      ghostEngine.start();
+      
+      // Monitor performance
+      const unsubscribe = ghostEngine.onFrame((deltaTime, psiState) => {
+        time += deltaTime;
+        updateHolographicElements(psiState);
+      });
+      
+      return () => {
+        unsubscribe();
+        cleanup();
+      };
+    } catch (err) {
+      console.error('Failed to initialize holographic display:', err);
+      error = err.message;
+      // Fallback to simple canvas animation
+      startFallbackAnimation();
+    }
+  });
+  
+  onDestroy(() => {
+    cleanup();
+  });
+  
+  function cleanup() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    if (video && video.srcObject) {
+      const stream = video.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (isInitialized) {
+      ghostEngine.stop();
+      ghostEngine.dispose();
+    }
+  }
+  
+  function setupHolographicScene() {
+    // Add central holographic core
+    ghostEngine.addHolographicObject({
+      id: 'core',
+      geometry: { type: 'sphere', radius: 0.5 },
+      material: { 
+        type: 'holographic',
+        color: { h: 180, s: 80, l: 60 },
+        opacity: 0.8
+      },
+      position: { x: 0, y: 0, z: 0 },
+      psiResponsive: true,
+      psiMapping: {
+        position: { x: 0.1, y: 0, z: 0.1 }
+      }
+    });
+    
+    // Add oscillator visualization rings
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      ghostEngine.addHolographicObject({
+        id: `oscillator_${i}`,
+        geometry: { type: 'torus', radius: 0.3, tube: 0.05 },
+        material: {
+          type: 'emissive',
+          color: { h: i * 45, s: 70, l: 50 },
+          intensity: 0.5
+        },
+        position: {
+          x: Math.cos(angle) * 1.5,
+          y: 0,
+          z: Math.sin(angle) * 1.5
+        },
+        rotation: { x: Math.PI / 2, y: angle, z: 0 },
+        psiResponsive: true
+      });
+    }
+    
+    // Add particle field
+    ghostEngine.addHolographicObject({
+      id: 'particles',
+      particles: {
+        count: 1000,
+        emissionRate: 50,
+        lifetime: 3,
+        size: 0.02,
+        spread: Math.PI / 4
+      },
+      position: { x: 0, y: -0.5, z: 0 },
+      psiResponsive: true
+    });
+    
+    // Add volumetric field
+    if (usePenrose) {
+      ghostEngine.addHolographicObject({
+        id: 'volume',
+        volume: {
+          resolution: 32,
+          data: generateVolumetricData()
+        },
+        position: { x: 0, y: 0, z: 0 },
+        scale: { x: 2, y: 2, z: 2 },
+        psiResponsive: true
+      });
+    }
+  }
+  
+  function generateVolumetricData() {
+    const size = 32;
+    const data = new Float32Array(size * size * size);
+    
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        for (let z = 0; z < size; z++) {
+          const i = x + y * size + z * size * size;
+          const dx = (x - size/2) / size;
+          const dy = (y - size/2) / size;
+          const dz = (z - size/2) / size;
+          const r = Math.sqrt(dx*dx + dy*dy + dz*dz);
+          
+          // Create interesting volumetric pattern
+          data[i] = Math.exp(-r * 3) * (1 + Math.sin(r * 10 + time));
+        }
+      }
+    }
+    
+    return data;
+  }
+  
+  function updateHolographicElements(psiState: any) {
+    if (!psiState) return;
+    
+    // Update oscillator rotations based on phases
+    if (psiState.oscillator_phases) {
+      psiState.oscillator_phases.forEach((phase, i) => {
+        ghostEngine.updateHolographicObject(`oscillator_${i}`, {
+          rotation: { x: Math.PI / 2, y: phase, z: 0 }
+        });
+      });
+    }
+    
+    // Update particle density based on coherence
+    if (psiState.phase_coherence) {
+      const particleCount = Math.floor(psiState.phase_coherence * 2000);
+      ghostEngine.updateHolographicObject('particles', {
+        particles: { count: particleCount }
+      });
+    }
+    
+    // Update FPS counter
+    const metrics = ghostEngine.getPerformanceMetrics();
+    fps = metrics.fps;
+  }
+  
+  // Fallback animation if Ghost Engine fails
+  function startFallbackAnimation() {
+    const ctx = canvas.getContext('2d')!;
+    if (!ctx) return;
+    
+    function animate() {
+      time += 0.016;
+      renderFallback(ctx);
+      animationFrame = requestAnimationFrame(animate);
+    }
+    
+    animate();
+  }
+  
+  function renderFallback(ctx: CanvasRenderingContext2D) {
+    // Simple fallback visualization
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw TORI text
+    ctx.fillStyle = '#00ffff';
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TORI', width/2, height/2);
+    
+    // Draw rotating circle
+    ctx.strokeStyle = '#ff00ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(width/2, height/2, 50, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  
+  async function initializeVideo() {
+    if (!enableVideo) return;
+    
+    video = document.createElement('video');
+    video.autoplay = true;
+    video.muted = true;
+    video.style.display = 'none';
+    document.body.appendChild(video);
+    
+    if (videoSource === 'webcam') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: width },
+            height: { ideal: height }
+          } 
+        });
+        video.srcObject = stream;
+        await video.play();
+        videoReady = true;
+        console.log('📹 Webcam initialized');
+        
+        // Add video texture to scene
+        if (isInitialized) {
+          ghostEngine.addHolographicObject({
+            id: 'video_plane',
+            geometry: { type: 'plane', width: 2, height: 1.5 },
+            material: {
+              type: 'video',
+              video: video,
+              opacity: 0.8
+            },
+            position: { x: 0, y: 0, z: -2 },
+            psiResponsive: false
+          });
+        }
+      } catch (err) {
+        console.error('Failed to access webcam:', err);
+        error = 'Camera access denied';
+      }
+    }
+  }
+  
+  function toggleVideo() {
+    enableVideo = !enableVideo;
+    if (enableVideo) {
+      initializeVideo();
+    } else if (video) {
+      if (video.srcObject) {
+        const stream = video.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.remove();
+      videoReady = false;
+      
+      // Remove video from scene
+      if (isInitialized) {
+        ghostEngine.removeHolographicObject('video_plane');
+      }
+    }
+  }
+</script>
+
+<div class="holographic-display" transition:fade>
+  <canvas 
+    bind:this={canvas}
+    {width}
+    {height}
+    class="hologram-canvas"
+  />
+  
+  {#if showStats}
+    <div class="stats-overlay">
+      <div class="stat-item">
+        <span class="stat-label">FPS:</span>
+        <span class="stat-value">{fps}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Mode:</span>
+        <span class="stat-value">{isInitialized ? 'WebGPU' : 'Fallback'}</span>
+      </div>
+      {#if usePenrose}
+        <div class="stat-item">
+          <span class="stat-label">Complexity:</span>
+          <span class="stat-value">{complexity}</span>
+        </div>
+      {/if}
+    </div>
+  {/if}
+  
+  <div class="controls-overlay">
+    <button 
+      on:click={toggleVideo}
+      class="video-toggle {enableVideo ? 'active' : ''}"
+      title="Toggle Video"
+    >
+      {enableVideo ? '📹' : '📷'}
+    </button>
+  </div>
+  
+  {#if error}
+    <div class="error-overlay">
+      <p>{error}</p>
+    </div>
+  {/if}
+  
+  {#if enableVideo && videoSource === "webcam" && !videoReady}
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Initializing video...</p>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .holographic-display {
+    position: relative;
+    width: fit-content;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
+  }
+  
+  .hologram-canvas {
+    display: block;
+    image-rendering: crisp-edges;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+  }
+  
+  .stats-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #00ffff;
+    backdrop-filter: blur(10px);
+  }
+  
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 2px 0;
+  }
+  
+  .stat-label {
+    color: #00ffff;
+    opacity: 0.7;
+  }
+  
+  .stat-value {
+    color: #00ff00;
+    font-weight: bold;
+  }
+  
+  .controls-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    gap: 8px;
+  }
+  
+  .video-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(138, 43, 226, 0.3);
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+  }
+  
+  .video-toggle:hover {
+    background: rgba(138, 43, 226, 0.5);
+    transform: scale(1.1);
+  }
+  
+  .video-toggle.active {
+    background: rgba(138, 43, 226, 0.7);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
+  }
+  
+  .error-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+  }
+  
+  .error-overlay p {
+    color: #ff6666;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(138, 43, 226, 0.3);
+    border-top-color: #8a2be2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  .loading-overlay p {
+    color: #8a2be2;
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>

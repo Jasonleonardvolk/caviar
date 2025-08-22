@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+# iRis pre-push gate: calls PowerShell verify script; blocks push on failure.
+
+set -eu
+
+echo "======================================="
+echo "     iRis Pre-Push Verification"
+echo "======================================="
+echo ""
+
+# Use regular PowerShell (not pwsh Core)
+PS=powershell
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+VERIFY_PS="$REPO_ROOT/tools/release/verify-setup.ps1"
+
+# Check for skip flag
+if [ "${IRIS_SKIP_ASSETS:-0}" = "1" ]; then
+  echo "pre-push: IRIS_SKIP_ASSETS=1 -> skipping assets validation"
+  "$PS" -NoProfile -ExecutionPolicy Bypass -File "$VERIFY_PS" -SkipAssets
+  exit $?
+fi
+
+# Check for uncommitted changes first (warn but don't fail)
+UNCOMMITTED=$(git status --porcelain 2>/dev/null || true)
+if [ -n "$UNCOMMITTED" ]; then
+  echo "WARNING: Uncommitted changes detected:"
+  echo "$UNCOMMITTED"
+  echo ""
+  echo "Consider committing or stashing before push."
+  echo "Continuing with verification..."
+  echo ""
+fi
+
+# Main verification path
+if [ ! -f "$VERIFY_PS" ]; then
+  echo "WARN: $VERIFY_PS not found. Skipping verification..."
+  exit 0
+fi
+
+# Primary verification - capture exit code explicitly
+echo "Running full verification script..."
+echo ""
+"$PS" -NoProfile -ExecutionPolicy Bypass -File "$VERIFY_PS"
+code=$?
+
+# Write a clear status line for Git and return the exact code
+if [ "$code" -ne 0 ]; then
+  echo ""
+  echo "======================================="
+  echo "   Pre-Push Verification FAILED"
+  echo "======================================="
+  echo "pre-push: verify-setup.ps1 failed with exit $code"
+  echo "Fix the issues above before pushing."
+else
+  echo ""
+  echo "======================================="
+  echo "   Pre-Push Verification PASSED"
+  echo "======================================="
+  echo "pre-push: verify-setup.ps1 passed (exit 0)"
+fi
+
+exit "$code"

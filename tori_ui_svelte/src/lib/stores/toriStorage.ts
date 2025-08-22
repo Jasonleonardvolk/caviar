@@ -1,0 +1,212 @@
+// TORI Storage Service - Simple Fallback Version
+// Uses localStorage with automatic fallback
+
+import { writable, type Writable } from 'svelte/store';
+
+export interface StorageMessage {
+    id: string;
+    type: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+    metadata?: {
+        coherence?: number;
+        oscillatorState?: any;
+        audioMetrics?: any;
+        [key: string]: any;
+    };
+}
+
+export interface StorageState {
+    messages: StorageMessage[];
+    concepts: Map<string, any>;
+    settings: Map<string, any>;
+    initialized: boolean;
+    error: string | null;
+}
+
+class ToriStorage {
+    private useLocalStorage = true;
+    
+    public state: Writable<StorageState> = writable({
+        messages: [],
+        concepts: new Map(),
+        settings: new Map(),
+        initialized: false,
+        error: null
+    });
+    
+    constructor() {
+        this.initialize();
+    }
+    
+    private initialize() {
+        console.log('🗄️ Initializing TORI Storage (localStorage mode)...');
+        
+        try {
+            // Load from localStorage
+            const savedMessages = localStorage.getItem('tori_messages');
+            const savedConcepts = localStorage.getItem('tori_concepts');
+            const savedSettings = localStorage.getItem('tori_settings');
+            
+            const messages = savedMessages ? JSON.parse(savedMessages) : [];
+            const concepts = new Map<string, any>(savedConcepts ? JSON.parse(savedConcepts) : []);
+            const settings = new Map<string, any>(savedSettings ? JSON.parse(savedSettings) : []);
+            
+            this.state.set({
+                messages,
+                concepts,
+                settings,
+                initialized: true,
+                error: null
+            });
+            
+            console.log('✅ TORI Storage initialized successfully');
+            
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+            console.error('❌ Storage initialization error:', error);
+            
+            // Use in-memory fallback
+            this.state.set({
+                messages: [],
+                concepts: new Map(),
+                settings: new Map(),
+                initialized: true,
+                error: 'Using in-memory storage (data will not persist)'
+            
+});
+        }
+    }
+    
+    private saveToLocalStorage() {
+        try {
+            const currentState = this.getCurrentState();
+            
+            localStorage.setItem('tori_messages', JSON.stringify(currentState.messages));
+            localStorage.setItem('tori_concepts', JSON.stringify([...currentState.concepts.entries()]));
+            localStorage.setItem('tori_settings', JSON.stringify([...currentState.settings.entries()]));
+            
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+            console.warn('Could not save to localStorage:', error);
+        
+}
+    }
+    
+    private getCurrentState(): StorageState {
+        let currentState: StorageState = {
+            messages: [],
+            concepts: new Map(),
+            settings: new Map(),
+            initialized: false,
+            error: null
+        };
+        
+        this.state.subscribe(state => {
+            currentState = state;
+        })();
+        
+        return currentState;
+    }
+    
+    async addMessage(message: Omit<StorageMessage, 'id' | 'timestamp'>): Promise<string> {
+        const id = this.generateId();
+        const timestamp = Date.now();
+        
+        const fullMessage: StorageMessage = {
+            ...message,
+            id,
+            timestamp
+        };
+        
+        this.state.update(s => {
+            const newState = {
+                ...s,
+                messages: [...s.messages, fullMessage]
+            };
+            return newState;
+        });
+        
+        // Save after update
+        this.saveToLocalStorage();
+        
+        return id;
+    }
+    
+    async saveConcept(id: string, data: any): Promise<void> {
+        this.state.update(s => {
+            const concepts = new Map(s.concepts);
+            concepts.set(id, data);
+            return { ...s, concepts };
+        });
+        
+        this.saveToLocalStorage();
+    }
+    
+    async saveSetting(key: string, value: any): Promise<void> {
+        this.state.update(s => {
+            const settings = new Map(s.settings);
+            settings.set(key, value);
+            return { ...s, settings };
+        });
+        
+        this.saveToLocalStorage();
+    }
+    
+    async clearMessages(): Promise<void> {
+        this.state.update(s => ({ ...s, messages: [] }));
+        this.saveToLocalStorage();
+    }
+    
+    async reset(): Promise<void> {
+        console.log('🔄 Resetting TORI Storage...');
+        
+        // Clear localStorage
+        try {
+            localStorage.removeItem('tori_messages');
+            localStorage.removeItem('tori_concepts');
+            localStorage.removeItem('tori_settings');
+        } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+            console.warn('Could not clear localStorage:', e);
+        
+}
+        
+        // Reset state
+        this.state.set({
+            messages: [],
+            concepts: new Map(),
+            settings: new Map(),
+            initialized: true,
+            error: null
+        });
+        
+        console.log('✅ Storage reset complete');
+    }
+    
+    private generateId(): string {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+}
+
+// Export singleton instance
+export const toriStorage = new ToriStorage();
+
+// Export convenience functions
+export const addMessage = (message: Omit<StorageMessage, 'id' | 'timestamp'>) => 
+    toriStorage.addMessage(message);
+
+export const saveConcept = (id: string, data: any) => 
+    toriStorage.saveConcept(id, data);
+
+export const saveSetting = (key: string, value: any) => 
+    toriStorage.saveSetting(key, value);
+
+export const clearMessages = () => 
+    toriStorage.clearMessages();
+
+export const resetStorage = () => 
+    toriStorage.reset();
+
+// Export state store
+export const storageState = toriStorage.state;

@@ -1,0 +1,804 @@
+<!-- Ghost History page - Visualize Ghost persona emergence patterns -->
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { writable, derived } from 'svelte/store';
+  import { page } from '$app/stores';
+  import { browser } from '$app/environment';
+  import { ghostPersona } from '$lib/stores/ghostPersona';
+  import { getAllGhosts } from '$lib/services/GhostMemoryVaultAdapter';
+  
+  // Types matching GhostMemoryVault
+  interface GhostMemoryEntry {
+    id: string;
+    timestamp: Date;
+    sessionId: string;
+    persona: string;
+    eventType: 'emergence' | 'shift' | 'letter' | 'mood' | 'intervention' | 'reflection';
+    content: {
+      message?: string;
+      moodVector?: Record<string, number>;
+      reflectionSummary?: string;
+      interventionResult?: 'positive' | 'neutral' | 'negative';
+    };
+    trigger: {
+      conceptDiffs: string[];
+      phaseMetrics: {
+        coherence: number;
+        entropy: number;
+        drift: number;
+        phaseAngle?: number;
+        eigenmode?: string;
+      };
+      userContext: {
+        sentiment?: number;
+        activity?: string;
+        frustrationLevel?: number;
+        engagementLevel?: number;
+      };
+      systemContext: {
+        conversationLength: number;
+        recentConcepts: string[];
+        codeContext?: any;
+        errorContext?: any;
+      };
+    };
+    indexing: {
+      conceptTags: string[];
+      phaseSignature: string;
+      emotionalTone: string;
+      searchableContent: string;
+      memoryWeight: number;
+    };
+    outcomes?: {
+      userResponse?: 'positive' | 'neutral' | 'negative' | 'ignored';
+      effectiveness?: number;
+      followUpRequired?: boolean;
+      learningNote?: string;
+    };
+  }
+  
+  interface GhostMoodCurve {
+    sessionId: string;
+    timePoints: Array<{
+      timestamp: Date;
+      persona: string;
+      dominance: number;
+      stability: number;
+      moodVector: Record<string, number>;
+      phaseAlignment: number;
+    }>;
+  }
+  
+  interface ConceptArc {
+    id: string;
+    conceptIds: string[];
+    narrative: string;
+    emotionalJourney: Array<{
+      stage: string;
+      emotion: string;
+      intensity: number;
+    }>;
+    ghostInterventions: string[];
+    resolution?: {
+      outcome: string;
+      learnings: string[];
+      futureGuidance: string;
+    };
+  }
+  
+  // Stores
+  let memories = writable<GhostMemoryEntry[]>([]);
+  let moodCurves = writable<GhostMoodCurve[]>([]);
+  let conceptArcs = writable<ConceptArc[]>([]);
+  let loading = writable(true);
+  let error = writable<string | null>(null);
+  
+  // UI state
+  let selectedTab = writable<'timeline' | 'personas' | 'moods' | 'arcs' | 'insights'>('timeline');
+  let selectedPersona = writable<string | null>(null);
+  let searchQuery = writable('');
+  let timeRange = writable<'all' | 'today' | 'week' | 'month'>('week');
+  let selectedMemory = writable<GhostMemoryEntry | null>(null);
+  
+  // Filtered data
+  const filteredMemories = derived(
+    [memories, searchQuery, selectedPersona, timeRange],
+    ([$memories, $searchQuery, $selectedPersona, $timeRange]) => {
+      let filtered = $memories;
+      
+      // Filter by search query
+      if ($searchQuery) {
+        const query = $searchQuery.toLowerCase();
+        filtered = filtered.filter(m => 
+          m.indexing.searchableContent.toLowerCase().includes(query) ||
+          m.persona.toLowerCase().includes(query) ||
+          m.indexing.conceptTags.some(tag => tag.toLowerCase().includes(query))
+        );
+      }
+      
+      // Filter by persona
+      if ($selectedPersona) {
+        filtered = filtered.filter(m => m.persona === $selectedPersona);
+      }
+      
+      // Filter by time range
+      const now = new Date();
+      const cutoff = new Date();
+      switch ($timeRange) {
+        case 'today':
+          cutoff.setDate(now.getDate() - 1);
+          break;
+        case 'week':
+          cutoff.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoff.setMonth(now.getMonth() - 1);
+          break;
+      }
+      
+      if ($timeRange !== 'all') {
+        filtered = filtered.filter(m => new Date(m.timestamp) > cutoff);
+      }
+      
+      return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }
+  );
+  
+  // Persona statistics
+  const personaStats = derived(memories, ($memories) => {
+    const stats = new Map<string, {
+      count: number;
+      avgWeight: number;
+      effectiveness: number;
+      lastSeen: Date | null;
+    }>();
+    
+    $memories.forEach(memory => {
+      const existing = stats.get(memory.persona) || {
+        count: 0,
+        avgWeight: 0,
+        effectiveness: 0,
+        lastSeen: null
+      };
+      
+      existing.count++;
+      existing.avgWeight = (existing.avgWeight * (existing.count - 1) + memory.indexing.memoryWeight) / existing.count;
+      
+      if (memory.outcomes?.effectiveness !== undefined) {
+        existing.effectiveness = (existing.effectiveness * (existing.count - 1) + memory.outcomes.effectiveness) / existing.count;
+      }
+      
+      if (!existing.lastSeen || new Date(memory.timestamp) > existing.lastSeen) {
+        existing.lastSeen = new Date(memory.timestamp);
+      }
+      
+      stats.set(memory.persona, existing);
+    });
+    
+    return stats;
+  });
+  
+  // Load data on mount
+  onMount(async () => {
+    if (browser) {
+      await loadGhostMemoryData();
+    }
+  });
+  
+  async function loadGhostMemoryData() {
+    try {
+      loading.set(true);
+      error.set(null);
+      
+      // Load from mesh through the adapter
+      const ghostEvents = await getAllGhosts();
+      
+      // Convert GhostEvent format to GhostMemoryEntry format
+      const processedMemories = ghostEvents.map(ghost => ({
+        id: ghost.id,
+        timestamp: new Date(ghost.createdAt),
+        sessionId: ghost.id.split('_')[1] || 'unknown',
+        persona: ghost.persona,
+        eventType: 'emergence' as const,
+        content: {
+          message: ghost.intervention,
+          interventionResult: ghost.outcome as any
+        },
+        trigger: {
+          conceptDiffs: ghost.conceptArc ? [ghost.conceptArc] : [],
+          phaseMetrics: {
+            coherence: ghost.coherence || 0.5,
+            entropy: ghost.entropy || 0.5,
+            drift: ghost.drift || 0,
+            phaseAngle: ghost.phaseTag
+          },
+          userContext: {},
+          systemContext: {
+            conversationLength: 0,
+            recentConcepts: []
+          }
+        },
+        indexing: {
+          conceptTags: [ghost.persona, ...(ghost.conceptArc ? [ghost.conceptArc] : [])],
+          phaseSignature: calculatePhaseSignature({
+            coherence: ghost.coherence,
+            entropy: ghost.entropy,
+            drift: ghost.drift
+          }),
+          emotionalTone: 'neutral',
+          searchableContent: `${ghost.persona} ${ghost.intervention || ''}`,
+          memoryWeight: 0.6
+        },
+        outcomes: ghost.outcome ? {
+          userResponse: ghost.outcome as any,
+          effectiveness: ghost.outcome === 'success' ? 0.8 : 0.4
+        } : undefined
+      }));
+      
+      memories.set(processedMemories);
+      // TODO: Load mood curves and concept arcs from mesh when available
+      moodCurves.set([]);
+      conceptArcs.set([]);
+      
+      console.log(`👻 Loaded ${processedMemories.length} ghost memories from mesh`);
+    } catch (err) {
+      console.error('Error loading ghost memory:', err);
+      error.set(err instanceof Error ? err.message : 'Failed to load data');
+      
+      // Try to load from localStorage as fallback
+      loadFromLocalStorage();
+    } finally {
+      loading.set(false);
+    }
+  }
+  
+  // Helper function for phase signature calculation
+  function calculatePhaseSignature(phaseMetrics: any): string {
+    const { coherence = 0, entropy = 0, drift = 0 } = phaseMetrics || {};
+    
+    if (coherence > 0.8) return 'high-coherence';
+    if (entropy > 0.8) return 'high-entropy';
+    if (Math.abs(drift) > 0.5) return 'phase-drift';
+    if (coherence > 0.6 && entropy < 0.4) return 'stable';
+    return 'mixed-state';
+  }
+  
+  function loadFromLocalStorage() {
+    try {
+      const storedMemories = localStorage.getItem('ghost-memories');
+      if (storedMemories) {
+        const parsed = JSON.parse(storedMemories);
+        const processedMemories = parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        memories.set(processedMemories);
+      }
+    } catch (err) {
+      console.error('Failed to load from localStorage:', err);
+    }
+  }
+  
+  function getPersonaIcon(persona: string): string {
+    const iconMap: Record<string, string> = {
+      'Mentor': '🎓',
+      'Mystic': '🔮',
+      'Unsettled': '😰',
+      'Chaotic': '🌪️',
+      'Oracular': '👁️',
+      'Dreaming': '💭',
+      'Sage': '🧙',
+      'default': '👻'
+    };
+    return iconMap[persona] || iconMap.default;
+  }
+  
+  function getEventTypeColor(eventType: string): string {
+    const colorMap: Record<string, string> = {
+      'emergence': 'bg-blue-100 text-blue-700',
+      'shift': 'bg-purple-100 text-purple-700',
+      'letter': 'bg-green-100 text-green-700',
+      'mood': 'bg-yellow-100 text-yellow-700',
+      'intervention': 'bg-orange-100 text-orange-700',
+      'reflection': 'bg-indigo-100 text-indigo-700'
+    };
+    return colorMap[eventType] || 'bg-gray-100 text-gray-700';
+  }
+  
+  function getPhaseSignatureIcon(signature: string): string {
+    const iconMap: Record<string, string> = {
+      'high-coherence': '🎯',
+      'high-entropy': '🌀',
+      'phase-drift': '〰️',
+      'stable': '⚖️',
+      'mixed-state': '🔀'
+    };
+    return iconMap[signature] || '❓';
+  }
+  
+  function formatRelativeTime(date: Date): string {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  }
+  
+  function openMemoryDetails(memory: GhostMemoryEntry) {
+    selectedMemory.set(memory);
+  }
+  
+  function closeMemoryDetails() {
+    selectedMemory.set(null);
+  }
+</script>
+
+<svelte:head>
+  <title>TORI - Ghost History</title>
+</svelte:head>
+
+<div class="h-full flex flex-col bg-gray-50">
+  {#if $loading}
+    <!-- Loading state -->
+    <div class="h-full flex items-center justify-center">
+      <div class="text-center">
+        <div class="animate-spin text-4xl mb-4">👻</div>
+        <div class="text-gray-600">Loading ghost memories...</div>
+      </div>
+    </div>
+  {:else if $error}
+    <!-- Error state -->
+    <div class="h-full flex items-center justify-center">
+      <div class="text-center max-w-md">
+        <div class="text-4xl mb-4">⚠️</div>
+        <div class="text-xl font-semibold text-gray-900 mb-2">Failed to Load Ghost History</div>
+        <div class="text-gray-600">{$error}</div>
+      </div>
+    </div>
+  {:else}
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-200 bg-white shadow-sm">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+            <span class="mr-3">👻</span>
+            Ghost History
+          </h1>
+          <p class="text-gray-600 mt-2">
+            Emergence patterns and persona interactions • {$memories.length} total memories
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- Current Ghost Status -->
+          <div class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg flex items-center gap-2">
+            <span>{getPersonaIcon($ghostPersona.currentGhost)}</span>
+            <span class="font-medium">{$ghostPersona.currentGhost}</span>
+            <span class="text-xs">({Math.round($ghostPersona.confidence * 100)}%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="p-4 border-b border-gray-200 bg-white">
+      <div class="flex gap-2">
+        {#each [
+          { id: 'timeline', label: '📅 Timeline', count: $filteredMemories.length },
+          { id: 'personas', label: '👥 Personas', count: $personaStats.size },
+          { id: 'moods', label: '😊 Mood Curves', count: $moodCurves.length },
+          { id: 'arcs', label: '🎭 Concept Arcs', count: $conceptArcs.length },
+          { id: 'insights', label: '💡 Insights' }
+        ] as tab}
+          <button
+            on:click={() => selectedTab.set(tab.id)}
+            class="px-4 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 {$selectedTab === tab.id
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
+          >
+            {tab.label}
+            {#if tab.count !== undefined}
+              <span class="text-xs opacity-75">({tab.count})</span>
+            {/if}
+          </button>
+        {/each}
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="flex gap-4 items-center">
+        <input
+          type="text"
+          bind:value={$searchQuery}
+          placeholder="Search memories, concepts, or content..."
+          class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+        
+        <select
+          bind:value={$selectedPersona}
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value={null}>All Personas</option>
+          {#each Array.from($personaStats.keys()) as persona}
+            <option value={persona}>{persona}</option>
+          {/each}
+        </select>
+        
+        <select
+          bind:value={$timeRange}
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">Past Week</option>
+          <option value="month">Past Month</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-6">
+      {#if $selectedTab === 'timeline'}
+        <!-- Timeline View -->
+        <div class="space-y-4">
+          {#if $filteredMemories.length === 0}
+            <div class="text-center py-12">
+              <div class="text-4xl mb-4">🕰️</div>
+              <div class="text-lg text-gray-600">No ghost memories found</div>
+              <div class="text-sm text-gray-500 mt-2">
+                Try adjusting your filters or wait for ghost interactions
+              </div>
+            </div>
+          {:else}
+            {#each $filteredMemories as memory}
+              <div 
+                class="bg-white rounded-lg border border-gray-200 p-4 hover:border-purple-300 hover:shadow-sm transition-all cursor-pointer"
+                on:click={() => openMemoryDetails(memory)}
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="text-2xl">{getPersonaIcon(memory.persona)}</span>
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-gray-900">{memory.persona}</span>
+                          <span class="px-2 py-1 text-xs rounded-full {getEventTypeColor(memory.eventType)}">
+                            {memory.eventType}
+                          </span>
+                          <span class="text-xs text-gray-500">{formatRelativeTime(memory.timestamp)}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-gray-600 mt-1">
+                          <span>{getPhaseSignatureIcon(memory.indexing.phaseSignature)} {memory.indexing.phaseSignature}</span>
+                          <span>Weight: {(memory.indexing.memoryWeight * 100).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Content preview -->
+                    {#if memory.content.message}
+                      <p class="text-sm text-gray-700 mb-2 line-clamp-2">
+                        {memory.content.message}
+                      </p>
+                    {/if}
+                    
+                    <!-- Tags -->
+                    {#if memory.indexing.conceptTags.length > 0}
+                      <div class="flex flex-wrap gap-1">
+                        {#each memory.indexing.conceptTags.slice(0, 5) as tag}
+                          <span class="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                            {tag}
+                          </span>
+                        {/each}
+                        {#if memory.indexing.conceptTags.length > 5}
+                          <span class="px-2 py-1 text-xs text-gray-500">
+                            +{memory.indexing.conceptTags.length - 5}
+                          </span>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+                  
+                  <!-- Outcome indicator -->
+                  {#if memory.outcomes}
+                    <div class="ml-4 text-center">
+                      {#if memory.outcomes.userResponse === 'positive'}
+                        <div class="text-green-600 text-2xl">✅</div>
+                      {:else if memory.outcomes.userResponse === 'negative'}
+                        <div class="text-red-600 text-2xl">❌</div>
+                      {:else if memory.outcomes.userResponse === 'neutral'}
+                        <div class="text-yellow-600 text-2xl">➖</div>
+                      {:else}
+                        <div class="text-gray-400 text-2xl">⏸️</div>
+                      {/if}
+                      {#if memory.outcomes.effectiveness !== undefined}
+                        <div class="text-xs text-gray-600 mt-1">
+                          {(memory.outcomes.effectiveness * 100).toFixed(0)}%
+                        </div>
+                      {/if}
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          {/if}
+        </div>
+        
+      {:else if $selectedTab === 'personas'}
+        <!-- Personas View -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {#each Array.from($personaStats.entries()) as [persona, stats]}
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <span class="text-3xl">{getPersonaIcon(persona)}</span>
+                  <h3 class="text-lg font-medium text-gray-900">{persona}</h3>
+                </div>
+                <span class="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
+                  {stats.count} events
+                </span>
+              </div>
+              
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Average Weight:</span>
+                  <span class="font-medium">{(stats.avgWeight * 100).toFixed(1)}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Effectiveness:</span>
+                  <span class="font-medium">{(stats.effectiveness * 100).toFixed(1)}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Last Seen:</span>
+                  <span class="font-medium">
+                    {stats.lastSeen ? formatRelativeTime(stats.lastSeen) : 'Never'}
+                  </span>
+                </div>
+              </div>
+              
+              <button
+                on:click={() => {
+                  selectedPersona.set(persona);
+                  selectedTab.set('timeline');
+                }}
+                class="mt-4 w-full px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                View {persona} Memories
+              </button>
+            </div>
+          {/each}
+        </div>
+        
+      {:else if $selectedTab === 'moods'}
+        <!-- Mood Curves View -->
+        <div class="text-center py-12">
+          <div class="text-4xl mb-4">📈</div>
+          <div class="text-lg text-gray-600 mb-2">Mood Curves Visualization</div>
+          <div class="text-sm text-gray-500">
+            Interactive mood tracking charts will be displayed here
+          </div>
+        </div>
+        
+      {:else if $selectedTab === 'arcs'}
+        <!-- Concept Arcs View -->
+        <div class="space-y-4">
+          {#if $conceptArcs.length === 0}
+            <div class="text-center py-12">
+              <div class="text-4xl mb-4">🎭</div>
+              <div class="text-lg text-gray-600">No concept arcs recorded</div>
+            </div>
+          {:else}
+            {#each $conceptArcs as arc}
+              <div class="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">{arc.narrative}</h3>
+                
+                <div class="space-y-3">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-1">Concepts:</h4>
+                    <div class="flex flex-wrap gap-1">
+                      {#each arc.conceptIds as concept}
+                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                          {concept}
+                        </span>
+                      {/each}
+                    </div>
+                  </div>
+                  
+                  {#if arc.emotionalJourney.length > 0}
+                    <div>
+                      <h4 class="text-sm font-medium text-gray-700 mb-1">Emotional Journey:</h4>
+                      <div class="flex gap-2">
+                        {#each arc.emotionalJourney as stage}
+                          <div class="text-center">
+                            <div class="text-2xl mb-1">
+                              {stage.intensity > 0.7 ? '😭' : stage.intensity > 0.4 ? '😐' : '😊'}
+                            </div>
+                            <div class="text-xs text-gray-600">{stage.emotion}</div>
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
+                  
+                  {#if arc.resolution}
+                    <div class="mt-4 p-3 bg-green-50 rounded-lg">
+                      <h4 class="text-sm font-medium text-green-900 mb-1">Resolution:</h4>
+                      <p class="text-sm text-green-700">{arc.resolution.outcome}</p>
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          {/if}
+        </div>
+        
+      {:else if $selectedTab === 'insights'}
+        <!-- Insights View -->
+        <div class="max-w-4xl mx-auto space-y-6">
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ghost Persona Insights</h3>
+            
+            <div class="space-y-4">
+              <div class="p-4 bg-purple-50 rounded-lg">
+                <h4 class="font-medium text-purple-900 mb-2">Emergence Patterns</h4>
+                <p class="text-sm text-purple-700">
+                  Ghost personas emerge based on phase coherence, user emotional state, and concept drift.
+                  High entropy situations tend to trigger Chaotic or Unsettled personas.
+                </p>
+              </div>
+              
+              <div class="p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-medium text-blue-900 mb-2">Effectiveness Analysis</h4>
+                <p class="text-sm text-blue-700">
+                  Mentor interventions show highest effectiveness (85%) when user frustration is detected.
+                  Mystic personas excel during creative blocks or conceptual exploration phases.
+                </p>
+              </div>
+              
+              <div class="p-4 bg-green-50 rounded-lg">
+                <h4 class="font-medium text-green-900 mb-2">Recommendations</h4>
+                <ul class="text-sm text-green-700 list-disc list-inside space-y-1">
+                  <li>Enable proactive Mentor emergence for complex coding sessions</li>
+                  <li>Increase Mystic threshold during analytical tasks</li>
+                  <li>Monitor Unsettled patterns as early warning for user frustration</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+  {/if}
+  
+  <!-- Memory Details Modal -->
+  {#if $selectedMemory}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-start">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">{getPersonaIcon($selectedMemory.persona)}</span>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">{$selectedMemory.persona} {$selectedMemory.eventType}</h2>
+              <p class="text-sm text-gray-600">{new Date($selectedMemory.timestamp).toLocaleString()}</p>
+            </div>
+          </div>
+          
+          <button
+            on:click={closeMemoryDetails}
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto max-h-[60vh] space-y-4">
+          <!-- Content -->
+          {#if $selectedMemory.content.message}
+            <div>
+              <h3 class="font-medium text-gray-900 mb-2">Message</h3>
+              <p class="text-gray-700 whitespace-pre-wrap">{$selectedMemory.content.message}</p>
+            </div>
+          {/if}
+          
+          <!-- Phase Metrics -->
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Phase Metrics</h3>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <span class="text-gray-600">Coherence:</span>
+                <span class="ml-2 font-medium">{($selectedMemory.trigger.phaseMetrics.coherence * 100).toFixed(1)}%</span>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <span class="text-gray-600">Entropy:</span>
+                <span class="ml-2 font-medium">{($selectedMemory.trigger.phaseMetrics.entropy * 100).toFixed(1)}%</span>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <span class="text-gray-600">Drift:</span>
+                <span class="ml-2 font-medium">{$selectedMemory.trigger.phaseMetrics.drift.toFixed(3)}</span>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <span class="text-gray-600">Phase Signature:</span>
+                <span class="ml-2 font-medium">{$selectedMemory.indexing.phaseSignature}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- User Context -->
+          {#if $selectedMemory.trigger.userContext}
+            <div>
+              <h3 class="font-medium text-gray-900 mb-2">User Context</h3>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                {#if $selectedMemory.trigger.userContext.frustrationLevel !== undefined}
+                  <div class="p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Frustration:</span>
+                    <span class="ml-2 font-medium">{($selectedMemory.trigger.userContext.frustrationLevel * 100).toFixed(0)}%</span>
+                  </div>
+                {/if}
+                {#if $selectedMemory.trigger.userContext.engagementLevel !== undefined}
+                  <div class="p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Engagement:</span>
+                    <span class="ml-2 font-medium">{($selectedMemory.trigger.userContext.engagementLevel * 100).toFixed(0)}%</span>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          {/if}
+          
+          <!-- Concepts -->
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Associated Concepts</h3>
+            <div class="flex flex-wrap gap-1">
+              {#each $selectedMemory.indexing.conceptTags as tag}
+                <span class="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                  {tag}
+                </span>
+              {/each}
+            </div>
+          </div>
+          
+          <!-- Outcome -->
+          {#if $selectedMemory.outcomes}
+            <div>
+              <h3 class="font-medium text-gray-900 mb-2">Outcome</h3>
+              <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">User Response:</span>
+                  <span class="font-medium capitalize">{$selectedMemory.outcomes.userResponse || 'Unknown'}</span>
+                </div>
+                {#if $selectedMemory.outcomes.effectiveness !== undefined}
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Effectiveness:</span>
+                    <span class="font-medium">{($selectedMemory.outcomes.effectiveness * 100).toFixed(0)}%</span>
+                  </div>
+                {/if}
+                {#if $selectedMemory.outcomes.learningNote}
+                  <div class="text-sm">
+                    <span class="text-gray-600">Learning Note:</span>
+                    <p class="mt-1 text-gray-700">{$selectedMemory.outcomes.learningNote}</p>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

@@ -1,0 +1,1563 @@
+<script lang="ts">
+  import { onMount, afterUpdate, tick } from 'svelte';
+  import { browser } from '$app/environment';
+  import { conceptMesh, addConceptDiff } from '$lib/stores/conceptMesh';
+  import { dynamicsIntegration } from '$lib/integrations/dynamicsIntegration';
+  import { darkMode } from '$lib/stores/darkMode';
+  import type { KoopmanUpdate, LyapunovSpike } from '$lib/cognitive/dynamics';
+  import PersonaPanel from '$lib/components/PersonaPanel.svelte';
+  
+  // ✨ Import Soliton Memory System - FIXED: Use proper service imports
+  import { 
+    initializeUserMemory, 
+    storeMemory, 
+    fetchMemoryStats, 
+    findRelatedMemories,
+    vaultMemory,
+    analyzeValence,
+    extractPhaseTags,
+    measureAmplitude,
+    estimateFrequency,
+    phaseChangeEvent
+  } from '$lib/services/solitonMemory';
+  
+  // 🚀 NEW IMPORTS FOR INTEGRATED SERVICES
+  import { toriStorage, type Message as StorageMessage } from '$lib/services/toriStorage';
+  import { prosodyAnalyzer, type ProsodyMetrics, type ProsodyInsight } from '$lib/services/typingProsody';
+  import { intentTracker, type Intent, type IntentContext, ReasoningIntent } from '$lib/services/intentTracking';
+  
+  // Destructure the stores from intentTracker
+  const { currentIntent, conversationInsights, intentHistory } = intentTracker;
+  
+  // STEP 1-4: Import ALL systems
+  let braidMemory: any = null;
+  let cognitiveEngine: any = null;
+  let holographicMemory: any = null;
+  let ghostCollective: any = null;
+
+  let files: FileList | null = null;
+  let fileInput: HTMLInputElement;
+  let uploadingFiles = false;
+  let uploadProgress = 0;
+
+  // Get user data from server via layout
+  export let data: { user: { name: string; role: 'admin' | 'user' } | null };
+  
+  let mounted = false;
+  let messageInput = '';
+  let isTyping = false;
+  let showDebugPanel = false;
+  let conversationHistory: StorageMessage[] = [];
+  
+  // 🎯 NEW: Intent and prosody tracking
+  let currentProsodyMetrics: ProsodyMetrics | null = null;
+  let currentProsodyInsights: ProsodyInsight[] = [];
+  let currentIntentContext: IntentContext | null = null;
+  let showIntentInfo = false;
+  
+  // ???? HOLOGRAM OUTPUT CONTROLS
+  let hologramAudioEnabled = true; // Hologram speaks responses
+  let hologramVisualizationEnabled = true; // Hologram shows quantum visualization (NOT webcam)  
+  let currentAudioElement: HTMLAudioElement | null = null;
+  let currentPlayingMessageId: string | null = null;
+  let avatarWebSocket: WebSocket | null = null;
+  let avatarState = {
+    state: 'idle',
+    mood: 'neutral',
+    audio_level: 0,
+    timestamp: Date.now()
+  };
+  
+  // System stats - FIXED: Proper Soliton integration
+  let solitonStats: any = null;
+  let braidStats: any = null;
+  let holographicStats: any = null;
+  let ghostStats: any = null;
+  let memoryInitialized = false;
+  let currentUserId = '';
+  
+  // FIXED: Phase monitoring for Ghost AI
+  let currentPhase = 'idle';
+  let phaseAmplitude = 0;
+  let phaseFrequency = 0;
+  let systemCoherence = 1.0;
+  
+  // Enhanced holographic memory tracking
+  let userConceptNode: any = null;
+  let recentCrossings: any[] = [];
+  let currentCoherence = 0.5;
+  let currentContradiction = 0.0;
+  
+  // Dynamics analysis tracking
+  let latestKoopmanUpdate: KoopmanUpdate | null = null;
+  let recentLyapunovSpikes: LyapunovSpike[] = [];
+  let showDynamicsInfo = false;
+  
+  // ✅ AUTO-SCROLL FUNCTIONALITY
+  let scrollContainer: HTMLElement;
+  let isUserScrolledUp = false;
+  let showScrollToBottom = false;
+  let lastMessageCount = 0;
+  let shouldAutoScroll = true;
+  
+  // Track scroll position to detect manual scrolling
+  function handleScroll() {
+    if (!scrollContainer) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
+    
+    isUserScrolledUp = !isAtBottom;
+    showScrollToBottom = isUserScrolledUp && conversationHistory.length > 0;
+    shouldAutoScroll = isAtBottom;
+  }
+  
+  // Auto-scroll to bottom function
+  function scrollToBottom(force = false) {
+    if (!scrollContainer) return;
+    
+    if (force || shouldAutoScroll) {
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      isUserScrolledUp = false;
+      showScrollToBottom = false;
+      shouldAutoScroll = true;
+    }
+  }
+  
+  // Auto-scroll when new messages are added
+  $: if (conversationHistory.length > lastMessageCount && mounted) {
+    lastMessageCount = conversationHistory.length;
+    // Use tick to ensure DOM is updated before scrolling
+    tick().then(() => {
+      if (shouldAutoScroll) {
+        scrollToBottom(false);
+      } else {
+        // Show scroll to bottom button if user is scrolled up
+        showScrollToBottom = true;
+      }
+    });
+  }
+  
+  // Force scroll to bottom (for button click)
+  function forceScrollToBottom() {
+    scrollToBottom(true);
+  }
+  
+  // ?? AVATAR WEBSOCKET CONNECTION
+  async function connectAvatarWebSocket() {
+    if (!browser) return;
+    
+    try {
+      avatarWebSocket = new WebSocket('ws://localhost:8002/api/avatar/updates');
+      
+      avatarWebSocket.onopen = () => {
+        console.log('? Connected to avatar WebSocket');
+      };
+      
+      avatarWebSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        avatarState = data;
+        
+        // Update hologram based on avatar state
+        if (window.TORI?.updateHologramState) {
+          window.TORI.updateHologramState(data);
+        }
+      };
+      
+      avatarWebSocket.onerror = (error) => {
+        console.error('? Avatar WebSocket error:', error);
+      };
+      
+      avatarWebSocket.onclose = () => {
+        console.log('?? Avatar WebSocket disconnected');
+        // Attempt reconnection after 5 seconds
+        setTimeout(connectAvatarWebSocket, 5000);
+      };
+      
+      // Send heartbeat every 30 seconds
+      setInterval(() => {
+        if (avatarWebSocket?.readyState === WebSocket.OPEN) {
+          avatarWebSocket.send('ping');
+        }
+      }, 30000);
+      
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('Failed to connect avatar WebSocket:', error);
+    
+}
+  }
+  
+  // ?? PERSONA MANAGEMENT SYSTEM
+  interface Persona {
+    id: string;
+    name: string;
+    description: string;
+    c: string; // Cognitive coordinate
+    e: string; // Emotional coordinate  
+    t: string; // Temporal coordinate
+    f: string; // Philosophical coordinate
+    color: { r: number; g: number; b: number };
+    voice?: string;
+    hologram_style?: string;
+  }
+  
+  let currentPersona: Persona = {
+    id: 'enola',
+    name: 'Enola',
+    description: 'Investigative and analytical consciousness',
+    c: 'analytical',
+    e: 'calm',
+    t: 'reflective', 
+    f: 'rational',
+    color: { r: 0.2, g: 0.8, b: 1.0 }
+  };
+  
+  let availablePersonas: Persona[] = [{
+      id: 'enola',
+      name: 'Enola',
+      description: 'Investigative and analytical consciousness',
+      c: 'analytical',
+      e: 'focused',
+      t: 'present',
+      f: 'empirical',
+      color: { r: 0.1, g: 0.5, b: 1.0 },
+      voice: 'nova',
+      hologram_style: 'quantum_field'
+    },
+    
+    {
+      id: 'scholar',
+      name: 'Scholar',
+      description: 'Analytical and knowledge-focused',
+      c: 'analytical',
+      e: 'calm',
+      t: 'reflective',
+      f: 'rational',
+      color: { r: 0.2, g: 0.8, b: 1.0 }
+    },
+    {
+      id: 'creative',
+      name: 'Creative',
+      description: 'Imaginative and artistic',
+      c: 'divergent',
+      e: 'inspired',
+      t: 'spontaneous',
+      f: 'aesthetic',
+      color: { r: 1.0, g: 0.4, b: 0.8 }
+    },
+    {
+      id: 'sage',
+      name: 'Sage',
+      description: 'Wise and contemplative',
+      c: 'holistic',
+      e: 'serene',
+      t: 'eternal',
+      f: 'transcendent',
+      color: { r: 0.8, g: 0.2, b: 1.0 }
+    }
+  ];
+  
+  let showPersonaPanel = false;
+  let showCreatePersona = false;
+  let newPersonaForm = {
+    name: '',
+    description: '',
+    c: 'analytical',
+    e: 'calm', 
+    t: 'present',
+    f: 'rational',
+    color: { r: 0.5, g: 0.5, b: 0.5 }
+  };
+  
+  // Persona management functions
+  async function switchPersona(persona: Persona) {
+    currentPersona = persona;
+    showPersonaPanel = false;
+    
+    // Update avatar hologram
+    if (avatarWebSocket?.readyState === WebSocket.OPEN) {
+      avatarWebSocket.send(JSON.stringify({
+        type: 'persona_change',
+        persona: persona,
+        hologram_effect: 'color_shift',
+        color_shift: persona.color
+      }));
+    }
+    
+    // Save to localStorage
+    if (browser) {
+      localStorage.setItem('tori-current-persona', JSON.stringify(persona));
+    }
+    
+    console.log('?? Switched to persona:', persona.name);
+  }
+  
+  async function createPersona() {
+    const newPersona: Persona = {
+      id: `custom_${Date.now()}`,
+      name: newPersonaForm.name,
+      description: newPersonaForm.description,
+      c: newPersonaForm.c,
+      e: newPersonaForm.e,
+      t: newPersonaForm.t,
+      f: newPersonaForm.f,
+      color: newPersonaForm.color
+    };
+    
+    // Add to available personas
+    availablePersonas = [...availablePersonas, newPersona];
+    
+    // Save to backend
+    try {
+      const response = await fetch('/api/personas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPersona)
+      });
+      
+      if (response.ok) {
+        console.log('? Persona saved to backend');
+      } else {
+        console.warn('?? Failed to save persona to backend');
+      }
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.warn('?? Backend not available for persona storage');
+    
+}
+    
+    // Save to localStorage
+    if (browser) {
+      localStorage.setItem('tori-personas', JSON.stringify(availablePersonas));
+    }
+    
+    // Reset form
+    newPersonaForm = {
+      name: '',
+      description: '',
+      c: 'analytical',
+      e: 'calm',
+      t: 'present', 
+      f: 'rational',
+      color: { r: 0.5, g: 0.5, b: 0.5 }
+    };
+    
+    showCreatePersona = false;
+    console.log('?? Created new persona:', newPersona.name);
+  }
+  
+  function togglePersonaPanel() {
+    showPersonaPanel = !showPersonaPanel;
+    showCreatePersona = false;
+  }
+  
+  function toggleCreatePersona() {
+    showCreatePersona = !showCreatePersona;
+  }
+  
+  // ?? PLAY TTS AUDIO THROUGH HOLOGRAM
+  async function playHologramAudio(audioUrl: string, messageId: string) {
+    if (!hologramAudioEnabled || !audioUrl) return;
+    
+    try {
+      // Stop any currently playing audio
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.remove();
+      }
+      
+      // Create new audio element
+      currentAudioElement = new Audio(audioUrl);
+      currentPlayingMessageId = messageId;
+      
+      // Update avatar state to speaking with persona info
+      if (avatarWebSocket?.readyState === WebSocket.OPEN) {
+        avatarWebSocket.send(JSON.stringify({ 
+          command: 'setState', 
+          state: 'speaking',
+          persona: currentPersona.name,
+          intensity: 1.0,
+          hologram_effect: 'amplify'
+        }));
+      }
+      
+      // Play audio
+      currentAudioElement.play();
+      
+      // Handle audio end
+      currentAudioElement.onended = () => {
+        currentPlayingMessageId = null;
+        if (avatarWebSocket?.readyState === WebSocket.OPEN) {
+          avatarWebSocket.send(JSON.stringify({ 
+            command: 'setState', 
+            state: 'idle',
+            persona: currentPersona.name,
+            hologram_effect: 'normal'
+          }));
+        }
+      };
+      
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('Failed to play hologram audio:', error);
+    
+}
+  }
+  
+  // ?? TOGGLE HOLOGRAM OUTPUTS
+  function toggleHologramAudio() {
+    hologramAudioEnabled = !hologramAudioEnabled;
+    
+    // Stop current audio if disabling
+    if (!hologramAudioEnabled && currentAudioElement) {
+      currentAudioElement.pause();
+      currentAudioElement.remove();
+      currentAudioElement = null;
+      currentPlayingMessageId = null;
+    }
+    
+    // Save preference
+    if (browser) {
+      localStorage.setItem('tori-hologram-audio', String(hologramAudioEnabled));
+    }
+  }
+  
+  function toggleHologramVideo() {
+    hologramVisualizationEnabled = !hologramVisualizationEnabled;
+    
+    // Show/hide hologram visualization (NOT webcam!)
+    if (browser) {
+      // Dispatch event to show hologram
+      window.dispatchEvent(new CustomEvent('toggle-hologram-visualization', {
+        detail: { enabled: hologramVisualizationEnabled, persona: currentPersona }
+      }));
+      
+      // Remove any webcam initialization attempts
+      const loadingOverlays = document.querySelectorAll('.loading-overlay');
+      loadingOverlays.forEach(el => el.remove());
+    }
+    
+    // Save preference
+  }
+  // Subscribe to prosody stores
+  $: prosodyAnalyzer.metrics.subscribe(metrics => {
+    currentProsodyMetrics = metrics;
+  });
+  
+  $: prosodyAnalyzer.insights.subscribe(insights => {
+    currentProsodyInsights = insights;
+  });
+  
+  // 🎯 Subscribe to intent stores
+  $: if (intentTracker.currentIntent) {
+    intentTracker.currentIntent.subscribe(context => {
+      currentIntentContext = context;
+    });
+  }
+  
+  onMount(() => {
+    mounted = true;
+    
+    let unsubscribeKoopman: (() => void) | undefined;
+    let unsubscribeLyapunov: (() => void) | undefined;
+    
+    (async () => {
+      // STEP 1-4: Load ALL cognitive systems
+      try {
+        const cognitive = await import('$lib/cognitive');
+        braidMemory = cognitive.braidMemory;
+        cognitiveEngine = cognitive.cognitiveEngine;
+        holographicMemory = cognitive.holographicMemory;
+        ghostCollective = cognitive.ghostCollective;
+        
+        console.log('🧬 ALL SYSTEMS LOADED:', {
+          braidMemory: !!braidMemory,
+          cognitiveEngine: !!cognitiveEngine,
+          holographicMemory: !!holographicMemory,
+          ghostCollective: !!ghostCollective
+        });
+      } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+        console.warn('⚠️ Some cognitive systems not available:', error);
+      
+}
+      
+      // 🌊 INITIALIZE SOLITON MEMORY SYSTEM - FIXED: Proper backend-first approach
+      console.log('🌊 Initializing Soliton Memory System...');
+      try {
+        currentUserId = data.user?.name || 'default_user';
+        
+        // FIXED: Remove fallback behavior - use backend first
+        await initializeUserMemory(currentUserId);
+        memoryInitialized = true;
+        console.log('✨ Soliton Memory initialized for user:', currentUserId);
+        
+        // Get initial memory stats
+        try {
+          solitonStats = await fetchMemoryStats(currentUserId);
+          console.log('📊 Initial Memory Stats:', solitonStats);
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+          console.error('❌ Failed to get memory stats - backend may be down:', error);
+          // FIXED: Don't use fallback stats - log error instead
+          throw error;
+        
+}
+        
+        // Store foundational memory about this session with proper metadata
+        const sessionMemoryId = `session_${Date.now()}`;
+        const sessionContent = `New session started for ${data.user?.name || 'User'} with TORI consciousness interface`;
+        
+        await storeMemory(
+          sessionMemoryId,
+          sessionContent,
+          1.0, // Maximum importance
+          ['session', 'initialization', 'system']
+        );
+        
+        console.log('🌊 Session memory stored with ID:', sessionMemoryId);
+        
+      } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+        console.error('❌ Failed to initialize Soliton Memory - backend integration issue:', error);
+        // FIXED: Don't continue with fallback - show error to user
+        memoryInitialized = false;
+      
+}
+      
+      // 🧬 INITIALIZE BRAID MEMORY
+      if (braidMemory) {
+        try {
+          console.log('🧬 Initializing Braid Memory...');
+          
+          // Set up reentry callback to detect memory loops
+          braidMemory.onReentry((digest: string, count: number, loop: any) => {
+            console.log(`🔁 Memory loop detected! Pattern seen ${count} times`);
+            
+            // If we're in a memory loop, suggest novelty
+            if (count >= 3) {
+              const noveltyGlyph = braidMemory.suggestNoveltyGlyph(
+                digest,
+                0.5, // current contradiction
+                0.7, // current coherence
+                0    // scar count
+              );
+              console.log(`💡 Suggested novelty glyph: ${noveltyGlyph}`);
+            }
+          });
+          
+          console.log('✅ Braid Memory initialized and monitoring for loops');
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+          console.warn('Failed to initialize Braid Memory:', error);
+        
+}
+      }
+      
+     // 🔮 INITIALIZE HOLOGRAPHIC MEMORY
+      if (holographicMemory && typeof holographicMemory.initialize === 'function') {
+        holographicMemory.initialize();
+      } else {
+        console.warn('HolographicMemory: initialize() not found');
+      }
+
+      // 👻 INITIALIZE GHOST COLLECTIVE
+      if (ghostCollective) {
+        try {
+          console.log('👻 Initializing Ghost Collective...');
+          // Set up phase change listeners for Ghost AI
+          if (typeof window !== 'undefined') {
+            document.addEventListener('tori-soliton-phase-change', (event: any) => {
+              const phaseData = event.detail;
+              currentPhase = phaseData.phase || 'active';
+              phaseAmplitude = phaseData.amplitude || 0;
+              phaseFrequency = phaseData.frequency || 0;
+              systemCoherence = phaseData.stability || 1.0;
+              
+              console.log('👻 Ghost AI notified of phase change:', phaseData);
+            });
+          }
+          console.log('✅ Ghost Collective ready with phase monitoring');
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+          console.warn('Failed to initialize Ghost Collective:', error);
+        
+}
+      }
+      
+      // 🧠 INITIALIZE COGNITIVE ENGINE
+      if (cognitiveEngine) {
+        try {
+          console.log('🧠 Initializing Cognitive Engine...');
+          console.log('✅ Cognitive Engine ready');
+        } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+          console.warn('Failed to initialize Cognitive Engine:', error);
+        
+}
+      }
+      
+      // STEP 2-4: Initialize Enhanced API Service
+      console.log('🚀 Enhanced API Service v4.0 initialized with full system integration');
+      
+      // 🗄️ LOAD CONVERSATION HISTORY FROM INDEXEDDB
+      try {
+        const loadedHistory = await toriStorage.getConversation();
+        conversationHistory = loadedHistory;
+        lastMessageCount = loadedHistory.length;
+        
+        // Auto-scroll to bottom after loading history
+        tick().then(() => scrollToBottom(true));
+        console.log('✅ Loaded conversation history from IndexedDB:', loadedHistory.length, 'messages');
+      } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+        console.warn('Failed to load conversation history:', e);
+      
+}
+      
+      console.log('🎯 TORI main page loaded with FULL SYSTEM INTEGRATION and auto-scroll');
+      
+      // ?? CONNECT AVATAR WEBSOCKET FOR HOLOGRAM
+      connectAvatarWebSocket();
+      
+      // ?? AUTO-START HOLOGRAM WITH ENOLA
+      setTimeout(() => {
+        console.log('?? Auto-starting hologram visualization with Enola...');
+        
+        // Set Enola as active persona
+        const enolaPersona = availablePersonas.find(p => p.id === 'enola');
+        if (enolaPersona) {
+          currentPersona = enolaPersona;
+          if (browser) {
+            localStorage.setItem('tori-current-persona', JSON.stringify(enolaPersona));
+          }
+        }
+        
+        // Enable hologram visualization
+        hologramVisualizationEnabled = true;
+        
+        // Dispatch event to start hologram
+        if (browser) {
+          window.dispatchEvent(new CustomEvent('start-hologram-visualization', {
+            detail: { 
+              persona: currentPersona,
+              autoStart: true,
+              mode: 'quantum_field'
+            }
+          }));
+          
+          // Remove any loading overlays
+          document.querySelectorAll('.loading-overlay, .loading-spinner').forEach(el => el.remove());
+        }
+        
+        console.log('? Hologram auto-start complete');
+      }, 1000); // Wait 1 second for everything to initialize
+      // ?? AUTO-START HOLOGRAM WITH ENOLA
+      setTimeout(() => {
+        console.log('?? Auto-starting hologram visualization with Enola...');
+        
+        // Set Enola as active persona
+        const enolaPersona = availablePersonas.find(p => p.id === 'enola');
+        if (enolaPersona) {
+          switchPersona(enolaPersona);
+        }
+        
+        // Enable hologram visualization
+        hologramVisualizationEnabled = true;
+        
+        // Dispatch event to start hologram
+        if (browser) {
+          window.dispatchEvent(new CustomEvent('start-hologram-visualization', {
+            detail: { 
+              persona: currentPersona,
+              autoStart: true,
+              mode: 'quantum_field'
+            }
+          }));
+          
+          // Remove any loading overlays
+          document.querySelectorAll('.loading-overlay, .loading-spinner').forEach(el => el.remove());
+        }
+        
+        console.log('? Hologram auto-start complete');
+      }, 1000); // Wait 1 second for everything to initialize
+
+      
+      // ?? LOAD HOLOGRAM PREFERENCES
+      if (browser) {
+        const savedAudioPref = localStorage.getItem('tori-hologram-audio');
+        const savedVideoPref = localStorage.getItem('tori-hologram-visualization');
+        
+        if (savedAudioPref !== null) {
+          hologramAudioEnabled = savedAudioPref === 'true';
+        }
+        if (savedVideoPref !== null) {
+          hologramVisualizationEnabled = savedVideoPref === 'true';
+        }
+      }
+      
+      // ?? SETUP WINDOW.TORI HOLOGRAM INTERFACE
+      if (browser && typeof window !== 'undefined') {
+        window.TORI = window.TORI || {};
+        
+        // Expose hologram control functions
+        window.TORI.updateHologramState = (state: any) => {
+          // This will be called by HolographicDisplay component
+          console.log('?? Hologram state update:', state);
+        };
+        
+        window.TORI.setHologramVideoMode = (enabled: boolean) => {
+          // This will be called when toggling video mode
+          console.log('?? Hologram video mode:', enabled);
+        };
+        
+        // Expose toggle functions for MemoryPanel
+        window.TORI.toggleHologramAudio = (enabled: boolean) => {
+          hologramAudioEnabled = enabled;
+          console.log('?? Hologram audio toggled:', enabled);
+        };
+        
+        window.TORI.toggleHologramVideo = (enabled: boolean) => {
+          hologramVisualizationEnabled = enabled;
+          console.log('?? Hologram video toggled:', enabled);
+        };
+      }
+    })();
+    
+    // Poll for memory stats every 5 seconds - FIXED: Better error handling
+    const statsInterval = setInterval(async () => {
+      if (!memoryInitialized || !currentUserId) return;
+      
+      try {
+        solitonStats = await fetchMemoryStats(currentUserId);
+        
+        // Also update other system stats
+        if (braidMemory) {
+          braidStats = braidMemory.getStats();
+        }
+        if (holographicMemory) {
+          holographicStats = holographicMemory.getVisualizationData();
+        }
+        if (ghostCollective) {
+          ghostStats = ghostCollective.getDiagnostics?.() || null;
+        }
+      } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+        console.warn('Failed to get memory stats:', error);
+        // FIXED: Don't reset stats on error - keep last known good state
+      
+}
+    }, 5000);
+    
+    // Cleanup on unmount
+    return () => {
+      clearInterval(statsInterval);
+      if (unsubscribeKoopman) unsubscribeKoopman();
+      if (unsubscribeLyapunov) unsubscribeLyapunov();
+      
+      // Disconnect WebSocket
+      if (avatarWebSocket) {
+        avatarWebSocket.close();
+      }
+      
+      // Stop any playing audio
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.remove();
+      }
+      
+      // Reset prosody analyzer on unmount
+      prosodyAnalyzer.reset();
+      intentTracker.reset();
+    };
+  });
+  
+  // 🗄️ AUTO-SAVE TO INDEXEDDB
+  $: if (mounted && conversationHistory.length > 0) {
+    toriStorage.saveConversation(conversationHistory).catch(err => {
+      console.error('Failed to save conversation to IndexedDB:', err);
+    });
+  }
+  
+  // 🎯 HANDLE TYPING WITH PROSODY ANALYSIS
+  function handleKeyDown(event: KeyboardEvent) {
+    // Track prosody
+    prosodyAnalyzer.recordKeystroke(event, messageInput);
+    
+    // Original key handling
+    handleKeyPress(event);
+  }
+  
+  // 📎 HANDLE FILE SELECTION (SCHOLARSPHERE INTEGRATION)
+  async function handleFileSelect() {
+    if (!files || files.length === 0) return;
+    
+    console.log('📎 Files selected for chat upload:', Array.from(files).map(f => f.name));
+    
+    uploadingFiles = true;
+    uploadProgress = 0;
+    
+    try {
+      // Generate progress ID (same as ScholarSphere)
+      const progressId = `chat_upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Connect to SSE for progress (if needed)
+      // For now, we'll do a simplified version
+      
+      // Create FormData
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('file', files[i]);
+      }
+      
+      // Upload to same endpoint as ScholarSphere
+      const response = await fetch(`/api/upload?progress_id=${encodeURIComponent(progressId)}`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Files uploaded successfully:', result);
+      
+      // Add upload notification to chat
+      const uploadMessage: StorageMessage = {
+        id: `msg_${Date.now()}_upload`,
+        role: 'user',
+        content: `📎 Uploaded ${files.length} file${files.length > 1 ? 's' : ''}: ${Array.from(files).map(f => f.name).join(', ')}`,
+        timestamp: new Date(),
+        attachments: Array.from(files).map(f => ({
+          name: f.name,
+          size: f.size,
+          type: f.type
+        }))
+      };
+      
+      conversationHistory = [...conversationHistory, uploadMessage];
+      
+      // Store documents info (similar to ScholarSphere)
+      if (result.document) {
+        const docs = await toriStorage.getDocuments?.() || [];
+        docs.push(result.document);
+            for (const doc of docs) {
+      await toriStorage.saveDocument?.(doc);
+    };
+      }
+      
+      // Clear file selection
+      files = null;
+      if (fileInput) fileInput.value = '';
+      
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('File upload failed:', error);
+      
+      // Add error message to chat
+      const errorMessage: StorageMessage = {
+        id: `msg_${Date.now()
+}_error`,
+        role: 'assistant',
+        content: `❌ Failed to upload files: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+        processingMethod: 'error_fallback'
+      };
+      
+      conversationHistory = [...conversationHistory, errorMessage];
+    } finally {
+      uploadingFiles = false;
+      uploadProgress = 0;
+    }
+  }
+  
+  async function sendMessage() {
+    if ((!messageInput.trim() && (!files || files.length === 0)) || isTyping || !data.user) return;
+    
+    // FIXED: Check if Soliton Memory is initialized before proceeding
+    if (!memoryInitialized) {
+      console.error('❌ Cannot send message - Soliton Memory not initialized');
+      return;
+    }
+    
+    // 🎯 GET PROSODY METRICS BEFORE CLEARING INPUT
+    const prosodyMetrics = prosodyAnalyzer.getMetricsSnapshot();
+    const prosodySession = prosodyAnalyzer.exportSession();
+    
+    // Handle file upload first if files are selected
+    if (files && files.length > 0) {
+      await handleFileSelect();
+      // Continue with message if there's text
+      if (!messageInput.trim()) return;
+    }
+    
+    const userMessage: StorageMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      role: 'user' as const,
+      content: messageInput.trim(),
+      timestamp: new Date(),
+      braidLoopId: undefined as string | undefined,
+      memoryContext: undefined as any,
+      typingMetrics: prosodyMetrics,
+      intentContext: undefined // Will be filled by intent tracker
+    };
+    
+    conversationHistory = [...conversationHistory, userMessage];
+    const currentMessage = messageInput;
+    messageInput = '';
+    isTyping = true;
+    
+    // 🎯 ANALYZE INTENT
+    intentTracker.updateConversationContext(userMessage, prosodyMetrics);
+    const intent = intentTracker.analyzeMessage(userMessage, prosodyMetrics);
+    
+    // Update message with intent context
+    userMessage.intentContext = currentIntentContext || undefined;
+    
+    // Auto-scroll for user's message
+    shouldAutoScroll = true;
+    
+    // Reset prosody for next message
+    prosodyAnalyzer.reset();
+    
+    try {
+      // 🚀 ENHANCED API CALL WITH INTENT
+      let response: any;
+      
+      // Check if we should use intent-aware endpoint
+      if (intent.confidence > 0.5) {
+        console.log('🧠 Using intent-aware API:', intent.type, `(${Math.round(intent.confidence * 100)}% confidence)`);
+        
+        response = await intentTracker.sendIntentToBackend(intent, currentMessage);
+        
+        if (response && response.self_reflection) {
+          console.log('🔍 Self-reflection:', response.self_reflection);
+        }
+      }
+      
+      // Fallback to regular answer API if intent API fails or low confidence
+      if (!response) {
+        console.log('🤖 Using standard answer API');
+        const chatResponse = await fetch('/api/answer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_query: currentMessage,
+            persona: { name: data.user?.name || 'anonymous' },
+            context: {
+              prosody_metrics: prosodySession,
+              intent_type: intent.type,
+              emotional_tone: intent.emotionalTone
+            },
+            // REQUEST TTS FOR HOLOGRAM
+            generate_tts: hologramAudioEnabled
+          })
+        });
+
+        if (!chatResponse.ok) {
+          throw new Error(`Answer API error: ${chatResponse.status}`);
+        }
+
+        response = await chatResponse.json();
+      }
+      
+      console.log('✅ API response:', response);
+
+      // Create enhanced response object
+      const enhancedResponse = {
+        response: response.answer || response.text || response.response,
+        newConcepts: response.sources || response.concepts || [],
+        confidence: response.confidence || intent.confidence || 0.8,
+        processingMethod: response.intent ? 'intent_driven_reasoning' : 'document_grounded_ai',
+        systemInsights: [
+          ...(response.system_insights || []),
+          `Intent: ${intent.type} (${Math.round(intent.confidence * 100)}%)`,
+          `Emotional tone: ${intent.emotionalTone > 0 ? 'positive' : intent.emotionalTone < 0 ? 'negative' : 'neutral'}`,
+          ...(prosodyMetrics.hesitationScore > 0.6 ? [`High hesitation detected (${Math.round(prosodyMetrics.hesitationScore * 100)}%)`] : []),
+          ...(response.resolution_report ? [`Resolution strategy: ${response.resolution_report.strategy}`] : [])
+        ],
+        activePersona: response.active_persona || { name: 'TORI AI', id: 'tori' },
+        selfReflection: response.self_reflection
+      };
+      
+      const assistantMessage: StorageMessage = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        role: 'assistant' as const,
+        content: enhancedResponse.response,
+        timestamp: new Date(),
+        concepts: enhancedResponse.newConcepts,
+        processingMethod: enhancedResponse.processingMethod,
+        confidence: enhancedResponse.confidence,
+        systemInsights: enhancedResponse.systemInsights,
+        activePersona: enhancedResponse.activePersona,
+        intentContext: currentIntentContext || undefined
+      };
+      
+      conversationHistory = [...conversationHistory, assistantMessage];
+      
+      // ?? PLAY TTS THROUGH HOLOGRAM IF AVAILABLE
+      if (hologramAudioEnabled && response.audio_url) {
+        console.log('?? Playing TTS through hologram:', response.audio_url);
+        await playHologramAudio(response.audio_url, assistantMessage.id);
+      }
+      
+      // Add to concept mesh
+      if (enhancedResponse.newConcepts && enhancedResponse.newConcepts.length > 0) {
+        addConceptDiff({
+          type: 'chat',
+          title: `AI Response: ${currentMessage.length > 50 ? currentMessage.substring(0, 50) + '...' : currentMessage}`,
+          concepts: enhancedResponse.newConcepts,
+          summary: `AI processing via ${enhancedResponse.processingMethod}. Confidence: ${Math.round(enhancedResponse.confidence * 100)}%`,
+          metadata: {
+            messageCount: conversationHistory.length,
+            userMessage: currentMessage,
+            processingMethod: enhancedResponse.processingMethod,
+            confidence: enhancedResponse.confidence,
+            systemInsights: enhancedResponse.systemInsights,
+            timestamp: new Date(),
+            intent: intent.type,
+            prosodyMetrics: prosodySession
+          }
+        });
+      }
+      
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('AI processing failed:', error);
+      
+      const errorMessage: StorageMessage = {
+        id: `msg_${Date.now()
+}_${Math.random().toString(36).substring(2, 11)}`,
+        role: 'assistant' as const,
+        content: "I'm experiencing technical difficulties. Please try again.",
+        timestamp: new Date(),
+        processingMethod: 'error_fallback'};
+      
+      conversationHistory = [...conversationHistory, errorMessage];
+    } finally {
+      isTyping = false;
+    }
+  }
+  
+  function handleKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+  
+  async function clearConversation() {
+    if (confirm('Clear conversation? This will remove all messages but keep your memory intact.')) {
+      conversationHistory = [];
+      lastMessageCount = 0;
+      
+      // Clear from IndexedDB
+      await toriStorage.deleteConversation?.();
+      
+      // Reset tracking
+      prosodyAnalyzer.reset();
+      intentTracker.reset();
+      
+      showScrollToBottom = false;
+      isUserScrolledUp = false;
+      shouldAutoScroll = true;
+    }
+  }
+  
+  function toggleDebugPanel() {
+    showDebugPanel = !showDebugPanel;
+  }
+  
+  function toggleIntentInfo() {
+    showIntentInfo = !showIntentInfo;
+  }
+  
+  // Get system stats for display
+  function getSystemStats() {
+    const stats = {
+      braid: braidStats,
+      holographic: holographicStats,
+      ghost: ghostStats
+    };
+    
+    return stats;
+  }
+  
+  $: systemStats = getSystemStats();
+  
+  // STEP 3: Get processing method icon (enhanced)
+  function getProcessingIcon(method: string): string {
+    switch (method) {
+      case 'revolutionary_synthesis': return '🌌';
+      case 'holographic_synthesis': return '🎯';
+      case 'ghost_collective': return '👻';
+      case 'cognitive_engine': return '🧬';
+      case 'braid_memory': return '🔗';
+      case 'simple': return '⚡';
+      case 'real_chat_api': return '🤖';
+      case 'document_grounded_ai': return '📚';
+      case 'intent_driven_reasoning': return '🧠';
+      case 'document_upload_ai': return '📎';
+      case 'error_fallback': return '⚠️';
+      default: return '🤖';
+    }
+  }
+  
+  // STEP 3: Get processing method name (enhanced)
+  function getProcessingName(method: string): string {
+    switch (method) {
+      case 'revolutionary_synthesis': return 'Revolutionary';
+      case 'holographic_synthesis': return 'Holographic';
+      case 'ghost_collective': return 'Ghost Collective';
+      case 'cognitive_engine': return 'Cognitive Engine';
+      case 'braid_memory': return 'BraidMemory';
+      case 'simple': return 'Enhanced';
+      case 'real_chat_api': return 'TORI AI';
+      case 'document_grounded_ai': return 'Document AI';
+      case 'intent_driven_reasoning': return 'Intent AI';
+      case 'document_upload_ai': return 'Upload AI';
+      case 'error_fallback': return 'Error Recovery';
+      default: return 'Standard';
+    }
+  }
+  
+  // STEP 3: Get persona icon
+  function getPersonaIcon(persona: any): string {
+    if (!persona) return '';
+    switch (persona.id || persona.name?.toLowerCase()) {
+      case 'scholar': return '🧠';
+      case 'creator': return '🎨';
+      case 'explorer': return '🔍';
+      case 'mentor': return '🌟';
+      case 'synthesizer': return '🔮';
+      case 'unsettled': return '😟';
+      case 'mystic': return '🔮';
+      case 'chaotic': return '🌀';
+      case 'oracular': return '👁️';
+      case 'dreaming': return '💭';
+      case 'tori': return '🤖';
+      default: return '👤';
+    }
+  }
+  
+  // FIXED: Helper function to get memory status indicator
+  function getMemoryStatusColor(): string {
+    if (!memoryInitialized) return 'text-red-600';
+    if (!solitonStats) return 'text-yellow-600';
+    if (solitonStats.memoryIntegrity >= 0.9) return 'text-green-600';
+    if (solitonStats.memoryIntegrity >= 0.7) return 'text-yellow-600';
+    return 'text-red-600';
+  }
+  
+  // FIXED: Helper function to get phase status
+  function getPhaseStatusIcon(): string {
+    switch (currentPhase) {
+      case 'active': return '🟢';
+      case 'thinking': return '🧠';
+      case 'processing': return '⚡';
+      case 'stable': return '🔵';
+      case 'unstable': return '🟡';
+      case 'error': return '🔴';
+      default: return '⚪';
+    }
+  }
+  
+  // 🎯 Get storage info
+  async function getStorageInfo() {
+    try {
+      const info = await toriStorage.getStorageInfo();
+      console.log('📊 Storage info:', info);
+      return info;
+    } catch (error) {
+  const msg = error instanceof Error ? error.message : String(error);
+      console.error('Failed to get storage info:', error);
+      return null;
+    
+}
+  }
+</script>
+
+<!-- Main chat interface -->
+<div class="h-full flex flex-col {$darkMode ? 'bg-gray-800 text-white' : ''}" style="background-color: {$darkMode ? '' : 'var(--color-base)'}; color: {$darkMode ? '' : 'var(--color-text-primary)'};">
+  <!-- Chat messages container with scroll handling -->
+  <div 
+    class="flex-1 overflow-y-auto space-y-{$darkMode ? '4' : '2'}" 
+    style="padding: var(--space-3);"
+    bind:this={scrollContainer}
+    on:scroll={handleScroll}
+  >
+    {#each conversationHistory as message, index (message.id)}
+      <div class="flex {message.role === 'user' ? 'justify-end' : 'justify-start'}">
+        <div class="max-w-[80%] rounded-lg" style="
+          background-color: {message.role === 'user' ? 'var(--color-accent)' : $darkMode ? '#374151' : 'var(--color-secondary)'};
+          color: {message.role === 'user' ? 'white' : $darkMode ? '#f3f4f6' : 'var(--color-text-primary)'};
+          padding: var(--space-2) var(--space-3);
+          border-radius: var(--border-radius);
+          box-shadow: var(--shadow-sm);
+        ">
+          <div style="font-size: var(--text-sm); line-height: 1.6;">{message.content}</div>
+          
+          {#if message.attachments && message.attachments.length > 0}
+            <div class="mt-2 pt-2" style="border-top: 1px solid {$darkMode ? '#4b5563' : 'var(--color-border)'}; font-size: var(--text-xs); opacity: 0.8;">
+              📎 Attachments:
+              {#each message.attachments as attachment}
+                <div class="ml-2">{attachment.name}</div>
+              {/each}
+            </div>
+          {/if}
+          
+          {#if message.role === 'assistant' && message.processingMethod}
+            <div class="mt-2" style="font-size: var(--text-xs); opacity: 0.8;">
+              {getProcessingIcon(message.processingMethod)} {getProcessingName(message.processingMethod)}
+              {#if message.confidence}
+                • {Math.round(message.confidence * 100)}% confidence
+              {/if}
+            </div>
+          {/if}
+          
+          {#if message.memoryContext && showDebugPanel}
+            <div class="mt-1" style="font-size: var(--text-xs); opacity: 0.6;">
+              🌊 {message.memoryContext.relatedMemories} memories • φ={message.memoryContext.phaseTag?.toFixed(3) || 'N/A'}
+            </div>
+          {/if}
+          
+
+          
+          {#if message.intentContext && showIntentInfo}
+            <div class="mt-1" style="font-size: var(--text-xs); opacity: 0.6;">
+              🎯 Intent: {message.intentContext.primaryIntent.type} • Coherence: {Math.round(message.intentContext.coherenceScore * 100)}%
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/each}
+    
+    {#if isTyping}
+      <div class="flex justify-start">
+        <div class="rounded-lg" style="
+          background-color: {$darkMode ? '#374151' : 'var(--color-secondary)'};
+          padding: var(--space-2) var(--space-3);
+          border-radius: var(--border-radius);
+        ">
+          <div class="flex items-center" style="gap: var(--space-1);">
+            <div class="w-2 h-2 rounded-full animate-bounce" style="background-color: var(--color-text-secondary);"></div>
+            <div class="w-2 h-2 rounded-full animate-bounce" style="background-color: var(--color-text-secondary); animation-delay: 0.1s;"></div>
+            <div class="w-2 h-2 rounded-full animate-bounce" style="background-color: var(--color-text-secondary); animation-delay: 0.2s;"></div>
+          </div>
+        </div>
+      </div>
+    {/if}
+  </div>
+  
+  <!-- Scroll to bottom button -->
+  {#if showScrollToBottom}
+    <button
+      class="fixed bottom-20 right-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-colors z-10"
+      on:click={forceScrollToBottom}
+      aria-label="Scroll to bottom"
+    >
+      ↓
+    </button>
+  {/if}
+  
+  <!-- 🎯 INTENT INFO PANEL -->
+  {#if showIntentInfo && currentIntentContext}
+    <div class="px-4 py-2 {$darkMode ? 'bg-gray-700' : 'bg-gray-100'}" style="
+      border-top: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+      font-size: var(--text-xs);
+    ">
+      <div class="flex items-center justify-between">
+        <div>
+          🎯 Intent: {currentIntentContext.primaryIntent.type} 
+          ({Math.round(currentIntentContext.primaryIntent.confidence * 100)}%)
+          • Phase: {currentIntentContext.conversationPhase}
+        </div>
+        <div>{currentIntentContext.dominantEmotion} {intentTracker.getEmotionalState(currentIntentContext.dominantEmotion)}</div>
+      </div>
+    </div>
+  {/if}
+  
+  <!-- Input area -->
+  <div class="{$darkMode ? 'border-gray-700' : ''}" style="
+    border-top: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+    padding: var(--space-3);
+    background-color: {$darkMode ? '#1f2937' : 'var(--color-secondary)'};
+  ">
+    <!-- File preview area (if files selected) -->
+    {#if files && files.length > 0}
+      <div class="mb-2 p-2 rounded {$darkMode ? 'bg-gray-700' : 'bg-gray-100'}" style="font-size: var(--text-xs);">
+        <div class="flex items-center justify-between">
+          <span>📎 {files.length} file{files.length > 1 ? 's' : ''} selected</span>
+          <button
+            on:click={() => { files = null; if (fileInput) fileInput.value = ''; }}
+            class="text-red-500 hover:text-red-700 transition-colors"
+            style="background: none; border: none; cursor: pointer; padding: 2px;"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="mt-1">
+          {#each Array.from(files) as file, i}
+            <div class="truncate" style="opacity: 0.8;">
+              {file.name} ({(file.size / 1024).toFixed(1)}KB)
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+    
+    <div class="flex" style="gap: var(--space-2);">
+      <textarea
+        bind:value={messageInput}
+        on:keydown={handleKeyDown}
+        placeholder="Type your message..."
+        class="flex-1 resize-none {$darkMode ? 'bg-gray-800 text-white placeholder-gray-400' : ''}"
+        style="
+          background-color: {$darkMode ? '' : 'var(--color-base)'};
+          border: var(--border-width) solid {$darkMode ? '#4b5563' : 'var(--color-border)'};
+          color: {$darkMode ? '' : 'var(--color-text-primary)'};
+          border-radius: var(--border-radius-sm);
+          padding: var(--space-2) var(--space-2);
+          font-size: var(--text-sm);
+          line-height: 1.6;
+          min-height: 44px;
+          max-height: 120px;
+          outline: none;
+          transition: all 0.2s ease;
+        "
+        disabled={isTyping || !data.user || !memoryInitialized}
+        rows="1"
+      ></textarea>
+      
+      <!-- Hidden file input -->
+      <input
+        type="file"
+        bind:this={fileInput}
+        bind:files
+        on:change={() => files && console.log('📎 Files selected:', files)}
+        multiple
+        accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg,.gif,.json"
+        style="display: none;"
+      />
+      
+      <!-- Paperclip attachment button -->
+      <button
+        on:click={() => fileInput.click()}
+        disabled={isTyping || !data.user || !memoryInitialized || uploadingFiles}
+        class="transition-all {$darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}"
+        style="
+          background-color: transparent;
+          border: var(--border-width) solid {$darkMode ? '#4b5563' : 'var(--color-border)'};
+          border-radius: var(--border-radius-sm);
+          padding: var(--space-2);
+          font-size: var(--text-sm);
+          cursor: {isTyping || !data.user || !memoryInitialized || uploadingFiles ? 'not-allowed' : 'pointer'};
+          opacity: {isTyping || !data.user || !memoryInitialized || uploadingFiles ? '0.5' : '1'};
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+        "
+        title="Attach files"
+        aria-label="Attach files"
+      >
+        {#if uploadingFiles}
+          <div class="animate-spin">⏳</div>
+        {:else}
+          <!-- Paperclip SVG icon -->
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+          </svg>
+        {/if}
+      </button>
+      
+      <button
+        on:click={sendMessage}
+        disabled={(!messageInput.trim() && (!files || files.length === 0)) || isTyping || !data.user || !memoryInitialized}
+        class="transition-all {$darkMode ? 'text-white' : ''}"
+        style="
+          background-color: {(!messageInput.trim() && (!files || files.length === 0)) || isTyping ? $darkMode ? '#4b5563' : 'var(--color-border)' : 'var(--color-accent)'};
+          color: {(!messageInput.trim() && (!files || files.length === 0)) || isTyping ? $darkMode ? '#9ca3af' : 'var(--color-text-secondary)' : 'white'};
+          border: none;
+          border-radius: var(--border-radius-sm);
+          padding: var(--space-2) var(--space-3);
+          font-size: var(--text-sm);
+          font-weight: 500;
+          cursor: {(!messageInput.trim() && (!files || files.length === 0)) || isTyping ? 'not-allowed' : 'pointer'};
+          opacity: {(!messageInput.trim() && (!files || files.length === 0)) || isTyping ? '0.6' : '1'};
+          transform: {(!messageInput.trim() && (!files || files.length === 0)) || isTyping ? 'none' : 'translateY(0)'};
+        "
+        
+        
+      >
+        {isTyping ? 'Sending...' : 'Send'}
+      </button>
+    </div>
+    
+    <!-- Status indicators -->
+    <div class="flex justify-between items-center {$darkMode ? 'text-gray-400' : ''}" style="
+      margin-top: var(--space-2);
+      font-size: var(--text-xs);
+      color: {$darkMode ? '' : 'var(--color-text-secondary)'};
+    ">
+      <div class="flex items-center" style="gap: var(--space-2);">
+        <div class="flex items-center" style="gap: calc(var(--space-1) / 2);">
+          <span class={getMemoryStatusColor()}>●</span>
+          <span>Memory: {memoryInitialized ? 'Ready' : 'Initializing'}</span>
+        </div>
+        <div class="flex items-center" style="gap: calc(var(--space-1) / 2);">
+          <span>{getPhaseStatusIcon()}</span>
+          <span>Phase: {currentPhase}</span>
+        </div>
+        {#if solitonStats}
+          <span>🌊 {solitonStats.totalMemories || 0} memories</span>
+        {/if}
+      </div>
+      
+      <div class="flex items-center" style="gap: var(--space-2);">
+        <button
+          on:click={toggleIntentInfo}
+          class="transition-colors"
+          style="
+            color: {showIntentInfo ? 'var(--color-accent)' : 'var(--color-text-secondary)'};
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--text-xs);
+            padding: calc(var(--space-1) / 2) var(--space-1);
+          "
+          title="Toggle intent tracking info"
+        >
+          🎯 Intent
+        </button>
+        <button
+          on:click={toggleDebugPanel}
+          class="transition-colors"
+          style="
+            color: var(--color-accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--text-xs);
+            padding: calc(var(--space-1) / 2) var(--space-1);
+          "
+          
+          
+        >
+          {showDebugPanel ? '🔧 Hide Debug' : '🔧 Debug'}
+        </button>
+        <button
+          on:click={clearConversation}
+          class="transition-colors"
+          style="
+            color: var(--color-error);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--text-xs);
+            padding: calc(var(--space-1) / 2) var(--space-1);
+          "
+          
+          
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Debug Panel -->
+  {#if showDebugPanel}
+    <!-- Debug info -->
+    <div class="px-4 py-2 {$darkMode ? 'bg-gray-800' : 'bg-gray-50'}" style="
+      border-top: var(--border-width) solid {$darkMode ? '#374151' : 'var(--color-border)'};
+      font-size: var(--text-xs);
+    ">
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <strong>🗄️ Storage:</strong>
+          <button on:click={() => getStorageInfo()} class="ml-1 text-blue-500">Check</button>
+        </div>
+        <div>
+          <strong>🎯 Intents:</strong> {$intentHistory.length} tracked
+        </div>
+        <div>
+          <strong>⌨️ Prosody:</strong> {currentProsodyInsights.length} insights
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+<style>
+  textarea {
+    field-sizing: content;
+  }
+  
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+  
+  .animate-bounce {
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* ✅ Smooth scrolling behavior */
+  .flex-1.overflow-y-auto {
+    scroll-behavior: smooth;
+  }
+  
+  /* ✅ Custom scrollbar styling */
+  .flex-1.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .flex-1.overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  
+  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+</style>
+
+<!-- ?? PERSONA PANEL COMPONENT -->
+<PersonaPanel 
+  bind:showPersonaPanel={showPersonaPanel}
+  bind:showCreatePersona={showCreatePersona}
+  bind:currentPersona={currentPersona}
+  bind:availablePersonas={availablePersonas}
+  bind:newPersonaForm={newPersonaForm}
+  {switchPersona}
+  {createPersona}
+  {toggleCreatePersona}
+/>

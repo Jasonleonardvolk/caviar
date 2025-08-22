@@ -1,0 +1,19 @@
+{
+  "name": "wow.nebula",
+  "clip": "holo_flux_loop",
+  "overlays": ["EdgeGlow", "FresnelRim"],
+  "audioReactive": {
+    "enabled": true,
+    "gain": 0.9,
+    "bands": {
+      "low": 0.2,
+      "mid": 1.0,
+      "high": 1.2
+    }
+  },
+  "transitions": {
+    "fadeIn": 1.5,
+    "fadeOut": 1.0,
+    "crossfade": 2.0
+  }
+}

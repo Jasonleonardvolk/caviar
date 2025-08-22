@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".svelte-kit",
+  "framework": "sveltekit",
+  "regions": ["iad1"],
+  "functions": {
+    "src/routes/api/billing/checkout/+server.ts": {
+      "maxDuration": 10
+    },
+    "src/routes/api/billing/webhook/+server.ts": {
+      "maxDuration": 10
+    }
+  }
+}

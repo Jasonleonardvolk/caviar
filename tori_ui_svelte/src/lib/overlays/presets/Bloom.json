@@ -1,0 +1,20 @@
+{
+  "name": "Bloom",
+  "passes": [
+    {
+      "type": "threshold",
+      "t": 0.8,
+      "smooth": 0.1
+    },
+    {
+      "type": "gaussian_blur",
+      "sigma": 4.0,
+      "iterations": 3
+    },
+    {
+      "type": "add",
+      "gain": 0.8,
+      "blend": "screen"
+    }
+  ]
+}

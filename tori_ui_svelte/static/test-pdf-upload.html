@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Upload Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 800px; margin: auto; }
+        .upload-area { 
+            border: 2px dashed #ccc; 
+            padding: 40px; 
+            text-align: center; 
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover { background: #f0f0f0; }
+        .result { 
+            background: #f5f5f5; 
+            padding: 20px; 
+            margin: 20px 0; 
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .concept { 
+            background: white; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .context { 
+            color: #666; 
+            font-size: 14px; 
+            margin-top: 5px;
+            padding: 10px;
+            background: #fffef0;
+            border-left: 3px solid #ff9800;
+        }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>PDF Context Extraction Test</h1>
+    
+    <div class="upload-area" onclick="document.getElementById('file-input').click()">
+        <p>Click here or drag a PDF to upload</p>
+        <input type="file" id="file-input" accept=".pdf" style="display: none;" onchange="uploadFile(this)">
+    </div>
+    
+    <button onclick="testPythonServer()">Test Python Server</button>
+    <button onclick="checkUploadRoute()">Check Upload Route</button>
+    
+    <div id="status"></div>
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        function log(message, isError = false) {
+            const status = document.getElementById('status');
+            const div = document.createElement('div');
+            div.style.color = isError ? 'red' : 'green';
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            status.appendChild(div);
+            console.log(message);
+        }
+
+        async function testPythonServer() {
+            log('Testing Python server...');
+            try {
+                const response = await fetch('http://localhost:5000/analytics');
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Python server is running!');
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                } else {
+                    log('❌ Python server returned error: ' + response.status, true);
+                }
+            } catch (error) {
+                log('❌ Python server is not running on port 5000', true);
+                log('Run: python efficient_pdf_server.py', true);
+            }
+        }
+
+        async function checkUploadRoute() {
+            log('Checking upload route...');
+            try {
+                const response = await fetch('/upload');
+                const data = await response.json();
+                log('✅ Upload route exists!');
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                log('❌ Upload route error: ' + error.message, true);
+            }
+        }
+
+        async function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            log('Uploading ' + file.name + '...');
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    log('✅ Upload successful!');
+                    displayResults(data.document);
+                } else {
+                    log('❌ Upload failed: ' + (data.error || 'Unknown error'), true);
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                log('❌ Upload error: ' + error.message, true);
+            }
+        }
+
+        function displayResults(document) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '';
+
+            const summary = document.createElement('div');
+            summary.innerHTML = `
+                <h3>Upload Results</h3>
+                <p><strong>File:</strong> ${document.filename}</p>
+                <p><strong>Concepts found:</strong> ${document.conceptCount}</p>
+                <p><strong>Has extracted text:</strong> ${document.extractedText ? 'YES ✅' : 'NO ❌'}</p>
+            `;
+            resultDiv.appendChild(summary);
+
+            const conceptsDiv = document.createElement('div');
+            conceptsDiv.innerHTML = '<h3>Concepts with Context:</h3>';
+            
+            document.concepts.forEach((concept, i) => {
+                const conceptDiv = document.createElement('div');
+                conceptDiv.className = 'concept';
+                
+                const hasContext = concept.context || concept.metadata?.context;
+                conceptDiv.innerHTML = `
+                    <strong>${i + 1}. ${concept.name}</strong> (score: ${concept.score.toFixed(3)})
+                    ${hasContext ? 
+                        `<div class="context"><strong>Context:</strong> ${concept.context || concept.metadata?.context}</div>` : 
+                        '<div style="color: red;">❌ NO CONTEXT FOUND</div>'
+                    }
+                `;
+                conceptsDiv.appendChild(conceptDiv);
+            });
+            
+            resultDiv.appendChild(conceptsDiv);
+
+            // Also log the full response for debugging
+            console.log('Full response:', document);
+        }
+
+        // Test on load
+        window.onload = () => {
+            testPythonServer();
+        };
+    </script>
+</body>
+</html>
